@@ -1,0 +1,51 @@
+
+
+messages:
+  incoming:
+    select: [player, obj_id]
+    info: [player, obj_id]
+    play_card: [player, obj_id]
+    save: [player]
+
+  outgoing:
+    create: [obj_id, type, properties]
+    destroy: [obj_id, type, properties]
+    move: [obj_id, pos] # same as destroy + create copy
+    stat: [] # for victory points
+    message: [content]
+
+asset_types:
+  border:
+    obj_id: --int--
+    type: [Plains, Forest, Mountains, Coast, Strait, Ocean]
+  tile:
+    obj_id: --int--
+    type: [Land, Sea, Ocean]
+    owner: --nations--
+  unit:
+    obj_id: --int--
+    tile: --tiles--
+    type: --unit_types--
+    owner: [Britain, France, USA, Germany, Italy, USSR, Independent]
+    cv: --int--
+  action_card:
+    obj_id: --int--
+    wild_card: [none, Guarantee, Intimidation, Foreign Aid, ]
+    played: [true, false]
+    active_diplomacy: --independent nations--
+    passive_diplomacy: --independent nations--
+    command_value: --int--
+    command_priority: --letter--
+  investment_card:
+    obj_id: --int--
+    intelligence: --espionage--
+    factory_value: --int--
+    active_technology: --technologies--
+    passive_technology: --technologies--
+    science_year: --int--
+    science_techs: --list of techs--
+  influence:
+    obj_id: --int--
+    faction: [West, Axis, USSR]
+
+
