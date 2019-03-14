@@ -1,8 +1,8 @@
 # Triumph and Tragedy Board Game
 
-Here we aim to implement the game Triumph and Tragedy for entertainment and research.
+Here we aim to implement the game Triumph and Tragedy for entertainment and reSearch.
 
-At the moment, the backend is being implemented using Python 3. The API is designed to allow development of AI agents (using search or reinforcement learning), and to facilitate some graphical frontend. The frontend (including gui) may be implemented using JavaScript (for web) or TkInter (for desktop).
+At the moment, the backend is being implemented using Python 3. The API is designed to allow development of AI agents (using Search or reinforcement learning), and to facilitate some graphical frontend. The frontend (including gui) may be implemented using JavaScript (for web) or TkInter (for desktop).
 
 ## Note on Permissions
 

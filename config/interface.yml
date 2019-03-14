@@ -14,7 +14,7 @@ messages:
     stat: [] # for victory points
     message: [content]
 
-asset_types:
+asset_types: # and properties
   border:
     obj_id: --int--
     type: [Plains, Forest, Mountains, Coast, Strait, Ocean]
@@ -30,7 +30,8 @@ asset_types:
     cv: --int--
   action_card:
     obj_id: --int--
-    wild_card: [none, Guarantee, Intimidation, Foreign Aid, ]
+    faction: [West, Axis, USSR]
+    wild_card: [none, Guarantee, Intimidation, Foreign Aid]
     played: [true, false]
     active_diplomacy: --independent nations--
     passive_diplomacy: --independent nations--
@@ -38,6 +39,7 @@ asset_types:
     command_priority: --letter--
   investment_card:
     obj_id: --int--
+    faction: [West, Axis, USSR]
     intelligence: --espionage--
     factory_value: --int--
     active_technology: --technologies--
@@ -47,5 +49,6 @@ asset_types:
   influence:
     obj_id: --int--
     faction: [West, Axis, USSR]
+    nation: --independent nations--
 
 

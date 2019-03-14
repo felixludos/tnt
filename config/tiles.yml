@@ -18,13 +18,13 @@ Washington:
   pop: 2
   muster: 3
 Irish Sea:
-  type: sea
+  type: Sea
 North Atlantic Ocean:
-  type: ocean
+  type: Ocean
 Mid Atlantic Ocean:
-  type: ocean
+  type: Ocean
 South Atlantic Ocean:
-  type: ocean
+  type: Ocean
 Rio de Janeiro:
   type: land
   alligence: Latin America
@@ -68,7 +68,7 @@ Gibraltar:
   pop: 0
   muster: 1
 Madeira Sea:
-  type: sea
+  type: Sea
 Lisbon:
   type: land
   alligence: Portugal
@@ -100,7 +100,7 @@ Azores:
   pop: 0
   muster: 0
 Bay of Biscay:
-  type: sea
+  type: Sea
 Dublin:
   type: land
   alligence: Ireland
@@ -108,7 +108,7 @@ Dublin:
   pop: 0
   muster: 1
 Irminger Sea:
-  type: sea
+  type: Sea
 Iceland:
   type: land
   alligence: Denmark
@@ -116,15 +116,15 @@ Iceland:
   pop: 0
   muster: 0
 Greenland Sea:
-  type: sea
+  type: Sea
 Norwegian Sea:
-  type: sea
+  type: Sea
 Nordkapp Sea:
-  type: sea
+  type: Sea
 North Sea:
-  type: sea
+  type: Sea
 English Channel:
-  type: sea
+  type: Sea
 Glasgow:
   type: land
   alligence: Britain
@@ -162,7 +162,7 @@ Marseille:
   pop: 1
   muster: 2
 Western Mediterranean:
-  type: sea
+  type: Sea
 Sardinia:
   type: land
   alligence: Italy
@@ -170,7 +170,7 @@ Sardinia:
   pop: 0
   muster: 0
 Tyrrhenian Sea:
-  type: sea
+  type: Sea
 Malta:
   type: land
   alligence: Malta
@@ -184,9 +184,9 @@ Sicily:
   pop: 0
   muster: 0
 Central Mediterranean:
-  type: sea
+  type: Sea
 Adriatic Sea:
-  type: sea
+  type: Sea
 Milan:
   type: land
   alligence: Italy
@@ -308,13 +308,13 @@ Helsinki:
   pop: 0
   muster: 1
 Barents Sea:
-  type: sea
+  type: Sea
 White Sea:
-  type: sea
+  type: Sea
 Gulf of Bothnia:
-  type: sea
+  type: Sea
 Baltic Sea:
-  type: sea
+  type: Sea
 Riga:
   type: land
   alligence: Baltic States
@@ -394,11 +394,11 @@ Sofia:
   pop: 0
   muster: 1
 Aegean Sea:
-  type: sea
+  type: Sea
 Crete:
-  type: sea
+  type: Sea
 Eastern Mediterranean:
-  type: sea
+  type: Sea
 Egypt:
   type: land
   alligence: Middle East
@@ -437,17 +437,17 @@ Damascus:
   pop: 0
   muster: 1
 Red Sea:
-  type: sea
+  type: Sea
 Gulf of Aden:
-  type: sea
+  type: Sea
 West Indian Ocean:
-  type: sea
+  type: Sea
 East Indian Ocean:
-  type: sea
+  type: Sea
 Arabian Sea:
-  type: sea
+  type: Sea
 Persian Gulf:
-  type: sea
+  type: Sea
 Bombay:
   type: land
   alligence: India
@@ -537,15 +537,15 @@ Istanbul:
   pop: 1
   muster: 2
 Southern Caspian Sea:
-  type: sea
+  type: Sea
 Northern Caspian Sea:
-  type: sea
+  type: Sea
 Eastern Black Sea:
-  type: sea
+  type: Sea
 Western Black Sea:
-  type: sea
+  type: Sea
 Sea of Azov:
-  type: sea
+  type: Sea
 Murmansk:
   type: land
   alligence: USSR

@@ -1,954 +1,954 @@
 - tile1: Ottawa
   tile2: North Atlantic Ocean
-  type:  coast
+  type:  Coast
 - tile1: Ottawa
   tile2: New York
-  type:  forest
+  type:  Forest
 - tile1: New York
   tile2: North Atlantic Ocean
-  type:  coast
+  type:  Coast
 - tile1: New York
   tile2: Washington
-  type:  plains
+  type:  Plains
 - tile1: Washington
   tile2: North Atlantic Ocean
-  type:  coast
+  type:  Coast
 - tile1: Irminger Sea
   tile2: North Atlantic Ocean
-  type:  ocean
+  type:  Ocean
 - tile1: Irminger Sea
   tile2: Irish Sea
-  type:  sea
+  type:  Sea
 - tile1: Irminger Sea
   tile2: Iceland
-  type:  coast
+  type:  Coast
 - tile1: Irminger Sea
   tile2: Greenland Sea
-  type:  sea
+  type:  Sea
 - tile1: North Atlantic Ocean
   tile2: Irish Sea
-  type:  ocean
+  type:  Ocean
 - tile1: North Atlantic Ocean
   tile2: Bay of Biscay
-  type:  ocean
+  type:  Ocean
 - tile1: North Atlantic Ocean
   tile2: Azores
-  type:  strait
+  type:  Strait
 - tile1: North Atlantic Ocean
   tile2: Mid Atlantic Ocean
-  type:  ocean
+  type:  Ocean
 - tile1: Mid Atlantic Ocean
   tile2: Azores
-  type:  strait
+  type:  Strait
 - tile1: Mid Atlantic Ocean
   tile2: South Atlantic Ocean
-  type:  ocean
+  type:  Ocean
 - tile1: South Atlantic Ocean
   tile2: Rio de Janeiro
-  type:  coast
+  type:  Coast
 - tile1: Rio de Janeiro
   tile2: Mid Atlantic Ocean
-  type:  coast
+  type:  Coast
 - tile1: Mid Atlantic Ocean
   tile2: Madeira Sea
-  type:  ocean
+  type:  Ocean
 - tile1: Bay of Biscay
   tile2: Madeira Sea
-  type:  sea
+  type:  Sea
 - tile1: Madeira Sea
   tile2: Azores
-  type:  strait
+  type:  Strait
 - tile1: Bay of Biscay
   tile2: Azores
-  type:  strait
+  type:  Strait
 - tile1: Bay of Biscay
   tile2: Irish Sea
-  type:  sea
+  type:  Sea
 - tile1: Greenland Sea
   tile2: Norwegian Sea
-  type:  sea
+  type:  Sea
 - tile1: Norwegian Sea
   tile2: Irish Sea
-  type:  sea
+  type:  Sea
 - tile1: Dakar
   tile2: South Atlantic Ocean
-  type:  coast
+  type:  Coast
 - tile1: Mid Atlantic Ocean
   tile2: Dakar
-  type:  coast
+  type:  Coast
 - tile1: Mid Atlantic Ocean
   tile2: Morocco
-  type:  coast
+  type:  Coast
 - tile1: Dakar
   tile2: Morocco
-  type:  plains
+  type:  Plains
 - tile1: Madeira Sea
   tile2: Morocco
-  type:  coast
+  type:  Coast
 - tile1: Irish Sea
   tile2: English Channel
-  type:  sea
+  type:  Sea
 - tile1: English Channel
   tile2: Bay of Biscay
-  type:  sea
+  type:  Sea
 - tile1: Gibraltar
   tile2: Madeira Sea
-  type:  strait
+  type:  Strait
 - tile1: Morocco
   tile2: Gibraltar
-  type:  strait
+  type:  Strait
 - tile1: Gibraltar
   tile2: Algiers
-  type:  strait
+  type:  Strait
 - tile1: Morocco
   tile2: Algiers
-  type:  mountains
+  type:  Mountains
 - tile1: Gibraltar
   tile2: Madrid
-  type:  strait
+  type:  Strait
 - tile1: Gibraltar
   tile2: Western Mediterranean
-  type:  strait
+  type:  Strait
 - tile1: Gibraltar
   tile2: Barcelona
-  type:  strait
+  type:  Strait
 - tile1: Madrid
   tile2: Lisbon
-  type:  plains
+  type:  Plains
 - tile1: Lisbon
   tile2: Madeira Sea
-  type:  coast
+  type:  Coast
 - tile1: Lisbon
   tile2: Leon
-  type:  plains
+  type:  Plains
 - tile1: Leon
   tile2: Madeira Sea
-  type:  coast
+  type:  Coast
 - tile1: Leon
   tile2: Bay of Biscay
-  type:  coast
+  type:  Coast
 - tile1: Leon
   tile2: Madrid
-  type:  coast
+  type:  Coast
 - tile1: Madrid
   tile2: Barcelona
-  type:  plains
+  type:  Plains
 - tile1: Leon
   tile2: Barcelona
-  type:  plains
+  type:  Plains
 - tile1: Algiers
   tile2: Tunisia
-  type:  mountains
+  type:  Mountains
 - tile1: Algiers
   tile2: Western Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Western Mediterranean
   tile2: Barcelona
-  type:  coast
+  type:  Coast
 - tile1: Western Mediterranean
   tile2: Tunisia
-  type:  coast
+  type:  Coast
 - tile1: Western Mediterranean
   tile2: Sardinia
-  type:  coast
+  type:  Coast
 - tile1: Tunisia
   tile2: Sfax
-  type:  mountains
+  type:  Mountains
 - tile1: Sfax
   tile2: Tripoli
-  type:  mountains
+  type:  Mountains
 - tile1: Tunisia
   tile2: Malta
-  type:  strait
+  type:  Strait
 - tile1: Sfax
   tile2: Malta
-  type:  strait
+  type:  Strait
 - tile1: Western Mediterranean
   tile2: Tyrrhenian Sea
-  type:  sea
+  type:  Sea
 - tile1: Sardinia
   tile2: Tyrrhenian Sea
-  type:  coast
+  type:  Coast
 - tile1: Tyrrhenian Sea
   tile2: Malta
-  type:  strait
+  type:  Strait
 - tile1: Central Mediterranean
   tile2: Malta
-  type:  strait
+  type:  Strait
 - tile1: Sicily
   tile2: Malta
-  type:  strait
+  type:  Strait
 - tile1: Tyrrhenian Sea
   tile2: Sicily
-  type:  strait
+  type:  Strait
 - tile1: Sicily
   tile2: Central Mediterranean
-  type:  strait
+  type:  Strait
 - tile1: Sicily
   tile2: Rome
-  type:  strait
+  type:  Strait
 - tile1: Taranto
   tile2: Sicily
-  type:  strait
+  type:  Strait
 - tile1: Rome
   tile2: Tyrrhenian Sea
-  type:  coast
+  type:  Coast
 - tile1: Milan
   tile2: Tyrrhenian Sea
-  type:  coast
+  type:  Coast
 - tile1: Milan
   tile2: Rome
-  type:  mountains
+  type:  Mountains
 - tile1: Milan
   tile2: Western Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Milan
   tile2: Tyrrhenian Sea
-  type:  coast
+  type:  Coast
 - tile1: Leon
   tile2: Gascony
-  type:  mountains
+  type:  Mountains
 - tile1: Gascony
   tile2: Barcelona
-  type:  mountains
+  type:  Mountains
 - tile1: Marseille
   tile2: Barcelona
-  type:  mountains
+  type:  Mountains
 - tile1: Marseille
   tile2: Western Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Milan
   tile2: Venice
-  type:  plains
+  type:  Plains
 - tile1: Rome
   tile2: Venice
-  type:  mountains
+  type:  Mountains
 - tile1: Rome
   tile2: Taranto
-  type:  mountains
+  type:  Mountains
 - tile1: Taranto
   tile2: Venice
-  type:  mountains
+  type:  Mountains
 - tile1: Taranto
   tile2: Central Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Central Mediterranean
   tile2: Adriatic Sea
-  type:  sea
+  type:  Sea
 - tile1: Venice
   tile2: Adriatic Sea
-  type:  sea
+  type:  Sea
 - tile1: Adriatic Sea
   tile2: Taranto
-  type:  sea
+  type:  Sea
 - tile1: Tripoli
   tile2: Central Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Cyrenaica
   tile2: Central Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Tripoli
   tile2: Cyrenaica
-  type:  plains
+  type:  Plains
 - tile1: Adriatic Sea
   tile2: Croatia
-  type:  coast
+  type:  Coast
 - tile1: Albania
   tile2: Adriatic Sea
-  type:  coast
+  type:  Coast
 - tile1: Albania
   tile2: Central Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Central Mediterranean
   tile2: Eastern Mediterranean
-  type:  sea
+  type:  Sea
 - tile1: Central Mediterranean
   tile2: Aegean Sea
-  type:  sea
+  type:  Sea
 - tile1: Central Mediterranean
   tile2: Athens
-  type:  coast
+  type:  Coast
 - tile1: Crete
   tile2: Central Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Aegean Sea
   tile2: Crete
-  type:  coast
+  type:  Coast
 - tile1: Cyrenaica
   tile2: Eastern Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Cyrenaica
   tile2: Egypt
-  type:  plains
+  type:  Plains
 - tile1: Aegean Sea
   tile2: Eastern Mediterranean
-  type:  sea
+  type:  Sea
 - tile1: Crete
   tile2: Eastern Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Egypt
   tile2: Suez
-  type:  strait
+  type:  Strait
 - tile1: Suez
   tile2: Eastern Mediterranean
-  type:  strait
+  type:  Strait
 - tile1: Suez
   tile2: Sudan
-  type:  strait
+  type:  Strait
 - tile1: Suez
   tile2: Jordan
-  type:  strait
+  type:  Strait
 - tile1: Suez
   tile2: Red Sea
-  type:  strait
+  type:  Strait
 - tile1: Eastern Mediterranean
   tile2: Jordan
-  type:  coast
+  type:  Coast
 - tile1: Damascus
   tile2: Eastern Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Sudan
   tile2: Red Sea
-  type:  coast
+  type:  Coast
 - tile1: Eastern Mediterranean
   tile2: Egypt
-  type:  coast
+  type:  Coast
 - tile1: Red Sea
   tile2: Gulf of Aden
-  type:  sea
+  type:  Sea
 - tile1: Gulf of Aden
   tile2: Arabian Sea
-  type:  sea
+  type:  Sea
 - tile1: Gulf of Aden
   tile2: West Indian Ocean
-  type:  ocean
+  type:  Ocean
 - tile1: Arabian Sea
   tile2: West Indian Ocean
-  type:  ocean
+  type:  Ocean
 - tile1: Persian Gulf
   tile2: Arabian Sea
-  type:  sea
+  type:  Sea
 - tile1: Arabian Sea
   tile2: East Indian Ocean
-  type:  ocean
+  type:  Ocean
 - tile1: East Indian Ocean
   tile2: West Indian Ocean
-  type:  ocean
+  type:  Ocean
 - tile1: Arabian Sea
   tile2: Bombay
-  type:  coast
+  type:  Coast
 - tile1: East Indian Ocean
   tile2: Bombay
-  type:  coast
+  type:  Coast
 - tile1: Delhi
   tile2: East Indian Ocean
-  type:  coast
+  type:  Coast
 - tile1: Karachi
   tile2: Arabian Sea
-  type:  coast
+  type:  Coast
 - tile1: Bombay
   tile2: Karachi
-  type:  plains
+  type:  Plains
 - tile1: Delhi
   tile2: Bombay
-  type:  plains
+  type:  Plains
 - tile1: Delhi
   tile2: Karachi
-  type:  plains
+  type:  Plains
 - tile1: Persian Gulf
   tile2: Shiraz
-  type:  coast
+  type:  Coast
 - tile1: Shiraz
   tile2: Arabian Sea
-  type:  coast
+  type:  Coast
 - tile1: Kabul
   tile2: Karachi
-  type:  mountains
+  type:  Mountains
 - tile1: Shiraz
   tile2: Karachi
-  type:  mountains
+  type:  Mountains
 - tile1: Shiraz
   tile2: Kabul
-  type:  mountains
+  type:  Mountains
 - tile1: Abadan
   tile2: Persian Gulf
-  type:  coast
+  type:  Coast
 - tile1: Abadan
   tile2: Shiraz
-  type:  mountains
+  type:  Mountains
 - tile1: Iraq
   tile2: Persian Gulf
-  type:  coast
+  type:  Coast
 - tile1: Jordan
   tile2: Damascus
-  type:  plains
+  type:  Plains
 - tile1: Damascus
   tile2: Iraq
-  type:  plains
+  type:  Plains
 - tile1: Iraq
   tile2: Jordan
-  type:  plains
+  type:  Plains
 - tile1: Iraq
   tile2: Abadan
-  type:  plains
+  type:  Plains
 - tile1: Shiraz
   tile2: Tehran
-  type:  mountains
+  type:  Mountains
 - tile1: Abadan
   tile2: Tehran
-  type:  mountains
+  type:  Mountains
 - tile1: Kabul
   tile2: Tehran
-  type:  mountains
+  type:  Mountains
 - tile1: Tabriz
   tile2: Abadan
-  type:  mountains
+  type:  Mountains
 - tile1: Tabriz
   tile2: Tehran
-  type:  mountains
+  type:  Mountains
 - tile1: Turkmenistan
   tile2: Kabul
-  type:  mountains
+  type:  Mountains
 - tile1: Turkmenistan
   tile2: Tehran
-  type:  mountains
+  type:  Mountains
 - tile1: Tehran
   tile2: Southern Caspian Sea
-  type:  coast
+  type:  Coast
 - tile1: Southern Caspian Sea
   tile2: Tabriz
-  type:  coast
+  type:  Coast
 - tile1: Baku
   tile2: Tabriz
-  type:  mountains
+  type:  Mountains
 - tile1: Kars
   tile2: Tabriz
-  type:  mountains
+  type:  Mountains
 - tile1: Turkmenistan
   tile2: Southern Caspian Sea
-  type:  coast
+  type:  Coast
 - tile1: Baku
   tile2: Southern Caspian Sea
-  type:  coast
+  type:  Coast
 - tile1: Baku
   tile2: Georgia
-  type:  plains
+  type:  Plains
 - tile1: Georgia
   tile2: Tabriz
-  type:  mountains
+  type:  Mountains
 - tile1: Northern Caspian Sea
   tile2: Southern Caspian Sea
-  type:  sea
+  type:  Sea
 - tile1: Turkmenistan
   tile2: Northern Caspian Sea
-  type:  coast
+  type:  Coast
 - tile1: Turkmenistan
   tile2: Kazakhstan
-  type:  plains
+  type:  Plains
 - tile1: Baku
   tile2: Northern Caspian Sea
-  type:  coast
+  type:  Coast
 - tile1: Baku
   tile2: Grozny
-  type:  mountains
+  type:  Mountains
 - tile1: Northern Caspian Sea
   tile2: Kazakhstan
-  type:  coast
+  type:  Coast
 - tile1: Grozny
   tile2: Northern Caspian Sea
-  type:  coast
+  type:  Coast
 - tile1: Grozny
   tile2: Georgia
-  type:  mountains
+  type:  Mountains
 - tile1: Georgia
   tile2: Kuban
-  type:  mountains
+  type:  Mountains
 - tile1: Grozny
   tile2: Kuban
-  type:  plains
+  type:  Plains
 - tile1: Georgia
   tile2: Kars
-  type:  mountains
+  type:  Mountains
 - tile1: Eastern Black Sea
   tile2: Kars
-  type:  coast
+  type:  Coast
 - tile1: Georgia
   tile2: Eastern Black Sea
-  type:  coast
+  type:  Coast
 - tile1: Kars
   tile2: Sinope
-  type:  mountains
+  type:  Mountains
 - tile1: Kars
   tile2: Adana
-  type:  mountains
+  type:  Mountains
 - tile1: Sinope
   tile2: Adana
-  type:  mountains
+  type:  Mountains
 - tile1: Ankara
   tile2: Sinope
-  type:  mountains
+  type:  Mountains
 - tile1: Sinope
   tile2: Eastern Black Sea
-  type:  coast
+  type:  Coast
 - tile1: Damascus
   tile2: Adana
-  type:  plains
+  type:  Plains
 - tile1: Adana
   tile2: Eastern Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Ankara
   tile2: Adana
-  type:  mountains
+  type:  Mountains
 - tile1: Adana
   tile2: Izmir
-  type:  mountains
+  type:  Mountains
 - tile1: Ankara
   tile2: Izmir
-  type:  mountains
+  type:  Mountains
 - tile1: Izmir
   tile2: Eastern Mediterranean
-  type:  coast
+  type:  Coast
 - tile1: Izmir
   tile2: Aegean Sea
-  type:  coast
+  type:  Coast
 - tile1: Izmir
   tile2: Istanbul
-  type:  strait
+  type:  Strait
 - tile1: Istanbul
   tile2: Ankara
-  type:  strait
+  type:  Strait
 - tile1: Istanbul
   tile2: Aegean Sea
-  type:  strait
+  type:  Strait
 - tile1: Istanbul
   tile2: Western Black Sea
-  type:  strait
+  type:  Strait
 - tile1: Eastern Black Sea
   tile2: Western Black Sea
-  type:  sea
+  type:  Sea
 - tile1: Ankara
   tile2: Western Black Sea
-  type:  coast
+  type:  Coast
 - tile1: Sevastopol
   tile2: Western Black Sea
-  type:  strait
+  type:  Strait
 - tile1: Sevastopol
   tile2: Eastern Black Sea
-  type:  strait
+  type:  Strait
 - tile1: Kuban
   tile2: Eastern Black Sea
-  type:  coast
+  type:  Coast
 - tile1: Sevastopol
   tile2: Sea of Azov
-  type:  strait
+  type:  Strait
 - tile1: Kuban
   tile2: Sea of Azov
-  type:  coast
+  type:  Coast
 - tile1: Sevastopol
   tile2: Kuban
-  type:  strait
+  type:  Strait
 - tile1: Kharkov
   tile2: Sea of Azov
-  type:  coast
+  type:  Coast
 - tile1: Sevastopol
   tile2: Kharkov
-  type:  strait
+  type:  Strait
 - tile1: Kharkov
   tile2: Odessa
-  type:  river
+  type:  River
 - tile1: Odessa
   tile2: Western Black Sea
-  type:  coast
+  type:  Coast
 - tile1: Sevastopol
   tile2: Odessa
-  type:  strait
+  type:  Strait
 - tile1: Kiev
   tile2: Odessa
-  type:  plains
+  type:  Plains
 - tile1: Kharkov
   tile2: Kiev
-  type:  river
+  type:  River
 - tile1: Kharkov
   tile2: Kuban
-  type:  river
+  type:  River
 - tile1: Stalingrad
   tile2: Kuban
-  type:  plains
+  type:  Plains
 - tile1: Stalingrad
   tile2: Grozny
-  type:  plains
+  type:  Plains
 - tile1: Grozny
   tile2: Ufa
-  type:  river
+  type:  River
 - tile1: Stalingrad
   tile2: Ufa
-  type:  river
+  type:  River
 - tile1: Voronezh
   tile2: Stalingrad
-  type:  plains
+  type:  Plains
 - tile1: Kharkov
   tile2: Stalingrad
-  type:  river
+  type:  River
 - tile1: Voronezh
   tile2: Kharkov
-  type:  river
+  type:  River
 - tile1: Kharkov
   tile2: Bryansk
-  type:  plains
+  type:  Plains
 - tile1: Voronezh
   tile2: Bryansk
-  type:  plains
+  type:  Plains
 - tile1: Ufa
   tile2: Northern Caspian Sea
-  type:  coast
+  type:  Coast
 - tile1: Kazakhstan
   tile2: Ufa
-  type:  plains
+  type:  Plains
 - tile1: Voronezh
   tile2: Ufa
-  type:  river
+  type:  River
 - tile1: Bryansk
   tile2: Voronezh
-  type:  plains
+  type:  Plains
 - tile1: Belorussia
   tile2: Bryansk
-  type:  plains
+  type:  Plains
 - tile1: Voronezh
   tile2: Moscow
-  type:  plains
+  type:  Plains
 - tile1: Penza
   tile2: Voronezh
-  type:  forest
+  type:  Forest
 - tile1: Ufa
   tile2: Penza
-  type:  river
+  type:  River
 - tile1: Moscow
   tile2: Penza
-  type:  plains
+  type:  Plains
 - tile1: Moscow
   tile2: Bryansk
-  type:  forest
+  type:  Forest
 - tile1: Bryansk
   tile2: Kiev
-  type:  river
+  type:  River
 - tile1: Leningrad
   tile2: Bryansk
-  type:  forest
+  type:  Forest
 - tile1: Leningrad
   tile2: Belorussia
-  type:  forest
+  type:  Forest
 - tile1: Moscow
   tile2: Leningrad
-  type:  forest
+  type:  Forest
 - tile1: Gorky
   tile2: Moscow
-  type:  river
+  type:  River
 - tile1: Gorky
   tile2: Penza
-  type:  river
+  type:  River
 - tile1: Perm
   tile2: Penza
-  type:  river
+  type:  River
 - tile1: Perm
   tile2: Ufa
-  type:  plains
+  type:  Plains
 - tile1: Vologda
   tile2: Moscow
-  type:  forest
+  type:  Forest
 - tile1: Western Siberia
   tile2: Kazakhstan
-  type:  plains
+  type:  Plains
 - tile1: Urals
   tile2: Kazakhstan
-  type:  mountains
+  type:  Mountains
 - tile1: Urals
   tile2: Western Siberia
-  type:  plains
+  type:  Plains
 - tile1: Ufa
   tile2: Urals
-  type:  mountains
+  type:  Mountains
 - tile1: Urals
   tile2: Perm
-  type:  mountains
+  type:  Mountains
 - tile1: Perm
   tile2: Gorky
-  type:  forest
+  type:  Forest
 - tile1: Gorky
   tile2: Vologda
-  type:  forest
+  type:  Forest
 - tile1: Leningrad
   tile2: Vologda
-  type:  forest
+  type:  Forest
 - tile1: Archangel
   tile2: Vologda
-  type:  forest
+  type:  Forest
 - tile1: Archangel
   tile2: Leningrad
-  type:  forest
+  type:  Forest
 - tile1: Archangel
   tile2: Murmansk
-  type:  forest
+  type:  Forest
 - tile1: Murmansk
   tile2: Leningrad
-  type:  forest
+  type:  Forest
 - tile1: Helsinki
   tile2: Leningrad
-  type:  forest
+  type:  Forest
 - tile1: Archangel
   tile2: White Sea
-  type:  coast
+  type:  Coast
 - tile1: Murmansk
   tile2: White Sea
-  type:  coast
+  type:  Coast
 - tile1: Barents Sea
   tile2: Murmansk
-  type:  coast
+  type:  Coast
 - tile1: White Sea
   tile2: Barents Sea
-  type:  sea
+  type:  Sea
 - tile1: Murmansk
   tile2: Helsinki
-  type:  forest
+  type:  Forest
 - tile1: Petsamo
   tile2: Murmansk
-  type:  forest
+  type:  Forest
 - tile1: Helsinki
   tile2: Petsamo
-  type:  forest
+  type:  Forest
 - tile1: Narvik
   tile2: Petsamo
-  type:  mountains
+  type:  Mountains
 - tile1: Gulf of Bothnia
   tile2: Helsinki
-  type:  coast
+  type:  Coast
 - tile1: Leningrad
   tile2: Gulf of Bothnia
-  type:  coast
+  type:  Coast
 - tile1: Leningrad
   tile2: Riga
-  type:  forest
+  type:  Forest
 - tile1: Gallivare
   tile2: Helsinki
-  type:  forest
+  type:  Forest
 - tile1: Petsamo
   tile2: Gallivare
-  type:  forest
+  type:  Forest
 - tile1: Barents Sea
   tile2: Narvik
-  type:  coast
+  type:  Coast
 - tile1: Nordkapp Sea
   tile2: Barents Sea
-  type:  sea
+  type:  Sea
 - tile1: Gallivare
   tile2: Narvik
-  type:  mountains
+  type:  Mountains
 - tile1: Gallivare
   tile2: Oslo
-  type:  mountains
+  type:  Mountains
 - tile1: Gallivare
   tile2: Stockholm
-  type:  forest
+  type:  Forest
 - tile1: Gallivare
   tile2: Gulf of Bothnia
-  type:  coast
+  type:  Coast
 - tile1: Stockholm
   tile2: Gulf of Bothnia
-  type:  coast
+  type:  Coast
 - tile1: Riga
   tile2: Gulf of Bothnia
-  type:  coast
+  type:  Coast
 - tile1: Gulf of Bothnia
   tile2: Baltic Sea
-  type:  sea
+  type:  Sea
 - tile1: Baltic Sea
   tile2: Riga
-  type:  coast
+  type:  Coast
 - tile1: Stockholm
   tile2: Baltic Sea
-  type:  coast
+  type:  Coast
 - tile1: Oslo
   tile2: Stockholm
-  type:  forest
+  type:  Forest
 - tile1: Narvik
   tile2: Oslo
-  type:  mountains
+  type:  Mountains
 - tile1: Narvik
   tile2: Nordkapp Sea
-  type:  coast
+  type:  Coast
 - tile1: Oslo
   tile2: Nordkapp Sea
-  type:  coast
+  type:  Coast
 - tile1: Riga
   tile2: Belorussia
-  type:  plains
+  type:  Plains
 - tile1: Vilna
   tile2: Belorussia
-  type:  plains
+  type:  Plains
 - tile1: Riga
   tile2: Vilna
-  type:  plains
+  type:  Plains
 - tile1: Riga
   tile2: Konigsberg
-  type:  plains
+  type:  Plains
 - tile1: Vilna
   tile2: Konigsberg
-  type:  forest
+  type:  Forest
 - tile1: Baltic Sea
   tile2: Konigsberg
-  type:  coast
+  type:  Coast
 - tile1: Warsaw
   tile2: Baltic Sea
-  type:  coast
+  type:  Coast
 - tile1: Konigsberg
   tile2: Warsaw
-  type:  river
+  type:  River
 - tile1: Stockholm
   tile2: Copenhagen
-  type:  strait
+  type:  Strait
 - tile1: Baltic Sea
   tile2: Copenhagen
-  type:  strait
+  type:  Strait
 - tile1: Nordkapp Sea
   tile2: Norwegian Sea
-  type:  sea
+  type:  Sea
 - tile1: Greenland Sea
   tile2: Nordkapp Sea
-  type:  sea
+  type:  Sea
 - tile1: Oslo
   tile2: Norwegian Sea
-  type:  coast
+  type:  Coast
 - tile1: Copenhagen
   tile2: Oslo
-  type:  strait
+  type:  Strait
 - tile1: North Sea
   tile2: Copenhagen
-  type:  strait
+  type:  Strait
 - tile1: Copenhagen
   tile2: Ruhr
-  type:  strait
+  type:  Strait
 - tile1: Baltic Sea
   tile2: Berlin
-  type:  coast
+  type:  Coast
 - tile1: Baltic Sea
   tile2: Ruhr
-  type:  coast
+  type:  Coast
 - tile1: Oslo
   tile2: North Sea
-  type:  coast
+  type:  Coast
 - tile1: Ruhr
   tile2: North Sea
-  type:  coast
+  type:  Coast
 - tile1: North Sea
   tile2: Norwegian Sea
-  type:  sea
+  type:  Sea
 - tile1: Lvov
   tile2: Vilna
-  type:  plains
+  type:  Plains
 - tile1: Kiev
   tile2: Lvov
-  type:  plains
+  type:  Plains
 - tile1: Odessa
   tile2: Lvov
-  type:  plains
+  type:  Plains
 - tile1: Vilna
   tile2: Warsaw
-  type:  river
+  type:  River
 - tile1: Warsaw
   tile2: Lvov
-  type:  river
+  type:  River
 - tile1: Warsaw
   tile2: Berlin
-  type:  river
+  type:  River
 - tile1: Berlin
   tile2: Ruhr
-  type:  plains
+  type:  Plains
 - tile1: Lvov
   tile2: Prague
-  type:  mountains
+  type:  Mountains
 - tile1: Lvov
   tile2: Budapest
-  type:  mountains
+  type:  Mountains
 - tile1: Lvov
   tile2: Bucharest
-  type:  river
+  type:  River
 - tile1: Odessa
   tile2: Bucharest
-  type:  river
+  type:  River
 - tile1: Prague
   tile2: Warsaw
-  type:  forest
+  type:  Forest
 - tile1: Prague
   tile2: Berlin
-  type:  forest
+  type:  Forest
 - tile1: Berlin
   tile2: Munich
-  type:  plains
+  type:  Plains
 - tile1: Ruhr
   tile2: Munich
-  type:  plains
+  type:  Plains
 - tile1: Munich
   tile2: Prague
-  type:  forest
+  type:  Forest
 - tile1: Prague
   tile2: Budapest
-  type:  mountains
+  type:  Mountains
 - tile1: Prague
   tile2: Vienna
-  type:  plains
+  type:  Plains
 - tile1: Munich
   tile2: Vienna
-  type:  plains
+  type:  Plains
 - tile1: Amsterdam
   tile2: Ruhr
-  type:  river
+  type:  River
 - tile1: Amsterdam
   tile2: Munich
-  type:  river
+  type:  River
 - tile1: Munich
   tile2: Lorraine
-  type:  river
+  type:  River
 - tile1: North Sea
   tile2: Amsterdam
-  type:  sea
+  type:  Sea
 - tile1: Norwegian Sea
   tile2: Glasgow
-  type:  coast
+  type:  Coast
 - tile1: North Sea
   tile2: Glasgow
-  type:  coast
+  type:  Coast
 - tile1: North Sea
   tile2: London
-  type:  coast
+  type:  Coast
 - tile1: North Sea
   tile2: English Channel
-  type:  sea
+  type:  Sea
 - tile1: London
   tile2: English Channel
-  type:  coast
+  type:  Coast
 - tile1: Irish Sea
   tile2: London
-  type:  coast
+  type:  Coast
 - tile1: Glasgow
   tile2: London
-  type:  mountains
+  type:  Mountains
 - tile1: Glasgow
   tile2: Irish Sea
-  type:  coast
+  type:  Coast
 - tile1: Dublin
   tile2: Irish Sea
-  type:  coast
+  type:  Coast
 - tile1: Greenland Sea
   tile2: Iceland
-  type:  coast
+  type:  Coast
 - tile1: Norwegian Sea
   tile2: Iceland
-  type:  coast
+  type:  Coast
 - tile1: Iceland
   tile2: Irish Sea
-  type:  coast
+  type:  Coast
 - tile1: Paris
   tile2: English Channel
-  type:  coast
+  type:  Coast
 - tile1: Bay of Biscay
   tile2: Paris
   type:  coast
@@ -957,70 +957,70 @@
   type:  coast
 - tile1: Paris
   tile2: Gascony
-  type:  plains
+  type:  Plains
 - tile1: Paris
   tile2: Lorraine
-  type:  plains
+  type:  Plains
 - tile1: Amsterdam
   tile2: Paris
-  type:  plains
+  type:  Plains
 - tile1: Amsterdam
   tile2: Lorraine
-  type:  forest
+  type:  Forest
 - tile1: Gascony
   tile2: Lorraine
-  type:  plains
+  type:  Plains
 - tile1: Gascony
   tile2: Marseille
-  type:  plains
+  type:  Plains
 - tile1: Lorraine
   tile2: Marseille
-  type:  plains
+  type:  Plains
 - tile1: North Sea
   tile2: Paris
   type:  coast
 - tile1: Milan
   tile2: Marseille
-  type:  mountains
+  type:  Mountains
 - tile1: Vienna
   tile2: Venice
-  type:  mountains
+  type:  Mountains
 - tile1: Vienna
   tile2: Croatia
-  type:  mountains
+  type:  Mountains
 - tile1: Croatia
   tile2: Venice
-  type:  mountains
+  type:  Mountains
 - tile1: Budapest
   tile2: Croatia
-  type:  plains
+  type:  Plains
 - tile1: Croatia
   tile2: Belgrade
-  type:  forest
+  type:  Forest
 - tile1: Budapest
   tile2: Belgrade
-  type:  plains
+  type:  Plains
 - tile1: Budapest
   tile2: Vienna
-  type:  plains
+  type:  Plains
 - tile1: Budapest
   tile2: Bucharest
-  type:  mountains
+  type:  Mountains
 - tile1: Croatia
   tile2: Albania
-  type:  mountains
+  type:  Mountains
 - tile1: Belgrade
   tile2: Albania
-  type:  mountains
+  type:  Mountains
 - tile1: Bucharest
   tile2: Belgrade
-  type:  river
+  type:  River
 - tile1: Belgrade
   tile2: Sofia
-  type:  mountains
+  type:  Mountains
 - tile1: Bucharest
   tile2: Sofia
-  type:  river
+  type:  River
 - tile1: Bucharest
   tile2: Western Black Sea
   type:  coast
@@ -1029,19 +1029,19 @@
   type:  coast
 - tile1: Sofia
   tile2: Istanbul
-  type:  strait
+  type:  Strait
 - tile1: Athens
   tile2: Istanbul
-  type:  strait
+  type:  Strait
 - tile1: Sofia
   tile2: Athens
-  type:  mountains
+  type:  Mountains
 - tile1: Belgrade
   tile2: Athens
-  type:  mountains
+  type:  Mountains
 - tile1: Albania
   tile2: Athens
-  type:  mountains
+  type:  Mountains
 - tile1: Athens
   tile2: Aegean Sea
   type:  coast
