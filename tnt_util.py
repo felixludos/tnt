@@ -73,14 +73,16 @@ class xdict(dict):
         return super().__getitem__(key)
     def __setattr__(self, key, value):
         return super().__setitem__(key, value)
-    def __missing__(self, key):
-        return None
+    # def __missing__(self, key):
+    #     return None
     def __eq__(self, other):
         return self._id == other._id
     def __hash__(self):
         return self._id
     def __iter__(self):
         return iter(self.keys())
+    def __delattr__(self, item):
+        return super().__delitem__(item)
     def copy(self):
         return xdict((k,v) for k,v in self.items())
     def keys(self):
@@ -139,8 +141,6 @@ def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
         tiles[n2].borders[n1] = t
         
     G.tiles = tiles
-    
-    
     
     return G
 

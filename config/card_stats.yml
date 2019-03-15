@@ -3,6 +3,7 @@
 action_cards:
   seasons:
     spring:
+      num_wildcards: 3
       count: 15
       priorities: [A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P]
       commands:
@@ -10,6 +11,7 @@ action_cards:
         5: 6
         6: 3
     summer:
+      num_wildcards: 6
       count: 25
       priorities: [A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z]
       commands:
@@ -19,6 +21,7 @@ action_cards:
         9: 6
         10: 3
     fall:
+      num_wildcards: 3
       count: 15
       priorities: [A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P]
       commands:
@@ -139,54 +142,63 @@ investment_cards:
 
   technologies:
     Atomic Research 4:
-      count: 3
+      count: 2
       effect: Implosion trigger - wins game
     Atomic Research 3:
-      count: 4
+      count: 3
       effect: Plutonium - allows step 4
     Atomic Research 2:
-      count: 4
+      count: 3
       effect: Breeder Reactor - allows step 3
     Atomic Research 1:
-      count: 6
+      count: 5
       effect: Atomic Pile - allows step 2
     Jets:
-      count: 5
+      count: 4
       effect: AFs FirstFire
     Rocket Artillery:
-      count: 7
+      count: 6
       effect: Infantry FirstFire
     LSTs:
-      count: 8
+      count: 7
       effect: 2 invaders per border
     Heavy Bombers:
-      count: 8
+      count: 7
       effect: AFs move 3
     Motorized Infantry:
-      count: 8
+      count: 7
       effect: Infantry moves 3
     Heavy Tanks:
-      count: 9
+      count: 8
       effect: Tanks FirstFire
     Precision Bombsight:
-      count: 10
+      count: 9
       effect: AF can bomb IND
     Air Defense Radar:
-      count: 10
+      count: 9
       effect: AFs 2A3 in friendly territory
     Naval Radar:
-      count: 10
+      count: 9
       effect: Fleets FirstFire
     Sonar:
-      count: 12
+      count: 11
       effect: Fleet S3
     Industrial Espionage:
       count: 5
       effect: pair with revealed tech to achieve tech
 
-  science:
-    1939: [Atomic Research 1, Air Defense Radar, Naval Radar, Sonar, Precision Bombsights]
-    1941: [Motorized Infantry, Precision Bombsights, Rocket Artillery, Heavy Tanks, Motorized Infantry]
-    1943: [Atomic Research 2, Sonar, Motorized Infantry, Heavy Bombers, Air Defense Radar]
-    1944: [Atomic Research 3, LSTs, Naval Radar, Rocket Artillery, Jets]
-    1945: [Atomic Research 4, LSTs, Heavy Tanks, Jets, Heavy Bombers]
+    1939 Science:
+      count: 1
+      techs: [Atomic Research 1, Air Defense Radar, Naval Radar, Sonar, Precision Bombsights]
+    1941 Science:
+      count: 1
+      techs: [Motorized Infantry, Precision Bombsights, Rocket Artillery, Heavy Tanks, Motorized Infantry]
+    1943 Science:
+      count: 1
+      techs: [Atomic Research 2, Sonar, Motorized Infantry, Heavy Bombers, Air Defense Radar]
+    1944 Science:
+      count: 1
+      techs: [Atomic Research 3, LSTs, Naval Radar, Rocket Artillery, Jets]
+    1945 Science:
+      count: 1
+      techs: [Atomic Research 4, LSTs, Heavy Tanks, Jets, Heavy Bombers]

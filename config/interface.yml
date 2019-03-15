@@ -30,20 +30,23 @@ asset_types: # and properties
     cv: --int--
   action_card:
     obj_id: --int--
+    name: --str--
     faction: [West, Axis, USSR]
-    wild_card: [none, Guarantee, Intimidation, Foreign Aid]
+    wildcard: -- list of wild cards --
     played: [true, false]
-    active_diplomacy: --independent nations--
-    passive_diplomacy: --independent nations--
+    top_technology: --independent nations--
+    bottom_technology: --independent nations--
     command_value: --int--
     command_priority: --letter--
   investment_card:
     obj_id: --int--
+    name: --str--
     faction: [West, Axis, USSR]
     intelligence: --espionage--
+    played: [true, false]
     factory_value: --int--
-    active_technology: --technologies--
-    passive_technology: --technologies--
+    top_technology: --technologies--
+    bottom_technology: --technologies--
     science_year: --int--
     science_techs: --list of techs--
   influence:
