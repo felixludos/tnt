@@ -66,9 +66,9 @@ West:
       type: Major Power
       HomeCapital: Paris
       Colonies: [French North Africa, Syria]
-    USA:
-      type: Major Power
-      HomeCapital: Washington
+#    USA:
+#      type: Major Power
+#      HomeCapital: Washington
 
   MainCapital: London
   SubCapitals: [Delhi, Paris, Washington]

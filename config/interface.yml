@@ -4,7 +4,7 @@ messages:
   incoming:
     select: [player, obj_id]
     info: [player, obj_id]
-    play_card: [player, obj_id]
+    play_card: [player, obj_id, top]
     save: [player]
 
   outgoing:

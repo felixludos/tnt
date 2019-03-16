@@ -4,12 +4,9 @@ from tnt_util import xdict, xset, load
 def split_choices(options, num, dim):
 	np.random.shuffle(options)
 	
-	#print(num, dim)
-	
 	picks = [[] for _ in range(num)]
 	indices = np.arange(num)
 	for name, count in options:
-		#print(name, count, list(map(len,picks)))# indices)
 		
 		idx = np.random.choice(indices, count, replace=False)
 		for i in idx:
@@ -30,7 +27,14 @@ def create_card_decks(G, card_config_path='config/card_stats.yml'):
 
 	dim = 2
 	num = sum(config.diplomacy.values())//dim
-	picks = split_choices(list(config.diplomacy.items()), num, dim)
+	
+	for _ in range(10):
+		try:
+			picks = split_choices(list(config.diplomacy.items()), num, dim)
+		except ValueError:
+			pass
+		else:
+			break
 
 
 	wildcards = []
@@ -48,7 +52,6 @@ def create_card_decks(G, card_config_path='config/card_stats.yml'):
 
 		commands = sum([[k] * v for k, v in info.commands.items()], [])
 		np.random.shuffle(commands)
-		#commands = commands.tolist()
 
 		if len(info.priorities) > info.count:
 			priorities = np.random.choice(info.priorities, info.count, replace=False).tolist()
@@ -64,6 +67,7 @@ def create_card_decks(G, card_config_path='config/card_stats.yml'):
 			card.wildcard = wildcard
 			card.command_value = command
 			card.command_priority = priority
+			card.season = season
 
 			card_list.append(card)
 
@@ -74,13 +78,14 @@ def create_card_decks(G, card_config_path='config/card_stats.yml'):
 			card = xdict()
 			card.command_value = command
 			card.command_priority = priority
+			card.season = season
 
 			card.top_diplomacy = dpl1
 			card.bottom_diplomacy = dpl2
 
 			card_list.append(card)
 
-	G.action_cards.cards = card_list
+	G.action_cards.deck = card_list
 
 	
 	config = cc.investment_cards
@@ -108,42 +113,58 @@ def create_card_decks(G, card_config_path='config/card_stats.yml'):
 		num += count
 		tech.name = name
 		techs.append((tech, count))
-		
-	#print(num)
 	
 	num = num // dim
 	
-	#print(len(techs), num, dim)
-	
-	picks = split_choices(techs, num, dim)
+	for _ in range(10):
+		try:
+			picks = split_choices(techs, num, dim)
+		except ValueError:
+			pass
+		else:
+			break
 	
 	factories = sum([[k] * v for k, v in config.factory_levels.items()], [])
-	#print(len(factories))
 	np.random.shuffle(factories)
-	
-	#print(len(factories), len(picks))
 		
 	for pick in picks:
 		
-		#print(pick)
 		tech1, tech2 = pick
 		card = xdict()
 		card.top_technology = tech1
 		card.bottom_technology = tech2
 		card.factory_value = factories.pop()
 	
-	G.investment_cards.cards = card_list
+	G.investment_cards.deck = card_list
 	
 	
 	G.action_cards.discard_pile = []
 	G.investment_cards.discard_pile = []
 	
+	np.random.shuffle(G.investment_cards.deck)
+	np.random.shuffle(G.action_cards.deck)
+	
 
-def shuffle(G, actioncards=True):
-	pass
+def shuffle(stack):
+	
+	stack.deck.extend(stack.discard_pile)
+	np.random.shuffle(stack.deck)
+	
+	stack.discard_pile = []
+	
 
-def draw_cards(G, N=1, actioncards=True):
-	pass
-
-
+def draw_cards(stack, N=1):
+	cards = []
+	
+	N = min(N, len(stack.deck)+len(stack.discard_pile))
+	
+	shuffled = False
+	
+	for _ in range(N):
+		if len(stack.deck) == 0:
+			shuffled = True
+			shuffle(stack)
+		cards.append(stack.deck.pop())
+		
+	return cards, shuffled
 

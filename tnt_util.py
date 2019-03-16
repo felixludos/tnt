@@ -62,6 +62,29 @@ class xdict_values(object):
     def __repr__(self):
         return 'xdict_values({})'.format(', '.join(repr(v) for v in iter(self)))
 
+def condensed_str(x):
+    if isinstance(x, xdict):
+        s = []
+        for k in x.keys():
+            if isinstance(k, dict):
+                s.append('{...}')
+            elif isinstance(k, list):
+                s.append('[...]')
+            else:
+                s.append(str(k))
+        return 'xdict({})'.format(', '.join(s))
+    elif isinstance(x, list):
+        s = []
+        for k in x:
+            if isinstance(k, dict):
+                s.append('{...}')
+            elif isinstance(k, list):
+                s.append('[...]')
+            else:
+                s.append(str(k))
+        return '[{}]'.format(', '.join(s))
+    return str(x)
+
 _dict_ID = 0
 class xdict(dict):
     def __init__(self, *args, **kwargs):
@@ -91,6 +114,11 @@ class xdict(dict):
         return xdict_values(super().items())
     def items(self):
         return xdict_items(super().items())
+    def __str__(self):
+        items = []
+        for k,v in self.items():
+            items.append( '{}:{}'.format(str(k), condensed_str(v)) )
+        return 'xdict({})'.format(', '.join(items))
     def __repr__(self):
         return '{'+', '.join('{}:{}'.format(repr(k),repr(v)) for k,v in self.items())+'}'
 
@@ -121,28 +149,6 @@ def collate(raw):
 
 def load(path):
     return collate(yaml.load(open(path, 'r')))
-
-def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
-    G = xdict()
-    
-    tiles = load(tiles)
-    borders = load(borders)
-
-    for b in borders:
-        n1, n2 = b.tile1, b.tile2
-        t = b.type
-    
-        if 'borders' not in tiles[n1]:
-            tiles[n1].borders = xdict()
-        tiles[n1].borders[n2] = t
-    
-        if 'borders' not in tiles[n2]:
-            tiles[n2].borders = xdict()
-        tiles[n2].borders[n1] = t
-        
-    G.tiles = tiles
-    
-    return G
 
 def render_format(raw):
     if isinstance(raw, dict):
