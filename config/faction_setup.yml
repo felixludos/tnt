@@ -83,19 +83,19 @@ West:
   setup:
     action_cards: 8
     units:
-      - alligence: Britain
+      - nationality: Britain
         tile: London
         type: Fleet
         cv: 4
-      - alligence: Britain
+      - nationality: Britain
         tile: Gibraltar
         type: Fortress
         cv: 1
-      - alligence: Britain
+      - nationality: Britain
         tile: Karachi
         type: Fortress
         cv: 1
-      - alligence: France
+      - nationality: France
         tile: Lorraine
         type: Fortress
         cv: 3

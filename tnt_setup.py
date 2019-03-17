@@ -23,6 +23,9 @@ def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
 	
 	G.tiles = tiles
 	
+	for tile in G.tiles.values():
+		tile.units = []
+	
 	return G
 
 def compute_tracks(territory, tiles):
@@ -91,6 +94,8 @@ def load_players(G):
 		faction.tracks.pop = pop
 		faction.tracks.res = res
 		faction.tracks.ind = config.initial_ind
+		
+		faction.units = []
 		
 		players[name] = faction
 	G.players = players
