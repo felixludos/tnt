@@ -25,6 +25,16 @@ def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
 	
 	return G
 
+def compute_tracks(territory, tiles):
+	pop, res = 0, 0
+	for name, tile in tiles.items():
+		if name in territory and 'blockaded' not in tile:
+			pop += tile['pop']
+			res += tile['res']
+			if 'res_afr' in tile and 'blockaded_afr' not in tile:
+				res += tile['res_afr']
+	return pop, res
+
 def load_players(G):
 	player_setup = load('config/faction_setup.yml')
 	
@@ -57,15 +67,30 @@ def load_players(G):
 		
 		faction.members = xdict()
 		for nation, info in config.members.items():
-			faction.members[nation] = [nation]
+			faction.members[nation] = xset([nation])
 			if 'Colonies' in info:
-				faction.members[nation].extend(info.Colonies)
-				
-		faction.homeland = xdict()
+				faction.members[nation].update(info.Colonies)
 		
+		faction.homeland = xset()
+		faction.territory = xset()
 		
+		full_cast = xset()
+		for members in faction.members.values():
+			full_cast.update(members)
 		
+		for tile_name, tile in G.tiles.items():
+			if 'alligence' not in tile:
+				continue
+			if tile.alligence in faction.members: # homeland
+				faction.homeland.add(tile_name)
+			if tile.alligence in full_cast:
+				faction.territory.add(tile_name)
 		
+		faction.tracks = xdict()
+		pop, res = compute_tracks(faction.territory, G.tiles)
+		faction.tracks.pop = pop
+		faction.tracks.res = res
+		faction.tracks.ind = config.initial_ind
 		
 		players[name] = faction
 	G.players = players

@@ -10,9 +10,9 @@ messages:
   outgoing:
     create: [obj_id, type, properties]
     destroy: [obj_id, type, properties]
-    move: [obj_id, pos] # same as destroy + create copy
+    move: [obj_id, updated_properties] # same as destroy + create copy
     stat: [] # for victory points
-    message: [content]
+    message: [content] # direct pop-up
 
 asset_types: # and properties
   border:
@@ -34,8 +34,8 @@ asset_types: # and properties
     faction: [West, Axis, USSR]
     wildcard: -- list of wild cards --
     played: [true, false]
-    top_technology: --independent nations--
-    bottom_technology: --independent nations--
+    top_diplomacy: --minor nations--
+    bottom_diplomacy: --minor nations--
     command_value: --int--
     command_priority: --letter--
   investment_card:

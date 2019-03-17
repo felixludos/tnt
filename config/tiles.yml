@@ -427,7 +427,7 @@ Iraq:
   type: land
   alligence: Middle East
   res: 1
-  res-afr: 1
+  res_afr: 1
   pop: 0
   muster: 0
 Damascus:
@@ -452,21 +452,21 @@ Bombay:
   type: land
   alligence: India
   res: 1
-  res-afr: 1
+  res_afr: 1
   pop: 1
   muster: 2
 Karachi:
   type: land
   alligence: India
   res: 0
-  res-afr: 0
+  res_afr: 0
   pop: 0
   muster: 0
 Delhi:
   type: land
   alligence: India
   res: 1
-  res-afr: 1
+  res_afr: 1
   pop: 2
   muster: 3
 Kabul:
@@ -491,7 +491,7 @@ Abadan:
   type: land
   alligence: Persia
   res: 2
-  res-afr: 2
+  res_afr: 2
   pop: 0
   muster: 0
 Tabriz:
@@ -676,7 +676,7 @@ Baku:
   type: land
   alligence: USSR
   res: 3
-  res-afr: 1
+  res_afr: 1
   pop: 2
   muster: 3
 Kiev:

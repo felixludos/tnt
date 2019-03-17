@@ -134,9 +134,10 @@ def create_card_decks(G, card_config_path='config/card_stats.yml'):
 		card.top_technology = tech1
 		card.bottom_technology = tech2
 		card.factory_value = factories.pop()
-	
+		
+		card_list.append(card)
+		
 	G.investment_cards.deck = card_list
-	
 	
 	G.action_cards.discard_pile = []
 	G.investment_cards.discard_pile = []

@@ -85,12 +85,17 @@ def condensed_str(x):
         return '[{}]'.format(', '.join(s))
     return str(x)
 
+_object_table = dict()
+def get_object(ID):
+    return _object_table[ID]
+
 _dict_ID = 0
 class xdict(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         global _dict_ID
         self._id = _dict_ID
+        _object_table[self._id] = self
         _dict_ID += 1
     def __getattr__(self, key):
         return super().__getitem__(key)
@@ -106,6 +111,8 @@ class xdict(dict):
         return iter(self.keys())
     def __delattr__(self, item):
         return super().__delitem__(item)
+    def __del__(self):
+        del _object_table[self._id]
     def copy(self):
         return xdict((k,v) for k,v in self.items())
     def keys(self):
@@ -153,6 +160,11 @@ def load(path):
 def render_format(raw):
     if isinstance(raw, dict):
         return dict((str(k),render_format(v)) for k,v in raw.items())
+    elif isinstance(raw, list) or isinstance(raw, set):
+        itr = dict()
+        for i, el in enumerate(raw):
+            itr['el_{}'.format(i)] = render_format(el)
+        return itr
     return str(raw)
 
 class render_dict(object):

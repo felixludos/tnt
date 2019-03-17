@@ -7,13 +7,14 @@ Axis:
     Italy:
       type: Major Power
       HomeCapital: Rome
-      Colonies: [Lybia]
+      Colonies: [Libya]
   
   MainCapital: Berlin
   SubCapitals: [Ruhr, Rome]
   Handlimit: 7
   FactoryCost: [5,4,3]
   EmergencyCommand: 4
+  initial_ind: 12
 
   setup:
     action_cards: 14
@@ -41,6 +42,7 @@ USSR:
   FactoryCost: [7,5,3]
   EmergencyCommand: 2
   enable_Winter: True
+  initial_ind: 9
 
   setup:
     action_cards: 6
@@ -76,6 +78,7 @@ West:
   FactoryCost: [6,5,4,3]
   EmergencyCommand: 2
   enable_USA: True
+  initial_ind: 7
 
   setup:
     action_cards: 8
