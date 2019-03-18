@@ -63,6 +63,8 @@ def load_players(G):
 		faction.rules.DoW = xdict()
 		faction.rules.DoW[rivals[name][0]] = False
 		faction.rules.DoW[rivals[name][1]] = False
+		faction.rules.enable_USA = 'enable_USA' in config
+		faction.rules.enable_Winter = 'enable_Winter' in config
 		
 		faction.cities = xdict()
 		faction.cities.MainCapital = config.MainCapital
@@ -101,15 +103,36 @@ def load_players(G):
 	G.players = players
 
 
-def create_gamestate():
+def init_gamestate():
 	
 	G = load_map()
-	
 	load_players(G)
-	
 	create_card_decks(G)
 	
 	return G
 
+
+def place_cadre(G, msg):
+	pass
+
+def setup_units(G, player_setup):
+	
+	# place fixed units
+	
+	for name, config in player_setup.items():
+		if 'units' not in config.setup:
+			continue
+		faction = G.players[name]
+		
+		for unit in config.setup.units:
+			G.tiles[unit.tile].units.append(unit)
+			faction.units.append(unit)
+
+	# place user chosen units
+	
+	# out: send message to all players to choose what tiles to place how many cadres on
+	
+	
+	
 
 

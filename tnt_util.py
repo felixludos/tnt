@@ -89,14 +89,25 @@ _object_table = dict()
 def get_object(ID):
     return _object_table[ID]
 
+def save(data, path):
+    yaml.dump(uncollate(data), open(path,'w'),
+              default_flow_style=False)
+
 _dict_ID = 0
 class xdict(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         global _dict_ID
-        self._id = _dict_ID
-        _object_table[self._id] = self
-        _dict_ID += 1
+        if '_id' in self:
+            if self._id in _object_table:
+                print('WARNING: Overwriting id={}'.format(self._id))
+            _object_table[self._id] = self
+        else:
+            while _dict_ID in _object_table:
+                _dict_ID += 1
+            self._id = _dict_ID
+            _object_table[self._id] = self
+            _dict_ID += 1
     def __getattr__(self, key):
         return super().__getitem__(key)
     def __setattr__(self, key, value):
@@ -121,6 +132,8 @@ class xdict(dict):
         return xdict_values(super().items())
     def items(self):
         return xdict_items(super().items())
+    def full_items(self):
+        return super().items()
     def __str__(self):
         items = []
         for k,v in self.items():
@@ -152,6 +165,19 @@ def collate(raw):
         return xset(collate(x) for x in raw)
     elif isinstance(raw, str):
         return raw.replace(' ', '_')
+    return raw
+
+def uncollate(raw):
+    if isinstance(raw, xdict):
+        return dict((collate(k),collate(v)) for k,v in raw.full_items())
+    elif isinstance(raw, list):
+        return [collate(x) for x in raw]
+    elif isinstance(raw, tuple):
+        return (collate(x) for x in raw)
+    elif isinstance(raw, set) and type(raw) != xset:
+        return xset(collate(x) for x in raw)
+    # elif isinstance(raw, str):
+    #     return raw.replace(' ', '_')
     return raw
 
 def load(path):
