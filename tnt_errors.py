@@ -1,5 +1,6 @@
 from collections import deque
-import torch.multiprocessing as mp
+from tnt_util import xdict, xset, load, save
+#import torch.multiprocessing as mp
 #from torch.multiprocessing import BaseManager
 from multiprocessing.managers import BaseManager
 class QueueManager(BaseManager): pass
@@ -12,25 +13,29 @@ class GameStateError(Exception):  # no recovery
 
 
 class ActionError(Exception):  # Revert single action
-	def __init__(self, message, errors):
+	def __init__(self, message):
 		super().__init__(message)
-		
-		self.errors = errors
 		
 
 class Manager(object):
-	def __init__(self, inbox, outbox):
+	def __init__(self, inbox, outbox, temp_path='temp.yml', max_trials=10):
 		self.inbox = inbox
 		self.outbox = outbox
+		
+		self.temp_path = temp_path
+		self.max_trials = max_trials
 	
-	def checkpoint(self, action_fn, state):
+	def checkpoint(self, phase, state, *args, **kwargs):
 		
+		save(state, self.temp_path)
 		
-		
-		try:
-			action_fn(state, self.inbox, self.outbox)
-		except ActionError as e:
-			pass
+		for _ in range(self.max_trials):
+			try:
+				phase(state, self.inbox, self.outbox, *args, **kwargs)
+			except GameStateError as e:
+				state = load(self.temp_path)
+			else:
+				break
 		
 class TestManager(Manager):
 	def __init__(self, host='localhost', port=50000, key=b'a'):

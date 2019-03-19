@@ -1,6 +1,6 @@
-from tnt_util import xdict, xset, load
+from tnt_util import xdict, xset, load, save
 from tnt_cards import create_card_decks
-
+from tnt_errors import ActionError
 
 
 def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
@@ -112,11 +112,7 @@ def init_gamestate():
 	return G
 
 
-def place_cadre(G, msg):
-	pass
-
-def setup_units(G, player_setup):
-	
+def unit_setup_phase(G, inbox, outbox, player_config):
 	# place fixed units
 	
 	for name, config in player_setup.items():
@@ -128,11 +124,14 @@ def setup_units(G, player_setup):
 			G.tiles[unit.tile].units.append(unit)
 			faction.units.append(unit)
 
+
 	# place user chosen units
 	
 	# out: send message to all players to choose what tiles to place how many cadres on
+
 	
-	
+	pass
+
 	
 
 
