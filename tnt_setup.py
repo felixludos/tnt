@@ -1,5 +1,5 @@
 from tnt_util import xdict, xset, load, save
-from tnt_cards import create_card_decks
+from tnt_cards import create_card_decks, draw_cards
 from tnt_errors import ActionError
 
 
@@ -99,6 +99,8 @@ def load_players(G):
 		
 		faction.units = []
 		
+		faction.hand = xset() # for cards
+		
 		players[name] = faction
 	G.players = players
 
@@ -111,8 +113,24 @@ def init_gamestate():
 	
 	return G
 
+def check_setup_complete(player_setup):
+	
+	incomplete = xset()
+	
+	for name, config in player_setup.items():
+		if 'cadres' in config.setup:
+			for reqs in config.setup.cadres.values():
+				done = False
+				for num in reqs.values():
+					if num > 0:
+						incomplete.add(name)
+						done = True
+						break
+				if done:
+					break
+	return incomplete
 
-def unit_setup_phase(G, inbox, outbox, player_config):
+def setup_phase(G, io, player_setup):
 	# place fixed units
 	
 	for name, config in player_setup.items():
@@ -128,10 +146,62 @@ def unit_setup_phase(G, inbox, outbox, player_config):
 	# place user chosen units
 	
 	# out: send message to all players to choose what tiles to place how many cadres on
-
+	for name, faction in player_setup.items():
+		out = xdict()
+		out.player = name
+		if 'cadres' in faction.setup:
+			out.info = faction.setup.cadres
+			out.msg = 'Choose this many cadres to place into each of these territories'
+		else:
+			out.msg = 'Wait while other players place their cadres'
+		io.put(out)
 	
-	pass
-
+	incomplete = check_setup_complete(player_setup)
 	
+	while len(incomplete):
+		
+		try:
+			msg = io.get()
+			
+			assert msg.player in incomplete, 'Player {} is already done'.format(msg.player)
+			
+			reqs = player_setup[msg.player].setup.cadres
+			
+			placed = False
+			
+			for member, tiles in reqs.items():
+				if msg.tile in tiles:
+					placed = True
+					assert tiles[msg.tile] > 0, 'No more cadres can be placed onto {}'.format(msg.tile)
+					
+					unit = xdict()
+					unit.type = msg.type
+					unit.tile = msg.tile
+					unit.nationality = member
+					unit.cv = 1
+					
+					G.tiles[unit.tile].units.append(unit)
+					faction.units.append(unit)
+					
+					tiles[msg.tile] -= 1
+					if tiles[msg.tile] == 0:
+						del tiles[msg.tile]
+						
+			assert placed, 'Tile {} not available for placement'.format(msg.tile)
+			
+		except (ActionError, AssertionError) as e:
+			io.put({'error':'Invalid Action', 'msg':str(e)})
+		
+		incomplete = check_setup_complete(player_setup)
+		
+		return incomplete
+	
+	
+	# draw action cards
+	for name, config in player_setup.items():
+		if 'action_cards' in config.setup:
+			G.players.hand.extend(draw_cards(G.action_cards, config.setup.action_cards))
+		if 'investment_cards' in config.setup:
+			G.players.hand.extend(draw_cards(G.investment_cards, config.setup.investment_cards))
 
 

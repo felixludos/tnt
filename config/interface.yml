@@ -37,7 +37,7 @@ old:
       obj_id: --int--
       tile: --tiles--
       type: --unit_types--
-      owner: [Britain, France, USA, Germany, Italy, USSR, Independent]
+      nationality: [Britain, France, USA, Germany, Italy, USSR, Independent]
       cv: --int--
     action_card:
       obj_id: --int--

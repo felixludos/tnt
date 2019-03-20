@@ -123,7 +123,12 @@ class xdict(dict):
     def __delattr__(self, item):
         return super().__delitem__(item)
     def __del__(self):
-        del _object_table[self._id]
+        try:
+            del _object_table[self._id]
+        except KeyError:
+            pass
+    def __getstate__(self):
+        return super().__getstate__()
     def copy(self):
         return xdict((k,v) for k,v in self.items())
     def keys(self):
@@ -134,6 +139,10 @@ class xdict(dict):
         return xdict_items(super().items())
     def full_items(self):
         return super().items()
+    def to_dict(self, with_id=True):
+        if with_id:
+            return dict(self.full_items())
+        return dict(self.items())
     def __str__(self):
         items = []
         for k,v in self.items():
@@ -167,17 +176,18 @@ def collate(raw):
         return raw.replace(' ', '_')
     return raw
 
-def uncollate(raw):
+def uncollate(raw, with_id=True):
     if isinstance(raw, xdict):
-        return dict((collate(k),collate(v)) for k,v in raw.full_items())
+        return dict((uncollate(k,with_id),uncollate(v,with_id))
+                    for k,v in raw.full_items())
     elif isinstance(raw, list):
-        return [collate(x) for x in raw]
+        return [uncollate(x,with_id) for x in raw]
     elif isinstance(raw, tuple):
-        return (collate(x) for x in raw)
+        return (uncollate(x,with_id) for x in raw)
     elif isinstance(raw, set) and type(raw) != xset:
-        return xset(collate(x) for x in raw)
+        return set(uncollate(x,with_id) for x in raw)
     # elif isinstance(raw, str):
-    #     return raw.replace(' ', '_')
+    #     return raw.replace('_', ' ')
     return raw
 
 def load(path):

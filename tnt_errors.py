@@ -1,5 +1,5 @@
 from collections import deque
-from tnt_util import xdict, xset, load, save
+from tnt_util import xdict, xset, load, save, collate, uncollate
 #import torch.multiprocessing as mp
 #from torch.multiprocessing import BaseManager
 from multiprocessing.managers import BaseManager
@@ -24,26 +24,55 @@ class Manager(object):
 		
 		self.temp_path = temp_path
 		self.max_trials = max_trials
-	
-	def checkpoint(self, phase, state, *args, **kwargs):
 		
-		save(state, self.temp_path)
+	def empty(self):
+		return self.inbox.empty()
+		
+	def put(self, msg):
+		if isinstance(msg, xdict):
+			msg = uncollate(msg, with_id=True)
+		self.outbox.put(str(msg))
+		print('Sent message')
+		
+		# try:
+		# 	self.outbox.put(dict(msg.full_items()))
+		# except AttributeError:
+		# 	self.outbox.put(msg)
+			
+	def get(self, wait=True):
+		print('Waiting for message')
+		if not wait and self.inbox.empty():
+			return None
+		return collate(eval(self.inbox.get()))
+	
+	def run(self, phase, state, checkpoint=False, **kwargs):
+		
+		if checkpoint:
+			save(state, self.temp_path)
 		
 		for _ in range(self.max_trials):
 			try:
-				phase(state, self.inbox, self.outbox, *args, **kwargs)
+				phase(state, self, **kwargs)
 			except GameStateError as e:
-				state = load(self.temp_path)
+				if checkpoint:
+					state = load(self.temp_path)
+			except Exception as e:
+				print('Error in this phase!')
+				raise e
 			else:
 				break
 		
 class TestManager(Manager):
-	def __init__(self, host='localhost', port=50000, key=b'a'):
+	def __init__(self, reverse=False, host='localhost', port=50000, key=b'a'):
 		m = QueueManager(address=(host, port), authkey=key)
 		m.connect()
 		
-		inbox = m.get_ftb()
-		outbox = m.get_btf()
+		if reverse:
+			inbox = m.get_btf()
+			outbox = m.get_ftb()
+		else:
+			inbox = m.get_ftb()
+			outbox = m.get_btf()
 		
 		super().__init__(inbox, outbox)
 

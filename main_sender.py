@@ -1,13 +1,21 @@
 from IPython import embed
 from multiprocessing.managers import BaseManager
+from tnt_errors import TestManager
+from tnt_utils import xdict
 
-class QueueManager(BaseManager): pass
-QueueManager.register('get_btf')
-QueueManager.register('get_ftb')
-m = QueueManager(address=('localhost', 50000), authkey=b'a')
-m.connect()
+io = TestManager(reverse=True)
 print('Connected')
-inbox = m.get_btf()
-outbox = m.get_ftb()
+
+# do something before repl
+
+print('Testing setup phase')
+
+setup = xdict()
+
+for _ in range(3):
+	msg = io.get()
+	setup[msg.player] = msg.info
+
+
 
 embed()
