@@ -16,7 +16,7 @@ def split_choices(options, num, dim):
 	np.random.shuffle(picks)
 	return picks
 
-def create_card_decks(G, card_config_path='config/card_stats.yml'):
+def load_card_decks(G, card_config_path='config/card_stats.yml'):
 	
 	cc = load(card_config_path)
 	

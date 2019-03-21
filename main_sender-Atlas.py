@@ -1,7 +1,7 @@
 from IPython import embed
 from multiprocessing.managers import BaseManager
 from tnt_errors import TestManager
-from tnt_util import xdict
+from tnt_utils import xdict
 
 io = TestManager(reverse=True)
 print('Connected')

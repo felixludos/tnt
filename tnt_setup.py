@@ -1,6 +1,7 @@
 from tnt_util import xdict, xset, load, save
-from tnt_cards import create_card_decks, draw_cards
+from tnt_cards import load_card_decks, draw_cards
 from tnt_errors import ActionError
+from tnt_units import load_unit_rules
 
 
 def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
@@ -99,7 +100,7 @@ def load_players(G):
 		
 		faction.units = []
 		
-		faction.hand = xset() # for cards
+		faction.hand = [] # for cards
 		
 		players[name] = faction
 	G.players = players
@@ -109,7 +110,9 @@ def init_gamestate():
 	
 	G = load_map()
 	load_players(G)
-	create_card_decks(G)
+	load_card_decks(G)
+	
+	load_unit_rules(G)
 	
 	return G
 
