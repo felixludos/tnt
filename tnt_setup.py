@@ -1,8 +1,7 @@
 from tnt_util import xdict, xset, load, save
 from tnt_cards import load_card_decks, draw_cards
 from tnt_errors import ActionError
-from tnt_units import load_unit_rules
-
+from tnt_units import load_unit_rules, add_unit
 
 def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
 	G = xdict()
@@ -39,9 +38,16 @@ def compute_tracks(territory, tiles):
 				res += tile['res_afr']
 	return pop, res
 
-def load_players(G):
+def load_players_and_minors(G):
 	player_setup = load('config/faction_setup.yml')
 	
+	nations = xdict()
+	minor_designation = 'Minor'
+	for tile in G.tiles.values():
+		nations[tile.alligence] = minor_designation
+	G.nations = nations # map nationality to faction/minor
+	
+	# load factions/players
 	players = xdict()
 	
 	groups = xset(player_setup.keys())
@@ -73,6 +79,7 @@ def load_players(G):
 		
 		faction.members = xdict()
 		for nation, info in config.members.items():
+			nations[nation] = name
 			faction.members[nation] = xset([nation])
 			if 'Colonies' in info:
 				faction.members[nation].update(info.Colonies)
@@ -98,18 +105,31 @@ def load_players(G):
 		faction.tracks.res = res
 		faction.tracks.ind = config.initial_ind
 		
-		faction.units = []
+		faction.units = xset()
 		
-		faction.hand = [] # for cards
+		faction.hand = xset() # for cards
 		
 		players[name] = faction
 	G.players = players
-
+	
+	# load minors/diplomacy
+	minors = xdict()
+	for name, team in nations.items():
+		if team == minor_designation:
+			minor = xdict()
+			
+			minor.units = xset()
+			minor.is_armed = False
+			minor.influence_faction = None
+			minor.influence_value = 0
+			
+			minors[name] = minor
+	G.minors = minors
 
 def init_gamestate():
 	
 	G = load_map()
-	load_players(G)
+	load_players_and_minors(G)
 	load_card_decks(G)
 	
 	load_unit_rules(G)
@@ -142,8 +162,9 @@ def setup_phase(G, io, player_setup):
 		faction = G.players[name]
 		
 		for unit in config.setup.units:
-			G.tiles[unit.tile].units.append(unit)
-			faction.units.append(unit)
+			add_unit(G, unit)
+			# G.tiles[unit.tile].units.append(unit)
+			# faction.units.append(unit)
 
 
 	# place user chosen units

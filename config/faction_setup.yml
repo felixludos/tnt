@@ -68,7 +68,7 @@ West:
       type: Major Power
       HomeCapital: Paris
       Colonies: [French North Africa, Syria]
-#    USA:
+#    USA:   # only add as member once US becomes a satellite
 #      type: Major Power
 #      HomeCapital: Washington
 

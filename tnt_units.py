@@ -1,10 +1,10 @@
 from tnt_util import xdict, xset, load
+from tnt_errors import ActionError
 
-
-class InvalidTileError(Exception):
+class InvalidTileError(ActionError):
 	pass
 
-class OutOfReservesError(Exception):
+class OutOfReservesError(ActionError):
 	pass
 
 
@@ -22,25 +22,43 @@ def load_unit_rules(G, unit_rules_path='config/units.yml',
 	
 	G.units.reserves = unit_count
 	
-def move_unit(G, unit, to_tile):
-	pass
+def move_unit(G, unit, to_tilename):
 	
-def add_unit(G, unit): # tile, type, cv, faction
+	# possibly convert to/from convoy
+	check_for_convoy(unit, G.tiles[to_tilename])
 	
-	player = unit.faction
+	G.tiles[unit.tile].units.remove(unit)
+	unit.tile = to_tilename
+	G.tiles[unit.tile].units.add(unit)
+	
+def add_unit(G, unit): # tile, type, cv, nationality
+	
+	player = G.nations[unit.nationality]
 	tilename = unit.tile
-	utype = unit.type
-	
-	assert utype != 'Convoy', 'Cant directly add a convoy'
 	
 	tile = G.tiles[tilename]
 	
-	if G.units.rules[utype] and (tile.type == 'Sea' or tile.type == 'Ocean'):
-		assert utype == 'Infantry' or utype == 'Tank', 'Convoy can only transport Infantry and Tank'
-		unit.carrying = utype
+	# check/update reserves
+	reserves = G.units.reserves[unit.nationality]
+	if unit.type not in reserves or reserves[unit.type] == 0:
+		raise OutOfReservesError('{} has no more {}'.format(unit.nationality, unit.type))
+	reserves[unit.type] -= 1
 	
-	G.tiles[tilename].units.append(unit)
-	G.players[player].units.append(unit)
+	# check convoy
+	check_for_convoy(unit, tile)
+	
+	# add to sets
+	tile.units.add(unit)
+	G.players[player].units.add(unit)
+
+def check_for_convoy(unit, tile):
+	if (unit.type == 'Infantry' or unit.type == 'Tank') \
+		and (tile.type == 'Sea' or tile.type == 'Ocean'):
+		unit.carrying = unit.type
+		unit.type = 'Convoy'
+	elif unit.type == 'Convoy' and tile.type != 'Sea' and tile.type != 'Ocean':
+		unit.type = unit.carrying
+		del unit.carrying
 
 def remove_unit(G, unit):
 	pass
