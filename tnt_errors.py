@@ -41,10 +41,12 @@ class Manager(object):
 		# 	self.outbox.put(msg)
 			
 	def get(self, wait=True):
-		print('Waiting for message')
+		print('Waiting for message...', end='')
 		if not wait and self.inbox.empty():
 			return None
-		return collate(eval(self.inbox.get()))
+		msg = collate(eval(self.inbox.get()))
+		print(' received')
+		return msg
 	
 	def run(self, phase, state, checkpoint=False, **kwargs):
 		

@@ -18,7 +18,7 @@ def load_unit_rules(G, unit_rules_path='config/units.yml',
 	
 	G.units.rules = unit_rules
 	G.units.placeable = xset(name for name, rules in unit_rules.items() if 'not_placeable' not in rules)
-	G.units.priorities = [n for n, _ in sorted(unit_rules.items(), key=lambda x: x[1].priorities)]
+	G.units.priorities = [n for n, _ in sorted(unit_rules.items(), key=lambda x: x[1].priority)]
 	
 	G.units.reserves = unit_count
 	
@@ -61,7 +61,21 @@ def check_for_convoy(unit, tile):
 		del unit.carrying
 
 def remove_unit(G, unit):
-	pass
+	player = G.nations[unit.nationality]
+	tilename = unit.tile
+	
+	if unit.type == 'Convoy':
+		unit.type = unit.carrying
+		del unit.carrying
+	
+	# update reserves
+	reserves = G.units.reserves[unit.nationality]
+	if unit.type not in reserves:
+		reserves[unit.type] = 0
+	reserves[unit.type] += 1
+	
+	G.tiles[tilename].units.remove(unit)
+	G.players[player].units.remove(unit)
 
 
 

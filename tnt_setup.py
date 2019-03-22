@@ -24,7 +24,7 @@ def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
 	G.tiles = tiles
 	
 	for tile in G.tiles.values():
-		tile.units = []
+		tile.units = xset()
 	
 	return G
 
@@ -43,8 +43,10 @@ def load_players_and_minors(G):
 	
 	nations = xdict()
 	minor_designation = 'Minor'
+	
 	for tile in G.tiles.values():
-		nations[tile.alligence] = minor_designation
+		if 'alligence' in tile:
+			nations[tile.alligence] = minor_designation
 	G.nations = nations # map nationality to faction/minor
 	
 	# load factions/players
@@ -106,8 +108,8 @@ def load_players_and_minors(G):
 		faction.tracks.ind = config.initial_ind
 		
 		faction.units = xset()
-		
 		faction.hand = xset() # for cards
+		faction.influence = xdict()
 		
 		players[name] = faction
 	G.players = players
@@ -125,6 +127,7 @@ def load_players_and_minors(G):
 			
 			minors[name] = minor
 	G.minors = minors
+	
 
 def init_gamestate():
 	
@@ -153,7 +156,10 @@ def check_setup_complete(player_setup):
 					break
 	return incomplete
 
-def setup_phase(G, io, player_setup):
+def setup_phase(G, io, player_setup_path='config/faction_setup.yml'):
+	
+	player_setup = load(player_setup_path)
+	
 	# place fixed units
 	
 	for name, config in player_setup.items():
@@ -163,8 +169,6 @@ def setup_phase(G, io, player_setup):
 		
 		for unit in config.setup.units:
 			add_unit(G, unit)
-			# G.tiles[unit.tile].units.append(unit)
-			# faction.units.append(unit)
 
 
 	# place user chosen units
@@ -204,8 +208,7 @@ def setup_phase(G, io, player_setup):
 					unit.nationality = member
 					unit.cv = 1
 					
-					G.tiles[unit.tile].units.append(unit)
-					faction.units.append(unit)
+					add_unit(G, unit)
 					
 					tiles[msg.tile] -= 1
 					if tiles[msg.tile] == 0:
@@ -217,8 +220,6 @@ def setup_phase(G, io, player_setup):
 			io.put({'error':'Invalid Action', 'msg':str(e)})
 		
 		incomplete = check_setup_complete(player_setup)
-		
-		return incomplete
 	
 	
 	# draw action cards

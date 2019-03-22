@@ -122,6 +122,8 @@ class xdict(dict):
 		return iter(self.keys())
 	def __delattr__(self, item):
 		return super().__delitem__(item)
+	def __len__(self):
+		return max(0, super().__len__()-1)
 	def __del__(self):
 		try:
 			del _object_table[self._id]
@@ -178,8 +180,12 @@ def collate(raw):
 
 def uncollate(raw, with_id=True):
 	if isinstance(raw, xdict):
-		return dict((uncollate(k,with_id),uncollate(v,with_id))
-					for k,v in raw.full_items())
+		if with_id:
+			return dict((uncollate(k,with_id),uncollate(v,with_id))
+						for k,v in raw.full_items())
+		else:
+			return dict((uncollate(k,with_id),uncollate(v,with_id))
+						for k,v in raw.items())
 	elif isinstance(raw, list):
 		return [uncollate(x,with_id) for x in raw]
 	elif isinstance(raw, tuple):
