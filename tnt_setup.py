@@ -23,8 +23,14 @@ def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
 	
 	G.tiles = tiles
 	
-	for tile in G.tiles.values():
+	for name, tile in G.tiles.items():
+		tile.name = name
 		tile.units = xset()
+		if tile.type != 'Sea' and tile.type != 'Ocean':
+			for neighbor in tile.borders.keys():
+				if G.tiles[neighbor].type == 'Sea' or G.tiles[neighbor].type == 'Ocean':
+					tile.type = 'coast'
+					break
 	
 	return G
 
@@ -225,8 +231,8 @@ def setup_phase(G, io, player_setup_path='config/faction_setup.yml'):
 	# draw action cards
 	for name, config in player_setup.items():
 		if 'action_cards' in config.setup:
-			G.players.hand.extend(draw_cards(G.action_cards, config.setup.action_cards))
+			G.players[name].hand.extend(draw_cards(G.action_cards, config.setup.action_cards))
 		if 'investment_cards' in config.setup:
-			G.players.hand.extend(draw_cards(G.investment_cards, config.setup.investment_cards))
+			G.players[name].hand.extend(draw_cards(G.investment_cards, config.setup.investment_cards))
 
 

@@ -1,8 +1,6 @@
 from tnt_util import xdict, xset, load
 from tnt_errors import ActionError
 
-class InvalidTileError(ActionError):
-	pass
 
 class OutOfReservesError(ActionError):
 	pass
@@ -38,11 +36,19 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	
 	tile = G.tiles[tilename]
 	
+	# check for multiple fortresses
+	if unit.type == 'Fortress':
+		assert not (tile.type == 'Sea' or tile.type == 'Ocean'), 'Fortresses cannot be placed in the Sea/Ocean {}'.format(unit.tile)
+		for unit in tile.units:
+			assert unit.type != 'Fortress', 'There is already a Fortress in {}'.format(unit.tile)
+	
 	# check/update reserves
 	reserves = G.units.reserves[unit.nationality]
 	if unit.type not in reserves or reserves[unit.type] == 0:
 		raise OutOfReservesError('{} has no more {}'.format(unit.nationality, unit.type))
 	reserves[unit.type] -= 1
+	
+	
 	
 	# check convoy
 	check_for_convoy(unit, tile)
