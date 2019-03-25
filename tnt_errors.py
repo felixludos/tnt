@@ -1,5 +1,5 @@
 from collections import deque
-from tnt_util import xdict, xset, load, save, collate, uncollate
+from tnt_util import adict, idict, xset, load, save, collate, uncollate
 #import torch.multiprocessing as mp
 #from torch.multiprocessing import BaseManager
 from multiprocessing.managers import BaseManager
@@ -30,7 +30,7 @@ class Manager(object):
 		return self.inbox.empty()
 		
 	def put(self, msg):
-		if isinstance(msg, xdict):
+		if isinstance(msg, adict):
 			msg = uncollate(msg, with_id=self.send_ids)
 		self.outbox.put(str(msg))
 		print('Sent message')

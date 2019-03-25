@@ -9,7 +9,7 @@ messages:
     destroy: [obj_id, type, properties]
     move: [obj_id, updated_properties]
 
-old:
+old:  
 
   messages:
     incoming:

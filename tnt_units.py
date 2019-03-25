@@ -1,4 +1,4 @@
-from tnt_util import xdict, xset, load
+from tnt_util import adict, idict, xset, load, save, collate, uncollate
 from tnt_errors import ActionError
 
 
@@ -12,7 +12,7 @@ def load_unit_rules(G, unit_rules_path='config/units.yml',
 	unit_rules = load(unit_rules_path)
 	unit_count = load(unit_count_path)
 	
-	G.units = xdict()
+	G.units = adict()
 	
 	G.units.rules = unit_rules
 	G.units.placeable = xset(name for name, rules in unit_rules.items() if 'not_placeable' not in rules)

@@ -211,24 +211,12 @@ Taranto:
   res: 0
   pop: 0
   muster: 0
-Morocco:
-  type: land
-  alligence: France
-  res: 0
-  pop: 0
-  muster: 0
 Tripoli:
   type: land
   alligence: Libya
   res: 0
   pop: 1
   muster: 2
-Cyrenaica:
-  type: land
-  alligence: Libya
-  res: 0
-  pop: 0
-  muster: 0
 Cyrenaica:
   type: land
   alligence: Libya
@@ -546,12 +534,6 @@ Western Black Sea:
   type: Sea
 Sea of Azov:
   type: Sea
-Murmansk:
-  type: land
-  alligence: USSR
-  res: 0
-  pop: 0
-  muster: 0
 Archangel:
   type: land
   alligence: USSR

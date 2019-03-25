@@ -1,5 +1,5 @@
 import numpy as np
-from tnt_util import xdict, xset, load
+from tnt_util import adict, idict, xset, load
 
 def split_choices(options, num, dim):
 	np.random.shuffle(options)
@@ -21,7 +21,7 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 	cc = load(card_config_path)
 	
 	config = cc.action_cards
-	G.action_cards = xdict()
+	G.action_cards = adict()
 
 	card_list = []
 
@@ -40,7 +40,7 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 	wildcards = []
 	for name, info in config.wildcards.items():
 		for _ in range(info.count):
-			card = xdict(info.items())
+			card = idict(info.items())
 			del card.count
 			card.name = name
 
@@ -63,7 +63,7 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 			command, priority = commands.pop(), priorities.pop()
 			wildcard = wildcards.pop()
 
-			card = xdict()
+			card = idict()
 			card.wildcard = wildcard
 			card.command_value = command
 			card.command_priority = priority
@@ -75,7 +75,7 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 		for command, priority in zip(commands, priorities):
 			dpl1, dpl2 = picks.pop()
 
-			card = xdict()
+			card = idict()
 			card.command_value = command
 			card.command_priority = priority
 			card.season = season
@@ -89,7 +89,7 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 
 	
 	config = cc.investment_cards
-	G.investment_cards = xdict()
+	G.investment_cards = adict()
 	
 	card_list = []
 	
@@ -99,7 +99,7 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 	techs = []
 	for name, info in config.technologies.items():
 		
-		tech = xdict(info.items())
+		tech = adict(info.items())
 		count = info.count
 		del tech.count
 		num += count
@@ -107,7 +107,7 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 		techs.append((tech, count))
 	
 	for name, info in config.intelligence.items():
-		tech = xdict(info.items())
+		tech = adict(info.items())
 		count = info.count
 		del tech.count
 		num += count
@@ -130,7 +130,7 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 	for pick in picks:
 		
 		tech1, tech2 = pick
-		card = xdict()
+		card = idict()
 		card.top_technology = tech1
 		card.bottom_technology = tech2
 		card.factory_value = factories.pop()

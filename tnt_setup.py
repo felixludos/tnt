@@ -1,10 +1,10 @@
-from tnt_util import xdict, xset, load, save
+from tnt_util import adict, idict, xset, load, save, collate, uncollate
 from tnt_cards import load_card_decks, draw_cards
 from tnt_errors import ActionError
 from tnt_units import load_unit_rules, add_unit
 
 def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
-	G = xdict()
+	G = adict()
 	
 	tiles = load(tiles)
 	borders = load(borders)
@@ -14,11 +14,11 @@ def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
 		t = b.type
 		
 		if 'borders' not in tiles[n1]:
-			tiles[n1].borders = xdict()
+			tiles[n1].borders = adict()
 		tiles[n1].borders[n2] = t
 		
 		if 'borders' not in tiles[n2]:
-			tiles[n2].borders = xdict()
+			tiles[n2].borders = adict()
 		tiles[n2].borders[n1] = t
 	
 	G.tiles = tiles
@@ -47,7 +47,7 @@ def compute_tracks(territory, tiles):
 def load_players_and_minors(G):
 	player_setup = load('config/faction_setup.yml')
 	
-	nations = xdict()
+	nations = adict()
 	minor_designation = 'Minor'
 	
 	for tile in G.tiles.values():
@@ -56,10 +56,10 @@ def load_players_and_minors(G):
 	G.nations = nations # map nationality to faction/minor
 	
 	# load factions/players
-	players = xdict()
+	players = adict()
 	
 	groups = xset(player_setup.keys())
-	rivals = xdict()
+	rivals = adict()
 	for g in groups:
 		gps = groups.copy()
 		gps.remove(g)
@@ -67,25 +67,25 @@ def load_players_and_minors(G):
 	
 	for name, config in player_setup.items():
 		
-		faction = xdict()
+		faction = adict()
 		
-		faction.rules = xdict()
+		faction.rules = adict()
 		faction.rules.handlimit = config.Handlimit
 		faction.rules.factory_all_costs = config.FactoryCost
 		faction.rules.factory_idx = 0
 		faction.rules.factory_cost = faction.rules.factory_all_costs[faction.rules.factory_idx]
 		faction.rules.emergency_command = config.EmergencyCommand
-		faction.rules.DoW = xdict()
+		faction.rules.DoW = adict()
 		faction.rules.DoW[rivals[name][0]] = False
 		faction.rules.DoW[rivals[name][1]] = False
 		faction.rules.enable_USA = 'enable_USA' in config
 		faction.rules.enable_Winter = 'enable_Winter' in config
 		
-		faction.cities = xdict()
+		faction.cities = adict()
 		faction.cities.MainCapital = config.MainCapital
 		faction.cities.SubCapitals = config.SubCapitals
 		
-		faction.members = xdict()
+		faction.members = adict()
 		for nation, info in config.members.items():
 			nations[nation] = name
 			faction.members[nation] = xset([nation])
@@ -107,7 +107,7 @@ def load_players_and_minors(G):
 			if tile.alligence in full_cast:
 				faction.territory.add(tile_name)
 		
-		faction.tracks = xdict()
+		faction.tracks = adict()
 		pop, res = compute_tracks(faction.territory, G.tiles)
 		faction.tracks.pop = pop
 		faction.tracks.res = res
@@ -115,16 +115,16 @@ def load_players_and_minors(G):
 		
 		faction.units = xset()
 		faction.hand = xset() # for cards
-		faction.influence = xdict()
+		faction.influence = adict()
 		
 		players[name] = faction
 	G.players = players
 	
 	# load minors/diplomacy
-	minors = xdict()
+	minors = adict()
 	for name, team in nations.items():
 		if team == minor_designation:
-			minor = xdict()
+			minor = adict()
 			
 			minor.units = xset()
 			minor.is_armed = False
@@ -171,7 +171,6 @@ def setup_phase(G, io, player_setup_path='config/faction_setup.yml'):
 	for name, config in player_setup.items():
 		if 'units' not in config.setup:
 			continue
-		faction = G.players[name]
 		
 		for unit in config.setup.units:
 			add_unit(G, unit)
@@ -181,7 +180,7 @@ def setup_phase(G, io, player_setup_path='config/faction_setup.yml'):
 	
 	# out: send message to all players to choose what tiles to place how many cadres on
 	for name, faction in player_setup.items():
-		out = xdict()
+		out = adict()
 		out.player = name
 		if 'cadres' in faction.setup:
 			out.info = faction.setup.cadres
@@ -208,7 +207,7 @@ def setup_phase(G, io, player_setup_path='config/faction_setup.yml'):
 					placed = True
 					assert tiles[msg.tile] > 0, 'No more cadres can be placed onto {}'.format(msg.tile)
 					
-					unit = xdict()
+					unit = adict()
 					unit.type = msg.type
 					unit.tile = msg.tile
 					unit.nationality = member
