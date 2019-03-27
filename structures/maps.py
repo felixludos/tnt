@@ -35,8 +35,6 @@ class adict(dict):
 		return iter(self.keys())
 	def __delattr__(self, item):
 		return super().__delitem__(item)
-	def __len__(self):
-		return max(0, super().__len__()-1)
 	def __getstate__(self):
 		return super().__getstate__()
 	def copy(self):
