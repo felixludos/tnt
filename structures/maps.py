@@ -26,9 +26,9 @@ def condensed_str(x): # for printing dicts
 # adict - dicts allowing access through attributes
 class adict(dict):
 	def __getattr__(self, key):
-		return super().__getitem__(key)
+		return self.__getitem__(key)
 	def __setattr__(self, key, value):
-		return super().__setitem__(key, value)
+		return self.__setitem__(key, value)
 	# def __missing__(self, key):
 	#     return None
 	def __iter__(self):
@@ -113,7 +113,7 @@ class idict_values(object):
 		return 'xdict_values({})'.format(', '.join(repr(v) for v in iter(self)))
 
 _dict_ID = 0
-class idict(adict):
+class idict(adict): # WARNING: These objects are not garbage collected
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		global _dict_ID

@@ -6,6 +6,7 @@ CORS(app)
 
 app.url_map.converters['action'] = ActionConverter
 
+from passive_backend import *
 
 @app.route("/")
 def hello():
