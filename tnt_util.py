@@ -5,21 +5,79 @@ import yaml
 import networkx as nx
 import uuid
 from IPython.display import display_javascript, display_html
-from structures import tdict, adict, idict, xset, get_object, get_table, pull_ID, register_obj
+from structures import tdict, tlist, tset, adict, idict, xset, get_object, get_table, pull_ID, register_obj, Transactionable
 
-def collate(raw, dict_type=None, remove_space=True):
-	if dict_type is None:
-		dict_type = adict
+class DigitalLog(object):
+	def __init__(self):
+		self.collection = []
+	def write(self, obj):
+		self.collection.append(obj)
+	def pull(self):
+		s = ''.join(self.collection)
+		self.collection.clear()
+		return s
+	def close(self):
+		self.collection.clear()
+
+class Logger(Transactionable):
+	def __init__(self, *logfiles, stdout=False):
+		self.stdout = sys.stdout if stdout else None
+		self.logfiles = logfiles
+		self.collector = None
+		
+		sys.stdout = self
+	
+	def begin(self):
+		if self.in_transaction():
+			self.abort()
+		self.collector = []
+	
+	def in_transaction(self):
+		return self.collector is not None
+	
+	def commit(self):
+		if not self.in_transaction():
+			return
+		objs = self.collector
+		self.collector = None
+		for obj in objs:
+			self.write(obj)
+		self.flush()
+	
+	def abort(self):
+		if not self.in_transaction():
+			return
+		self.collector = None
+	
+	def write(self, obj):
+		if self.in_transaction():
+			return self.collector.append(obj)
+		for logfile in self.logfiles:
+			logfile.write(obj)
+		if self.stdout is not None:
+			self.stdout.write(obj)
+	
+	def flush(self):
+		if self.stdout is not None:
+			self.stdout.flush()
+	
+	def __del__(self):
+		for logfile in self.logfiles:
+			logfile.close()
+		
+
+
+def collate(raw, remove_space=True):
 	if isinstance(raw, dict):
-		return dict_type((collate(k, dict_type=dict_type, remove_space=remove_space),
-		                  collate(v, dict_type=dict_type, remove_space=remove_space))
+		return tdict((collate(k, remove_space=remove_space),
+		                  collate(v, remove_space=remove_space))
 		                 for k,v in raw.items())
 	elif isinstance(raw, list):
-		return [collate(x, dict_type=dict_type, remove_space=remove_space) for x in raw]
+		return tlist([collate(x, remove_space=remove_space) for x in raw])
 	elif isinstance(raw, tuple):
-		return (collate(x, dict_type=dict_type, remove_space=remove_space) for x in raw)
+		return (collate(x, remove_space=remove_space) for x in raw)
 	elif isinstance(raw, set):
-		return xset(collate(x, dict_type=dict_type, remove_space=remove_space)
+		return tset(collate(x, remove_space=remove_space)
 		            for x in raw)
 	elif isinstance(raw, str) and remove_space:
 		return raw.replace(' ', '_')

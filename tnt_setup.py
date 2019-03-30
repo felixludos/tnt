@@ -1,10 +1,9 @@
-from tnt_util import tdict, adict, idict, xset, load, save, collate, uncollate
+from tnt_util import tdict, tset, tlist, idict, load, save, collate, uncollate
 from tnt_cards import load_card_decks, draw_cards
 from tnt_errors import ActionError
 from tnt_units import load_unit_rules, add_unit
 
-def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
-	G = adict()
+def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 	
 	tiles = load(tiles)
 	borders = load(borders)
@@ -14,25 +13,26 @@ def load_map(tiles='config/tiles.yml', borders='config/borders.yml'):
 		t = b.type
 		
 		if 'borders' not in tiles[n1]:
-			tiles[n1].borders = adict()
+			tiles[n1].borders = tdict()
 		tiles[n1].borders[n2] = t
 		
 		if 'borders' not in tiles[n2]:
-			tiles[n2].borders = adict()
+			tiles[n2].borders = tdict()
 		tiles[n2].borders[n1] = t
 	
 	G.tiles = tiles
 	
 	for name, tile in G.tiles.items():
 		tile.name = name
-		tile.units = xset()
+		tile.units = tset()
 		if tile.type != 'Sea' and tile.type != 'Ocean':
 			for neighbor in tile.borders.keys():
 				if G.tiles[neighbor].type == 'Sea' or G.tiles[neighbor].type == 'Ocean':
-					tile.type = 'coast'
+					tile.type = 'Coast'
 					break
-	
-	return G
+		
+		# add tile to game objects
+		G.objects.table[name] = tile
 
 def compute_tracks(territory, tiles):
 	pop, res = 0, 0
@@ -47,7 +47,7 @@ def compute_tracks(territory, tiles):
 def load_players_and_minors(G):
 	player_setup = load('config/faction_setup.yml')
 	
-	nations = adict()
+	nations = tdict()
 	minor_designation = 'Minor'
 	
 	for tile in G.tiles.values():
@@ -56,10 +56,10 @@ def load_players_and_minors(G):
 	G.nations = nations # map nationality to faction/minor
 	
 	# load factions/players
-	players = adict()
+	players = tdict()
 	
-	groups = xset(player_setup.keys())
-	rivals = adict()
+	groups = tset(player_setup.keys())
+	rivals = tdict()
 	for g in groups:
 		gps = groups.copy()
 		gps.remove(g)
@@ -67,35 +67,35 @@ def load_players_and_minors(G):
 	
 	for name, config in player_setup.items():
 		
-		faction = adict()
+		faction = tdict()
 		
-		faction.rules = adict()
+		faction.rules = tdict()
 		faction.rules.handlimit = config.Handlimit
 		faction.rules.factory_all_costs = config.FactoryCost
 		faction.rules.factory_idx = 0
 		faction.rules.factory_cost = faction.rules.factory_all_costs[faction.rules.factory_idx]
 		faction.rules.emergency_command = config.EmergencyCommand
-		faction.rules.DoW = adict()
+		faction.rules.DoW = tdict()
 		faction.rules.DoW[rivals[name][0]] = False
 		faction.rules.DoW[rivals[name][1]] = False
 		faction.rules.enable_USA = 'enable_USA' in config
 		faction.rules.enable_Winter = 'enable_Winter' in config
 		
-		faction.cities = adict()
+		faction.cities = tdict()
 		faction.cities.MainCapital = config.MainCapital
 		faction.cities.SubCapitals = config.SubCapitals
 		
-		faction.members = adict()
+		faction.members = tdict()
 		for nation, info in config.members.items():
 			nations[nation] = name
-			faction.members[nation] = xset([nation])
+			faction.members[nation] = tset([nation])
 			if 'Colonies' in info:
 				faction.members[nation].update(info.Colonies)
 		
-		faction.homeland = xset()
-		faction.territory = xset()
+		faction.homeland = tset()
+		faction.territory = tset()
 		
-		full_cast = xset()
+		full_cast = tset()
 		for members in faction.members.values():
 			full_cast.update(members)
 		
@@ -107,26 +107,26 @@ def load_players_and_minors(G):
 			if tile.alligence in full_cast:
 				faction.territory.add(tile_name)
 		
-		faction.tracks = adict()
+		faction.tracks = tdict()
 		pop, res = compute_tracks(faction.territory, G.tiles)
 		faction.tracks.pop = pop
 		faction.tracks.res = res
 		faction.tracks.ind = config.initial_ind
 		
-		faction.units = xset()
-		faction.hand = xset() # for cards
-		faction.influence = adict()
+		faction.units = tset()
+		faction.hand = tset() # for cards
+		faction.influence = tdict()
 		
 		players[name] = faction
 	G.players = players
 	
 	# load minors/diplomacy
-	minors = adict()
+	minors = tdict()
 	for name, team in nations.items():
 		if team == minor_designation:
-			minor = adict()
+			minor = tdict()
 			
-			minor.units = xset()
+			minor.units = tset()
 			minor.is_armed = False
 			minor.influence_faction = None
 			minor.influence_value = 0
@@ -135,9 +135,27 @@ def load_players_and_minors(G):
 	G.minors = minors
 	
 
+def load_game_info(G, path='config/game_info.yml'):
+	info = load(path)
+	
+	game = tdict()
+	
+	game.sequence = ['Setup'] + 10*info.year_order
+	game.index = 0
+	#game.action_phases = tset(x for x in info.phases if info.phases[x]) # no need for action phases anymore (all action phases have a pre phase)
+	
+	G.game = game
+	
+	G.game_objects = tdict()
+
 def init_gamestate():
 	
-	G = load_map()
+	G = tdict()
+	
+	load_game_info(G)
+	
+	load_map(G)
+	
 	load_players_and_minors(G)
 	load_card_decks(G)
 	
@@ -145,24 +163,7 @@ def init_gamestate():
 	
 	return G
 
-def check_setup_complete(player_setup):
-	
-	incomplete = xset()
-	
-	for name, config in player_setup.items():
-		if 'cadres' in config.setup:
-			for reqs in config.setup.cadres.values():
-				done = False
-				for num in reqs.values():
-					if num > 0:
-						incomplete.add(name)
-						done = True
-						break
-				if done:
-					break
-	return incomplete
-
-def setup_phase(G, io, player_setup_path='config/faction_setup.yml'):
+def setup_pre_phase(G, player_setup_path='config/faction_setup.yml'):
 	
 	player_setup = load(player_setup_path)
 	
@@ -174,57 +175,56 @@ def setup_phase(G, io, player_setup_path='config/faction_setup.yml'):
 		
 		for unit in config.setup.units:
 			add_unit(G, unit)
-
-
-	# place user chosen units
+			
+	# prep temp info
 	
-	# out: send message to all players to choose what tiles to place how many cadres on
+	G.temp = tdict()
+	
 	for name, faction in player_setup.items():
-		out = adict()
+		out = tdict()
 		out.player = name
 		if 'cadres' in faction.setup:
 			out.info = faction.setup.cadres
 			out.msg = 'Choose this many cadres to place into each of these territories'
 		else:
 			out.msg = 'Wait while other players place their cadres'
-		io.put(out)
+
+def setup_phase(G, action): # player, tilename, unit_type
+	# place user chosen units
 	
-	incomplete = check_setup_complete(player_setup)
+	# out: send message to all players to choose what tiles to place how many cadres on
 	
-	while len(incomplete):
 		
-		try:
-			msg = io.get()
-			
-			assert msg.player in incomplete, 'Player {} is already done'.format(msg.player)
-			
-			reqs = player_setup[msg.player].setup.cadres
-			
-			placed = False
-			
-			for member, tiles in reqs.items():
-				if msg.tile in tiles:
-					placed = True
-					assert tiles[msg.tile] > 0, 'No more cadres can be placed onto {}'.format(msg.tile)
-					
-					unit = adict()
-					unit.type = msg.type
-					unit.tile = msg.tile
-					unit.nationality = member
-					unit.cv = 1
-					
-					add_unit(G, unit)
-					
-					tiles[msg.tile] -= 1
-					if tiles[msg.tile] == 0:
-						del tiles[msg.tile]
-						
-			assert placed, 'Tile {} not available for placement'.format(msg.tile)
-			
-		except (ActionError, AssertionError) as e:
-			io.put({'error':'Invalid Action', 'msg':str(e)})
+	try:
+		msg = io.get()
 		
-		incomplete = check_setup_complete(player_setup)
+		assert msg.player in incomplete, 'Player {} is already done'.format(msg.player)
+		
+		reqs = player_setup[msg.player].setup.cadres
+		
+		placed = False
+		
+		for member, tiles in reqs.items():
+			if msg.tile in tiles:
+				placed = True
+				assert tiles[msg.tile] > 0, 'No more cadres can be placed onto {}'.format(msg.tile)
+				
+				unit = tdict()
+				unit.type = msg.type
+				unit.tile = msg.tile
+				unit.nationality = member
+				unit.cv = 1
+				
+				add_unit(G, unit)
+				
+				tiles[msg.tile] -= 1
+				if tiles[msg.tile] == 0:
+					del tiles[msg.tile]
+					
+		assert placed, 'Tile {} not available for placement'.format(msg.tile)
+		
+	except (ActionError, AssertionError) as e:
+		io.put({'error':'Invalid Action', 'msg':str(e)})
 	
 	
 	# draw action cards

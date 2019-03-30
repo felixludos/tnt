@@ -29,7 +29,11 @@ def move_unit(G, unit, to_tilename):
 	unit.tile = to_tilename
 	G.tiles[unit.tile].units.add(unit)
 	
+	G.objects.updated[unit._id] = unit
+	
 def add_unit(G, unit): # tile, type, cv, nationality
+	
+	unit = idict(unit.items())
 	
 	player = G.nations[unit.nationality]
 	tilename = unit.tile
@@ -37,18 +41,16 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	tile = G.tiles[tilename]
 	
 	# check for multiple fortresses
-	if unit.type == 'Fortress':
-		assert not (tile.type == 'Sea' or tile.type == 'Ocean'), 'Fortresses cannot be placed in the Sea/Ocean {}'.format(unit.tile)
-		for unit in tile.units:
-			assert unit.type != 'Fortress', 'There is already a Fortress in {}'.format(unit.tile)
+	if type == 'Fortress':
+		assert not (tile.type == 'Sea' or tile.type == 'Ocean'), 'Fortresses cannot be placed in the Sea/Ocean {}'.format(tilename)
+		for other_unit in tile.units:
+			assert type != 'Fortress', 'There is already a Fortress in {}'.format(other_unit.tile)
 	
 	# check/update reserves
 	reserves = G.units.reserves[unit.nationality]
-	if unit.type not in reserves or reserves[unit.type] == 0:
-		raise OutOfReservesError('{} has no more {}'.format(unit.nationality, unit.type))
-	reserves[unit.type] -= 1
-	
-	
+	if type not in reserves or reserves[type] == 0:
+		raise OutOfReservesError('{} has no more {}'.format(unit.nationality, type))
+	reserves[type] -= 1
 	
 	# check convoy
 	check_for_convoy(unit, tile)
@@ -56,6 +58,8 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	# add to sets
 	tile.units.add(unit)
 	G.players[player].units.add(unit)
+	G.objects.table[unit._id] = unit
+	G.objects.created[unit._id] = unit
 
 def check_for_convoy(unit, tile):
 	if (unit.type == 'Infantry' or unit.type == 'Tank') \
@@ -82,6 +86,9 @@ def remove_unit(G, unit):
 	
 	G.tiles[tilename].units.remove(unit)
 	G.players[player].units.remove(unit)
+	del G.objects.table[unit._id]
+	G.objects.removed[unit._id] = unit
+	
 
 
 
