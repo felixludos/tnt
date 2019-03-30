@@ -1,0 +1,28 @@
+
+
+overview:
+
+  phases:
+    Setup: True
+
+    New Year: False
+    Production: True
+    Government: True
+    Spring: True
+    Summer: True
+    Blockade: False
+    Fall: True
+    Winter: True
+
+    Land Combat: True
+    Naval Combat: True
+
+  year_order:
+    - New Year
+    - Production
+    - Government
+    - Spring
+    - Summer
+    - Blockade
+    - Fall
+    - Winter

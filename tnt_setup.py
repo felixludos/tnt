@@ -1,4 +1,4 @@
-from tnt_util import adict, idict, xset, load, save, collate, uncollate
+from tnt_util import tdict, adict, idict, xset, load, save, collate, uncollate
 from tnt_cards import load_card_decks, draw_cards
 from tnt_errors import ActionError
 from tnt_units import load_unit_rules, add_unit

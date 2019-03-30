@@ -1,0 +1,69 @@
+
+from .arg_dict import adict
+from .common import condensed_str
+from weakref import WeakValueDictionary
+
+# idict - dicts with ID (copy creates new id)
+
+_object_table = WeakValueDictionary()
+def get_table():
+	return _object_table
+def get_object(ID):
+	return _object_table[ID]
+def del_object(obj):
+	del _object_table[obj._id]
+
+_dict_ID = 0
+def pull_ID():
+	global _dict_ID
+	out = _dict_ID
+	_dict_ID += 1
+	return out
+
+def register_obj(obj, ID=None):
+	if ID is None:
+		try: # using already existing ID
+			ID = obj._id
+		except AttributeError:
+			ID = pull_ID()
+	assert ID not in _object_table, 'There is already an object registered with ID: {}'.format(ID)
+	_object_table[ID] = obj
+	return ID
+
+class idict(adict): # WARNING: These objects are not garbage collected
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		global _dict_ID
+		self.__dict__['_id'] = _dict_ID
+		_object_table[self._id] = self
+		_dict_ID += 1
+	def __getattr__(self, key):
+		if key == '_id':
+			return self.__dict__['_id']
+		return super().__getattr__(key)
+	def __eq__(self, other):
+		return self._id == other._id
+	def __hash__(self):
+		return self._id
+	def __len__(self):
+		return max(0, super().__len__( ) -1)
+	def __del__(self):
+		del _object_table[self._id]
+	def __getstate__(self):
+		return super().__getstate__()
+	def copy(self):
+		return idict(self.items())
+	def to_dict(self, with_id=True):
+		if with_id:
+			copy = dict(self.full_items())
+			copy['_id'] = self._id
+			return copy
+		return dict(self.items())
+	def __str__(self):
+		items = []
+		for k ,v in self.items():
+			items.append( '{}:{}'.format(str(k), condensed_str(v)) )
+		return 'idict[{}]({})'.format(self._id, ', '.join(items))
+	def __repr__(self):
+		return '{ ' +', '.join('{}:{}'.format(repr(k) ,repr(v)) for k ,v in self.items() ) +'}'
+

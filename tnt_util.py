@@ -5,18 +5,23 @@ import yaml
 import networkx as nx
 import uuid
 from IPython.display import display_javascript, display_html
-from structures import adict, idict, xset, get_object, get_table
+from structures import tdict, adict, idict, xset, get_object, get_table, pull_ID, register_obj
 
-def collate(raw):
+def collate(raw, dict_type=None, remove_space=True):
+	if dict_type is None:
+		dict_type = adict
 	if isinstance(raw, dict):
-		return adict((collate(k),collate(v)) for k,v in raw.items())
+		return dict_type((collate(k, dict_type=dict_type, remove_space=remove_space),
+		                  collate(v, dict_type=dict_type, remove_space=remove_space))
+		                 for k,v in raw.items())
 	elif isinstance(raw, list):
-		return [collate(x) for x in raw]
+		return [collate(x, dict_type=dict_type, remove_space=remove_space) for x in raw]
 	elif isinstance(raw, tuple):
-		return (collate(x) for x in raw)
-	elif isinstance(raw, set) and type(raw) != xset:
-		return xset(collate(x) for x in raw)
-	elif isinstance(raw, str):
+		return (collate(x, dict_type=dict_type, remove_space=remove_space) for x in raw)
+	elif isinstance(raw, set):
+		return xset(collate(x, dict_type=dict_type, remove_space=remove_space)
+		            for x in raw)
+	elif isinstance(raw, str) and remove_space:
 		return raw.replace(' ', '_')
 	return raw
 
@@ -24,7 +29,7 @@ def uncollate(raw, with_id=True):
 	if isinstance(raw, dict):
 		if isinstance(raw, idict) and with_id:
 			return dict((uncollate(k,with_id),uncollate(v,with_id))
-						for k,v in raw.full_items())
+						for k,v in raw.to_dict(with_id).items())
 		return dict((uncollate(k,with_id),uncollate(v,with_id))
 					for k,v in raw.items())
 	elif isinstance(raw, list):
