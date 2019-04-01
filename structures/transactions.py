@@ -110,13 +110,13 @@ class TransactionableObject(ObjectProxy, Transactionable):
 
 
 def tdict(*args, **kwargs):
-	return Transactionable(adict(*args, **kwargs), lambda x: iter(chain(x.keys(), x.values())))
+	return TransactionableObject(adict(*args, **kwargs), lambda x: iter(chain(x.keys(), x.values())))
 
 def tlist(*args, **kwargs):
-	return Transactionable(list(*args, **kwargs), lambda x: iter(x))
+	return TransactionableObject(list(*args, **kwargs), lambda x: iter(x))
 
 def tset(*args, **kwargs):
-	return Transactionable(set(*args, **kwargs), lambda x: iter(x))
+	return TransactionableObject(set(*args, **kwargs), lambda x: iter(x))
 
 # Old manual implementation for tdict
 

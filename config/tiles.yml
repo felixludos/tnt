@@ -109,13 +109,13 @@ Dublin:
   muster: 1
 Irminger Sea:
   type: Sea
-IceLand:
+Iceland:
   type: Land
   alligence: Denmark
   res: 0
   pop: 0
   muster: 0
-GreenLand Sea:
+Greenland Sea:
   type: Sea
 Norwegian Sea:
   type: Sea

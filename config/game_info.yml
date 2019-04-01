@@ -26,3 +26,11 @@ year_order:
   - Blockade
   - Fall
   - Winter
+
+turn_order_options:
+  1: [Axis, USSR, West]
+  2: [Axis, West, USSR]
+  3: [West, Axis, USSR]
+  4: [West, USSR, Axis]
+  5: [USSR, West, Axis]
+  6: [USSR, Axis, West]

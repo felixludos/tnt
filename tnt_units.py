@@ -34,6 +34,7 @@ def move_unit(G, unit, to_tilename):
 def add_unit(G, unit): # tile, type, cv, nationality
 	
 	unit = idict(unit.items())
+	unit.obj_type = 'unit'
 	
 	player = G.nations[unit.nationality]
 	tilename = unit.tile
@@ -41,16 +42,16 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	tile = G.tiles[tilename]
 	
 	# check for multiple fortresses
-	if type == 'Fortress':
+	if unit.type == 'Fortress':
 		assert not (tile.type == 'Sea' or tile.type == 'Ocean'), 'Fortresses cannot be placed in the Sea/Ocean {}'.format(tilename)
 		for other_unit in tile.units:
-			assert type != 'Fortress', 'There is already a Fortress in {}'.format(other_unit.tile)
+			assert unit.type != 'Fortress', 'There is already a Fortress in {}'.format(other_unit.tile)
 	
 	# check/update reserves
 	reserves = G.units.reserves[unit.nationality]
-	if type not in reserves or reserves[type] == 0:
-		raise OutOfReservesError('{} has no more {}'.format(unit.nationality, type))
-	reserves[type] -= 1
+	if unit.type not in reserves or reserves[unit.type] == 0:
+		raise OutOfReservesError('{} has no more {}'.format(unit.nationality, unit.type))
+	reserves[unit.type] -= 1
 	
 	# check convoy
 	check_for_convoy(unit, tile)

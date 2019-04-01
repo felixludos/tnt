@@ -9,14 +9,14 @@ app.url_map.converters['action'] = ActionConverter
 from passive_backend import *
 
 @app.route("/")
-def hello():
+def ping():
 	return 'Backend active: use "init" to init game'
 
-@app.route('/init/<game_type>')
-def init_game(game_type='hotseat'):
+@app.route('/init/<game_type>/<player>')
+def init_game(game_type='hotseat', player='Axis'):
 	if not game_type == 'hotseat':
 		return 'Error: Game type must be hotseat'
-	
+	return start_new_game(player)
 	# init game
 	return 'Will send list of all game objects, including actions'
 

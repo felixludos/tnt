@@ -1,5 +1,73 @@
 import numpy as np
-from tnt_util import adict, idict, xset, load
+from tnt_util import tdict, tlist, adict, idict, xset, load
+
+def load_card_decks(G, action_path='config/cards/action_cards.yml',
+                    investment_path='config/cards/investment_cards.yml',
+                    info_path='config/cards/card_info.yml'):
+	
+	cinfo = load(info_path)
+	caction = load(action_path)
+	cinvest = load(investment_path)
+	
+	action_cards = tdict()
+	action_cards.deck = tlist()
+	
+	for ID, card in caction.items():
+		card = idict(card)
+		card.ID = ID
+		card.obj_type = 'action_card'
+		card._id = 'action_{}'.format(ID)
+		action_cards.deck.append(card)
+		G.objects.table[card._id] = card
+	
+	investment_cards = tdict()
+	investment_cards.deck = tlist()
+	
+	for ID, card in cinvest.items():
+		card = idict(card)
+		card.ID = ID
+		card.obj_type = 'investment_card'
+		card._id = 'invest_{}'.format(ID)
+		investment_cards.deck.append(card)
+		G.objects.table[card._id] = card
+	
+	G.cards = tdict()
+	
+	G.cards.action = action_cards
+	G.cards.action.discard_pile = tlist()
+	
+	G.cards.investment = investment_cards
+	G.cards.investment.discard_pile = tlist()
+	
+	G.cards.info = tdict(cinfo)
+	
+	shuffle(G.cards.investment)
+	shuffle(G.cards.action)
+
+
+def shuffle(stack):
+	
+	stack.deck.extend(stack.discard_pile)
+	np.random.shuffle(stack.deck)
+	
+	stack.discard_pile.clear()
+	
+
+def draw_cards(stack, N=1):
+	cards = tlist()
+	
+	N = min(N, len(stack.deck)+len(stack.discard_pile))
+	
+	shuffled = False
+	
+	for _ in range(N):
+		if len(stack.deck) == 0:
+			shuffled = True
+			shuffle(stack)
+		cards.append(stack.deck.pop())
+		
+	return cards, shuffled
+
 
 def split_choices(options, num, dim):
 	np.random.shuffle(options)
@@ -16,17 +84,17 @@ def split_choices(options, num, dim):
 	np.random.shuffle(picks)
 	return picks
 
-def load_card_decks(G, card_config_path='config/card_stats.yml'):
+def load_gen_card_decks(G, card_config_path='config/card_stats.yml',):
 	
 	cc = load(card_config_path)
 	
 	config = cc.action_cards
 	G.action_cards = adict()
-
+	
 	card_list = []
-
+	
 	dim = 2
-	num = sum(config.diplomacy.values())//dim
+	num = sum(config.diplomacy.values()) // dim
 	
 	for _ in range(10):
 		try:
@@ -35,58 +103,54 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 			pass
 		else:
 			break
-
-
+	
 	wildcards = []
 	for name, info in config.wildcards.items():
 		for _ in range(info.count):
 			card = idict(info.items())
 			del card.count
 			card.name = name
-
+			
 			wildcards.append(card)
 	np.random.shuffle(wildcards)
-
-
+	
 	for season, info in config.seasons.items():
-
+		
 		commands = sum([[k] * v for k, v in info.commands.items()], [])
 		np.random.shuffle(commands)
-
+		
 		if len(info.priorities) > info.count:
 			priorities = np.random.choice(info.priorities, info.count, replace=False).tolist()
 		else:
 			priorities = info.priorities
 		assert len(priorities) == info.count
-
+		
 		for _ in range(info.num_wildcards):
 			command, priority = commands.pop(), priorities.pop()
 			wildcard = wildcards.pop()
-
+			
 			card = idict()
 			card.wildcard = wildcard
 			card.command_value = command
 			card.command_priority = priority
 			card.season = season
-
+			
 			card_list.append(card)
-
-
+		
 		for command, priority in zip(commands, priorities):
 			dpl1, dpl2 = picks.pop()
-
+			
 			card = idict()
 			card.command_value = command
 			card.command_priority = priority
 			card.season = season
-
+			
 			card.top_diplomacy = dpl1
 			card.bottom_diplomacy = dpl2
-
+			
 			card_list.append(card)
-
+	
 	G.action_cards.deck = card_list
-
 	
 	config = cc.investment_cards
 	G.investment_cards = adict()
@@ -98,7 +162,6 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 	
 	techs = []
 	for name, info in config.technologies.items():
-		
 		tech = adict(info.items())
 		count = info.count
 		del tech.count
@@ -126,9 +189,8 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 	
 	factories = sum([[k] * v for k, v in config.factory_levels.items()], [])
 	np.random.shuffle(factories)
-		
+	
 	for pick in picks:
-		
 		tech1, tech2 = pick
 		card = idict()
 		card.top_technology = tech1
@@ -136,7 +198,7 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 		card.factory_value = factories.pop()
 		
 		card_list.append(card)
-		
+	
 	G.investment_cards.deck = card_list
 	
 	G.action_cards.discard_pile = []
@@ -144,28 +206,3 @@ def load_card_decks(G, card_config_path='config/card_stats.yml'):
 	
 	np.random.shuffle(G.investment_cards.deck)
 	np.random.shuffle(G.action_cards.deck)
-	
-
-def shuffle(stack):
-	
-	stack.deck.extend(stack.discard_pile)
-	np.random.shuffle(stack.deck)
-	
-	stack.discard_pile = []
-	
-
-def draw_cards(stack, N=1):
-	cards = []
-	
-	N = min(N, len(stack.deck)+len(stack.discard_pile))
-	
-	shuffled = False
-	
-	for _ in range(N):
-		if len(stack.deck) == 0:
-			shuffled = True
-			shuffle(stack)
-		cards.append(stack.deck.pop())
-		
-	return cards, shuffled
-

@@ -32,6 +32,7 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 					break
 		
 		# add tile to game objects
+		tile.obj_type = 'tile'
 		G.objects.table[name] = tile
 
 def compute_tracks(territory, tiles):
@@ -141,12 +142,13 @@ def load_game_info(G, path='config/game_info.yml'):
 	game = tdict()
 	
 	game.sequence = ['Setup'] + 10*info.year_order
-	game.index = 0
+	game.index = -1 # start below 0, so after increment in next_phase() it starts at 0
 	#game.action_phases = tset(x for x in info.phases if info.phases[x]) # no need for action phases anymore (all action phases have a pre phase)
 	
 	G.game = game
 	
-	G.game_objects = tdict()
+	G.objects = tdict()
+	G.objects.table = tdict()
 
 def init_gamestate():
 	
@@ -188,6 +190,9 @@ def setup_pre_phase(G, player_setup_path='config/faction_setup.yml'):
 			out.msg = 'Choose this many cadres to place into each of these territories'
 		else:
 			out.msg = 'Wait while other players place their cadres'
+			
+	
+	# return action adict(faction: (action_keys, action_options))
 
 def setup_phase(G, action): # player, tilename, unit_type
 	# place user chosen units
