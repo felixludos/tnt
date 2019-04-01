@@ -1,4 +1,4 @@
-from tnt_util import tdict, tset, tlist, idict, load, save, collate, uncollate
+from tnt_util import tdict, tset, adict, tlist, idict, load, save, collate, uncollate, xset
 from tnt_cards import load_card_decks, draw_cards
 from tnt_errors import ActionError
 from tnt_units import load_unit_rules, add_unit
@@ -33,6 +33,7 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 		
 		# add tile to game objects
 		tile.obj_type = 'tile'
+		tile.visible = tset({'Axis', 'West', 'USSR'})
 		G.objects.table[name] = tile
 
 def compute_tracks(territory, tiles):
@@ -165,6 +166,46 @@ def init_gamestate():
 	
 	return G
 
+def encode_setup_actions(G):
+	keys = ('nationality', 'tile', 'unit_type')
+	code = adict()
+	
+	groups = [
+		xset({ut for ut, rules in G.units.rules.items() if 'not_placeable' not in rules}),
+		xset({ut for ut, rules in G.units.rules.items() if 'not_placeable' not in rules and ut != 'Fortress'}),
+		xset({ut for ut, rules in G.units.rules.items() if 'not_placeable' not in rules and rules.type not in {'N','S'}}),
+		xset({ut for ut, rules in G.units.rules.items() if 'not_placeable' not in rules and rules.type not in {'N','S'} and ut != 'Fortress'}),
+	]
+	
+	for player, setups in G.temp.setup.items():
+		nationalities = xset()
+		if 'cadres' not in setups:
+			continue
+		for nationality, tiles in setups.cadres.items():
+			group_names = [xset() for _ in groups]
+			for tilename in tiles:
+				tile = G.tiles[tilename]
+				has_fortress = False
+				if 'units' in tile:
+					for ID in tile.units:
+						if G.objects.table[ID].type == 'Fortress':
+							has_fortress = True
+							break
+				
+				if tile.type == 'Land': # no coast
+					group_names[2].add(tilename)
+				elif has_fortress:
+					group_names[1].add(tilename)
+				elif has_fortress and tile.type == 'Land':
+					group_names[3].add(tilename)
+				else:
+					group_names[0].add(tilename)
+			
+			options = xset((gn, g) for gn, g in zip(group_names, groups) if len(gn) > 0 and len(g) > 0)
+			nationalities.add((nationality, options))
+		code[player] = keys, nationalities
+	return code
+
 def setup_pre_phase(G, player_setup_path='config/faction_setup.yml'):
 	
 	player_setup = load(player_setup_path)
@@ -178,21 +219,19 @@ def setup_pre_phase(G, player_setup_path='config/faction_setup.yml'):
 		for unit in config.setup.units:
 			add_unit(G, unit)
 			
-	# prep temp info
+	# prep temp info - phase specific data
 	
-	G.temp = tdict()
+	temp = tdict()
+	temp.setup = tdict()
 	
 	for name, faction in player_setup.items():
-		out = tdict()
-		out.player = name
-		if 'cadres' in faction.setup:
-			out.info = faction.setup.cadres
-			out.msg = 'Choose this many cadres to place into each of these territories'
-		else:
-			out.msg = 'Wait while other players place their cadres'
-			
+		temp.setup[name] = faction.setup
+	
+	G.temp = temp
 	
 	# return action adict(faction: (action_keys, action_options))
+	return encode_setup_actions(G)
+	
 
 def setup_phase(G, action): # player, tilename, unit_type
 	# place user chosen units

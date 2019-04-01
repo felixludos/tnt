@@ -44,10 +44,17 @@ PHASES = adict({
 # ALL game information is in the gamestate "G"
 G = None
 
+
+
 DLOG = util.DigitalLog()
 
 ACTION_KEY = adict()
 WAITING_ACTIONS = adict()
+
+def get_G():
+	return G
+def get_waiting_actions():
+	return WAITING_ACTIONS
 
 def next_phase(): # keeps going through phases until actions are returned
 	

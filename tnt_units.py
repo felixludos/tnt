@@ -1,4 +1,4 @@
-from tnt_util import adict, idict, xset, load, save, collate, uncollate
+from tnt_util import adict, idict, xset, load, save, collate, uncollate, tset
 from tnt_errors import ActionError
 
 
@@ -25,9 +25,9 @@ def move_unit(G, unit, to_tilename):
 	# possibly convert to/from convoy
 	check_for_convoy(unit, G.tiles[to_tilename])
 	
-	G.tiles[unit.tile].units.remove(unit)
+	G.tiles[unit.tile].units.remove(unit._id)
 	unit.tile = to_tilename
-	G.tiles[unit.tile].units.add(unit)
+	G.tiles[unit.tile].units.add(unit._id)
 	
 	G.objects.updated[unit._id] = unit
 	
@@ -35,6 +35,7 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	
 	unit = idict(unit.items())
 	unit.obj_type = 'unit'
+	unit.visible = tset({G.nations[unit.nationality]})
 	
 	player = G.nations[unit.nationality]
 	tilename = unit.tile
@@ -57,7 +58,7 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	check_for_convoy(unit, tile)
 	
 	# add to sets
-	tile.units.add(unit)
+	tile.units.add(unit._id)
 	G.players[player].units.add(unit)
 	G.objects.table[unit._id] = unit
 	G.objects.created[unit._id] = unit
@@ -85,7 +86,7 @@ def remove_unit(G, unit):
 		reserves[unit.type] = 0
 	reserves[unit.type] += 1
 	
-	G.tiles[tilename].units.remove(unit)
+	G.tiles[tilename].units.remove(unit._id)
 	G.players[player].units.remove(unit)
 	del G.objects.table[unit._id]
 	G.objects.removed[unit._id] = unit

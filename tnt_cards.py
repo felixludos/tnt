@@ -1,5 +1,5 @@
 import numpy as np
-from tnt_util import tdict, tlist, adict, idict, xset, load
+from tnt_util import tdict, tlist, tset, adict, idict, xset, load
 
 def load_card_decks(G, action_path='config/cards/action_cards.yml',
                     investment_path='config/cards/investment_cards.yml',
@@ -16,6 +16,7 @@ def load_card_decks(G, action_path='config/cards/action_cards.yml',
 		card = idict(card)
 		card.ID = ID
 		card.obj_type = 'action_card'
+		card.visible = tset({})
 		card._id = 'action_{}'.format(ID)
 		action_cards.deck.append(card)
 		G.objects.table[card._id] = card
@@ -27,6 +28,7 @@ def load_card_decks(G, action_path='config/cards/action_cards.yml',
 		card = idict(card)
 		card.ID = ID
 		card.obj_type = 'investment_card'
+		card.visible = tset({})
 		card._id = 'invest_{}'.format(ID)
 		investment_cards.deck.append(card)
 		G.objects.table[card._id] = card
