@@ -10,6 +10,7 @@ from tnt_setup import init_gamestate, setup_phase, setup_pre_phase
 import tnt_setup as setup
 from tnt_cards import load_card_decks, draw_cards
 from collections import namedtuple
+import traceback
 
 PRE_PHASES = adict({ # all action phases
 	'Setup': setup_pre_phase,
@@ -43,8 +44,7 @@ PHASES = adict({
 
 # ALL game information is in the gamestate "G"
 G = None
-
-
+DEBUG = False
 
 DLOG = util.DigitalLog()
 
@@ -76,8 +76,10 @@ def next_phase(): # keeps going through phases until actions are returned
 	
 	return out
 
-def start_new_game(player='Axis'):
-	global G
+def start_new_game(player='Axis', debug=False):
+	global G, DEBUG
+	
+	DEBUG = debug
 
 	G = setup.init_gamestate()
 	
@@ -106,8 +108,10 @@ def format_out_message(outtype, results, player):
 	out.removed = G.objects.removed.copy()
 	
 	if outtype == 'error':
-		out.error_type = type(results)
-		out.error_msg = results.args[0]
+		out.error = ''.join(traceback.format_exception(*results))
+		#out.error_type = type(results)
+		#out.error_msg = results.args[0]
+		#out.error_tb = traceback.format_tb(sys.exc_info())
 	elif outtype == 'action':
 		out.actions = results
 		WAITING[player] = out
@@ -148,8 +152,11 @@ def step(player, action):
 	
 	except Exception as e:
 		G.abort()
-		raise e
-		return format_out_message('error', e, player)
+		
+		if DEBUG:
+			raise e
+		
+		return format_out_message('error', sys.exc_info(), player)
 		
 	else:
 		G.commit()

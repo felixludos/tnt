@@ -37,6 +37,9 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	unit.obj_type = 'unit'
 	unit.visible = tset({G.nations[unit.nationality]})
 	
+	if 'cv' not in unit: # by default add a cadre
+		unit.cv = 1
+	
 	player = G.nations[unit.nationality]
 	tilename = unit.tile
 	
