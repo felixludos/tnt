@@ -44,16 +44,10 @@ PHASES = adict({
 # ALL game information is in the gamestate "G"
 G = None
 
-
-
 DLOG = util.DigitalLog()
 
-WAITING = adict()
-
-def get_G():
-	return G
-def get_waiting_actions():
-	return WAITING
+ACTION_KEY = adict()
+WAITING_ACTIONS = adict()
 
 def next_phase(): # keeps going through phases until actions are returned
 	
@@ -92,9 +86,9 @@ def start_new_game(player='Axis'):
 	return format_out_message('all', next_phase(), player)
 
 def get_waiting(player):
-	if WAITING is not None and player in WAITING:
-		return WAITING[player]
-	return adict({'waiting_for':list(WAITING.keys())})
+	if WAITING_ACTIONS is not None and player in WAITING_ACTIONS:
+		return WAITING_ACTIONS[player]
+	return adict({'waiting_for':list(WAITING_ACTIONS.keys())})
 
 def format_out_message(outtype, results, player):
 	out = adict()
@@ -109,22 +103,26 @@ def format_out_message(outtype, results, player):
 		out.error_type = type(results)
 		out.error_msg = results.args[0]
 	elif outtype == 'action':
-		out.actions = results
-		WAITING[player] = out
+		global ACTION_KEY
+		ACTION_KEY[player] = results[0]
+		out.actions = results[1]
 	elif outtype == 'all':
+		global WAITING_ACTIONS
 		for faction, actions in results.items():
-			WAITING[faction] = adict()
-			WAITING[faction].actions = actions
-			WAITING[faction].update(out)
+			WAITING_ACTIONS[faction] = adict()
+			ACTION_KEY[faction] = actions[0]
+			WAITING_ACTIONS[faction].actions = actions[1]
+			WAITING_ACTIONS[faction].update(out)
 		return get_waiting(player)
-	elif outtype == 'waiting':
-		return get_waiting(player)
+		
 	else:
 		raise Exception('Unknown outtype {}'.format(outtype))
 	
 	return out
 
 def step(player, action):
+	action = adict(zip(ACTION_KEY, action))
+	action.player = player
 	
 	phase = PHASES[G.game.sequence[G.game.index]]
 	
@@ -136,29 +134,23 @@ def step(player, action):
 	
 	all_actions = None
 	try:
-		possible_actions = phase(G, player, WAITING[player].actions, action) # already factorized
+		possible_actions = phase(G, action) # already factorized
 		
-		if possible_actions is None:
-			del WAITING[player]
-		
-		if possible_actions is None and len(WAITING) == 0: # phase is complete
+		if possible_actions is None: # phase is complete
 			all_actions = next_phase()
 			
 			# sort all actions into waiting and current
 	
 	except Exception as e:
 		G.abort()
-		raise e
 		return format_out_message('error', e, player)
 		
 	else:
 		G.commit()
 		if possible_actions is not None:
 			return format_out_message('action', possible_actions, player)
-		elif all_actions is not None:
-			return format_out_message('all', all_actions, player)
 		else:
-			return format_out_message('waiting', None, player)
+			return format_out_message('all', all_actions, player)
 	
 
 

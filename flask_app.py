@@ -24,8 +24,15 @@ def init_game(game_type='hotseat', player='Axis'):
 def get_info(faction):
 	return 'Will send info about {}'.format(faction)
 
+@app.route('/status/<faction>')
+def get_status(faction):
+	return get_waiting(faction)
+
 @app.route('/action/<faction>/<action:vals>') # action values are delimited by "+"
 def take_action(faction, vals):
+	
+	return step(faction, vals)
+	
 	return 'Received action from {}: {}'.format(faction, str(vals))
 
 #das brauch ich um es local laufen zu lassen

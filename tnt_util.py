@@ -6,6 +6,7 @@ import networkx as nx
 import uuid
 from IPython.display import display_javascript, display_html
 from structures import tdict, tlist, tset, adict, idict, xset, get_object, get_table, pull_ID, register_obj, Transactionable
+from itertools import product, chain
 
 class DigitalLog(object):
 	def __init__(self):
@@ -25,6 +26,7 @@ class Logger(Transactionable):
 		self.logfiles = logfiles
 		self.collector = None
 		
+		self.backup = sys.stdout
 		sys.stdout = self
 	
 	def begin(self):
@@ -62,10 +64,35 @@ class Logger(Transactionable):
 			self.stdout.flush()
 	
 	def __del__(self):
+		sys.stdout = self.backup
+		print('Killing logger')
 		for logfile in self.logfiles:
 			logfile.close()
-		
 
+
+def expand_actions(code):
+	if isinstance(code, set) and len(code) == 1:
+		return expand_actions(next(iter(code)))
+	
+	if isinstance(code, str) or isinstance(code, int):
+		return [code]
+	
+	# tuple case
+	if isinstance(code, (tuple, list)):
+		return list(product(*map(expand_actions, code)))
+	if isinstance(code, set):
+		return chain(*map(expand_actions, code))
+	return code
+
+def flatten(bla):
+	output = ()
+	for item in bla:
+		output += flatten(item) if isinstance(item, (tuple, list)) else (item,)
+	return output
+
+def decode_actions(code):
+	code = expand_actions(code)
+	return xset(map(flatten, code))
 
 def collate(raw, remove_space=True):
 	if isinstance(raw, dict):

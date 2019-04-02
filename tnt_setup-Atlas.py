@@ -1,5 +1,4 @@
-from tnt_util import tdict, tset, adict, tlist, idict, load, save, collate, uncollate, xset
-import tnt_util as util
+from tnt_util import tdict, tset, tlist, idict, load, save, collate, uncollate
 from tnt_cards import load_card_decks, draw_cards
 from tnt_errors import ActionError
 from tnt_units import load_unit_rules, add_unit
@@ -34,7 +33,6 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 		
 		# add tile to game objects
 		tile.obj_type = 'tile'
-		tile.visible = tset({'Axis', 'West', 'USSR'})
 		G.objects.table[name] = tile
 
 def compute_tracks(territory, tiles):
@@ -167,58 +165,6 @@ def init_gamestate():
 	
 	return G
 
-def encode_setup_actions(G, player=None):
-	#keys = ('nationality', 'tile', 'unit_type')
-	code = adict()
-	
-	for faction, setups in G.temp.setup.items():
-		nationalities = xset()
-		if 'cadres' not in setups:
-			continue
-		for nationality, tiles in setups.cadres.items():
-			
-			available_units = {ut:rules for ut, rules in G.units.rules.items() if ut in  G.units.reserves[nationality] and G.units.reserves[nationality][ut]>0}
-			
-			groups = [
-				xset({ut for ut, rules in available_units.items() if 'not_placeable' not in rules}),
-				xset({ut for ut, rules in available_units.items() if 'not_placeable' not in rules and ut != 'Fortress'}),
-				xset({ut for ut, rules in available_units.items() if
-				      'not_placeable' not in rules and rules.type not in {'N', 'S'}}),
-				xset({ut for ut, rules in available_units.items() if
-				      'not_placeable' not in rules and rules.type not in {'N', 'S'} and ut != 'Fortress'}),
-			]
-			
-			
-			group_names = [xset() for _ in groups]
-			for tilename in tiles:
-				tile = G.tiles[tilename]
-				has_fortress = False
-				if 'units' in tile:
-					for ID in tile.units:
-						if G.objects.table[ID].type == 'Fortress':
-							has_fortress = True
-							break
-				
-				if tile.type == 'Land': # no coast
-					group_names[2].add(tilename)
-				elif has_fortress:
-					group_names[1].add(tilename)
-				elif has_fortress and tile.type == 'Land':
-					group_names[3].add(tilename)
-				else:
-					group_names[0].add(tilename)
-			
-			options = xset((gn, g) for gn, g in zip(group_names, groups) if len(gn) > 0 and len(g) > 0)
-			nationalities.add((nationality, options))
-		code[faction] = nationalities
-	
-	if player is not None and player in code:
-		return code[player]
-	elif player is not None:
-		return None
-	
-	return code
-
 def setup_pre_phase(G, player_setup_path='config/faction_setup.yml'):
 	
 	player_setup = load(player_setup_path)
@@ -232,53 +178,65 @@ def setup_pre_phase(G, player_setup_path='config/faction_setup.yml'):
 		for unit in config.setup.units:
 			add_unit(G, unit)
 			
-	# prep temp info - phase specific data
+	# prep temp info
 	
-	temp = tdict()
-	temp.setup = tdict()
+	G.temp = tdict()
 	
 	for name, faction in player_setup.items():
-		temp.setup[name] = faction.setup
-	
-	G.temp = temp
+		out = tdict()
+		out.player = name
+		if 'cadres' in faction.setup:
+			out.info = faction.setup.cadres
+			out.msg = 'Choose this many cadres to place into each of these territories'
+		else:
+			out.msg = 'Wait while other players place their cadres'
+			
 	
 	# return action adict(faction: (action_keys, action_options))
-	return encode_setup_actions(G)
-	
 
-def setup_phase(G, player, options, action): # player, nationality, tilename, unit_type
+def setup_phase(G, action): # player, tilename, unit_type
 	# place user chosen units
 	
-	options = util.decode_actions(options)
+	# out: send message to all players to choose what tiles to place how many cadres on
 	
-	assert action in options, 'Invalid action: {}'.format(action)
-	
-	nationality, tilename, unit_type = action
-	
-	unit = adict()
-	unit.nationality = nationality
-	unit.tile = tilename
-	unit.type = unit_type
-	
-	#print(unit)
-	
-	add_unit(G, unit)
-	
-	G.temp.setup[player].cadres[nationality][tilename] -= 1
-	if G.temp.setup[player].cadres[nationality][tilename] == 0:
-		del G.temp.setup[player].cadres[nationality][tilename]
 		
-	if len(G.temp.setup[player].cadres[nationality]) == 0:
-		del G.temp.setup[player].cadres[nationality]
-	
-	if len(G.temp.setup[player].cadres) == 0: # all cadres are placed
-		del G.temp.setup[player].cadres
+	try:
+		msg = io.get()
 		
-		if 'action_cards' in G.temp.setup:
-			G.players.hand.update(draw_cards(G.cards.action.deck, G.temp.setup.action_cards))
-			
-		if 'investment_cards' in G.temp.setup:
-			G.players.hand.update(draw_cards(G.cards.investment.deck, G.temp.setup.investment_cards))
+		assert msg.player in incomplete, 'Player {} is already done'.format(msg.player)
 		
-	return encode_setup_actions(G, player=player)
+		reqs = player_setup[msg.player].setup.cadres
+		
+		placed = False
+		
+		for member, tiles in reqs.items():
+			if msg.tile in tiles:
+				placed = True
+				assert tiles[msg.tile] > 0, 'No more cadres can be placed onto {}'.format(msg.tile)
+				
+				unit = tdict()
+				unit.type = msg.type
+				unit.tile = msg.tile
+				unit.nationality = member
+				unit.cv = 1
+				
+				add_unit(G, unit)
+				
+				tiles[msg.tile] -= 1
+				if tiles[msg.tile] == 0:
+					del tiles[msg.tile]
+					
+		assert placed, 'Tile {} not available for placement'.format(msg.tile)
+		
+	except (ActionError, AssertionError) as e:
+		io.put({'error':'Invalid Action', 'msg':str(e)})
 	
+	
+	# draw action cards
+	for name, config in player_setup.items():
+		if 'action_cards' in config.setup:
+			G.players[name].hand.extend(draw_cards(G.action_cards, config.setup.action_cards))
+		if 'investment_cards' in config.setup:
+			G.players[name].hand.extend(draw_cards(G.investment_cards, config.setup.investment_cards))
+
+

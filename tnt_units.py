@@ -45,8 +45,8 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	# check for multiple fortresses
 	if unit.type == 'Fortress':
 		assert not (tile.type == 'Sea' or tile.type == 'Ocean'), 'Fortresses cannot be placed in the Sea/Ocean {}'.format(tilename)
-		for other_unit in tile.units:
-			assert unit.type != 'Fortress', 'There is already a Fortress in {}'.format(other_unit.tile)
+		for unit_id in tile.units:
+			assert G.objects.table[unit_id].type != 'Fortress', 'There is already a Fortress in {}'.format(G.objects.table[unit_id].tile)
 	
 	# check/update reserves
 	reserves = G.units.reserves[unit.nationality]
