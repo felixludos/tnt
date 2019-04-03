@@ -21,34 +21,38 @@ def convert_jsonable(msg):
 	# 	return str(msg)
 	return msg
 
-def deepcopy_message(msg):
-	if isinstance(msg, (tdict, adict)):
-		return adict({deepcopy_message(k):deepcopy_message(v) for k,v in msg.items()})
-	if isinstance(msg, idict):
-		copy = msg.copy()
-		copy._id = msg._id
-		return copy
-	if isinstance(msg, (list, tuple)):
-		return type(msg)(deepcopy_message(el) for el in msg)
-	if isinstance(msg, set):
-		return xset(deepcopy_message(el) for el in msg)
-	# if not isinstance(msg, str):
-	# 	return str(msg)
-	return msg
+# def deepcopy_message(msg):
+# 	if isinstance(msg, (tdict, adict)):
+# 		return adict({deepcopy_message(k):deepcopy_message(v) for k,v in msg.items()})
+# 	if isinstance(msg, idict):
+# 		copy = msg.copy()
+# 		copy._id = msg._id
+# 		return copy
+# 	if isinstance(msg, (list, tuple)):
+# 		return type(msg)(deepcopy_message(el) for el in msg)
+# 	if isinstance(msg, set):
+# 		return xset(deepcopy_message(el) for el in msg)
+# 	# if not isinstance(msg, str):
+# 	# 	return str(msg)
+# 	return msg
+
+_visible_attrs = { # attributes seen by all players even if obj isn't visible to the player
+	'unit': {'nationality', 'tile', }
+}
 
 def hide_objects(objects, player=None, cond=None):
 	if cond is None:
 		cond = lambda obj, player: player not in obj.visible
 	if player is None:
-		return objects
-	
+		return
 	for obj in objects.values():
 		if cond(obj, player):
 			for k in list(obj.keys()):
-				if k in obj and k not in {'visible', 'obj_type'}:
+				if k in obj and k not in {'visible', 'obj_type'} and \
+						(obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
 					del obj[k]
 
-def format_flask_msg(msg, player=None):
+def format_msg_for_frontend(msg, player=None):
 	
 	msg = convert_jsonable(msg)
 	
@@ -77,12 +81,11 @@ def unjsonify(msg):
 	# 	return str(msg)
 	return msg
 
-def format_output(msg):
+def format_msg_to_python(msg):
 	msg = unjsonify(json.loads(msg))
-	
 	return msg
 
-FORMAT_MSG = format_flask_msg
+FORMAT_MSG = format_msg_for_frontend
 
 @app.route("/")
 def ping():
@@ -97,7 +100,7 @@ def init_game(game_type='hotseat', player='Axis', debug=False):
 	
 	if not game_type == 'hotseat':
 		return 'Error: Game type must be hotseat'
-	return FORMAT_MSG(start_new_game(player, debug=debug))
+	return FORMAT_MSG(start_new_game(player, debug=debug), player)
 
 @app.route('/info/<faction>')
 def get_info(faction):
@@ -105,12 +108,12 @@ def get_info(faction):
 
 @app.route('/status/<faction>')
 def get_status(faction):
-	return FORMAT_MSG(get_waiting(faction))
+	return FORMAT_MSG(get_waiting(faction), faction)
 
 @app.route('/action/<faction>/<action:vals>') # action values are delimited by "+"
 def take_action(faction, vals):
 	
-	return FORMAT_MSG(step(faction, vals))
+	return FORMAT_MSG(step(faction, vals), faction)
 	
 	return 'Received action from {}: {}'.format(faction, str(vals))
 

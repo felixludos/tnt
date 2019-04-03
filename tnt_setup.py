@@ -230,28 +230,16 @@ def setup_pre_phase(G, player_setup_path='config/faction_setup.yml'):
 	
 	for name, faction in player_setup.items():
 		
-		for name, config in faction:
-			if 'units' not in config.setup:
-				continue
-			
-			for unit in config.setup.units:
+		if 'units' in faction.setup:
+		
+			for unit in faction.setup.units:
 				add_unit(G, unit)
 	
 			del faction.setup.units
-		
+	
 		temp.setup[name] = faction.setup
 	
 	G.temp = temp
-	
-	# place fixed units
-	
-	
-	
-	
-			
-	
-	
-	
 	
 	# return action adict(faction: (action_keys, action_options))
 	return encode_setup_actions(G)
@@ -286,11 +274,11 @@ def setup_phase(G, player, options, action): # player, nationality, tilename, un
 		del G.temp.setup[player].cadres
 		
 		if 'action_cards' in G.temp.setup[player]:
-			G.players.hand.update(draw_cards(G.cards.action.deck, G.temp.setup[player].action_cards))
+			G.players[player].hand.update(draw_cards(G.cards.action.deck, G.temp.setup[player].action_cards))
 			del G.temp.setup[player].action_cards
 			
 		if 'investment_cards' in G.temp.setup[player]:
-			G.players.hand.update(draw_cards(G.cards.investment.deck, G.temp.setup[player].investment_cards))
+			G.players[player].hand.update(draw_cards(G.cards.investment.deck, G.temp.setup[player].investment_cards))
 			del G.temp.setup[player].investment_cards
 		
 	return encode_setup_actions(G, player=player)
