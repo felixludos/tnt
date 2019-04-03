@@ -94,17 +94,22 @@ def decode_actions(code):
 	code = expand_actions(code)
 	return xset(map(flatten, code))
 
-def collate(raw, remove_space=True):
+def collate(raw, remove_space=True, transactionable=True):
+	dicttype, settype, listtype = adict, xset, list
+	if transactionable:
+		dicttype, settype, listtype = tdict, tset, tlist
 	if isinstance(raw, dict):
-		return tdict((collate(k, remove_space=remove_space),
-		                  collate(v, remove_space=remove_space))
+		return dicttype((collate(k, remove_space=remove_space, transactionable=transactionable),
+		                  collate(v, remove_space=remove_space, transactionable=transactionable))
 		                 for k,v in raw.items())
 	elif isinstance(raw, list):
-		return tlist([collate(x, remove_space=remove_space) for x in raw])
+		return listtype(collate(x, remove_space=remove_space, transactionable=transactionable)
+		                for x in raw)
 	elif isinstance(raw, tuple):
-		return (collate(x, remove_space=remove_space) for x in raw)
+		return (collate(x, remove_space=remove_space, transactionable=transactionable)
+		        for x in raw)
 	elif isinstance(raw, set):
-		return tset(collate(x, remove_space=remove_space)
+		return settype(collate(x, remove_space=remove_space, transactionable=transactionable)
 		            for x in raw)
 	elif isinstance(raw, str) and remove_space:
 		return raw.replace(' ', '_')

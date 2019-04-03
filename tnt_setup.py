@@ -223,24 +223,35 @@ def setup_pre_phase(G, player_setup_path='config/faction_setup.yml'):
 	
 	player_setup = load(player_setup_path)
 	
-	# place fixed units
-	
-	for name, config in player_setup.items():
-		if 'units' not in config.setup:
-			continue
-		
-		for unit in config.setup.units:
-			add_unit(G, unit)
-			
 	# prep temp info - phase specific data
 	
 	temp = tdict()
 	temp.setup = tdict()
 	
 	for name, faction in player_setup.items():
+		
+		for name, config in faction:
+			if 'units' not in config.setup:
+				continue
+			
+			for unit in config.setup.units:
+				add_unit(G, unit)
+	
+			del faction.setup.units
+		
 		temp.setup[name] = faction.setup
 	
 	G.temp = temp
+	
+	# place fixed units
+	
+	
+	
+	
+			
+	
+	
+	
 	
 	# return action adict(faction: (action_keys, action_options))
 	return encode_setup_actions(G)
@@ -274,11 +285,13 @@ def setup_phase(G, player, options, action): # player, nationality, tilename, un
 	if len(G.temp.setup[player].cadres) == 0: # all cadres are placed
 		del G.temp.setup[player].cadres
 		
-		if 'action_cards' in G.temp.setup:
-			G.players.hand.update(draw_cards(G.cards.action.deck, G.temp.setup.action_cards))
+		if 'action_cards' in G.temp.setup[player]:
+			G.players.hand.update(draw_cards(G.cards.action.deck, G.temp.setup[player].action_cards))
+			del G.temp.setup[player].action_cards
 			
-		if 'investment_cards' in G.temp.setup:
-			G.players.hand.update(draw_cards(G.cards.investment.deck, G.temp.setup.investment_cards))
+		if 'investment_cards' in G.temp.setup[player]:
+			G.players.hand.update(draw_cards(G.cards.investment.deck, G.temp.setup[player].investment_cards))
+			del G.temp.setup[player].investment_cards
 		
 	return encode_setup_actions(G, player=player)
 	
