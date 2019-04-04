@@ -17,6 +17,12 @@ phases:
 
   Scoring: False
 
+first_year: 1936
+last_year: 1945
+
+victory:
+  economic: 25
+
 year_order:
   - New Year
   - Production
@@ -34,3 +40,8 @@ turn_order_options:
   4: [West, USSR, Axis]
   5: [USSR, West, Axis]
   6: [USSR, Axis, West]
+
+peace_dividends:
+  0: 16
+  1: 12
+  2: 4

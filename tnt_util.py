@@ -8,6 +8,72 @@ from IPython.display import display_javascript, display_html
 from structures import tdict, tlist, tset, adict, idict, xset, get_object, get_table, pull_ID, register_obj, Transactionable
 from itertools import product, chain
 
+######################
+# Game Processing
+######################
+
+def compute_tracks(territory, tiles):
+	pop, res = 0, 0
+	for name, tile in tiles.items():
+		if name in territory and 'blockaded' not in tile:
+			pop += tile['pop']
+			res += tile['res']
+			if 'res_afr' in tile and 'blockaded_afr' not in tile:
+				res += tile['res_afr']
+	return pop, res
+
+
+def compute_production_level(G, player):
+	faction = G.players[player]
+	at_war = sum(faction.stats.at_war.values())
+	
+	if at_war:
+		return min(G.tracks.pop, G.tracks.res, G.tracks.ind)
+	return min(G.tracks.pop, G.tracks.ind)
+
+
+def count_victory_points(G):
+	points = adict({p: 0 for p in G.players})
+	
+	for name, faction in G.players.items():
+		
+		# current production level
+		prod_level = compute_production_level(G, name)
+		points[name] += prod_level
+		
+		# control of enemy capitals
+		enemy_cities = 0
+		for rival, rival_faction in G.players.items():
+			if rival != name:
+				if rival_faction.cities.MainCapital in faction.territory:
+					enemy_cities += 1
+				for subcapital in rival_faction.cities.SubCapitals:
+					if subcapital in faction.territory:
+						enemy_cities += 1
+		
+		points[name] += 2 * enemy_cities
+		
+		# count atomic research
+		atomics = 0
+		for tech in faction.technologies:
+			if 'Atomic' in tech:
+				atomics += 1
+		points[name] += 1 * atomics
+		
+		# peace dividends
+		points[name] += sum(faction.stats.peace_dividends)
+		
+		# subtract DoW
+		DoWs = sum(faction.stats.DoW.values())
+		points[name] -= DoWs
+	
+	return points
+
+######################
+# Log
+######################
+
+
 class DigitalLog(object):
 	def __init__(self):
 		self.collection = []
@@ -69,6 +135,9 @@ class Logger(Transactionable):
 		for logfile in self.logfiles:
 			logfile.close()
 
+######################
+# misc
+######################
 
 def seq_iterate(content, *itrs): # None will return that value for each
 	if len(itrs) == 0: # base case - iterate over content
@@ -125,6 +194,9 @@ def decode_actions(code):
 	code = expand_actions(code)
 	return xset(map(flatten, code))
 
+
+
+
 def collate(raw, remove_space=True, transactionable=True):
 	dicttype, settype, listtype = adict, xset, list
 	if transactionable:
@@ -163,6 +235,9 @@ def uncollate(raw, with_id=True):
 	#     return raw.replace('_', ' ')
 	return raw
 
+
+
+
 def save(data, path):
 	yaml.dump(uncollate(data), open(path,'w'),
 			  default_flow_style=False)
@@ -170,23 +245,26 @@ def save(data, path):
 def load(path):
 	return collate(yaml.load(open(path, 'r')))
 
+
+
+
 def render_format(raw):
 	if isinstance(raw, dict):
 		return dict((str(k),render_format(v)) for k,v in raw.items())
 	elif isinstance(raw, list):
 		itr = dict()
 		for i, el in enumerate(raw):
-			itr['l_{}'.format(i)] = render_format(el)
+			itr['l{}'.format(i)] = render_format(el)
 		return itr
 	elif isinstance(raw, set):
 		itr = dict()
 		for i, el in enumerate(raw):
-			itr['s_{}'.format(i)] = render_format(el)
+			itr['s{}'.format(i)] = render_format(el)
 		return itr
 	elif isinstance(raw, tuple):
 		itr = dict()
 		for i, el in enumerate(raw):
-			itr['t_{}'.format(i)] = render_format(el)
+			itr['t{}'.format(i)] = render_format(el)
 		return itr
 	return str(raw)
 

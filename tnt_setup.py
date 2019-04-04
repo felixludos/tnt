@@ -3,6 +3,7 @@ import tnt_util as util
 from tnt_cards import load_card_decks, draw_cards
 from tnt_errors import ActionError
 from tnt_units import load_unit_rules, add_unit
+import random
 
 def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 	
@@ -37,15 +38,7 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 		tile.visible = tset({'Axis', 'West', 'USSR'})
 		G.objects.table[name] = tile
 
-def compute_tracks(territory, tiles):
-	pop, res = 0, 0
-	for name, tile in tiles.items():
-		if name in territory and 'blockaded' not in tile:
-			pop += tile['pop']
-			res += tile['res']
-			if 'res_afr' in tile and 'blockaded_afr' not in tile:
-				res += tile['res_afr']
-	return pop, res
+
 
 def load_players_and_minors(G):
 	player_setup = load('config/faction_setup.yml')
@@ -72,17 +65,28 @@ def load_players_and_minors(G):
 		
 		faction = tdict()
 		
-		faction.rules = tdict()
-		faction.rules.handlimit = config.Handlimit
-		faction.rules.factory_all_costs = config.FactoryCost
-		faction.rules.factory_idx = 0
-		faction.rules.factory_cost = faction.rules.factory_all_costs[faction.rules.factory_idx]
-		faction.rules.emergency_command = config.EmergencyCommand
-		faction.rules.DoW = tdict()
-		faction.rules.DoW[rivals[name][0]] = False
-		faction.rules.DoW[rivals[name][1]] = False
-		faction.rules.enable_USA = 'enable_USA' in config
-		faction.rules.enable_Winter = 'enable_Winter' in config
+		faction.stats = tdict()
+		faction.stats.handlimit = config.Handlimit
+		faction.stats.factory_all_costs = config.FactoryCost
+		faction.stats.factory_idx = 0
+		faction.stats.factory_cost = faction.stats.factory_all_costs[faction.stats.factory_idx]
+		faction.stats.emergency_command = config.EmergencyCommand
+		
+		faction.stats.DoW = tdict()
+		faction.stats.DoW[rivals[name][0]] = False
+		faction.stats.DoW[rivals[name][1]] = False
+		
+		faction.stats.at_war_with = tdict()
+		faction.stats.at_war_with[rivals[name][0]] = False
+		faction.stats.at_war_with[rivals[name][1]] = False
+		faction.stats.at_war = False
+		
+		faction.stats.fought_battle = False
+		
+		faction.stats.peace_dividends = tlist()
+		
+		faction.stats.enable_USA = 'enable_USA' in config
+		faction.stats.enable_Winter = 'enable_Winter' in config
 		
 		faction.cities = tdict()
 		faction.cities.MainCapital = config.MainCapital
@@ -111,13 +115,14 @@ def load_players_and_minors(G):
 				faction.territory.add(tile_name)
 		
 		faction.tracks = tdict()
-		pop, res = compute_tracks(faction.territory, G.tiles)
+		pop, res = util.compute_tracks(faction.territory, G.tiles)
 		faction.tracks.pop = pop
 		faction.tracks.res = res
 		faction.tracks.ind = config.initial_ind
 		
 		faction.units = tset()
 		faction.hand = tset() # for cards
+		faction.technologies = tset()
 		faction.influence = tdict()
 		
 		players[name] = faction
@@ -143,9 +148,20 @@ def load_game_info(G, path='config/game_info.yml'):
 	
 	game = tdict()
 	
-	game.sequence = ['Setup'] + 10*info.year_order
+	game.year = info.first_year - 1 # zero based
+	game.last_year = info.last_year
+	num_rounds = game.last_year - game.first_year
+	
+	game.turn_order_options = info.turn_order_options
+	
+	game.sequence = ['Setup'] + num_rounds*info.year_order + ['Scoring']
 	game.index = -1 # start below 0, so after increment in next_phase() it starts at 0
 	#game.action_phases = tset(x for x in info.phases if info.phases[x]) # no need for action phases anymore (all action phases have a pre phase)
+	
+	game.peace_dividends = tlist(sum([[v]*n for v,n in info.peace_dividends.items()], []))
+	random.shuffle(game.peace_dividends)
+	
+	game.victory = info.victory
 	
 	G.game = game
 	

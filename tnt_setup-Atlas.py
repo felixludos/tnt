@@ -70,17 +70,17 @@ def load_players_and_minors(G):
 		
 		faction = tdict()
 		
-		faction.rules = tdict()
-		faction.rules.handlimit = config.Handlimit
-		faction.rules.factory_all_costs = config.FactoryCost
-		faction.rules.factory_idx = 0
-		faction.rules.factory_cost = faction.rules.factory_all_costs[faction.rules.factory_idx]
-		faction.rules.emergency_command = config.EmergencyCommand
-		faction.rules.DoW = tdict()
-		faction.rules.DoW[rivals[name][0]] = False
-		faction.rules.DoW[rivals[name][1]] = False
-		faction.rules.enable_USA = 'enable_USA' in config
-		faction.rules.enable_Winter = 'enable_Winter' in config
+		faction.stats = tdict()
+		faction.stats.handlimit = config.Handlimit
+		faction.stats.factory_all_costs = config.FactoryCost
+		faction.stats.factory_idx = 0
+		faction.stats.factory_cost = faction.stats.factory_all_costs[faction.stats.factory_idx]
+		faction.stats.emergency_command = config.EmergencyCommand
+		faction.stats.DoW = tdict()
+		faction.stats.DoW[rivals[name][0]] = False
+		faction.stats.DoW[rivals[name][1]] = False
+		faction.stats.enable_USA = 'enable_USA' in config
+		faction.stats.enable_Winter = 'enable_Winter' in config
 		
 		faction.cities = tdict()
 		faction.cities.MainCapital = config.MainCapital
