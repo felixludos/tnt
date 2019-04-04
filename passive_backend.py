@@ -84,7 +84,8 @@ def start_new_game(player='Axis', debug=False):
 	G = setup.init_gamestate()
 	
 	DLOG.close()
-	G.game.logger = util.Logger(stdout=True)
+	if not debug:
+		G.game.logger = util.Logger(DLOG, stdout=True)
 	
 	G.objects.created = G.objects.table.copy()
 	G.objects.updated = tdict()
@@ -101,7 +102,7 @@ def get_waiting(player):
 def format_out_message(outtype, results, player):
 	out = adict()
 	
-	out.messages = DLOG.pull()
+	out.log = DLOG.pull()
 	
 	out.created = G.objects.created.copy()
 	out.updated = G.objects.updated.copy()

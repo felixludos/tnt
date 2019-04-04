@@ -70,6 +70,37 @@ class Logger(Transactionable):
 			logfile.close()
 
 
+def seq_iterate(content, *itrs): # None will return that value for each
+	if len(itrs) == 0: # base case - iterate over content
+		try:
+			yield from content
+		except TypeError:
+			yield content
+	else: # return only those samples that match specified (non None) tuples
+		
+		i, *itrs = itrs
+		
+		if isinstance(content, (list, tuple, set)):
+			
+			if i is None:
+				for x in content:
+					yield from seq_iterate(x, *itrs)
+			elif isinstance(i, int) and i < len(content):
+				yield from seq_iterate(content[i], *itrs)
+		
+		elif isinstance(content, dict):
+			
+			if i is None:
+				for k, v in content.items():  # expand with id
+					for rest in seq_iterate(v, *itrs):
+						if isinstance(rest, tuple):
+							yield (k,) + rest
+						else:
+							yield k, rest
+			elif i in content:
+				yield from seq_iterate(content[i], *itrs)
+
+
 def expand_actions(code):
 	if isinstance(code, set) and len(code) == 1:
 		return expand_actions(next(iter(code)))
@@ -142,10 +173,20 @@ def load(path):
 def render_format(raw):
 	if isinstance(raw, dict):
 		return dict((str(k),render_format(v)) for k,v in raw.items())
-	elif isinstance(raw, list) or isinstance(raw, set):
+	elif isinstance(raw, list):
 		itr = dict()
 		for i, el in enumerate(raw):
-			itr['el_{}'.format(i)] = render_format(el)
+			itr['l_{}'.format(i)] = render_format(el)
+		return itr
+	elif isinstance(raw, set):
+		itr = dict()
+		for i, el in enumerate(raw):
+			itr['s_{}'.format(i)] = render_format(el)
+		return itr
+	elif isinstance(raw, tuple):
+		itr = dict()
+		for i, el in enumerate(raw):
+			itr['t_{}'.format(i)] = render_format(el)
 		return itr
 	return str(raw)
 

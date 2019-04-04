@@ -1,5 +1,4 @@
-
-
+from itertools import product
 # comparable set
 
 _set_ID = 0
@@ -19,3 +18,15 @@ class xset(set):
 		return '{'+', '.join(map(repr,iter(self)))+'}'
 	def __str__(self):
 		return '{'+', '.join(map(repr,iter(self)))+'}'
+	def intersection(self, *others):
+		new = self.copy()
+		for x, other in product(self, others):
+			if x not in other:
+				new.remove(x)
+		return new
+	def union(self, *others):
+		new = self.copy()
+		for other in others:
+			for x in other:
+				new.add(x)
+		return new

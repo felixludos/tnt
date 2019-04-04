@@ -55,20 +55,31 @@ def shuffle(stack):
 	stack.discard_pile.clear()
 	
 
-def draw_cards(stack, N=1):
+def draw_cards(G, stack, player, N=1):
+	
+	assert stack in G.cards, 'Unknown stack: {}'.format(stack)
+	
+	cards = get_cards(G.cards[stack], N)
+	
+	for card in cards:
+		card.visible.add(player)
+		G.objects.updated[card._id] = card
+		
+	G.players[player].hand.update(cards)
+	
+	print('{} draws {} {} cards (now holding {} cards)'.format(player, N, stack, len(G.players[player].hand)))
+
+def get_cards(stack, N=1):
 	cards = tlist()
 	
-	N = min(N, len(stack.deck)+len(stack.discard_pile))
-	
-	shuffled = False
+	assert N <= len(stack.deck)+len(stack.discard_pile), 'Cannot draw {} cards from a total of {} cards'.format(N, len(stack.deck)+len(stack.discard_pile))
 	
 	for _ in range(N):
 		if len(stack.deck) == 0:
-			shuffled = True
 			shuffle(stack)
 		cards.append(stack.deck.pop())
 		
-	return cards, shuffled
+	return cards
 
 
 def split_choices(options, num, dim):
