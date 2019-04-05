@@ -20,8 +20,14 @@ phases:
 first_year: 1936
 last_year: 1945
 
-victory:
+victory: # conditions
   economic: 25
+
+USA_public_opinion: [1941, 1942, 1943, 1944]
+USA_forces: # add detailed troop list to allow customizing US forces
+  1942: 1
+  1943: 2
+  1944: 3
 
 year_order:
   - New Year

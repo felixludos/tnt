@@ -1,4 +1,4 @@
-import numpy as np
+import random
 from tnt_util import tdict, tlist, tset, adict, idict, xset, load
 
 def load_card_decks(G, action_path='config/cards/action_cards.yml',
@@ -50,7 +50,7 @@ def load_card_decks(G, action_path='config/cards/action_cards.yml',
 def shuffle(stack):
 	
 	stack.deck.extend(stack.discard_pile)
-	np.random.shuffle(stack.deck)
+	random.shuffle(stack.deck)
 	
 	stack.discard_pile.clear()
 	
@@ -67,7 +67,7 @@ def draw_cards(G, stack, player, N=1):
 		
 	G.players[player].hand.update(cards)
 	
-	print('{} draws {} {} cards (now holding {} cards)'.format(player, N, stack, len(G.players[player].hand)))
+	G.logger.write('{} draws {} {} cards (now holding {} cards)'.format(player, N, stack, len(G.players[player].hand)))
 
 def get_cards(stack, N=1):
 	cards = tlist()

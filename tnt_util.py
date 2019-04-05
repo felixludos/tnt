@@ -20,17 +20,16 @@ def compute_tracks(territory, tiles):
 			pop += tile['pop']
 			res += tile['res']
 			if 'res_afr' in tile and 'blockaded_afr' not in tile:
-				res += tile['res_afr']
+				res += tile.res_afr
 	return pop, res
 
 
-def compute_production_level(G, player):
-	faction = G.players[player]
+def compute_production_level(faction):
 	at_war = sum(faction.stats.at_war.values())
 	
 	if at_war:
-		return min(G.tracks.pop, G.tracks.res, G.tracks.ind)
-	return min(G.tracks.pop, G.tracks.ind)
+		return min(faction.tracks.pop, faction.tracks.res, faction.tracks.ind)
+	return min(faction.tracks.pop, faction.tracks.ind)
 
 
 def count_victory_points(G):
@@ -70,6 +69,18 @@ def count_victory_points(G):
 	
 	return points
 
+
+######################
+# Game Actions
+######################
+
+def placeable_units(G, player, nationality, tile_options):
+	
+	# Groups: coast
+	
+	pass
+
+
 ######################
 # Log
 ######################
@@ -79,36 +90,46 @@ class Logger(Transactionable):
 		self.stdout = stdout
 		self.logs = adict({p:deque() for p in players})
 		self.updates = adict({p:deque() for p in players})
-		self.collector = None
-		
-		self.backup = sys.stdout
-		sys.stdout = self
+		self.collectors = None
 	
 	def begin(self):
 		if self.in_transaction():
 			self.abort()
-		self.updates = []
+		self.collectors = adict({p:deque() for p in self.updates.keys()})
 	
 	def in_transaction(self):
-		return self.collector is not None
+		return self.collectors is not None
 	
 	def commit(self):
 		if not self.in_transaction():
 			return
-		objs = self.collector
-		self.collector = None
-		for obj in objs:
-			self.write(obj)
+		collectors = self.collectors
+		self.collectors = None
+		for p, objs in collectors.items():
+			self.update_all(objs, player=p)
 	
 	def abort(self):
 		if not self.in_transaction():
 			return
-		self.collector = None
+		self.collectors = None
+	
+	def update_all(self, objs, player=None):
+		if player is not None:
+			self.updates[player].extend(objs)
+			self.logs[player].extend(objs)
+			return
+		for update, log in zip(self.updates.values(), self.logs.values()):
+			update.extend(objs)
+			log.extend(objs)
 	
 	def write(self, obj, end='\n', player=None):
 		obj += end
 		if self.in_transaction():
-			return self.collector.append(obj)
+			if player is None:
+				for collector in self.collectors.values():
+					collector.append(obj)
+				return
+			return self.collectors[player].append(obj)
 		self.update(obj, player=player)
 		if self.stdout:
 			print(obj, end='')
@@ -132,12 +153,6 @@ class Logger(Transactionable):
 		if player is not None:
 			return ''.join(self.logs[player])
 		return adict({p:''.join(self.logs[p]) for p in self.logs})
-	
-	def __del__(self):
-		sys.stdout = self.backup
-		print('Killing logger')
-		for logfile in self.logfiles:
-			logfile.close()
 
 ######################
 # misc

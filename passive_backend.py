@@ -12,6 +12,8 @@ from tnt_cards import load_card_decks, draw_cards
 from collections import namedtuple
 import traceback
 
+from new_year import new_year_phase
+
 PRE_PHASES = adict({ # all action phases
 	'Setup': setup_pre_phase,
 	'Production': None,
@@ -27,7 +29,7 @@ PRE_PHASES = adict({ # all action phases
 PHASES = adict({
 	'Setup': setup_phase,
 
-    'New_Year': None,
+    'New_Year': new_year_phase,
     'Production': None,
     'Government': None,
     'Spring': None,
@@ -63,7 +65,7 @@ def next_phase(): # keeps going through phases until actions are returned
 		
 		phase = G.game.sequence[G.game.index]
 		
-		print('Beginning phase: {}'.format(phase))
+		G.logger.write('Beginning phase: {}'.format(phase))
 		
 		# maybe save G to file
 		
@@ -81,9 +83,7 @@ def start_new_game(player='Axis', debug=False):
 
 	G = setup.init_gamestate()
 	
-	DLOG.close()
-	if not debug:
-		G.game.logger = util.Logger(DLOG, stdout=True)
+	G.logger = util.Logger(*G.players.keys(), stdout=True)
 	
 	G.objects.created = G.objects.table.copy()
 	G.objects.updated = tdict()
@@ -93,31 +93,39 @@ def start_new_game(player='Axis', debug=False):
 	return format_out_message('all', next_phase(), player)
 
 def get_waiting(player):
-	if WAITING is not None and player in WAITING:
-		return WAITING[player]
-	return adict({'waiting_for':list(WAITING.keys())})
+	
+	out = WAITING[player] if WAITING is not None and player in WAITING else adict({'waiting_for':list(WAITING.keys())})
+	
+	base = ''
+	if 'log' in out:
+		base = out.log
+	
+	out.log = base + G.logger.pull(player)
+	
+	return out
 
 def format_out_message(outtype, results, player):
 	out = adict()
-	
-	out.log = G.logger.pull(player)
 	
 	out.created = G.objects.created.copy()
 	out.updated = G.objects.updated.copy()
 	out.removed = G.objects.removed.copy()
 	
 	if outtype == 'error':
+		out.log = G.logger.pull(player)
 		out.error = ''.join(traceback.format_exception(*results))
 		#out.error_type = type(results)
 		#out.error_msg = results.args[0]
 		#out.error_tb = traceback.format_tb(sys.exc_info())
 	elif outtype == 'action':
+		out.log = G.logger.pull(player)
 		out.actions = results
 		WAITING[player] = out
 	elif outtype == 'all':
 		for faction, actions in results.items():
 			WAITING[faction] = adict()
 			WAITING[faction].actions = actions
+			WAITING[faction].log = G.logger.pull(faction)
 			WAITING[faction].update(out)
 		return get_waiting(player)
 	elif outtype == 'waiting':

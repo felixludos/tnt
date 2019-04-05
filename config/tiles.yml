@@ -62,7 +62,7 @@ Sfax:
   pop: 0
   muster: 0
 Gibraltar:
-  type: Land
+  type: Strait
   alligence: Gibraltar
   res: 0
   pop: 0
@@ -94,7 +94,7 @@ Barcelona:
   pop: 1
   muster: 0
 Azores:
-  type: Land
+  type: Strait
   alligence: Portugal
   res: 0
   pop: 0
@@ -172,13 +172,13 @@ Sardinia:
 Tyrrhenian Sea:
   type: Sea
 Malta:
-  type: Land
+  type: Strait
   alligence: Malta
   res: 0
   pop: 0
   muster: 1
 Sicily:
-  type: Land
+  type: Strait
   alligence: Italy
   res: 0
   pop: 0
@@ -254,7 +254,7 @@ Berlin:
   pop: 3
   muster: 3
 Copenhagen:
-  type: Land
+  type: Strait
   alligence: Denmark
   res: 1
   pop: 0
@@ -394,7 +394,7 @@ Egypt:
   pop: 0
   muster: 0
 Suez:
-  type: Land
+  type: Strait
   alligence: Middle East
   res: 0
   pop: 1
@@ -519,7 +519,7 @@ Izmir:
   pop: 0
   muster: 1
 Istanbul:
-  type: Land
+  type: Strait
   alligence: Turkey
   res: 0
   pop: 1
@@ -680,7 +680,7 @@ Odessa:
   pop: 1
   muster: 2
 Sevastopol:
-  type: Land
+  type: Strait
   alligence: USSR
   res: 0
   pop: 0

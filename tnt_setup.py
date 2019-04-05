@@ -81,8 +81,7 @@ def load_players_and_minors(G):
 		faction.stats.at_war_with[rivals[name][1]] = False
 		faction.stats.at_war = False
 		
-		faction.stats.fought_battle = False
-		
+		faction.stats.aggressed = False
 		faction.stats.peace_dividends = tlist()
 		
 		faction.stats.enable_USA = 'enable_USA' in config
@@ -99,7 +98,7 @@ def load_players_and_minors(G):
 			if 'Colonies' in info:
 				faction.members[nation].update(info.Colonies)
 		
-		faction.homeland = tset()
+		faction.homeland = tdict({member:tset() for member in faction.members.keys()})
 		faction.territory = tset()
 		
 		full_cast = tset()
@@ -110,7 +109,7 @@ def load_players_and_minors(G):
 			if 'alligence' not in tile:
 				continue
 			if tile.alligence in faction.members: # homeland
-				faction.homeland.add(tile_name)
+				faction.homeland[tile.alligence].add(tile_name)
 			if tile.alligence in full_cast:
 				faction.territory.add(tile_name)
 		
@@ -150,7 +149,7 @@ def load_game_info(G, path='config/game_info.yml'):
 	
 	game.year = info.first_year - 1 # zero based
 	game.last_year = info.last_year
-	num_rounds = game.last_year - game.first_year
+	num_rounds = game.last_year - game.year
 	
 	game.turn_order_options = info.turn_order_options
 	
@@ -201,6 +200,9 @@ def encode_setup_actions(G, player=None):
 	base[True, True] = base[True, False].intersection(base[False, True])
 	
 	for faction, nationality, tilename in seq_iterate(G.temp.setup, None, 'cadres', None):
+		
+		if player is not None and player != faction:
+			continue
 		
 		# add necessary option containers
 		if faction not in code:

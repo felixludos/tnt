@@ -2,6 +2,7 @@
 import tnt_util as util
 from tnt_util import adict, xset, tdict, tlist, tset
 import random
+from tnt_cards import shuffle
 
 def new_year_phase(G):
 	
@@ -9,18 +10,33 @@ def new_year_phase(G):
 	G.game.year += 1
 	G.logger.write('Start of {}'.format(G.game.year))
 	
+	# recompute tracks
+	for player, faction in G.players.items():
+		faction.tracks.pop, faction.tracks.res = util.compute_tracks(faction.territory, G.tiles)
+	
 	# victory check
 	vps = util.count_victory_points(G)
 	for player, vp in vps.items():
 		if vp >= G.game.victory.economic:
 			G.logger.write('{} has won the Economic Victory'.format(player))
+			raise NotImplementedError
+		
+	# shuffle discard piles
+	shuffle(G.cards.action)
+	shuffle(G.cards.investment)
 	
 	# peace dividends
 	for player, faction in G.players.items():
-		if not faction.stats.at_war and not faction.stats.fought:
-			faction.stats.peace_dividends.append(G.game.peace_dividends.pop())
+		if not faction.stats.at_war and not faction.stats.aggressed:
+			val = G.game.peace_dividends.pop()
+			faction.stats.peace_dividends.append(val)
 			G.logger.write('{} draws a peace dividend'.format(player))
+			G.logger.write('- you receive {} victory points'.format(val), player=player)
 			
+	# choose turn order
+	G.game.turn_order = G.game.turn_order_options[random.randint(1,6)]
+	G.logger.write('Turn order: {}'.format(', '.join(G.game.turn_order)))
+	
 	
 
 
