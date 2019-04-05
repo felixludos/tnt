@@ -76,7 +76,7 @@ def count_victory_points(G):
 
 def placeable_units(G, player, nationality, tile_options):
 	
-	# Groups: coast
+	# Groups: in land, no fortress, not supplied,
 	
 	pass
 
