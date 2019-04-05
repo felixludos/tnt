@@ -7,6 +7,7 @@ import uuid
 from IPython.display import display_javascript, display_html
 from structures import tdict, tlist, tset, adict, idict, xset, get_object, get_table, pull_ID, register_obj, Transactionable
 from itertools import product, chain
+from collections import deque
 
 ######################
 # Game Processing
@@ -73,23 +74,11 @@ def count_victory_points(G):
 # Log
 ######################
 
-
-class DigitalLog(object):
-	def __init__(self):
-		self.collection = []
-	def write(self, obj):
-		self.collection.append(obj)
-	def pull(self):
-		s = ''.join(self.collection)
-		self.collection.clear()
-		return s
-	def close(self):
-		self.collection.clear()
-
 class Logger(Transactionable):
-	def __init__(self, *logfiles, stdout=False):
-		self.stdout = sys.stdout if stdout else None
-		self.logfiles = logfiles
+	def __init__(self, *players, stdout=False):
+		self.stdout = stdout
+		self.logs = adict({p:deque() for p in players})
+		self.updates = adict({p:deque() for p in players})
 		self.collector = None
 		
 		self.backup = sys.stdout
@@ -98,7 +87,7 @@ class Logger(Transactionable):
 	def begin(self):
 		if self.in_transaction():
 			self.abort()
-		self.collector = []
+		self.updates = []
 	
 	def in_transaction(self):
 		return self.collector is not None
@@ -110,24 +99,39 @@ class Logger(Transactionable):
 		self.collector = None
 		for obj in objs:
 			self.write(obj)
-		self.flush()
 	
 	def abort(self):
 		if not self.in_transaction():
 			return
 		self.collector = None
 	
-	def write(self, obj):
+	def write(self, obj, end='\n', player=None):
+		obj += end
 		if self.in_transaction():
 			return self.collector.append(obj)
-		for logfile in self.logfiles:
-			logfile.write(obj)
-		if self.stdout is not None:
-			self.stdout.write(obj)
+		self.update(obj, player=player)
+		if self.stdout:
+			print(obj, end='')
 	
-	def flush(self):
-		if self.stdout is not None:
-			self.stdout.flush()
+	def update(self, obj, player=None):
+		
+		if player is not None:
+			self.updates[player].append(obj)
+			self.logs[player].append(obj)
+			return
+		for update, log in zip(self.updates.values(), self.logs.values()):
+			update.append(obj)
+			log.append(obj)
+	
+	def pull(self, player):
+		log = ''.join(self.updates[player])
+		self.updates[player].clear()
+		return log
+	
+	def get_full(self, player=None):
+		if player is not None:
+			return ''.join(self.logs[player])
+		return adict({p:''.join(self.logs[p]) for p in self.logs})
 	
 	def __del__(self):
 		sys.stdout = self.backup

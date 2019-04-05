@@ -46,8 +46,6 @@ PHASES = adict({
 G = None
 DEBUG = False
 
-DLOG = util.DigitalLog()
-
 WAITING = adict()
 
 def get_G():
@@ -102,7 +100,7 @@ def get_waiting(player):
 def format_out_message(outtype, results, player):
 	out = adict()
 	
-	out.log = DLOG.pull()
+	out.log = G.logger.pull(player)
 	
 	out.created = G.objects.created.copy()
 	out.updated = G.objects.updated.copy()
