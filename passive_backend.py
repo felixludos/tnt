@@ -70,8 +70,12 @@ def next_phase(): # keeps going through phases until actions are returned
 		# maybe save G to file
 		
 		if phase in PRE_PHASES:
+			if PRE_PHASES[phase] is None:
+				raise Exception('The prephase {} has not been implemented yet'.format(phase))
 			out = PRE_PHASES[phase](G)
 		else:
+			if PHASES[phase] is None:
+				raise Exception('The phase {} has not been implemented yet'.format(phase))
 			out = PHASES[phase](G)
 	
 	return out

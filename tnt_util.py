@@ -25,11 +25,11 @@ def compute_tracks(territory, tiles):
 
 
 def compute_production_level(faction):
-	at_war = sum(faction.stats.at_war.values())
+	at_war = sum(faction.stats.at_war_with.values())
 	
 	if at_war:
-		return min(faction.tracks.pop, faction.tracks.res, faction.tracks.ind)
-	return min(faction.tracks.pop, faction.tracks.ind)
+		return min(faction.tracks.POP, faction.tracks.RES, faction.tracks.IND)
+	return min(faction.tracks.POP, faction.tracks.IND)
 
 
 def count_victory_points(G):
@@ -38,7 +38,7 @@ def count_victory_points(G):
 	for name, faction in G.players.items():
 		
 		# current production level
-		prod_level = compute_production_level(G, name)
+		prod_level = compute_production_level(faction)
 		points[name] += prod_level
 		
 		# control of enemy capitals

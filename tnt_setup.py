@@ -115,9 +115,9 @@ def load_players_and_minors(G):
 		
 		faction.tracks = tdict()
 		pop, res = util.compute_tracks(faction.territory, G.tiles)
-		faction.tracks.pop = pop
-		faction.tracks.res = res
-		faction.tracks.ind = config.initial_ind
+		faction.tracks.POP = pop
+		faction.tracks.RES = res
+		faction.tracks.IND = config.initial_ind
 		
 		faction.units = tset()
 		faction.hand = tset() # for cards

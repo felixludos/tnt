@@ -117,6 +117,5 @@ def take_action(faction, vals):
 	
 	return 'Received action from {}: {}'.format(faction, str(vals))
 
-#das brauch ich um es local laufen zu lassen
 if __name__ == "__main__":
 	app.run()
