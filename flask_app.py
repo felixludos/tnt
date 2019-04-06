@@ -113,7 +113,7 @@ def get_status(faction):
 @app.route('/action/<faction>/<action:vals>') # action values are delimited by "+"
 def take_action(faction, vals):
 	
-	return FORMAT_MSG(step(faction, vals), faction)
+	return FORMAT_MSG(step(faction, tuple(vals)), faction)
 	
 	return 'Received action from {}: {}'.format(faction, str(vals))
 
