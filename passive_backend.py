@@ -181,9 +181,21 @@ def step(player, action):
 	
 
 
-def save_gamestate(): # save file and send it
-	raise NotImplementedError
+def save_gamestate(filename=None): # save file and send it
+	data = {'gamestate': G, 'waiting': WAITING}
+	if G is not None:
+		G.logger.write('Game saved')
+	if filename is None:
+		return pickle.dumps(data)
+	path = os.path.join('saves', filename)
+	pickle.dump(data, open(path, 'w'))
+	return path
 
-def load_gamestate(): # load from input file, or most recent checkpoint (more safe)
-	raise NotImplementedError
+def load_gamestate(data): # load from input file, or most recent checkpoint (more safe)
+	data = pickle.loads(data)
+	global WAITING, G
+	WAITING = data['waiting']
+	G = data['gamestate']
+	if G is not None:
+		G.logger.write('Game loaded')
 

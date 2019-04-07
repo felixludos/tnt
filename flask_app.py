@@ -91,6 +91,14 @@ FORMAT_MSG = format_msg_for_frontend
 def ping():
 	return 'Backend active: use "init" to init game'
 
+@app.route('/save/<filename>')
+def save(filename=None):
+	return save_gamestate(filename)
+
+@app.route('/load/<data>')
+def load(data):
+	return load_gamestate(data)
+
 @app.route('/init/<game_type>/<player>')
 def init_game(game_type='hotseat', player='Axis', debug=False):
 	
