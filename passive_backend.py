@@ -11,12 +11,13 @@ import tnt_setup as setup
 from tnt_cards import load_card_decks, draw_cards
 from collections import namedtuple
 import traceback
+from production import production_phase, production_pre_phase
 
 from new_year import new_year_phase
 
 PRE_PHASES = adict({ # all action phases
 	'Setup': setup_pre_phase,
-	'Production': None,
+	'Production': production_pre_phase,
 	'Government': None,
 	'Spring': None,
 	'Summer': None,

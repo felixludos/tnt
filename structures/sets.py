@@ -30,3 +30,15 @@ class xset(set):
 			for x in other:
 				new.add(x)
 		return new
+	
+	def __isub__(self, other):
+		for x in other:
+			self.remove(x)
+		return self
+	
+	def difference(self, *others):
+		new = self.copy()
+		for other in others:
+			for x in other:
+				new.remove(x)
+		return new

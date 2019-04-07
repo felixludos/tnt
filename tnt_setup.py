@@ -184,66 +184,25 @@ def init_gamestate():
 
 def encode_setup_actions(G, player=None):
 	
-	code = adict() # nationality, tile, unit_type
+	code = adict()
 	
-	available_units = adict()
-	
-	# cond = has_fortress, in_land
-	
-	# base groups
-	base = adict({
-		(False, False) : G.units.placeable.copy(),
-		(True, False) : xset(ut for ut in G.units.placeable if ut != 'Fortress'),
-		(False, True) : xset(ut for ut in G.units.placeable if G.units.rules[ut].type not in {'N', 'S'}),
-		#in_land_no_fort = xset(ut for ut in in_land if ut in no_fortress),
-	})
-	base[True, True] = base[True, False].intersection(base[False, True])
-	
-	for faction, nationality, tilename in seq_iterate(G.temp.setup, None, 'cadres', None):
-		
-		if player is not None and player != faction:
+	for faction, nationality, tilenames in seq_iterate(G.temp.setup, [None, 'cadres', None], end=True):
+		if player is not None and faction != player:
 			continue
 		
-		# add necessary option containers
-		if faction not in code:
-			code[faction] = adict()
-		if nationality not in code[faction]:
-			code[faction][nationality] = adict()
-		if nationality not in available_units:
-			available_units[nationality] = xset(ut for ut in G.units.placeable
-			                                if ut in G.units.reserves[nationality] and G.units.reserves[nationality][ut]>0)
+		options = util.placeable_units(G, faction, nationality, tilenames)
+		
+		if len(options) == 0:
+			continue
 			
-		# identify cond
-		tile = G.tiles[tilename]
+		if faction not in code:
+			code[faction] = xset()
+			
+		code[faction].add((nationality, options))
 		
-		has_fortress = False
-		for uid in tile.units:
-			if G.objects.table[uid].type == 'Fortress':
-				has_fortress = True
-				break
-				
-		in_land = tile.type == 'Land' # not including coast
-		
-		cond = has_fortress, in_land
-		options = code[faction][nationality]
-		
-		# add new options based on cond
-		if cond not in options:
-			options[cond] = xset(), available_units[nationality].intersection(base[cond])
-		options[cond][0].add(tilename)
-		
-	# transform options to encoding
-	for faction, options in code.items():
-		if len(options) > 1:
-			code[faction] = xset((k,xset(v.values())) for k,v in options.items())
-		else:
-			k,v = next(iter(options.items()))
-			code[faction] = (k,xset(v.values()))
-	
-	if player is None:
-		return code
-	elif player in code:
-		return code[player]
+	if player is not None:
+		return code[player] if player in code else None
+	return code
 
 def setup_pre_phase(G, player_setup_path='config/faction_setup.yml'):
 	

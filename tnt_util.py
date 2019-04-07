@@ -78,7 +78,52 @@ def placeable_units(G, player, nationality, tile_options):
 	
 	# Groups: in land, no fortress, not supplied,
 	
-	pass
+	reserves = xset(ut for ut in G.units.placeable
+			        if ut in G.units.reserves[nationality]
+			            and G.units.reserves[nationality][ut]>0)
+	
+	base = adict({
+		'unsupplied': xset('Fortress'),
+		(False, False): reserves,
+		(True, False): xset(ut for ut in reserves if ut != 'Fortress'),
+		(False, True): xset(ut for ut in reserves if G.units.rules[ut].type not in {'N', 'S'}),
+		# in_land_no_fort = xset(ut for ut in in_land if ut in no_fortress),
+	})
+	base[True, True] = base[True, False].intersection(base[False, True])
+	
+	# make sure territory is undisputed
+	
+	options = adict()
+	
+	for tilename in tile_options:
+		tile = G.tiles[tilename]
+		
+		if 'disputed' in tile:
+			continue
+		
+		has_fortress = False
+		for uid in tile.units:
+			if G.objects.table[uid].type == 'Fortress':
+				has_fortress = True
+				break
+		
+		in_land = tile.type == 'Land'  # not including coast
+
+		unsupplied = 'unsupplied' in tile and player in tile.unsupplied
+		
+		cond = has_fortress, in_land
+		if unsupplied:
+			cond = 'unsupplied'
+		
+		if unsupplied and has_fortress:
+			continue
+			
+		# add new options based on cond
+		if cond not in options:
+			options[cond] = xset(), base[cond]
+		options[cond][0].add(tilename)
+		
+	return xset(options.values())
 
 
 ######################
@@ -158,10 +203,13 @@ class Logger(Transactionable):
 # misc
 ######################
 
-def seq_iterate(content, *itrs): # None will return that value for each
+def seq_iterate(content, itrs, end=False): # None will return that value for each
 	if len(itrs) == 0: # base case - iterate over content
 		try:
-			yield from content
+			if end:
+				yield content
+			else:
+				yield from content
 		except TypeError:
 			yield content
 	else: # return only those samples that match specified (non None) tuples
@@ -172,21 +220,21 @@ def seq_iterate(content, *itrs): # None will return that value for each
 			
 			if i is None:
 				for x in content:
-					yield from seq_iterate(x, *itrs)
+					yield from seq_iterate(x, itrs, end=end)
 			elif isinstance(i, int) and i < len(content):
-				yield from seq_iterate(content[i], *itrs)
+				yield from seq_iterate(content[i], itrs, end=end)
 		
 		elif isinstance(content, dict):
 			
 			if i is None:
 				for k, v in content.items():  # expand with id
-					for rest in seq_iterate(v, *itrs):
+					for rest in seq_iterate(v, itrs, end=end):
 						if isinstance(rest, tuple):
 							yield (k,) + rest
 						else:
 							yield k, rest
 			elif i in content:
-				yield from seq_iterate(content[i], *itrs)
+				yield from seq_iterate(content[i], itrs, end=end)
 
 
 def expand_actions(code):
