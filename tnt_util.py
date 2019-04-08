@@ -5,7 +5,7 @@ import yaml
 import networkx as nx
 import uuid
 from IPython.display import display_javascript, display_html
-from structures import tdict, tlist, tset, adict, idict, xset, get_object, get_table, pull_ID, register_obj, Transactionable
+from structures import tdict, tlist, tset, adict, idict, xset, pull_ID, Transactionable
 from itertools import product, chain
 from collections import deque
 
@@ -136,6 +136,23 @@ class Logger(Transactionable):
 		self.logs = adict({p:deque() for p in players})
 		self.updates = adict({p:deque() for p in players})
 		self.collectors = None
+		
+	def save_state(self):
+		state = {
+			'stdout': self.stdout,
+			'logs': {k:list(v) for k,v in self.logs.items()},
+			'updates': {k:list(v) for k,v in self.updates.items()},
+		}
+		if self.collectors is not None:
+			state['collectors'] = {k:list(v) for k,v in self.collectors.items()}
+		return state
+	
+	def load_state(self, data):
+		self.stdout = data['stdout']
+		self.logs = adict(data['logs'])
+		self.updates = adict(data['updates'])
+		if 'collectors' in data:
+			self.collectors = adict(data['collectors'])
 	
 	def begin(self):
 		if self.in_transaction():
