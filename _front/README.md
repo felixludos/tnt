@@ -13,7 +13,9 @@ in terminal:
 
 to use front_x, 
 - browse to localhost:5000/x/
-- if live server extension is installed (vs code), can start self-reloading browser from vs code with GoLive in status bar
+
+>I'll try to find a way to start browser automatically with server,
+and also automatic reloading after change!
 
 see flask_app.py to update routes
 
