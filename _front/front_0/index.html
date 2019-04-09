@@ -24,7 +24,8 @@
       <div id="troopDisplay" class="popupStyle gridContainer hCenterScreen"></div>
       <!-- <div id="submitButton" class="centerScreen hidden"><button onclick="submitChoice()">Submit</button></div> -->
     </div>
-    <div id="cardDisplay">card display</div>
+    <div id="logDisplay" style="position:absolute;left:1275px;top:0px;padding:10px;">log display</div>
+    <div id="cardDisplay" style="position:absolute;left:0px;top:825px;padding:10px;">card display</div>
     <!-- #endregion html -->
 
     <!-- #region standard script loading: js-yaml, w3.js, jquery... -->
@@ -52,11 +53,12 @@
 
     <!-- #region GLOBALS -->
     <script>
-      const playerFaction = "USSR"; //set desired faction here
+      const playerFaction = "West"; //set desired faction here
       const rootDiv = document.getElementById("rootDiv");
       const board = document.getElementById("board");
       const troopDisplay = document.getElementById("troopDisplay");
       const cardDisplay = document.getElementById("cardDisplay");
+      const logDisplay =  document.getElementById("logDisplay");
 
       var Manager = new MSManager(board, troopDisplay, cardDisplay); // manages all game objects
 
@@ -87,103 +89,20 @@
       function sendInit(faction, callback) {
         sendurl("init/hotseat/" + faction, callback);
       }
-      function sendAction(faction, selectedLabels, selectedIds) {
+      function sendAction(faction, selectedLabels) {
         let actionval = selectedLabels.flat();
-        //console.log(actionval);
-        //have to resort it the other way!!!
-        let currentOrder = actionval.map(x => Manager.getType(x));
+
         // should be in originalOrder!
-
+        let currentOrder = actionval.map(x => Manager.getType(x));
         let correctSorting = orderFromTo(actionval, currentOrder, originalOrder);
-        //console.log("***sendAction:");
-        //console.log("current order:", actionval);
-        //console.log("original order:", originalOrder);
-        //console.log("CORRECT order:", correctSorting);
 
-        //'/action/<faction>/<action:vals>'
         let url = "action/" + faction + "/" + correctSorting.join("+");
-        sendurl(url, data => {
-          //console.log(data);
-          processData(data); //, selectedIds);
-        });
+        sendurl(url, data => processData(data));
       }
     </script>
     <!-- #endregion CORS server communication -->
 
-    <!-- #region cards TODO: >> MSManager, name createDecks, type='deck' -->
-    <script>
-      function makeDecks() {
-        ////console.log("HALLLLLLLLLLLLLLLLLLLLO");
-        let wDeckArea = 251;
-        let hDeckArea = 354;
-        let pos = {x: 166, y: 998};
-        let centerActionDeck = {x: 166, y: 998}; // center of action deck
-        let centerInvestmentDeck = {x: 3233, y: 966}; // center of investment deck
-        let rounding = 6;
-        let actionDeckColor = "orange";
-        actionDeck = new MS("actionDeck", board)
-          .roundedRect({w: 251, h: 354, fill: actionDeckColor, rounding: 6})
-          .textMultiline({txt: ["Action", "Deck"], fz: 28, fill: "white"})
-          .roundedRect({w: 251, h: 354, fill: "transparent", rounding: 6})
-          .setPos(centerActionDeck.x, centerActionDeck.y)
-          .draw();
-        investmentDeck = new MS("investmentDeck", board)
-          .roundedRect({w: 253, h: 356, fill: "sienna", rounding: 6})
-          .textMultiline({txt: ["Investment", "Deck"], fz: 28, fill: "white"})
-          .roundedRect({w: 253, h: 356, fill: "transparent", rounding: 6})
-          .setPos(centerInvestmentDeck.x, centerInvestmentDeck.y)
-          .draw();
-        ////console.log("halloooooooooooooooooooo");
-        // makeButton(
-        //   actionDeck,
-        //   ev => {
-        //     //console.log("drawing card from ", actionDeck.id);
-        //   },
-        //   "yellow",
-        //   0.3,
-        //   "red",
-        //   0.3
-        // );
-        // makeButton(
-        //   investmentDeck,
-        //   ev => {
-        //     //console.log("drawing card from ", investmentDeck.id);
-        //   },
-        //   "yellow",
-        //   0.3,
-        //   "red",
-        //   0.3
-        // );
-      }
-      // function makeButton(ms, handler, hoverColor, hoverAlpha, pressColor, pressAlpha) {
-      //   ms.elem.addEventListener("click", ev => {
-      //     if (ms.isEnabled) handler(ev);
-      //   });
-      //   ms.elem.addEventListener("mouseenter", ev => {
-      //     if (ms.isEnabled) ms.setOverlayColor(hoverColor, hoverAlpha);
-      //   });
-      //   ms.elem.addEventListener("mouseleave", ev => {
-      //     if (ms.isEnabled) ms.setOverlayColor("transparent");
-      //   });
-      //   ms.elem.addEventListener("mousedown", ev => {
-      //     if (ms.isEnabled) ms.setOverlayColor(pressColor, pressAlpha);
-      //   });
-      //   ms.elem.addEventListener("mouseup", ev => {
-      //     if (ms.isEnabled) ms.setOverlayColor(hoverColor, hoverAlpha);
-      //   });
-      // }
-    </script>
-    <!-- #endregion use case 1: lobby > game setup -->
-
-    <!-- #region cadre prototypes -->
-    <script>
-      function hideCadrePrototypes() {
-        troopDisplay.style.display = "none";
-      }
-    </script>
-    <!-- #endregion cadre prototypes -->
-
-    <!-- #region setup -->
+    <!-- #region setup TODO: create regions from serverData instead of beforehand!!! -->
     <script>
       function loadRegions(objectManager) {
         loadYML("/common/assets/config/map_pos.yml", data => {
@@ -204,7 +123,8 @@
         });
       }
       function setup() {
-        hideCadrePrototypes();
+        Manager.hideCadrePrototypes();
+        Manager.createDecks();
         loadRegions(Manager);
         loadCadrePrototypes(Manager, unit_count_dictionary => {
           unitCount = unit_count_dictionary;
@@ -229,7 +149,7 @@
       }
       function processData(data) {
         serverData = JSON.parse(data);
-
+        console.log(serverData);
         processCreated(serverData.created);
         processUpdated(serverData.updated);
         processRemoved(serverData.removed);
@@ -242,6 +162,10 @@
         for (id in created) {
           let o = created[id];
           switch (o.obj_type) {
+            case "action_card":
+              Manager.createDeckCard(id, "action_card");
+            case "investment_card":
+              Manager.createDeckCard(id, "investment_card");
             case "unit":
               //console.log(o, " is unit to be created");
               // place cadre on region
@@ -261,6 +185,7 @@
               break;
           }
         }
+        Manager.printObjects()
       }
       function processUpdated(upData) {
         //console.log('*** processing updated: ***');
@@ -272,12 +197,12 @@
       }
       function processAction(actionData) {
         //console.log('*** processing actions: ***')
+        console.log("actionData:", actionData);
+        if (empty(actionData)) return;
         let sActions = JSON.stringify(actionData);
-        //console.log(sActions);
         let serverTree = new MParser(sActions).tree;
         serverTree.print();
-        //console.log(serverTree.constructor.name);
-        let b = serverTree.branchSample(); //new MTree(["a"]).branchSample();
+        let b = serverTree.branchSample();
         originalOrder = b.map(x => Manager.getType(x));
         let selInfo = Manager.convertActionTree(serverTree);
         Selection = new MSelection(selInfo);
@@ -294,9 +219,8 @@
           let selectedLabels = Selection.getSelectedNodeLabels();
           let selectedIds = Manager.transformToIds(selectedLabels);
           Manager.closeSelection(selectedIds);
-          hideCadrePrototypes();
 
-          sendAction(playerFaction, selectedLabels, selectedIds);
+          sendAction(playerFaction, selectedLabels);
         } else {
           console.log("unselect:", result.idsToUnselect.toString());
           result.idsToUnselect.map(idparts => {
@@ -308,11 +232,7 @@
           Manager.displayChoices(idlists, onObjectSelected);
         }
       }
-    </script>
-    <!-- #region *** TESTING *** -->
-    <script>
       setup();
     </script>
-    <!-- #endregion *** TESTING *** -->
   </body>
 </html>

@@ -13,16 +13,20 @@
   fill: rgba(0, 0, 0, 0.2);
   z-index: 10;
 }
+.region {
+  fill: rgba(0, 0, 0, 0.1);
+  z-index: 0;
+}
 
+/* 
 .ms {
   fill: rgba(0, 0, 0, 0.1);
   z-index: 0;
 }
-.ms:hover {
+.region:hover {
   fill: rgba(0, 0, 0, 0.4);
   z-index: 10;
 }
-
 
 .highlighted {
   fill: rgba(255, 255, 0, 0.3);
@@ -37,7 +41,7 @@
 .selected:hover {
   fill: rgba(255, 0, 0, 0.5);
   cursor:pointer;
-}
+} */
 
 /* #region mil font */
 /* needs to be included in index.html, url doesn't work like this! */

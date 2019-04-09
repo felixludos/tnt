@@ -1,12 +1,3 @@
-const troopInfo = {
-  Infantry: ["Infantry", "|", 2],
-  Tank: ["Tank", "3", 1],
-  AirForce: ["AirForce", "x", 2],
-  Submarine: ["Submarine", "m", 1],
-  Fleet: ["Fleet", "p", 1],
-  Carrier: ["Carrier", "o", 1],
-  Fortress: ["Fortress", ",", 2] //oder '0'
-};
 const troopColors = {
   Germany: [174, 174, 176],
   Britain: [86, 182, 222],
@@ -21,29 +12,20 @@ const troopColors = {
 const SZ = {
   region: 180,
   cadrePrototype: 60,
-  cadre: 40
+  cadre: 60
 };
 const SEPARATOR = "_";
-const fs = {
-  Infantry: {fz: 0.5, x: 0.5, y: 4 / 6},
-  Fleet: {fz: 0.35, x: 0.45, y: 5 / 6},
-  Convoy: {fz: 0.35, x: 0.5, y: 5 / 6},
-  Tank: {fz: 0.25, x: 0.54, y: 4 / 6},
-  AirForce: {fz: 0.6, x: 0.5, y: 4 / 6},
-  Carrier: {fz: 0.25, x: 0.5, y: 2.1 / 3},
-  Submarine: {fz: 0.25, x: 0.5, y: 4.2 / 6},
-  Fortress: {fz: 0.6, x: 0.5, y: 4 / 6}
-};
-
 class MSManager {
   constructor(board, troopDisplay, cardDisplay) {
-    this.highObjects=[];
-    //this.selectedObjects=[];
+    this.highObjects = [];
+    //this.selectedObjects=[]; //do I need this?
     this.board = board;
     this.troopDisplay = troopDisplay;
     this.cardDisplay = cardDisplay;
-    this.byId = {}; // {id:{ms:msObject,type:'region'|'power'|'unit'|'proto'|'cadre'|'hand'|'deck'|...}}
+    this.byId = {}; // {id:{ms:msObject,type:'region'|'power'|'unit'|'proto'|'cadre'|'action_card'|'investment_card'|'deck'|...}}
+    this.decks = {action_card:[],investment_card:[]};
   }
+  printObjects(){console.log(this.byId);}
   get(id) {
     //returns MS with this id
     if (!(id in this.byId)) {
@@ -69,72 +51,10 @@ class MSManager {
   getUnitFromCadrePrototypeId(id) {
     return stringAfter(id, SEPARATOR);
   }
-  clickHandler(ev) {
-    let id = evToId(ev);
-    let ms = this.get(id);
-    if (!ms.isEnabled) return;
-    ms.toggleSelection();
-  }
-  undoSelection(idparts){
-    //console.log('*** undoSelection')
-    let id = this.getCombinedId(idparts);
-    let ms = this.get(id);
-    //console.log(idparts,id,ms);
-    ms.unselect();
-    ms.highlight();
-  }
-  createCadrePrototype(power, unit, cv = 1) {
-    // let elem = this.createCadreG(power, unit, 1, 50);
-    // let cadre = new MS(id, board);
-    // cadre.setElement(elem, 50, 50);
-    // this.byId[id] = cadre;
-    let id = this.getCombinedId(power, unit);
-    //console.log("*** Manager.createCadrePrototype)", id, power, unit, cv);
 
-    //power provides color
-    let color = troopColors[power];
-    //unit provides text and symbol
-    let name = troopInfo[unit][0];
-    let letter = troopInfo[unit][1];
-    let scaleFactor = troopInfo[unit][2];
-
-    let val = cv;
-
-    let percentage = 6.25;
-    let sz = SZ.cadrePrototype;
-
-    const fs1 = {
-      Infantry: {fz: 0.5, x: 0.5, y: 1 / 6},
-      Fleet: {fz: 0.25, x: 0.45, y: 1 / 4},
-      Convoy: {fz: 0.35, x: 0.5, y: 1 / 6},
-      Tank: {fz: 0.25, x: 0.54, y: 1 / 5.5},
-      AirForce: {fz: 0.6, x: 0.5, y: 1 / 5},
-      Carrier: {fz: 0.25, x: 0.5, y: 1 / 6},
-      Submarine: {fz: 0.25, x: 0.5, y: 1 / 5},
-      Fortress: {fz: 0.6, x: 0.5, y: 1 / 5.5}
-    };
-    let f = fs1[unit];
-
-    let cadre = new MS(id)
-      .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
-      .roundedRect({className: "ms", w: sz * 0.9, h: sz * 0.9, fill: "rgba(0,0,0,.5)", rounding: sz * 0.08})
-      .text({fz: sz / 6, y: -0.3 * sz, txt: name, fill: "orange"})
-      .text({
-        family: "Military RPG",
-        fz: sz * f.fz,
-        y: sz * f.y,
-        txt: letter,
-        fill: "rgba(255,255,255,.3)"
-      })
-      .text({fz: sz / 2, y: sz * 0.1, txt: val, fill: "black"})
-      .roundedRect({className: "overlay selectable", w: sz, h: sz, fill: "rgba(0,0,0,0)", rounding: sz * 0.1});
-    this.byId[id] = {ms: cadre, type: "proto"};
-
-    return cadre;
-  }
   createRegion(id, pos) {
     let msRegion = new MS(id, this.board)
-      .circle({className: "ms hible selectable", sz: SZ.region})
+      .circle({className: "overlay region hible selectable", sz: SZ.region})
       .setPos(pos.x, pos.y)
       .draw();
     //msRegion.clickHandler = this.clickHandler.bind(this);
@@ -145,32 +65,43 @@ class MSManager {
   createType(id, type) {
     this.byId[id] = {type: type};
   }
+  createCadrePrototype(power, unit, cv = 1) {
+    let id = this.getCombinedId(power, unit);
 
+    let cadre = this.createCadreMS(id, null, power, unit, cv, SZ.cadrePrototype);
+    this.byId[id] = {ms: cadre, type: "proto"};
+  }
   createCadre(id, power, unit, region, cv, showDataToFactionList) {
-    // let elem = this.createCadreG(power, unit, 1, 50);
-    // let cadre = new MS(id, board);
-    // cadre.setElement(elem, 50, 50);
-    // this.byId[id] = cadre;
-    //console.log("*** Manager.createCadre)", id, power, unit, region, cv);
+    let cadre = this.createCadreMS(id, board, power, unit, cv, SZ.cadre);
 
-    //power provides color
-    let color = troopColors[power];
-    //unit provides text and symbol
-    let name = troopInfo[unit][0];
-    let letter = troopInfo[unit][1];
-    let scaleFactor = troopInfo[unit][2];
-
-    // cv provides number
     //region provides pos
     let posx = this.get(region).x + -20;
     let posy = this.get(region).y + 40;
 
-    //console.log(posx, posy);
+    //to display cadre in hidden way, could color overlay
 
-    let val = cv;
+    cadre.setPos(posx, posy).draw();
 
-    let percentage = 6.25;
-    let sz = 60; //SZ.cadrePrototype;
+    this.byId[id] = {ms: cadre, type: "cadre"};
+    cadre.tag("region", this.get(region).id);
+    return cadre;
+  }
+  createCadreMS(id, parent, power, unit, cv, sz) {
+    //power provides color
+    let color = troopColors[power];
+    //unit provides text and symbol
+    const troopInfo = {
+      Infantry: ["Infantry", "|", 2],
+      Tank: ["Tank", "3", 1],
+      AirForce: ["AirForce", "x", 2],
+      Submarine: ["Submarine", "m", 1],
+      Fleet: ["Fleet", "p", 1],
+      Carrier: ["Carrier", "o", 1],
+      Fortress: ["Fortress", ",", 2] //oder '0'
+    };
+    let name = troopInfo[unit][0];
+    let letter = troopInfo[unit][1];
+    let scaleFactor = troopInfo[unit][2];
 
     const fs1 = {
       Infantry: {fz: 0.5, x: 0.5, y: 1 / 6},
@@ -184,9 +115,9 @@ class MSManager {
     };
     let f = fs1[unit];
 
-    let cadre = new MS(id, board)
+    let cadre = new MS(id, parent)
       .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
-      .roundedRect({w: sz * 0.9, h: sz * 0.9, fill: "rgba(0,0,0,.5)", rounding: sz * 0.08})
+      .roundedRect({className: "ms", w: sz * 0.9, h: sz * 0.9, fill: "rgba(0,0,0,.5)", rounding: sz * 0.08})
       .text({fz: sz / 6, y: -0.3 * sz, txt: name, fill: "orange"})
       .text({
         family: "Military RPG",
@@ -195,15 +126,39 @@ class MSManager {
         txt: letter,
         fill: "rgba(255,255,255,.3)"
       })
-      .text({fz: sz / 2, y: sz * 0.1, txt: val, fill: "black"})
-      .roundedRect({className: "overlay hible selectable", w: sz, h: sz, fill: "rgba(0,0,0,0)", rounding: sz * 0.1})
-      .setPos(posx, posy)
-      .draw();
-
-    this.byId[id] = {ms: cadre, type: "cadre"};
-    cadre.tag("region", this.get(region).id);
+      .text({fz: sz / 2, y: sz * 0.1, txt: cv, fill: "white"})
+      .roundedRect({className: "overlay selectable", w: sz, h: sz, fill: "rgba(0,0,0,0)", rounding: sz * 0.1});
 
     return cadre;
+  }
+  createDecks() {
+    let wDeckArea = 251;
+    let hDeckArea = 354;
+    let pos = {x: 166, y: 998};
+    let centerActionDeck = {x: 166, y: 998}; // center of action deck
+    let centerInvestmentDeck = {x: 3233, y: 966}; // center of investment deck
+    let rounding = 6;
+    let actionDeckColor = "orange";
+    let idAction = 'action_card';
+    let idInvestment = 'investment_card';
+    let actionDeck = new MS(idAction, board)
+      .roundedRect({w: 251, h: 354, fill: actionDeckColor, rounding: 6})
+      .textMultiline({txt: ["Action", "Deck"], fz: 28, fill: "white"})
+      .roundedRect({className: "cardDeck overlay selectable", w: 251, h: 354, rounding: 6})
+      .setPos(centerActionDeck.x, centerActionDeck.y)
+      .draw();
+    let investmentDeck = new MS(idInvestment, board)
+      .roundedRect({w: 253, h: 356, fill: "sienna", rounding: 6})
+      .textMultiline({txt: ["Investment", "Deck"], fz: 28, fill: "white"})
+      .roundedRect({className: "cardDeck overlay selectable", w: 253, h: 356, fill: "transparent", rounding: 6})
+      .setPos(centerInvestmentDeck.x, centerInvestmentDeck.y)
+      .draw();
+    this.byId[idAction] = {ms: actionDeck, type: "deck"};
+    this.byId[idInvestment] = {ms: investmentDeck, type: "deck"};
+  }
+  createDeckCard(id,type){
+    this.createType(id,type);
+    this.decks[type].push(id);
   }
 
   convertActionTree(t) {
@@ -221,26 +176,14 @@ class MSManager {
   }
   detectTreeTypes(t) {
     // assumes t has 1 type by level and all branches have same length
-
     let branch = t.branchlist(-1, false)[0];
-    ////console.log('branch:')
-    ////console.log(branch)
     let types = [];
     for (const arr of branch) {
       types.push(this.getType(arr[0]));
     }
-    //console.log(types); // eg. ["power", "unknown", "region", "unit"]
     return types;
   }
 
-  closeSelection(ids){
-    clearElement(troopDisplay);
-    troopDisplay.classList.add('hidden');
-    let selectedObjects = ids.map(id=>this.get(id));
-    selectedObjects.map(x=>x.unselect());
-    this.highObjects.map(o => this.makeUnselectable(o));
-    this.highObjects=[];
-  }
   displayChoices(idlists, handler) {
     //console.log("***manager:displayChoices",idlists[0]);
     let idlist = idlists.map(l => this.getCombinedId(...l));
@@ -248,34 +191,16 @@ class MSManager {
     let objects = idlist.map(id => this.get(id));
 
     let type = this.getType(idlist[0]);
-    //console.log("objects[0] is.............", objects[0]);
-    //console.log("the type is.............", type);
-    //console.log("the type is.............", type);
     if (type == "proto") {
       clearElement(troopDisplay);
       this.displayCadrePrototypes(idlist);
     }
     objects.map(o => this.makeSelectable(o, handler));
-    objects.map(o=>addIf(o,this.highObjects));
-  }
-  makeSelectable(ms, handler) {
-    //console.log("enabling ", ms.id);
-    ms.highlight();
-    //console.log(ms.id, " should be highlighted...");
-    ms.isEnabled = true;
-    ms.clickHandler = handler;
-    //console.log("end of makeSelectable", ms.id);
-  }
-  makeUnselectable(ms, handler) {
-    //console.log("disabling ", ms.id);
-    ms.unselect();
-    ms.unhighlight();
-    ms.isEnabled = false;
-    ms.clickHandler = null;
+    objects.map(o => addIf(o, this.highObjects));
   }
   displayCadrePrototypes(ids) {
-    var d = troopDisplay;
-    troopDisplay.style.display = "grid";
+    var d = this.troopDisplay;
+    this.troopDisplay.style.display = "grid";
     // d.classList.remove('hidden'); //TODO: why does this not work?!?!?
     var n = ids.length;
     //console.log(ids.toString());
@@ -298,6 +223,37 @@ class MSManager {
     d.style.padding = dims.padding + "px";
     d.style.gridGap = dims.gap + "px";
   }
+  hideCadrePrototypes() {
+    this.troopDisplay.style.display = "none";
+  }
+
+  closeSelection(ids) {
+    clearElement(troopDisplay);
+    this.hideCadrePrototypes();
+    let selectedObjects = ids.map(id => this.get(id));
+    selectedObjects.map(x => x.unselect());
+    this.highObjects.map(o => this.makeUnselectable(o));
+    this.highObjects = [];
+  }
+  makeSelectable(ms, handler) {
+    ms.highlight();
+    ms.isEnabled = true;
+    ms.clickHandler = handler;
+  }
+  makeUnselectable(ms, handler) {
+    ms.unselect();
+    ms.unhighlight();
+    ms.isEnabled = false;
+    ms.clickHandler = null;
+  }
+  undoSelection(idparts) {
+    //console.log('*** undoSelection')
+    let id = this.getCombinedId(idparts);
+    let ms = this.get(id);
+    //console.log(idparts,id,ms);
+    ms.unselect();
+    ms.highlight();
+  }
 
   transformToIds(idlists) {
     return idlists.map(l => this.getCombinedId(...l));
@@ -318,31 +274,18 @@ class MSManager {
     };
     return transDict[skey];
   }
-  getByType(ids, type) {
-    //console.log(ids);
-    let res = ids.filter(id => this.byId[id].type == type)[0];
-    //console.log("!!!!!!!!!!!!!!!!!!!! ", res);
-    return res;
-  }
-  placeCadre(msCadre, msRegion) {
-    //msCadre.setPos(msRegion.x,msRegion.y).draw();
-    msCadre.tag("region", msRegion.id);
-  }
-  // action(command, newId, ids) {
-  //   let objects = ids.map(x => this.get(x));
-  //   switch (command) {
-  //     case "placeCadre":
-  //       //look for region
-  //       let msRegion = this.get(this.getByType(ids, "region"));
-  //       //console.log(msRegion);
-  //       //look for proto
-  //       let primitiveIds = ids.map(id => this.getIdParts(id)).flat();
-  //       let power = this.getByType(primitiveIds, "power");
-  //       let unit = this.getByType(primitiveIds, "unit");
-  //       //create board cadre from proto
-  //       //let msCadre = this.createCadre(newId, power, unit);
-  //       // place cadre on region
-  //       //this.placeCadre(msCadre, msRegion);
-  //   }
+  // getByType(ids, type) {
+  //   let res = ids.filter(id => this.byId[id].type == type)[0];
+  //   return res;
+  // }
+  // clickHandler(ev) {
+  //   let id = evToId(ev);
+  //   let ms = this.get(id);
+  //   if (!ms.isEnabled) return;
+  //   ms.toggleSelection();
+  // }
+  // moveCadre(msCadre, msRegion) {
+  //   msCadre.setPos(msRegion.x, msRegion.y);
+  //   msCadre.tag("region", msRegion.id);
   // }
 }

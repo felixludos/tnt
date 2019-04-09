@@ -22,55 +22,61 @@ class MSelection {
     //console.log(branchlist[0].toString());
     return branchlist;
   }
-  printStack(idlist){
-    console.log('*** stack ('+this.index+') selected:',idlist.toString())
-    for (const st of this.stack) {
-      console.log(st.choiceType,st.idlist.toString());
-      console.log('node:',st.node.data.toString())
-    }
+  printStack(idlist) {
+    console.log("*** stack (" + this.index + ") selected:", idlist.toString());
+    let st = last(this.stack);
+    if (st) {
+      console.log(st.choiceType, st.idlist.toString());
+      console.log("node:", st.node.data.toString());
+    } else console.log("stack is empty");
+    // for (const st of this.stack) {
+    //   console.log(st.choiceType, st.idlist.toString());
+    //   console.log("node:", st.node.data.toString());
+    // }
   }
-  processSelection(idlist,typeSelected){ //idlist is list of partial types or types involved,
+  processSelection(idlist, typeSelected) {
+    //idlist is list of partial types or types involved,
     // corresponding to a branch of tree under this.node;
     //console.log('*** processSelection:',idlist.toString(),typeSelected);
     let t = this.node.findNodes(idlist);
     //console.log('>>>>>>>t=',t);
     this.printStack(idlist);
-    let idsToUnselect=[];
-    if (!t){
+    let idsToUnselect = [];
+    if (!t) {
       //console.log('processSelection: ERROR CANNOT FIND SELECTED NODES');return false;
     }
     //console.log('selected Nodes:');
     //t.map(x=>console.log(x.data.toString()));
-    if (typeSelected == this.choiceTypes[this.index]){
+    if (typeSelected == this.choiceTypes[this.index]) {
       // new type has been selected
       // travel down branch and increment index.
       // push furthest node involved in choice to stack
       let lastNode = last(t);
-      this.stack.push({idlist:idlist,node:this.node,choiceType:typeSelected});
+      this.stack.push({idlist: idlist, node: this.node, choiceType: typeSelected});
       this.node = lastNode;
       this.index += 1;
-    }else {
-      let i=this.index;
-      while(i>0 && typeSelected!=this.choiceTypes[i]){
-        let top=this.stack.pop();
+    } else {
+      let i = this.index;
+      while (i > 0 && typeSelected != this.choiceTypes[i]) {
+        let top = this.stack.pop();
         idsToUnselect.push(top.idlist);
-        i-=1;
+        i -= 1;
       }
-      this.index=i+1;
-      this.node=this.tree.findNodes(idlist)[0];
-      this.stack.push({idlist:idlist,node:this.node,choiceType:typeSelected});
+      this.index = i + 1;
+      this.node = this.tree.findNodes(idlist)[0];
+      this.stack.push({idlist: idlist, node: this.node, choiceType: typeSelected});
       //console.log('typeSelected=',typeSelected)
       //console.log('index=',this.index,'choiceTypes=',this.choiceTypes.toString())
       //console.log('node=',this.node.data.toString())
-      if (typeSelected != this.choiceTypes[i]){
+      if (typeSelected != this.choiceTypes[i]) {
         //console.log('processSelection: IMPOSSIBLE: NO TYPE FITS ',typeSelected);
       }
     }
-    this.printStack(idlist)
-    console.log('end')
-    return {isCompleted:typeSelected==last(this.choiceTypes),idsToUnselect:idsToUnselect};
+    this.printStack(idlist);
+    console.log("end");
+    return {isCompleted: typeSelected == last(this.choiceTypes), idsToUnselect: idsToUnselect};
   }
-  getSelectedNodeLabels(){
-    return this.stack.map(x=>x.idlist); 
+  getSelectedNodeLabels() {
+    return this.stack.map(x => x.idlist);
   }
 }

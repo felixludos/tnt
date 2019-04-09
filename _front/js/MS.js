@@ -174,8 +174,13 @@ class MS {
     this.isHighlighted = false;
   }
   toggleSelection() {
-    if (this.isSelected) {this.unselect();this.highlight();}
-    else {this.unhighlight();this.select();}
+    if (this.isSelected) {
+      this.unselect();
+      this.highlight();
+    } else {
+      this.unhighlight();
+      this.select();
+    }
   }
   select() {
     //console.log('select ms:',this.id)
@@ -297,7 +302,7 @@ class MS {
   rect({className = "", w = 50, h = 25, fill = "yellow", alpha = 1, x = 0, y = 0} = {}) {
     let r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     r.setAttribute("width", w);
-    r.setAttribute("height", w);
+    r.setAttribute("height", h);
     r.setAttribute("x", -w / 2 + x);
     r.setAttribute("y", -h / 2 + y);
 

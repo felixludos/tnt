@@ -53,7 +53,10 @@ function choose(arr, n) {
   return result;
 }
 function empty(arr) {
-  return arr === undefined || arr === null || !Array.isArray(arr) ? true : arr.length == 0;
+  let result = arr === undefined || !arr || (isString(arr) && arr == '') 
+    || (Array.isArray(arr) && arr.length == 0);
+  //console.log(typeof(arr),result?'EMPTY':arr)
+  return result;
 }
 function first(arr) {
   return arr.length > 0 ? arr[0] : null;
