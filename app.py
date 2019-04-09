@@ -119,32 +119,32 @@ def staticFilesAssetsConfigDir(fname):
     filename = fname
     return send_from_directory(app.static_folder, 'assets/config/'+fname)
 
-@app.route('/lauren/')
-def defaultRouteStaticFiles():
-    return send_from_directory(app.static_folder, "front_lauren/index.html")
+# @app.route('/lauren/')
+# def defaultRouteStaticFiles():
+#     return send_from_directory(app.static_folder, "front_lauren/index.html")
 
-@app.route('/lauren/<fname>')
-def staticFilesMainDirLauren(fname):
-    filename = fname
-    return send_from_directory(app.static_folder, "front_lauren/"+fname)
+# @app.route('/lauren/<fname>')
+# def staticFilesMainDirLauren(fname):
+#     filename = fname
+#     return send_from_directory(app.static_folder, "front_lauren/"+fname)
 
-@app.route('/felix/')
-def defaultRouteStaticFilesFelix():
-    return send_from_directory(app.static_folder, "front_felix/index.html")
+# @app.route('/felix/')
+# def defaultRouteStaticFilesFelix():
+#     return send_from_directory(app.static_folder, "front_felix/index.html")
 
-@app.route('/felix/<fname>')
-def staticFilesMainDirFelix(fname):
-    filename = fname
-    return send_from_directory(app.static_folder, "front_felix/"+fname)
+# @app.route('/felix/<fname>')
+# def staticFilesMainDirFelix(fname):
+#     filename = fname
+#     return send_from_directory(app.static_folder, "front_felix/"+fname)
 
-@app.route('/tawzz/')
+@app.route('/0/')
 def defaultRouteStaticFilesTawzz():
-    return send_from_directory(app.static_folder, "front_tawzz/index.html")
+    return send_from_directory(app.static_folder, "front_0/index.html")
 
-@app.route('/tawzz/<fname>')
+@app.route('/0/<fname>')
 def staticFilesMainDirTawzz(fname):
     filename = fname
-    return send_from_directory(app.static_folder, "front_tawzz/"+fname)
+    return send_from_directory(app.static_folder, "front_0/"+fname)
 
 @app.route('/save/<filename>')
 def save(filename=None):

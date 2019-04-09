@@ -11,6 +11,7 @@ class MScanner {
     // //console.log(this.tokenList);
   }
   scan(s) {
+    if (!s || s=='') return [];
     let lst = [];
     while (s.length > 0) {
       s = s.trim();
