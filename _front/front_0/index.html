@@ -58,7 +58,7 @@
       const board = document.getElementById("board");
       const troopDisplay = document.getElementById("troopDisplay");
       const cardDisplay = document.getElementById("cardDisplay");
-      const logDisplay =  document.getElementById("logDisplay");
+      const logDisplay = document.getElementById("logDisplay");
 
       var Manager = new MSManager(board, troopDisplay, cardDisplay); // manages all game objects
 
@@ -90,13 +90,7 @@
         sendurl("init/hotseat/" + faction, callback);
       }
       function sendAction(faction, selectedLabels) {
-        let actionval = selectedLabels.flat();
-
-        // should be in originalOrder!
-        let currentOrder = actionval.map(x => Manager.getType(x));
-        let correctSorting = orderFromTo(actionval, currentOrder, originalOrder);
-
-        let url = "action/" + faction + "/" + correctSorting.join("+");
+        let url = "action/" + faction + "/" + selectedLabels.join("+");
         sendurl(url, data => processData(data));
       }
     </script>
@@ -147,17 +141,55 @@
       function Start(dataFromServer) {
         processData(dataFromServer);
       }
+      var skipCounter = 12; // this is to skip cadre setup phase
+      function skipActions(actionData) {
+        //skipCounter times just return first alternative to server to speed up process
+        if (skipCounter > 0) {
+          skipCounter -= 1;
+          //console.log('skip:',actionData)
+          let sActions = JSON.stringify(actionData);
+          let serverTree = new MParser(sActions).tree;
+          //serverTree.print();
+          let b = serverTree.branchSample();
+          //console.log('send',b);
+          sendAction(playerFaction, b);
+
+          return true;
+        }
+        return false;
+      }
+
       function processData(data) {
         serverData = JSON.parse(data);
-        console.log(serverData);
+        //console.log(serverData);
+
+        processLog(serverData.log);
         processCreated(serverData.created);
         processUpdated(serverData.updated);
         processRemoved(serverData.removed);
-        processAction(serverData.actions);
+        if (skipActions(serverData.actions)) {
+          console.log("skipped action");
+        } else {
+          processAction(serverData.actions);
+        }
+      }
+      function processLog(logData) {
+        // console.log("log data", logData);
+        // console.log("log data type=", typeof(logData));
+        if (empty(logData)) return;
+        let para = document.createElement("p");
+        para.textContent = logData;
+        logDisplay.appendChild(para);
+        // for (msg in logData) {
+        //   let para = document.createElement("p");
+        //   para.textContent = msg;
+        //   logDisplay.appendChild(para);
+        // }
       }
       function processCreated(createdData) {
         //console.log("*** processing created: ***");
         //console.log('creating: ',createdData);
+        if (empty(createdData)) return;
         let created = createdData;
         for (id in created) {
           let o = created[id];
@@ -185,7 +217,7 @@
               break;
           }
         }
-        Manager.printObjects()
+        //Manager.printObjects();
       }
       function processUpdated(upData) {
         //console.log('*** processing updated: ***');
@@ -196,8 +228,7 @@
         //console.log('removing: ',remData);
       }
       function processAction(actionData) {
-        //console.log('*** processing actions: ***')
-        console.log("actionData:", actionData);
+        //console.log("actionData:", actionData);
         if (empty(actionData)) return;
         let sActions = JSON.stringify(actionData);
         let serverTree = new MParser(sActions).tree;
@@ -220,7 +251,14 @@
           let selectedIds = Manager.transformToIds(selectedLabels);
           Manager.closeSelection(selectedIds);
 
-          sendAction(playerFaction, selectedLabels);
+          //format correctly before send
+          let actionval = selectedLabels.flat();
+
+          // should be in originalOrder!
+          let currentOrder = actionval.map(x => Manager.getType(x));
+          let correctSorting = orderFromTo(actionval, currentOrder, originalOrder);
+
+          sendAction(playerFaction, correctSorting);
         } else {
           console.log("unselect:", result.idsToUnselect.toString());
           result.idsToUnselect.map(idparts => {
