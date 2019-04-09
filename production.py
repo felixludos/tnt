@@ -7,7 +7,7 @@ from tnt_units import add_unit
 import random
 
 
-def encode_production_actions(G, player=None):
+def encode_production_actions(G):
 	
 	code = adict()
 	
@@ -138,5 +138,5 @@ def production_phase(G, player, action):
 			return None # phase is done
 		
 	
-	return encode_production_actions(G, player)
+	return encode_production_actions(G)
 
