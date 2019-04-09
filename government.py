@@ -7,17 +7,29 @@ import random
 
 def encode_government_actions(G):
 	
+	code = adict()
+	active_player = G.game.turn_order[G.temp.active_idx]
+	
+	opts = xset()
+	
 	# diplomacy options
+	
 	
 	# factory upgrade options
 	
+	
 	# tech options
+	
 	
 	# espionage options
 	
-	# pass
 	
-	pass
+	# pass
+	opts.add(('pass',))
+	
+	code[active_player] = opts
+	
+	return code
 
 def government_pre_phase(G): # prep influence
 	
@@ -25,8 +37,6 @@ def government_pre_phase(G): # prep influence
 		del G.temp
 	
 	G.temp = tdict()
-	
-	G.temp.active_idx = 0
 	G.temp.gov = tdict()
 	
 	G.temp.passes = 0
@@ -37,16 +47,25 @@ def government_pre_phase(G): # prep influence
 		
 		gov.diplomacy = tdict()
 		
-		
 		G.temp.gov[name] = gov
 	
+	G.temp.active_idx = 0
 	return encode_government_actions(G)
 
-def governmnet_phase(G): # play cards
+def governmnet_phase(G, player, action): # play cards
 	
+	if action == ('pass',):
+		G.temp.passes += 1
+		if G.temp.passes == len(G.players):
+			return None
+	else:
+		G.temp.passes = 0
+		
+		# execute card effects
 	
-	
-	pass
+	G.temp.active_idx += 1
+	G.temp.active_idx %= len(G.players)
+	return encode_government_actions(G)
 
 def government_post_phase(G): # place remaining influence, update tracks
 	
