@@ -7,8 +7,8 @@ class MScanner {
     this.code = code;
     this.tokenList = this.scan(code);
 
-    // console.log("code=" + code);
-    // console.log(this.tokenList);
+    // //console.log("code=" + code);
+    // //console.log(this.tokenList);
   }
   scan(s) {
     let lst = [];

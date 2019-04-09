@@ -5,6 +5,9 @@ function addAll(akku, other) {
   }
   return akku;
 }
+function addIf(el,arr){
+  if (!arr.includes(el)) arr.push(el);
+}
 function orderFromTo(lst,fromOrder,toOrder){
   let res = [];
   for (let i = 0; i < lst.length; i++) {
@@ -644,6 +647,13 @@ function insertHere() {
     }
   }
 }
+function makeSvg(sz){
+  const svg1 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg1.setAttribute("width", sz);
+  svg1.setAttribute("height", sz);
+  return svg1;
+}
+
 //tableCreate();
 function makeTable(tableName, rowHeaders, colHeaders) {
   let cols = colHeaders.length + 1;

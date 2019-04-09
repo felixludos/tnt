@@ -1,4 +1,19 @@
 /* used for MS (game objects) */
+.overlay {
+  fill: transparent;
+}
+.overlay.highlighted{
+  fill: rgba(255, 255, 0, 0.3);
+}
+.overlay.selected{
+  fill: rgba(255, 0, 0, 0.3);
+}
+.overlay:hover {
+  /* fill:red;  */
+  fill: rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
 .ms {
   fill: rgba(0, 0, 0, 0.1);
   z-index: 0;
@@ -7,20 +22,8 @@
   fill: rgba(0, 0, 0, 0.4);
   z-index: 10;
 }
-.overlay {
-  opacity:0.1;
-}
-.overlay.highlighted{
-  fill:yellow;
-  opacity:.3;
-}
-.overlay.selected{
-  fill:red;
-  opacity:.4;
-}
-.overlay:hover {
-  opacity:0.5;
-}
+
+
 .highlighted {
   fill: rgba(255, 255, 0, 0.3);
 }
@@ -37,8 +40,9 @@
 }
 
 /* #region mil font */
-@font-face {
+/* needs to be included in index.html, url doesn't work like this! */
+/* @font-face {
   font-family: "Military RPG";
-  src: url("../assets/Military_RPG.ttf"); /* seems to need relatove path?!? */
-}
+  src: url("/common/assets/Military_RPG.ttf"); 
+} */
 /* #endregion mil font */

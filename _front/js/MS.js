@@ -11,8 +11,8 @@ class MS {
     this.id = id;
     this.elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
     this.elem.id = id;
-    this.x=0;
-    this.y=0;
+    this.x = 0;
+    this.y = 0;
     this.bounds = {
       cx: 0,
       cy: 0,
@@ -24,10 +24,58 @@ class MS {
       b: 0
     }; //dimensions of first child (supposedly largest)
     this.data = {}; // key value list that can be stored in an element
-    this.unit = undefined;
-    this.interactiveChild = undefined;
+    this.isVisible = false;
+    this.isHighlighted = false;
+    this.isSelected = false;
+    this.isPulsating = false;
+    this.isEnabled = false; // whether it reacts to click event
+    this.clickHandler = null;
+    this.elem.addEventListener("click", this.onClick.bind(this));
   }
-  //#region UI: elem,parent,position,draw...
+  //#region interactivity
+  onClick(ev) {
+    //console.log('click',this.id,this.isEnabled,this.clickHandler)
+    if (!this.isEnabled) return;
+    //if (!this.clickHandler) return;
+    this.toggleSelection();
+    if (this.isSelected) this.clickHandler(ev);
+  }
+  //#endregion
+
+  //#region set position, draw
+
+  draw() {
+    if (this.isFloating) {
+      return this;
+      //console.log(id, "cannot be drawn since does not have a parent!");
+    } else if (!this.isDrawn) {
+      this.isDrawn = true;
+      this.parent.appendChild(this.elem);
+      this.show();
+    }
+    return this;
+  }
+  setPos(x, y) {
+    this.elem.setAttribute("transform", `translate(${x},${y})`);
+    this.x = x;
+    this.y = y;
+    this.bounds.cx = x;
+    this.bounds.cy = y;
+    this.bounds.l = x - this.bounds.w / 2;
+    this.bounds.t = y - this.bounds.h / 2;
+    this.bounds.r = x + this.bounds.w / 2;
+    this.bounds.b = y + this.bounds.h / 2;
+    return this;
+  }
+  //#endregion set position, draw
+
+  //#region special UI access: elem,parent,clone, NOT tested and shouldnt be used
+  firstChild() {
+    return this.elem.childNodes[0];
+  }
+  lastChild() {
+    return this.elem.childNodes[this.elem.childNodes.length - 1];
+  }
   getUI() {
     return this.elem;
   }
@@ -42,41 +90,22 @@ class MS {
     }
     return cl;
   }
-  draw() {
-    if (this.isFloating) {
-      //console.log(id, "cannot be drawn since does not have a parent!");
-    } else if (!this.isDrawn) {
-      this.isDrawn = true;
-      this.parent.appendChild(this.elem);
-    }
-    return this;
-  }
-  setPos(x, y) {
-    this.elem.setAttribute("transform", `translate(${x},${y})`);
-    this.x=x;
-    this.y=y;
-    this.bounds.cx = x;
-    this.bounds.cy = y;
-    this.bounds.l = x - this.bounds.w / 2;
-    this.bounds.t = y - this.bounds.h / 2;
-    this.bounds.r = x + this.bounds.w / 2;
-    this.bounds.b = y + this.bounds.h / 2;
-    return this;
-  }
   setElement(elem, w, h) {
-    if (!this.isFloating){this.removeFromUI();}
+    if (!this.isFloating) {
+      this.removeFromUI();
+    }
     this.elem = elem;
     this.elem.id = this.id;
     this.bounds.w = w;
     this.bounds.h = h;
     if (elem.childNodes.length > 0) {
       this.interactiveChild = elem.childNodes[0];
-      this.interactiveChild.setAttribute('class','ms');
+      this.interactiveChild.setAttribute("class", "ms");
     }
     return this;
   }
-  removeFromUI(){
-    if (this.isDrawn && this.parent){
+  removeFromUI() {
+    if (this.isDrawn && this.parent) {
       this.parent.removeChild(this.elem);
       this.isDrawn = false;
     }
@@ -84,144 +113,83 @@ class MS {
   //#endregion UI: elem,parent,position,draw...
 
   //#region css class management
-  addClass(className) {
-    let ch = this.interactiveChild;//elem.childNodes[0];
-    let clNow = ch.getAttribute("class");
-    if (!clNow.includes(className)) {
-      ch.setAttribute("class", clNow + " " + className);
-    }
-    ////console.log(ch);
+  addClass(className, condition) {
+    this.replaceClass(condition, className);
   }
-  removeClass(className) {
-    let ch = this.interactiveChild; //elem.childNodes[0];
-    let clNow = ch.getAttribute("class");
-    if (clNow.includes(className)) {
-      var ret = clNow.replace(className, "");
-      ch.setAttribute("class", ret);
+  replaceClass(oldClass, newClass) {
+    let els = [...this.elem.childNodes];
+    for (const el of els) {
+      let cl = el.getAttribute("class");
+      //console.log('>>>>>>>>>>',this.id,cl)
+      //console.log('oldClass',oldClass,'newClass',newClass)
+      if (cl && cl.includes(oldClass)) {
+        cl = cl.replace(oldClass, newClass);
+        el.setAttribute("class", cl);
+      }
     }
-    ////console.log(ch);
+  }
+  removeClass(className, placeholder) {
+    this.replaceClass(className, placeholder);
   }
   hasClass(className) {
-    let ch = this.interactiveChild; //elem.childNodes[0];
-    let clNow = ch.getAttribute("class");
-    return clNow.includes(className);
+    let els = [...this.elem.childNodes];
+    for (const el of els) {
+      if (el.getAttribute("class").includes(className)) return true;
+    }
+    return false;
   }
   //#endregion
 
   //#region visibility
-  isVisible() {
-    return !this.hasClass("hidden");
-  }
   toggleVisible() {
-    if (this.isVisible()) hide();
+    if (this.isVisible) hide();
     else show();
   }
   hide() {
-    this.addClass("hidden");
+    if (!this.isVisible) return;
+    this.elem.setAttribute("class", "hidden"); //addClass("hidden");
+    this.isVisible = false;
   }
   show() {
-    this.removeClass("hidden");
+    if (this.isVisible) return;
+    this.elem.setAttribute("class", ""); //addClass("hidden");
+    this.isVisible = true;
   }
   //#endregion
 
-  //#region highlight and select
+  //#region highlight and select, enable and disable interactivity
   enable() {
     this.isEnabled = true;
-    this.addClass("enabled");
   }
   disable() {
     this.isEnabled = false;
-    this.removeClass("enabled");
-  }
-  isEnabled() {
-    return hasClass("enabled");
-  }
-  isHighlighted() {
-    return hasClass("highlighted");
-  }
-  isSelected() {
-    return this.hasClass("selected");
   }
   highlight() {
-    this.addClass("highlighted");
+    //console.log('highlight ms:',this.id)
+    this.addClass("highlighted", "hible");
+    this.isHighlighted = true;
   }
   unhighlight() {
-    this.removeClass("highlighted");
+    this.removeClass("highlighted", "hible");
+    this.isHighlighted = false;
   }
   toggleSelection() {
-    if (this.isSelected()) this.unselect();
-    else this.select();
+    if (this.isSelected) {this.unselect();this.highlight();}
+    else {this.unhighlight();this.select();}
   }
   select() {
-    this.addClass("selected");
-    this.removeClass("highlighted");
-    ////console.log(this.id, " selected");
+    //console.log('select ms:',this.id)
+    this.addClass("selected", "selectable");
+    this.isSelected = true;
   }
   unselect() {
-    this.removeClass("selected");
-    this.addClass("highlighted");
-    //console.log(this.id, " unselected");
-  }
-  makeSelectable() {
-    this.highlight();
-    this.isEnabled = true;
-  }
-  makeUnselectable() {
-    this.unhighlight();
-    this.unselect();
-    this.isEnabled = false;
+    this.removeClass("selected", "selectable");
+    this.isSelected = false;
   }
   //#endregion
 
   //#region color
-  saveFill(indexOfChild) {
-    ////console.log(this.elem.childNodes)
-    indexOfChild = Math.min(this.elem.childNodes.length - 1, indexOfChild);
-    let child = this.elem.childNodes[indexOfChild];
-    if (child.tagName == "circle" || child.tagName == "text") {
-      this.basicFill = child.getAttribute("fill");
-    } else {
-      this.basicFill = child.getAttribute("style");
-    }
-    ////console.log(child.tagName,this.basicFill);
-  }
-  restoreFill(indexOfChild) {
-    ////console.log(this.elem.childNodes)
-    indexOfChild = Math.min(this.elem.childNodes.length - 1, indexOfChild);
-    let child = this.elem.childNodes[indexOfChild];
-    if (child.tagName == "circle" || child.tagName == "text") {
-      child.setAttribute("fill", this.basicFill);
-    } else {
-      child.setAttribute("style", this.basicFill);
-    }
-    ////console.log(child.tagName,this.basicFill);
-  }
-  setBackgroundColor(color, alpha = 1) {
-    //das ist fill of childNode[0]
-    //this.saveFill(0);
-    this.setFill(0, color, alpha);
-  }
-  setOverlayColor(color, alpha = 1) {
-    //das ist fill of childNode[childNodes.length-1]
-    //this.saveFill(0);
-    this.setFill(this.elem.childNodes.length - 1, color, alpha);
-  }
-  setFill(indexOfChild, color, alpha = 1) {
-    color = this.getColor(color, alpha);
-    let ch = this.elem.childNodes;
-    if (ch.length <= indexOfChild) indexOfChild = 0;
-    let child = ch[indexOfChild];
-    if (child.tagName == "circle" || child.tagName == "text") {
-      child.setAttribute("fill", color);
-    } else if (child.tagName == "rect" || child.tagName == "polygon") {
-      child.setAttribute("style", `fill:${color};`);
-    } else if (child.tagName == "line") {
-      let strokeWidth = child.style.strokeWidth;
-      child.setAttribute("style", `stroke:${color};stroke-width:${strokeWidth}`);
-    }
-  }
   getColor(fill, alpha = 1) {
-    ////console.log(fill);
     if (Array.isArray(fill)) {
       return `rgba(${fill[0]},${fill[1]},${fill[2]},${alpha})`;
     } else if (fill[0] != "#" && alpha != 1) {
@@ -231,8 +199,8 @@ class MS {
 
   //#endregion
 
-  //#region shapes
-  line({x1 = 0, y1 = 0, x2 = 100, y2 = 100, fill = "red", width = 4, unit = "px"}) {
+  //#region untested and unused shapes
+  line({x1 = 0, y1 = 0, x2 = 100, y2 = 100, fill = "red", width = 4, unit = "px"} = {}) {
     // lines und polys nur mit px units! und numbers!!!
     // <line x1="0" y1="0" x2="200" y2="200"
     // style="stroke:rgb(255,0,0);stroke-width:2" />
@@ -252,45 +220,8 @@ class MS {
     this.elem.appendChild(ell);
     return this;
   }
-  ellipse({className = "", w = 50, h = 25, fill = "yellow", alpha = 1, x = 0, y = 0, unit = "px"}) {
-    let ell = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-    fill = this.getColor(fill, alpha);
-    ell.setAttribute("fill", fill);
-
-    let nw = isString(w) ? firstNumber(w) : w;
-    let nh = isString(h) ? firstNumber(h) : h;
-
-    if (this.elem.childNodes.length == 0) {
-      this.interactiveChild = ell;
-      this.unit = unit;
-      this.bounds.w = nw;
-      this.bounds.h = nh;
-    }
-
-    ell.setAttribute("rx", nw / 2 + unit);
-    ell.setAttribute("ry", nh / 2 + unit);
-    ell.setAttribute("cx", x); //kann ruhig in unit % sein!!!
-    ell.setAttribute("cy", y);
-    if (className !== "") {
-      ell.setAttribute("class", className);
-    }
-    this.elem.appendChild(ell);
-    return this;
-  }
-  circle({className = "", sz = 50, fill = "yellow", alpha = 1, x = 0, y = 0, unit = "px"}) {
-    return this.ellipse({
-      className: className,
-      w: sz,
-      h: sz,
-      fill: fill,
-      alpha: alpha,
-      x: x,
-      y: y,
-      unit: unit
-    });
-  }
-  hex({className = "", w = 50, fill = "red", alpha = 1, x = 0, y = 0, unit = "px"}) {}
-  poly({className = "", points, fill = "pink", alpha = 1, x = 0, y = 0, unit = "px"}) {
+  hex({className = "", w = 50, fill = "red", alpha = 1, x = 0, y = 0, unit = "px"} = {}) {}
+  poly({className = "", points, fill = "pink", alpha = 1, x = 0, y = 0, unit = "px"} = {}) {
     // points: [{x:1,y:2},...] <polygon points="200,10 250,190 160,210"
     // style="fill:lime;stroke:purple;stroke-width:1" /> x,y should be the center of
     // the polygon
@@ -360,7 +291,92 @@ class MS {
     this.elem.appendChild(r);
     return this;
   }
-  roundedRect({className = "", w = 150, h = 125, fill = "darkviolet", rounding = 10, alpha = 1, x = 0, y = 0, unit = "px"}) {
+  //#endregion untested and unused shapes
+
+  //#region shapes
+  rect({className = "", w = 50, h = 25, fill = "yellow", alpha = 1, x = 0, y = 0} = {}) {
+    let r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    r.setAttribute("width", w);
+    r.setAttribute("height", w);
+    r.setAttribute("x", -w / 2 + x);
+    r.setAttribute("y", -h / 2 + y);
+
+    if (this.elem.childNodes.length == 0) {
+      this.bounds.w = w;
+      this.bounds.h = h;
+    }
+
+    fill = this.getColor(fill, alpha);
+    r.setAttribute("fill", fill);
+    // r.setAttribute("style", `fill:${fill};`);
+
+    if (className !== "") {
+      r.setAttribute("class", className);
+    }
+    this.elem.appendChild(r);
+    return this;
+  }
+  ellipse({className = "", w = 50, h = 25, fill = "yellow", alpha = 1, x = 0, y = 0} = {}) {
+    let ell = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+    fill = this.getColor(fill, alpha);
+    ell.setAttribute("fill", fill);
+
+    if (this.elem.childNodes.length == 0) {
+      this.bounds.w = w;
+      this.bounds.h = h;
+    }
+
+    ell.setAttribute("rx", w / 2);
+    ell.setAttribute("ry", h / 2);
+    ell.setAttribute("cx", x); //kann ruhig in unit % sein!!!
+    ell.setAttribute("cy", y);
+    if (className !== "") {
+      ell.setAttribute("class", className);
+    }
+    this.elem.appendChild(ell);
+    return this;
+  }
+  text({className = "", txt = "A", fz = 20, fill = "black", alpha = 1, x = 0, y = 0, family = "arial", weight = ""} = {}) {
+    let r = document.createElementNS("http://www.w3.org/2000/svg", "text");
+
+    fill = this.getColor(fill, alpha);
+    r.setAttribute("fill", fill);
+
+    r.setAttribute("font-family", family);
+    r.setAttribute("font-size", "" + fz + "px");
+    if (weight !== "") {
+      r.setAttribute("font-weight", weight);
+    }
+    r.setAttribute("x", x);
+    r.setAttribute("y", y + fz / 2.8);
+    r.setAttribute("text-anchor", "middle");
+    r.textContent = txt;
+
+    if (className !== "") {
+      r.setAttribute("class", className);
+    }
+
+    if (this.elem.childNodes.length == 0) {
+      sFont = weight + " " + fz + "px " + family; //"bold 12pt arial"
+      sFont = sFont.trim();
+      this.bounds.w = getTextWidth(txt, sFont);
+      this.bounds.h = fz;
+    }
+    this.elem.appendChild(r);
+    return this;
+  }
+  circle({className = "", sz = 50, fill = "yellow", alpha = 1, x = 0, y = 0} = {}) {
+    return this.ellipse({
+      className: className,
+      w: sz,
+      h: sz,
+      fill: fill,
+      alpha: alpha,
+      x: x,
+      y: y
+    });
+  }
+  roundedRect({className = "", w = 150, h = 125, fill = "darkviolet", rounding = 10, alpha = 1, x = 0, y = 0} = {}) {
     this.rect({
       className: className,
       w: w,
@@ -368,41 +384,14 @@ class MS {
       fill: fill,
       alpha: alpha,
       x: x,
-      y: y,
-      unit: unit
+      y: y
     });
     let r = this.elem.lastChild;
     r.setAttribute("rx", rounding); // rounding kann ruhig in % sein!
     r.setAttribute("ry", rounding);
     return this;
   }
-  rect({className = "", w = 50, h = 25, fill = "yellow", alpha = 1, x = 0, y = 0, unit = "px"}) {
-    let r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    let nw = isString(w) ? firstNumber(w) : w;
-    let nh = isString(h) ? firstNumber(h) : h;
-    let nx = isString(x) ? firstNumber(x) : x;
-    let ny = isString(y) ? firstNumber(y) : y;
-    r.setAttribute("width", nw + unit);
-    r.setAttribute("height", nh + unit);
-    r.setAttribute("x", -nw / 2 + nx + unit);
-    r.setAttribute("y", -nh / 2 + ny + unit);
-
-    if (this.elem.childNodes.length == 0) {
-      this.interactiveChild = r;
-      this.unit = unit;
-      this.bounds.w = nw;
-      this.bounds.h = nh;
-    }
-    fill = this.getColor(fill, alpha);
-
-    r.setAttribute("style", `fill:${fill};`);
-    if (className !== "") {
-      r.setAttribute("class", className);
-    }
-    this.elem.appendChild(r);
-    return this;
-  }
-  square({className = "", sz = 50, fill = "yellow", alpha = 1, x = 0, y = 0, unit = "px"}) {
+  square({className = "", sz = 50, fill = "yellow", alpha = 1, x = 0, y = 0} = {}) {
     return this.rect({
       className: className,
       w: sz,
@@ -410,8 +399,7 @@ class MS {
       fill: fill,
       alpha: alpha,
       x: x,
-      y: y,
-      unit: unit
+      y: y
     });
   }
   textMultiline({
@@ -423,8 +411,7 @@ class MS {
     x = 0,
     y = 0,
     family = "arial",
-    weight = "",
-    unit = "px"
+    weight = ""
   }) {
     let h = txt.length * fz;
     ////console.log("height", h);
@@ -447,53 +434,20 @@ class MS {
     }
     return this;
   }
-  text({className = "", txt = "A", fz = 20, fill = "black", alpha = 1, x = 0, y = 0, family = "arial", weight = "", unit = "px"}) {
-    let r = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    fill = this.getColor(fill, alpha);
-    r.setAttribute("font-family", family);
-    r.setAttribute("font-size", "" + fz + "px");
-    if (weight !== "") {
-      r.setAttribute("font-weight", weight);
-    }
-    r.setAttribute("x", x);
-    r.setAttribute("y", isString(y) ? y : y + fz / 2.8 + unit);
-    r.setAttribute("text-anchor", "middle");
-    r.textContent = txt;
-    r.setAttribute("fill", fill);
-    if (className !== "") {
-      r.setAttribute("class", className);
-    }
-    if (this.elem.childNodes.length == 0) {
-      sFont = weight + " " + fz + "px " + family; //"bold 12pt arial"
-      sFont = sFont.trim();
-      this.bounds.w = getTextWidth(txt, sFont);
-      this.bounds.h = fz;
-      this.unit = unit;
-      this.interactiveChild = r;
-    }
-    this.elem.appendChild(r);
-    return this;
-  }
-  image({className = "", path = "", w = 50, h = 50, x = 0, y = 0, unit = "px"}) {
+  image({className = "", path = "", w = 50, h = 50, x = 0, y = 0} = {}) {
     //<image xlink:href="firefox.jpg" x="0" y="0" height="50px" width="50px"/>
     let r = document.createElementNS("http://www.w3.org/2000/svg", "image");
     r.setAttribute("href", path);
-    let nw = isString(w) ? firstNumber(w) : w;
-    let nh = isString(h) ? firstNumber(h) : h;
-    let nx = isString(x) ? firstNumber(x) : x;
-    let ny = isString(y) ? firstNumber(y) : y;
-    r.setAttribute("width", nw + unit);
-    r.setAttribute("height", nh + unit);
-    r.setAttribute("x", -nw / 2 + nx + unit);
-    r.setAttribute("y", -nh / 2 + ny + unit);
+    r.setAttribute("width", w);
+    r.setAttribute("height", h);
+    r.setAttribute("x", -w / 2 + x);
+    r.setAttribute("y", -h / 2 + y);
     if (className !== "") {
       r.setAttribute("class", className);
     }
     if (this.elem.childNodes.length == 0) {
-      this.interactiveChild = r;
-      this.unit = unit;
-      this.bounds.w = nw;
-      this.bounds.h = nh;
+      this.bounds.w = w;
+      this.bounds.h = h;
     }
     this.elem.appendChild(r);
     return this;
