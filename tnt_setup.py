@@ -187,8 +187,8 @@ def encode_setup_actions(G, player=None):
 	code = adict()
 	
 	for faction, nationality, tilenames in seq_iterate(G.temp.setup, [None, 'cadres', None], end=True):
-		if player is not None and faction != player:
-			continue
+		# if player is not None and faction != player:
+		# 	continue
 		
 		options = util.placeable_units(G, faction, nationality, tilenames)
 		
@@ -200,8 +200,9 @@ def encode_setup_actions(G, player=None):
 			
 		code[faction].add((nationality, options))
 		
-	if player is not None:
-		return code[player] if player in code else None
+	if len(code) == 0:
+		return None # setup complete
+		
 	return code
 
 def setup_pre_phase(G, player_setup_path='config/faction_setup.yml'):
@@ -230,12 +231,8 @@ def setup_pre_phase(G, player_setup_path='config/faction_setup.yml'):
 	return encode_setup_actions(G)
 	
 
-def setup_phase(G, player, options, action): # player, nationality, tilename, unit_type
+def setup_phase(G, player, action): # player, nationality, tilename, unit_type
 	# place user chosen units
-	
-	options = util.decode_actions(options)
-	
-	assert action in options, 'Invalid action: {}'.format(action)
 	
 	nationality, tilename, unit_type = action
 	

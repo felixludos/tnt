@@ -5,7 +5,7 @@ import numpy as np
 import pickle
 import networkx as nx
 import tnt_util as util
-from tnt_util import adict, idict, tdict, xset, collate, load, render_dict, get_object, save
+from tnt_util import adict, idict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger
 from tnt_setup import init_gamestate, setup_phase, setup_pre_phase
 import tnt_setup as setup
 from tnt_cards import load_card_decks, draw_cards
@@ -14,6 +14,7 @@ import traceback
 from production import production_phase, production_pre_phase
 
 from new_year import new_year_phase
+import json
 
 PRE_PHASES = adict({ # all action phases
 	'Setup': setup_pre_phase,
@@ -31,7 +32,7 @@ PHASES = adict({
 	'Setup': setup_phase,
 
     'New_Year': new_year_phase,
-    'Production': None,
+    'Production': production_phase,
     'Government': None,
     'Spring': None,
     'Summer': None,
@@ -56,30 +57,6 @@ def get_G():
 def get_waiting_actions():
 	return WAITING
 
-def next_phase(): # keeps going through phases until actions are returned
-	
-	out = None
-	
-	while out is None:
-	
-		G.game.index += 1
-		
-		phase = G.game.sequence[G.game.index]
-		
-		G.logger.write('Beginning phase: {}'.format(phase))
-		
-		# maybe save G to file
-		
-		if phase in PRE_PHASES:
-			if PRE_PHASES[phase] is None:
-				raise Exception('The prephase {} has not been implemented yet'.format(phase))
-			out = PRE_PHASES[phase](G)
-		else:
-			if PHASES[phase] is None:
-				raise Exception('The phase {} has not been implemented yet'.format(phase))
-			out = PHASES[phase](G)
-	
-	return out
 
 def start_new_game(player='Axis', debug=False):
 	global G, DEBUG
@@ -95,7 +72,7 @@ def start_new_game(player='Axis', debug=False):
 	G.objects.removed = tdict()
 	
 	# start setup phase - no need for a transaction, since there is no user input yet, so the outcome is constant
-	return format_out_message('all', next_phase(), player)
+	return format_out_message('actions', next_phase(), player)
 
 def get_waiting(player):
 	
@@ -119,26 +96,47 @@ def format_out_message(outtype, results, player):
 	if outtype == 'error':
 		out.log = G.logger.pull(player)
 		out.error = ''.join(traceback.format_exception(*results))
-		#out.error_type = type(results)
-		#out.error_msg = results.args[0]
-		#out.error_tb = traceback.format_tb(sys.exc_info())
-	elif outtype == 'action':
-		out.log = G.logger.pull(player)
-		out.actions = results
-		WAITING[player] = out
-	elif outtype == 'all':
+		return out
+	elif outtype == 'actions':
+		
+		WAITING.clear()
+		
 		for faction, actions in results.items():
 			WAITING[faction] = adict()
 			WAITING[faction].actions = actions
-			WAITING[faction].log = G.logger.pull(faction)
+			# WAITING[faction].log = G.logger.pull(faction)
 			WAITING[faction].update(out)
-		return get_waiting(player)
-	elif outtype == 'waiting':
+			
 		return get_waiting(player)
 	else:
 		raise Exception('Unknown outtype {}'.format(outtype))
+
+
+def next_phase():  # keeps going through phases until actions are returned
+	
+	out = None
+	
+	while out is None:
+		
+		G.game.index += 1
+		
+		phase = G.game.sequence[G.game.index]
+		
+		G.logger.write('Beginning phase: {}'.format(phase))
+		
+		# maybe save G to file
+		
+		if phase in PRE_PHASES:
+			if PRE_PHASES[phase] is None:
+				raise Exception('The prephase {} has not been implemented yet'.format(phase))
+			out = PRE_PHASES[phase](G)
+		else:
+			if PHASES[phase] is None:
+				raise Exception('The phase {} has not been implemented yet'.format(phase))
+			out = PHASES[phase](G)
 	
 	return out
+
 
 def step(player, action):
 	
@@ -152,15 +150,18 @@ def step(player, action):
 	
 	all_actions = None
 	try:
-		possible_actions = phase(G, player, WAITING[player].actions, action) # already factorized
 		
-		if possible_actions is None:
-			del WAITING[player]
+		# validate action
+		options = util.decode_actions(WAITING[player].actions)
+		assert action in options, 'Invalid action: {}'.format(action)
 		
-		if possible_actions is None and len(WAITING) == 0: # phase is complete
+		all_actions = phase(G, player, action)
+		
+		# if possible_actions is None:
+		# 	del WAITING[player]
+		
+		if all_actions is None: # phase is complete if no new actions and no actions waiting
 			all_actions = next_phase()
-			
-			# sort all actions into waiting and current
 	
 	except Exception as e:
 		G.abort()
@@ -172,30 +173,87 @@ def step(player, action):
 		
 	else:
 		G.commit()
-		if possible_actions is not None:
-			return format_out_message('action', possible_actions, player)
-		elif all_actions is not None:
-			return format_out_message('all', all_actions, player)
-		else:
-			return format_out_message('waiting', None, player)
+		return format_out_message('actions', all_actions, player)
 	
 
+# Human readable save files
 
-def save_gamestate(filename=None): # save file and send it
-	data = {'gamestate': G, 'waiting': WAITING}
+def convert_to_saveable(data):
+	if data is None:
+		return None
+	if isinstance(data, (str, int, float)):
+		return data
+	if isinstance(data, idict):
+		return {convert_to_saveable(k): convert_to_saveable(v) for k, v in data.to_dict().items()}
+	if isinstance(data, dict):
+		return {convert_to_saveable(k): convert_to_saveable(v) for k, v in data.items()}
+	if isinstance(data, list):
+		return [convert_to_saveable(el) for el in data]
+	if isinstance(data, xset):
+		return {'xset': [convert_to_saveable(el) for el in data]}
+	if isinstance(data, set):
+		return {'set': [convert_to_saveable(el) for el in data]}
+	if isinstance(data, tuple):
+		return {'tuple': [convert_to_saveable(el) for el in data]}
+	try:
+		return {'_object_{}'.format(type(G.logger).__name__) : data.save_state()}
+	except AttributeError:
+		raise Exception('Cannot save data of type: {}'.format(type(data)))
+
+def convert_from_saveable(data):
+	if data is None:
+		return None
+	if isinstance(data, (str, int, float)):
+		try:
+			return int(data)
+		except:
+			pass
+		return data
+	if isinstance(data, dict):
+		
+		if len(data) == 1:
+			key, val = next(iter(data.items()))
+			if 'set' == key:
+				return tset(convert_from_saveable(el) for el in val)
+			if 'xset' == key:
+				return xset(convert_from_saveable(el) for el in val)
+			if 'tuple' == key:
+				return tuple(convert_from_saveable(el) for el in val)
+			if '_object_' == key[:8]:
+				typ = eval(key[8:])
+				obj = typ()
+				obj.load_state(val)
+				return obj
+		
+		if '_id' in data:
+			return idict({convert_from_saveable(k): convert_from_saveable(v) for k, v in data.items()})
+		
+		return tdict({convert_from_saveable(k): convert_from_saveable(v) for k, v in data.items()})
+	if isinstance(data, list):
+		return tlist(convert_from_saveable(el) for el in data)
+	try:
+		return data.save_state()
+	except AttributeError:
+		raise Exception('Cannot save data of type: {}'.format(type(data)))
+
+def save_gamestate(filename): # save file and send it
+	data = {
+		'gamestate': convert_to_saveable(G),
+		'waiting': convert_to_saveable(WAITING),
+	}
 	if G is not None:
 		G.logger.write('Game saved')
 	if filename is None:
-		return pickle.dumps(data)
+		return json.dumps(data)
 	path = os.path.join('saves', filename)
-	pickle.dump(data, open(path, 'w'))
+	json.dump(data, open(path, 'w'))
 	return path
 
-def load_gamestate(data): # load from input file, or most recent checkpoint (more safe)
-	data = pickle.loads(data)
+def load_gamestate(path): # load from input file, or most recent checkpoint (more safe)
+	data = json.load(open(path, 'r'))
 	global WAITING, G
-	WAITING = data['waiting']
-	G = data['gamestate']
+	WAITING = convert_from_saveable(data['waiting'])
+	G = convert_from_saveable(data['gamestate'])
 	if G is not None:
 		G.logger.write('Game loaded')
 
