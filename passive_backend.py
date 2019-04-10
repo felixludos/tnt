@@ -5,7 +5,7 @@ import numpy as np
 import pickle
 import networkx as nx
 import tnt_util as util
-from tnt_util import adict, idict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger
+from tnt_util import adict, idict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete
 from tnt_setup import init_gamestate, setup_phase, setup_pre_phase
 import tnt_setup as setup
 from tnt_cards import load_card_decks, draw_cards
@@ -50,12 +50,13 @@ PHASES = adict({
 G = None
 DEBUG = False
 
-WAITING = adict()
+WAITING_OBJS = adict()
+WAITING_ACTIONS = adict()
 
 def get_G():
 	return G
-def get_waiting_actions():
-	return WAITING
+def get_waiting():
+	return WAITING_ACTIONS, WAITING_OBJS
 
 
 def start_new_game(player='Axis', debug=False):
@@ -71,8 +72,17 @@ def start_new_game(player='Axis', debug=False):
 	G.objects.updated = tdict()
 	G.objects.removed = tdict()
 	
+	for name in G.players:
+		WAITING_OBJS[name] = adict()
+		WAITING_OBJS[name].created = adict()
+		WAITING_OBJS[name].updated = adict()
+		WAITING_OBJS[name].removed = adict()
+	
 	# start setup phase - no need for a transaction, since there is no user input yet, so the outcome is constant
 	return format_out_message('actions', next_phase(), player)
+
+def get_repeat(player): # just repeat most recent message
+	pass
 
 def get_waiting(player):
 	
@@ -93,19 +103,24 @@ def format_out_message(outtype, results, player):
 	out.updated = G.objects.updated.copy()
 	out.removed = G.objects.removed.copy()
 	
+	for name, objs in WAITING_OBJS.items():
+		objs.created.update(out.created)
+		objs.updated.update(out.updated)
+		objs.removed.update(out.removed)
+	
 	if outtype == 'error':
 		out.log = G.logger.pull(player)
 		out.error = ''.join(traceback.format_exception(*results))
 		return out
 	elif outtype == 'actions':
 		
-		WAITING.clear()
-		
 		for faction, actions in results.items():
-			WAITING[faction] = adict()
+			
 			WAITING[faction].actions = actions
 			# WAITING[faction].log = G.logger.pull(faction)
-			WAITING[faction].update(out)
+			WAITING[faction].created.update(out.created)
+			WAITING[faction].updated.update(out.updated)
+			WAITING[faction].removed.update(out.removed)
 			
 		return get_waiting(player)
 	else:
@@ -155,14 +170,11 @@ def step(player, action):
 		options = util.decode_actions(WAITING[player].actions)
 		assert action in options, 'Invalid action: {}'.format(action)
 		
-		all_actions = phase(G, player, action)
-		
-		# if possible_actions is None:
-		# 	del WAITING[player]
-		
-		if all_actions is None: # phase is complete if no new actions and no actions waiting
+		try:
+			all_actions = phase(G, player, action)
+		except PhaseComplete:
 			all_actions = next_phase()
-	
+			
 	except Exception as e:
 		G.abort()
 		

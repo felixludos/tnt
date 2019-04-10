@@ -220,6 +220,9 @@ class Logger(Transactionable):
 # misc
 ######################
 
+class PhaseComplete(Exception):
+	pass
+
 def seq_iterate(content, itrs, end=False): # None will return that value for each
 	if len(itrs) == 0: # base case - iterate over content
 		try:
