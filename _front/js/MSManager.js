@@ -1,3 +1,4 @@
+//#region const used by Manager only
 const troopColors = {
   Germany: [174, 174, 176],
   Britain: [86, 182, 222],
@@ -15,6 +16,8 @@ const SZ = {
   cadre: 60
 };
 const SEPARATOR = "_";
+//#endregion
+
 class MSManager {
   constructor(board, troopDisplay, cardDisplay) {
     this.highObjects = [];
@@ -23,9 +26,27 @@ class MSManager {
     this.troopDisplay = troopDisplay;
     this.cardDisplay = cardDisplay;
     this.byId = {}; // {id:{ms:msObject,type:'region'|'power'|'unit'|'proto'|'cadre'|'action_card'|'investment_card'|'deck'|...}}
-    this.decks = {action_card:[],investment_card:[]};
+    this.decks = {action_card: [], investment_card: []};
   }
-  printObjects(){console.log(this.byId);}
+  // #region helpers
+  makeSelectable(ms, handler) {
+    ms.highlight();
+    ms.isEnabled = true;
+    //console.log(handler)
+    ms.clickHandler = handler;
+  }
+  makeUnselectable(ms, handler) {
+    ms.unselect();
+    ms.unhighlight();
+    ms.isEnabled = false;
+    ms.clickHandler = null;
+  }
+  printObjects() {
+    console.log(this.byId);
+  }
+  // #endregion
+
+  // #region getters
   get(id) {
     //returns MS with this id
     if (!(id in this.byId)) {
@@ -51,19 +72,18 @@ class MSManager {
   getUnitFromCadrePrototypeId(id) {
     return stringAfter(id, SEPARATOR);
   }
+  //#endregion
 
+  // #region create objects
   createRegion(id, pos) {
     let msRegion = new MS(id, this.board)
       .circle({className: "overlay region hible selectable", sz: SZ.region})
       .setPos(pos.x, pos.y)
       .draw();
-    //msRegion.clickHandler = this.clickHandler.bind(this);
     this.byId[id] = {ms: msRegion, type: "region"};
-    //msRegion.elem.addEventListener("click", this.clickHandler.bind(this));
-    // region.elem.addEventListener("click", defaultClickHandler);
   }
   createType(id, type) {
-    this.byId[id] = {type: type};
+    this.byId[id] = {id:id,type: type};
   }
   createCadrePrototype(power, unit, cv = 1) {
     let id = this.getCombinedId(power, unit);
@@ -74,7 +94,7 @@ class MSManager {
   createCadre(id, power, unit, region, cv, showDataToFactionList) {
     let cadre = this.createCadreMS(id, board, power, unit, cv, SZ.cadre);
 
-    //region provides pos
+    //reg provides pos
     let posx = this.get(region).x + -20;
     let posy = this.get(region).y + 40;
 
@@ -139,28 +159,30 @@ class MSManager {
     let centerInvestmentDeck = {x: 3233, y: 966}; // center of investment deck
     let rounding = 6;
     let actionDeckColor = "orange";
-    let idAction = 'action_card';
-    let idInvestment = 'investment_card';
+    let idAction = "action_card";
+    let idInvestment = "investment_card";
     let actionDeck = new MS(idAction, board)
       .roundedRect({w: 251, h: 354, fill: actionDeckColor, rounding: 6})
       .textMultiline({txt: ["Action", "Deck"], fz: 28, fill: "white"})
-      .roundedRect({className: "cardDeck overlay selectable", w: 251, h: 354, rounding: 6})
+      .roundedRect({className: "cardDeck overlay hible selectable", w: 251, h: 354, rounding: 6})
       .setPos(centerActionDeck.x, centerActionDeck.y)
       .draw();
     let investmentDeck = new MS(idInvestment, board)
       .roundedRect({w: 253, h: 356, fill: "sienna", rounding: 6})
       .textMultiline({txt: ["Investment", "Deck"], fz: 28, fill: "white"})
-      .roundedRect({className: "cardDeck overlay selectable", w: 253, h: 356, fill: "transparent", rounding: 6})
+      .roundedRect({className: "cardDeck overlay hible selectable", w: 253, h: 356, fill: "transparent", rounding: 6})
       .setPos(centerInvestmentDeck.x, centerInvestmentDeck.y)
       .draw();
     this.byId[idAction] = {ms: actionDeck, type: "deck"};
     this.byId[idInvestment] = {ms: investmentDeck, type: "deck"};
   }
-  createDeckCard(id,type){
-    this.createType(id,type);
+  createDeckCard(id, type) {
+    this.createType(id, type);
     this.decks[type].push(id);
   }
+  //#endregion
 
+  // #region selection action
   convertActionTree(t) {
     let typelist = this.detectTreeTypes(t); // eg. ["power", "unknown", "region", "unit"]
     let res = this.typelistTranslator(typelist);
@@ -183,7 +205,6 @@ class MSManager {
     }
     return types;
   }
-
   displayChoices(idlists, handler) {
     //console.log("***manager:displayChoices",idlists[0]);
     let idlist = idlists.map(l => this.getCombinedId(...l));
@@ -226,7 +247,6 @@ class MSManager {
   hideCadrePrototypes() {
     this.troopDisplay.style.display = "none";
   }
-
   closeSelection(ids) {
     clearElement(troopDisplay);
     this.hideCadrePrototypes();
@@ -234,17 +254,6 @@ class MSManager {
     selectedObjects.map(x => x.unselect());
     this.highObjects.map(o => this.makeUnselectable(o));
     this.highObjects = [];
-  }
-  makeSelectable(ms, handler) {
-    ms.highlight();
-    ms.isEnabled = true;
-    ms.clickHandler = handler;
-  }
-  makeUnselectable(ms, handler) {
-    ms.unselect();
-    ms.unhighlight();
-    ms.isEnabled = false;
-    ms.clickHandler = null;
   }
   undoSelection(idparts) {
     //console.log('*** undoSelection')
@@ -274,18 +283,21 @@ class MSManager {
     };
     return transDict[skey];
   }
-  // getByType(ids, type) {
-  //   let res = ids.filter(id => this.byId[id].type == type)[0];
-  //   return res;
-  // }
-  // clickHandler(ev) {
-  //   let id = evToId(ev);
-  //   let ms = this.get(id);
-  //   if (!ms.isEnabled) return;
-  //   ms.toggleSelection();
-  // }
-  // moveCadre(msCadre, msRegion) {
-  //   msCadre.setPos(msRegion.x, msRegion.y);
-  //   msCadre.tag("region", msRegion.id);
-  // }
+  // #endregion
+
+  // #region cards
+  activateDecks(onDrawn){
+    let adeck = this.get('action_card');
+    let ideck = this.get('investment_card');
+    //console.log(adeck,ideck)
+    this.makeSelectable(adeck,onDrawn);
+    this.makeSelectable(ideck,onDrawn);
+  }
+  drawFromDeck(deckType){
+    let card = this.decks[deckType].pop();
+    console.log(card,this.byId[card]);
+    return this.byId[card];
+  }
+  // #endregion
+
 }

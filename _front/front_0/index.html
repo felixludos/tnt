@@ -46,6 +46,7 @@
     <script src="/common/js/MS.js"></script>
     <script src="/common/js/MTree.js"></script>
     <script src="/common/js/MSManager.js"></script>
+    <script src="/common/js/MHand.js"></script>
     <script src="/common/js/MSelection.js"></script>
     <script src="/common/js/MParser.js"></script>
     <script src="/common/js/MScanner.js"></script>
@@ -61,6 +62,7 @@
       const logDisplay = document.getElementById("logDisplay");
 
       var Manager = new MSManager(board, troopDisplay, cardDisplay); // manages all game objects
+      var Hand = new MHand();
 
       var unitCount; //{'Germany': {'Infantry':16,...}} reserve info dictionary, local asset:unit_count.yml
       var powerList; //['Germany',...,'USA']
@@ -79,7 +81,7 @@
       var backendServerUrl = "http://localhost:5000/"; //local server
       function sendurl(url, onResponse) {
         url = backendServerUrl + url;
-        //console.log("request sent: ", url);
+        console.log("request sent: ", url);
         w3.http(url, function() {
           if (this.readyState == 4 && this.status == 200) {
             onResponse(this.responseText);
@@ -91,6 +93,10 @@
       }
       function sendAction(faction, selectedLabels) {
         let url = "action/" + faction + "/" + selectedLabels.join("+");
+        sendurl(url, data => processData(data));
+      }
+      function sendStatus(faction) {
+        let url = "status/" + faction;
         sendurl(url, data => processData(data));
       }
     </script>
@@ -161,9 +167,10 @@
 
       function processData(data) {
         serverData = JSON.parse(data);
-        //console.log(serverData);
+        if (skipCounter <= 0) console.log(serverData);
 
         processLog(serverData.log);
+        processWaiting(serverData.waiting_for);
         processCreated(serverData.created);
         processUpdated(serverData.updated);
         processRemoved(serverData.removed);
@@ -173,18 +180,11 @@
           processAction(serverData.actions);
         }
       }
-      function processLog(logData) {
-        // console.log("log data", logData);
-        // console.log("log data type=", typeof(logData));
-        if (empty(logData)) return;
+      function processLog(msg) {
+        if (empty(msg)) return;
         let para = document.createElement("p");
-        para.textContent = logData;
+        para.textContent = msg;
         logDisplay.appendChild(para);
-        // for (msg in logData) {
-        //   let para = document.createElement("p");
-        //   para.textContent = msg;
-        //   logDisplay.appendChild(para);
-        // }
       }
       function processCreated(createdData) {
         //console.log("*** processing created: ***");
@@ -195,9 +195,9 @@
           let o = created[id];
           switch (o.obj_type) {
             case "action_card":
-              Manager.createDeckCard(id, "action_card");
+              Manager.createDeckCard(id, "action_card");break;
             case "investment_card":
-              Manager.createDeckCard(id, "investment_card");
+              Manager.createDeckCard(id, "investment_card");break;
             case "unit":
               //console.log(o, " is unit to be created");
               // place cadre on region
@@ -239,6 +239,23 @@
         Selection = new MSelection(selInfo);
         let idlists = Selection.getChoices();
         Manager.displayChoices(idlists, onObjectSelected);
+      }
+      function processWaiting(waitingForData){
+        console.log('waiting: ',waitingForData)
+        if (empty(waitingForData)) return;
+        // hier muss ich warten und dann ein status message schicken
+        setTimeout(()=>sendStatus(playerFaction),10000);
+
+      }
+      function onCardDrawn(ev){
+        let idSelected = evToId(ev);
+        let typeSelected = Manager.getType(idSelected);
+        console.log('card drawn!',idSelected,typeSelected);
+        let card=Manager.drawFromDeck(idSelected);
+
+        sendAction(playerFaction, [card.type]);
+        //Hand.add(card);
+
       }
       function onObjectSelected(ev) {
         let idSelected = evToId(ev);
