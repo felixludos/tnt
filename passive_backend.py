@@ -52,6 +52,7 @@ DEBUG = False
 
 WAITING_OBJS = adict()
 WAITING_ACTIONS = adict()
+REPEATS = adict()
 
 def get_G():
 	return G
@@ -79,50 +80,57 @@ def start_new_game(player='Axis', debug=False):
 		WAITING_OBJS[name].removed = adict()
 	
 	# start setup phase - no need for a transaction, since there is no user input yet, so the outcome is constant
-	return format_out_message('actions', next_phase(), player)
+	return process_actions('actions', next_phase(), player)
 
-def get_repeat(player): # just repeat most recent message
-	pass
 
-def get_waiting(player):
+def pull_msg(player):
+	return format_out_message(player)
+
+def format_out_message(player):
 	
-	out = WAITING[player] if WAITING is not None and player in WAITING else adict({'waiting_for':list(WAITING.keys())})
+	if player not in WAITING_OBJS:
+		return REPEATS[player]
 	
-	base = ''
-	if 'log' in out:
-		base = out.log
+	out = WAITING_OBJS[player]
+	del WAITING_OBJS[player]
 	
-	out.log = base + G.logger.pull(player)
+	if player in WAITING_ACTIONS:
+		out.actions = WAITING_ACTIONS[player]
+	else:
+		out.waiting_for = xset(WAITING_ACTIONS.keys())
 	
+	out.log = G.logger.pull(player)
+	
+	REPEATS[player] = out
 	return out
 
-def format_out_message(outtype, results, player):
-	out = adict()
-	
-	out.created = G.objects.created.copy()
-	out.updated = G.objects.updated.copy()
-	out.removed = G.objects.removed.copy()
-	
-	for name, objs in WAITING_OBJS.items():
-		objs.created.update(out.created)
-		objs.updated.update(out.updated)
-		objs.removed.update(out.removed)
+def process_actions(outtype, results, player):
+	# print(G.objects.created.keys())
 	
 	if outtype == 'error':
-		out.log = G.logger.pull(player)
+		out = format_out_message(player)
 		out.error = ''.join(traceback.format_exception(*results))
 		return out
 	elif outtype == 'actions':
 		
-		for faction, actions in results.items():
+		for name in G.players.keys():
+			if name not in WAITING_OBJS:
+				WAITING_OBJS[name] = adict()
+				WAITING_OBJS[name].created = adict()
+				WAITING_OBJS[name].updated = adict()
+				WAITING_OBJS[name].removed = adict()
+			WAITING_OBJS[name].created.update(G.objects.created)
+			WAITING_OBJS[name].updated.update(G.objects.updated)
+			WAITING_OBJS[name].removed.update(G.objects.removed)
+		
+		global WAITING_ACTIONS
+		
+		WAITING_ACTIONS = results
+		
+		# for faction, actions in results.items():
+		# 	WAITING_ACTIONS[faction] = actions
 			
-			WAITING[faction].actions = actions
-			# WAITING[faction].log = G.logger.pull(faction)
-			WAITING[faction].created.update(out.created)
-			WAITING[faction].updated.update(out.updated)
-			WAITING[faction].removed.update(out.removed)
-			
-		return get_waiting(player)
+		return format_out_message(player)
 	else:
 		raise Exception('Unknown outtype {}'.format(outtype))
 
@@ -163,11 +171,11 @@ def step(player, action):
 	
 	G.begin()
 	
-	all_actions = None
 	try:
 		
 		# validate action
-		options = util.decode_actions(WAITING[player].actions)
+		assert player in WAITING_ACTIONS, 'It is not {}\'s turn'.format(player)
+		options = util.decode_actions(WAITING_ACTIONS[player])
 		assert action in options, 'Invalid action: {}'.format(action)
 		
 		try:
@@ -181,12 +189,23 @@ def step(player, action):
 		if DEBUG:
 			raise e
 		
-		return format_out_message('error', sys.exc_info(), player)
+		return process_actions('error', sys.exc_info(), player)
 		
 	else:
 		G.commit()
-		return format_out_message('actions', all_actions, player)
+		
+		return process_actions('actions', all_actions, player)
 	
+
+
+
+
+
+
+
+
+
+
 
 # Human readable save files
 

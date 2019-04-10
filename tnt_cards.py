@@ -14,10 +14,10 @@ def load_card_decks(G, action_path='config/cards/action_cards.yml',
 	
 	for ID, card in caction.items():
 		card = idict(card)
-		card.ID = ID
+		#card.ID = ID
 		card.obj_type = 'action_card'
 		card.visible = tset({})
-		card._id = 'action_{}'.format(ID)
+		card.__dict__['_id'] = 'action_{}'.format(ID)
 		action_cards.deck.append(card)
 		G.objects.table[card._id] = card
 	
@@ -26,10 +26,10 @@ def load_card_decks(G, action_path='config/cards/action_cards.yml',
 	
 	for ID, card in cinvest.items():
 		card = idict(card)
-		card.ID = ID
+		#card.ID = ID
 		card.obj_type = 'investment_card'
 		card.visible = tset({})
-		card._id = 'invest_{}'.format(ID)
+		card.__dict__['_id'] = 'invest_{}'.format(ID)
 		investment_cards.deck.append(card)
 		G.objects.table[card._id] = card
 	

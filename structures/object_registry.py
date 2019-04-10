@@ -50,7 +50,7 @@ class idict(adict): # WARNING: These objects are not garbage collected
 	def __eq__(self, other):
 		return self._id == other._id
 	def __hash__(self):
-		return self._id
+		return hash(self._id)
 	def __len__(self):
 		return max(0, super().__len__( ) -1)
 	# def __del__(self):

@@ -1,4 +1,4 @@
-from tnt_util import tdict, tset, adict, tlist, idict, load, save, collate, uncollate, xset, seq_iterate
+from tnt_util import tdict, tset, adict, tlist, idict, load, save, collate, uncollate, xset, seq_iterate, PhaseComplete
 import tnt_util as util
 from tnt_cards import load_card_decks, draw_cards
 from tnt_errors import ActionError
@@ -182,7 +182,7 @@ def init_gamestate():
 	
 	return G
 
-def encode_setup_actions(G, player=None):
+def encode_setup_actions(G):
 	
 	code = adict()
 	
@@ -201,7 +201,7 @@ def encode_setup_actions(G, player=None):
 		code[faction].add((nationality, options))
 		
 	if len(code) == 0:
-		return None # setup complete
+		raise PhaseComplete
 		
 	return code
 
@@ -263,7 +263,7 @@ def setup_phase(G, player, action): # player, nationality, tilename, unit_type
 			draw_cards(G, 'action', player, N=G.temp.setup[player].action_cards)
 			del G.temp.setup[player].investment_cards
 		
-	return encode_setup_actions(G, player=player)
+	return encode_setup_actions(G)
 	
 
 # def encode_setup_actions(G, player=None):

@@ -1,7 +1,7 @@
 
 
 import tnt_util as util
-from tnt_util import adict, xset, tdict, tlist, tset
+from tnt_util import adict, xset, tdict, tlist, tset, PhaseComplete
 from tnt_cards import draw_cards
 from tnt_units import add_unit
 import random
@@ -17,17 +17,17 @@ def encode_production_actions(G):
 		if name != active_player:
 			continue
 			
-		code[name] = xset()
+		options = xset()
 		
 		# cards
-		code[name].add(('action_card',))
-		code[name].add(('investment_card',))
+		options.add(('action_card',))
+		options.add(('investment_card',))
 		
 		# new cadres
 		for nationality, tiles in faction.homeland.items():
-			options = util.placeable_units(G, name, nationality, tiles)
-			if len(options):
-				code[name].add((nationality, options))
+			groups = util.placeable_units(G, name, nationality, tiles)
+			if len(groups):
+				options.add((nationality, groups))
 		
 		# improve units
 		improvable = xset()
@@ -51,7 +51,9 @@ def encode_production_actions(G):
 			improvable.add(unit._id)
 		improvable -= G.temp.prod[name].upgraded_units
 		if len(improvable):
-			code[name].add((improvable,))
+			options.add((improvable,))
+		
+		code[name] = options
 
 	return code
 		
@@ -135,8 +137,7 @@ def production_phase(G, player, action):
 		# move to next player
 		G.temp.active_idx += 1
 		if G.temp.active_idx == len(G.players):
-			return None # phase is done
-		
+			raise PhaseComplete # phase is done
 	
 	return encode_production_actions(G)
 
