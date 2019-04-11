@@ -323,12 +323,13 @@ class MSManager {
   hasActionCards() {
     return this.hand.action_card.length;
   }
-  calculateCardLayout() {
+  calculateCardLayout(handChanged=true) {
     if (!this.hasActionCards()) return;
+    if (!handChanged && this.cardRows == 1) return;
     clearElement(cardDisplay);
     let d = cardDisplay;
     let idsAction = this.hand.action_card;
-    let idsInvestment = this.hand.action_card;
+    let idsInvestment = this.hand.investment_card;
     var n = idsAction.length+idsInvestment.length;
     var w = SZ.cardWidth;
     var h = SZ.cardHeight;
@@ -346,22 +347,14 @@ class MSManager {
       card.setPos(w / 2, h / 2);
       holder.appendChild(card.elem);
     }
-    // let dims = calculateDims2(n, w, h, 1, 1);
-    //layout(n,wItem=100,hItem=100,{wIdeal=0,gap=2,padding=8,minRows=1,maxRows=1})
-    let dims = layout(n,w,h,{wIdeal:window.innerWidth});
+    let dims = calculateDims(n,w,1); //layout(n,w,h);
     var sGridColumn = `${w}px `.repeat(dims.cols);
-    d.classList.add("gridContainer");
+    // d.classList.add("cardGridContainer");
     d.style.gridTemplateColumns = `repeat(auto-fill,${sGridColumn})`;
-    d.style.width = dims.width + "px";
-    
-    // d.style.height = dims.rows*(dims.gap+h)+2*dims.padding;
-    // if (d.style.minHeight<d.style.height){
-    //   d.style.minHeight = d.style.height;
-    // }
-
+    // d.style.width = dims.width + "px";
     d.style.padding = dims.padding + "px";
     d.style.gridGap = dims.gap + "px";
-
+    this.cardRows=dims.rows;
   }
   drawDeckCard(id, o, type) {
     let card = this.createHandCard(id, o, type);

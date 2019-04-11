@@ -11,6 +11,19 @@
   background-color: transparent;
   transition: 0.5s;
 }
+.sideSliderDiv {
+  /* display: none; */
+  position: absolute;
+  max-width: 0px;
+  /* width: auto;
+  height: auto; */
+  padding: 0px;
+  margin: 0px;
+  overflow:hidden;
+  background-color: transparent;
+  transition: 0.5s;
+}
+
 .centerSliderDiv{
   position: absolute;
   max-height: 0px;

@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="/common/css/commonStyles.css" />
     <link rel="stylesheet" type="text/css" href="/common/css/msStyles.css" />
     <link rel="stylesheet" type="text/css" href="/common/css/sliders.css" />
+    <link rel="stylesheet" type="text/css" href="/common/css/cardDisplay.css" />
     <style>
       @font-face {
         font-family: "Military RPG";
@@ -89,17 +90,18 @@
     </div>
     <div id="logDisplay" style="position:absolute;left:1275px;top:0px;padding:10px;">log display</div>
 
-    <div id="cardDisplay" class="centerSliderDiv popupStyle gridContainer hCenterScreen hCenterBottom"></div>
+    <div id="cardDisplay" class="cardGridContainer"></div>
 
     <span
       id="bcardDisplay"
       class="slideInButton bSlideInFromBottom hCenterScreen"
       style="bottom:0px;"
-      onclick="toggleSlider('cardDisplay','max-height','350px')"
+      onclick="toggleCardDisplay()"
     >
       &#43;
     </span>
 
+    <!-- hallo -->
     <!-- <div id="cardDisplay" style="min-width:100vw;height:200px;position:absolute;left:0px;top:825px;padding:0px;background-color:green;">
       <svg width="100%" height="100%" style="padding:0px;box-sizing:border-box;background-color:blue;">
         <g id="handDisplay" viewBox="0 0 1000 200">
@@ -181,10 +183,25 @@
         document.getElementById(id).style[toggleProperty] = "0%";
         document.getElementById("b" + id).innerHTML = "&plus;";
       }
+
+      var isCardDisplayOpen=false;
+      function toggleCardDisplay(){
+        if (isCardDisplayOpen)closeCardDisplay();else openCardDisplay();
+        console.log('display is open: '+isCardDisplayOpen)
+      }
       function openCardDisplay() {
-        if (!isSliderOpen("cardDisplay", "max-height")) {
-          openSlider("cardDisplay", "max-height", "350px");
-        }
+        if (isCardDisplayOpen)return;
+        let id ='cardDisplay';
+        document.getElementById(id).style.display = 'grid';
+        document.getElementById("b" + id).innerHTML = "&minus;";
+        isCardDisplayOpen = true;
+      }
+      function closeCardDisplay() {
+        if (!isCardDisplayOpen)return;
+        let id ='cardDisplay';
+        document.getElementById(id).style.display = 'none';
+        document.getElementById("b" + id).innerHTML = "&plus;";
+        isCardDisplayOpen = false;
       }
     </script>
     <!-- #endregion slideIns -->
@@ -379,7 +396,7 @@
       function Start(dataFromServer) {
         processData(dataFromServer);
       }
-      var skipCounter = 0; // West:12 this is to skip cadre setup phase
+      var skipCounter = 12; // ***SKIPCOUNTER*** West:12 this is to skip cadre setup phase
       function skipActions(actionData) {
         //skipCounter times just return first alternative to server to speed up process
         if (skipCounter > 0) {
@@ -551,7 +568,7 @@
 
       setup();
       window.addEventListener('resize', () => { 
-        Manager.calculateCardLayout();
+        Manager.calculateCardLayout(false);
       });
     </script>
   </body>

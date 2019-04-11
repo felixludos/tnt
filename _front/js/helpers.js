@@ -808,13 +808,16 @@ function convertToMS(p) {
 }
 //#endregion
 
-function calculateDims(n, sz = 60, minRows = 1, maxWidth = 1000) {
+function calculateDims(n, sz = 60, minRows = 1) {
   var rows = minRows;
   var cols = Math.ceil(n / rows);
   var gap = 10;
   var padding = 20;
   let w = 9999999;
+  console.log('calculateDims with:',rows,cols)
+  let rOld=0;
   while (true) {
+    rOld=rows;
     for (var i = Math.max(2, minRows); i < n / 2; i++) {
       if (n % i == 0) {
         rows = i;
@@ -832,6 +835,7 @@ function calculateDims(n, sz = 60, minRows = 1, maxWidth = 1000) {
         padding = 10;
       }
     } else break;
+    if (rows == rOld) break;
   }
   return {rows: rows, cols: cols, gap: gap, padding: padding, width: w};
 }
@@ -844,32 +848,40 @@ function calcTotalWidth(n,sz,gap,padding){
   return padding * 2 - gap + (sz + gap) * n;
 }
 function findExactMatch(n,rows){
+  console.log('start findExactMatch with:',n,rows)
   for (var i = Math.max(2, rows); i < n / 2; i++) {
     if (n % i == 0) {
+      console.log('found exact: rows=',i,'cols=',(n/i))
       return {rows:i,cols:n/i};
     }
   }
-  rows+=1;
-  return {rows:rows,cols:Math.ceil(n/rows)};
+  rows+=1;let cols=Math.ceil(n/(rows));
+  console.log('no match found: rows=',rows,'cols=',cols)
+  return {rows:rows,cols:cols};
 }
-function layout(n,wItem=100,hItem=100,{wIdeal=0,gap=8,padding=16,minRows=1,maxRows=1}){
+function layout(n,wItem=100,hItem=100,{wIdeal=0,gap=8,padding=16,minRows=1,maxRows=1}={}){
   if (wIdeal == 0){wIdeal = window.innerWidth;}
   let rows=minRows;
   let cols=Math.ceil(n / rows);
   let wTotal =calcTotalWidth(cols,wItem,gap,padding);
-  while (wTotal>wIdeal && cols>=rows){
+  console.log('starting with rows:',rows,', cols:',cols)
+  let rOld=0;
+  while (wTotal>wIdeal && cols>=rows && rOld != rows){
+    rOld=rows;
     let diff = wTotal-wIdeal;
     if (diff < padding+(cols*(gap>>2))){
       //reducing padding and gap could alreay help
       padding>>=2;gap>>=2;break;
     }
     let res = findExactMatch(n,rows);
-    if (res.rows > maxRows){
-      rows+=1;cols=Math.ceil(n / rows);
-    }else {
-      rows=res.rows;cols=res.cols;
-    }
-    wIdeal+=(window.innerWidth-wIdeal)/2;
+    rows=res.rows;cols=res.cols;
+    // if (res.rows > maxRows){
+    //   rows+=1;cols=Math.ceil(n / rows);
+    // }else {
+    //   rows=res.rows;cols=res.cols;
+    // }
+    console.log('rows:',rows,', cols:',cols)
+    //wIdeal+=(window.innerWidth-wIdeal)/2;
     wTotal =calcTotalWidth(cols,wItem,gap,padding);
   }
   return {rows: rows, cols: cols, gap: gap, padding: padding, width: wTotal};
