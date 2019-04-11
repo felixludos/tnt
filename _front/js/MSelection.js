@@ -73,7 +73,7 @@ class MSelection {
       }
     }
     this.printStack(idlist);
-    console.log("end");
+    //console.log("end");
     return {isCompleted: typeSelected == last(this.choiceTypes), idsToUnselect: idsToUnselect};
   }
   getSelectedNodeLabels() {

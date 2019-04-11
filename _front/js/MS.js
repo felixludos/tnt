@@ -365,11 +365,11 @@ class MS {
     let sFont = weight + " " + fz + "px " + family; //"bold 12pt arial"
     sFont = sFont.trim();
     let wText = getTextWidth(txt, sFont);
-    console.log(txt,wText,maxWidth)
+    //console.log(txt,wText,maxWidth)
     if (wText > maxWidth) {
       txt = ellipsis(txt, sFont, maxWidth, padding);
       wText = getTextWidth(txt, sFont);
-      console.log('...',txt,wText)
+      //console.log('...',txt,wText)
     }
     if (firstChild){
       this.bounds.w = wText + 2 * padding;

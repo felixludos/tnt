@@ -47,8 +47,8 @@
   border-radius: 0 0 50% 50%;
 }
 .bSlideInFromBottom{
-  padding: 0px 4px 0px 4px;
-  border-radius: 0 50% 50% 0;
+  padding: 0px 12px 0px 12px;
+  border-radius: 50% 50% 0% 0%;
 }
 .slideInButton {
   position:absolute;

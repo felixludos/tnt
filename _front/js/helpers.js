@@ -835,7 +835,47 @@ function calculateDims(n, sz = 60, minRows = 1, maxWidth = 1000) {
   }
   return {rows: rows, cols: cols, gap: gap, padding: padding, width: w};
 }
-function calculateDims2(n, wItem = 60, hItem = 100, minRows = 1, maxRows = 10, maxWidth = 1000) {
+function findRegularFit(n,minRows){
+  var rows = minRows;
+  var cols = Math.ceil(n / rows);
+}
+
+function calcTotalWidth(n,sz,gap,padding){
+  return padding * 2 - gap + (sz + gap) * n;
+}
+function findExactMatch(n,rows){
+  for (var i = Math.max(2, rows); i < n / 2; i++) {
+    if (n % i == 0) {
+      return {rows:i,cols:n/i};
+    }
+  }
+  rows+=1;
+  return {rows:rows,cols:Math.ceil(n/rows)};
+}
+function layout(n,wItem=100,hItem=100,{wIdeal=0,gap=8,padding=16,minRows=1,maxRows=1}){
+  if (wIdeal == 0){wIdeal = window.innerWidth;}
+  let rows=minRows;
+  let cols=Math.ceil(n / rows);
+  let wTotal =calcTotalWidth(cols,wItem,gap,padding);
+  while (wTotal>wIdeal && cols>=rows){
+    let diff = wTotal-wIdeal;
+    if (diff < padding+(cols*(gap>>2))){
+      //reducing padding and gap could alreay help
+      padding>>=2;gap>>=2;break;
+    }
+    let res = findExactMatch(n,rows);
+    if (res.rows > maxRows){
+      rows+=1;cols=Math.ceil(n / rows);
+    }else {
+      rows=res.rows;cols=res.cols;
+    }
+    wIdeal+=(window.innerWidth-wIdeal)/2;
+    wTotal =calcTotalWidth(cols,wItem,gap,padding);
+  }
+  return {rows: rows, cols: cols, gap: gap, padding: padding, width: wTotal};
+}
+
+function calculateDims2(n, wItem = 60, hItem = 100, minRows = 1, maxRows = 10) {
   var rows = minRows;
   var cols = Math.ceil(n / rows);
   var gap = 10;
@@ -857,7 +897,7 @@ function calculateDims2(n, wItem = 60, hItem = 100, minRows = 1, maxRows = 10, m
       if (gap > 1) gap -= 1;
       else if (padding > 1) padding -= 2;
       else {
-        minRows += 1;
+        maxRows += 1;
         gap = 6;
         padding = 10;
       }

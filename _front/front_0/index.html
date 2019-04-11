@@ -89,12 +89,12 @@
     </div>
     <div id="logDisplay" style="position:absolute;left:1275px;top:0px;padding:10px;">log display</div>
 
-    <div id="cardDisplay" class="popupStyle gridContainer hCenterScreen hCenterBottom"></div>
+    <div id="cardDisplay" class="centerSliderDiv popupStyle gridContainer hCenterScreen hCenterBottom"></div>
 
     <span
       id="bcardDisplay"
       class="slideInButton bSlideInFromBottom hCenterScreen"
-      style="bottom:0px;width:40px;height:40px;"
+      style="bottom:0px;"
       onclick="toggleSlider('cardDisplay','max-height','350px')"
     >
       &#43;
@@ -181,6 +181,11 @@
         document.getElementById(id).style[toggleProperty] = "0%";
         document.getElementById("b" + id).innerHTML = "&plus;";
       }
+      function openCardDisplay() {
+        if (!isSliderOpen("cardDisplay", "max-height")) {
+          openSlider("cardDisplay", "max-height", "350px");
+        }
+      }
     </script>
     <!-- #endregion slideIns -->
 
@@ -205,7 +210,7 @@
       function loadLocalUnits() {
         loadYML("/common/assets/config/units.yml", data => {
           units = data;
-          console.log(units);
+          //console.log(units);
           loadLocalUnitsPerPower();
         });
       }
@@ -302,7 +307,8 @@
       var backendServerUrl = "http://localhost:5000/"; //local server
       function sendurl(url, onResponse) {
         url = backendServerUrl + url;
-        console.log("request sent: ", url);
+        nMessages += 1;
+        console.log(nMessages, "request sent: ", url);
         w3.http(url, function() {
           if (this.readyState == 4 && this.status == 200) {
             onResponse(this.responseText);
@@ -315,6 +321,10 @@
       function sendAction(faction, selectedLabels) {
         let url = "action/" + faction + "/" + selectedLabels.join("+");
         sendurl(url, data => processData(data));
+      }
+      function sendGetPlayerStats(faction) {
+        //@app.route('/info/<faction>')
+        sendurl("info/" + faction, updatePlayerStats);
       }
       function sendStatus(faction) {
         let url = "status/" + faction;
@@ -365,10 +375,11 @@
     <script>
       var serverTree; // action tree from server
       var originalOrder;
+      var nMessages = 0;
       function Start(dataFromServer) {
         processData(dataFromServer);
       }
-      var skipCounter = 12; // this is to skip cadre setup phase
+      var skipCounter = 12; // West:12 this is to skip cadre setup phase
       function skipActions(actionData) {
         //skipCounter times just return first alternative to server to speed up process
         if (skipCounter > 0) {
@@ -386,6 +397,7 @@
         return false;
       }
       function processData(data) {
+        nMessages -= 1;
         serverData = JSON.parse(data);
         if (skipCounter <= 0) console.log(serverData);
 
@@ -443,26 +455,29 @@
       }
       function processUpdated(upData) {
         //console.log('*** processing updated: ***');
-        console.log("updating: ", upData);
+        //console.log("updating: ", upData);
         // je nach type, manager action
+        let displayCards = false;
         for (id in upData) {
           let o = upData[id];
           switch (o.obj_type) {
             case "action_card":
               Manager.drawDeckCard(id, o, "action_card");
+              displayCards = true;
               break;
             case "investment_card":
               Manager.drawDeckCard(id, o, "investment_card");
+              displayCards = true;
               break;
             case "unit":
-              console.log("move unit " + id);
+              //console.log("move unit " + id);
               break;
             default:
               //console.log("---");
               break;
           }
         }
-        
+        if (displayCards) openCardDisplay();
       }
       function processRemoved(remData) {
         //console.log('*** processing removed: ***');
@@ -484,14 +499,19 @@
       function processWaiting(waitingForData) {
         console.log("waiting: ", waitingForData);
         if (empty(waitingForData)) return;
-        Manager.printObjects();
+        //Manager.printObjects();
         // hier muss ich warten und dann ein status message schicken
+        sendGetPlayerStats(playerFaction, updatePlayerStats);
         //setTimeout(()=>sendStatus(playerFaction),10000);
+      }
+      function updatePlayerStats(data) {
+        nMessages -= 1;
+        console.log(data);
       }
       // function onCardDrawn(ev){
       //   let idSelected = evToId(ev);
       //   let typeSelected = Manager.getType(idSelected);
-      //   console.log('card drawn!',idSelected,typeSelected);
+      //   //console.log('card drawn!',idSelected,typeSelected);
       //   let card=Manager.drawFromDeck(idSelected);
 
       //   sendAction(playerFaction, [card.type]);
@@ -528,7 +548,11 @@
           Manager.displayChoices(idlists, onObjectSelected);
         }
       }
+
       setup();
+      window.addEventListener('resize', () => { 
+        Manager.calculateCardLayout();
+      });
     </script>
   </body>
 </html>

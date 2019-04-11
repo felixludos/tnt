@@ -323,36 +323,52 @@ class MSManager {
   hasActionCards() {
     return this.hand.action_card.length;
   }
-  displayCards() {
+  calculateCardLayout() {
     if (!this.hasActionCards()) return;
     clearElement(cardDisplay);
     let d = cardDisplay;
     let idsAction = this.hand.action_card;
     let idsInvestment = this.hand.action_card;
-    var n = idsAction.length;
+    var n = idsAction.length+idsInvestment.length;
     var w = SZ.cardWidth;
     var h = SZ.cardHeight;
-    for (var i = 0; i < n; i++) {
+    for (var i = 0; i < idsAction.length; i++) {
       let card = this.get(idsAction[i]);
       let holder = makeSvg(w, h);
       d.appendChild(holder);
       card.setPos(w / 2, h / 2);
       holder.appendChild(card.elem);
     }
-    let dims = calculateDims2(n, w, h, 1, 1);
+    for (var i = 0; i < idsInvestment.length; i++) {
+      let card = this.get(idsAction[i]);
+      let holder = makeSvg(w, h);
+      d.appendChild(holder);
+      card.setPos(w / 2, h / 2);
+      holder.appendChild(card.elem);
+    }
+    // let dims = calculateDims2(n, w, h, 1, 1);
+    //layout(n,wItem=100,hItem=100,{wIdeal=0,gap=2,padding=8,minRows=1,maxRows=1})
+    let dims = layout(n,w,h,{wIdeal:window.innerWidth});
     var sGridColumn = `${w}px `.repeat(dims.cols);
     d.classList.add("gridContainer");
     d.style.gridTemplateColumns = `repeat(auto-fill,${sGridColumn})`;
     d.style.width = dims.width + "px";
+    
+    // d.style.height = dims.rows*(dims.gap+h)+2*dims.padding;
+    // if (d.style.minHeight<d.style.height){
+    //   d.style.minHeight = d.style.height;
+    // }
+
     d.style.padding = dims.padding + "px";
     d.style.gridGap = dims.gap + "px";
+
   }
   drawDeckCard(id, o, type) {
     let card = this.createHandCard(id, o, type);
     // can't hurt to add json object
     this.byId[id]["json"] = o;
 
-    this.displayCards();
+    this.calculateCardLayout();
     // card is ms of card
     // card.elem is g element
     // how to determine pos of card?
