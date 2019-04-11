@@ -818,7 +818,7 @@ function calculateDims(n, sz = 60, minRows = 1) {
   let rOld=0;
   while (true) {
     rOld=rows;
-    for (var i = Math.max(2, minRows); i < n / 2; i++) {
+    for (var i = Math.max(2, rows); i < n / 2; i++) {
       if (n % i == 0) {
         rows = i;
         cols = n / i;
@@ -827,7 +827,8 @@ function calculateDims(n, sz = 60, minRows = 1) {
     }
     w = padding * 2 - gap + (sz + gap) * cols;
     if (w > window.innerWidth) {
-      if (gap > 1) gap -= 1;
+      if (rows == rOld) {rows+=1;cols=Math.ceil(n/rows);}
+      else if (gap > 1) gap -= 1;
       else if (padding > 1) padding -= 2;
       else {
         minRows += 1;
