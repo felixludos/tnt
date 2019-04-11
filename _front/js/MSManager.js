@@ -13,7 +13,9 @@ const troopColors = {
 const SZ = {
   region: 180,
   cadrePrototype: 60,
-  cadre: 60
+  cadre: 60,
+  cardWidth: 100,
+  cardHeight: 150
 };
 const SEPARATOR = "_";
 //#endregion
@@ -27,6 +29,7 @@ class MSManager {
     this.cardDisplay = cardDisplay;
     this.byId = {}; // {id:{ms:msObject,type:'region'|'power'|'unit'|'proto'|'cadre'|'action_card'|'investment_card'|'deck'|...}}
     this.decks = {action_card: [], investment_card: []};
+    this.hand = {action_card: [], investment_card: []};
   }
   // #region helpers
   makeSelectable(ms, handler) {
@@ -80,16 +83,16 @@ class MSManager {
       .circle({className: "overlay region hible selectable", sz: SZ.region})
       .setPos(pos.x, pos.y)
       .draw();
-    this.byId[id] = {ms: msRegion, type: "region"};
+    this.byId[id] = {id: id, ms: msRegion, type: "region"};
   }
   createType(id, type) {
-    this.byId[id] = {id:id,type: type};
+    this.byId[id] = {id: id, type: type};
   }
   createCadrePrototype(power, unit, cv = 1) {
     let id = this.getCombinedId(power, unit);
 
     let cadre = this.createCadreMS(id, null, power, unit, cv, SZ.cadrePrototype);
-    this.byId[id] = {ms: cadre, type: "proto"};
+    this.byId[id] = {id: id, ms: cadre, type: "proto"};
   }
   createCadre(id, power, unit, region, cv, showDataToFactionList) {
     let cadre = this.createCadreMS(id, board, power, unit, cv, SZ.cadre);
@@ -102,7 +105,7 @@ class MSManager {
 
     cadre.setPos(posx, posy).draw();
 
-    this.byId[id] = {ms: cadre, type: "cadre"};
+    this.byId[id] = {id: id, ms: cadre, type: "cadre"};
     cadre.tag("region", this.get(region).id);
     return cadre;
   }
@@ -173,12 +176,43 @@ class MSManager {
       .roundedRect({className: "cardDeck overlay hible selectable", w: 253, h: 356, fill: "transparent", rounding: 6})
       .setPos(centerInvestmentDeck.x, centerInvestmentDeck.y)
       .draw();
-    this.byId[idAction] = {ms: actionDeck, type: "deck"};
-    this.byId[idInvestment] = {ms: investmentDeck, type: "deck"};
+    this.byId[idAction] = {id: idAction, ms: actionDeck, type: "deck"};
+    this.byId[idInvestment] = {id: idInvestment, ms: investmentDeck, type: "deck"};
   }
-  createDeckCard(id, type) {
-    this.createType(id, type);
-    this.decks[type].push(id);
+  // createDeckCard(id, type) { // brauch ich garnicht glaub ich!
+  //   this.createType(id, type);
+  //   this.decks[type].push(id);
+  // }
+
+  // formatTexts(lst,wmax){
+  //   let res = [];
+  //   for (t of lst){
+  //     let words = t.split('_');
+  //     let lens = words.reduce(x=>x.length);
+  //     // split t in two lines if too long
+
+  //   }
+  // }
+  createHandCard(id, o, type) {
+    // creates card but does not position it (Hand does that)
+    let txt = [];
+    if ("top" in o) {
+      txt = [o.top, " ", o.season, o.priority + o.value, " ", o.bottom];
+      txt = txt.map(x => x.replace(/_/g, " "));
+    } else if ("wildcard" in o) {
+      txt = [o.wildcard," ", o.season, o.priority + o.value," "," "];
+      txt = txt.map(x => x.replace(/_/g, " "));
+    }
+    let cardWidth = SZ.cardWidth;
+    let cardHeight = SZ.cardHeight;
+
+    let card = new MS(id)
+      .roundedRect({w: cardWidth, h: cardHeight, fill: "white"})
+      .textMultiline({txt: txt, maxWidth:cardWidth, fz: cardWidth / 6});
+    this.byId[id] = {id: id, ms: card, type: type};
+    this.hand[type].push(id);
+
+    return card;
   }
   //#endregion
 
@@ -230,7 +264,7 @@ class MSManager {
       let cadre = this.get(ids[i]);
 
       let szString = "" + sz + "px";
-      let holder = makeSvg(sz);
+      let holder = makeSvg(sz, sz);
       d.appendChild(holder);
       cadre.setPos(sz / 2, sz / 2);
       holder.appendChild(cadre.elem);
@@ -286,18 +320,55 @@ class MSManager {
   // #endregion
 
   // #region cards
-  activateDecks(onDrawn){
-    let adeck = this.get('action_card');
-    let ideck = this.get('investment_card');
-    //console.log(adeck,ideck)
-    this.makeSelectable(adeck,onDrawn);
-    this.makeSelectable(ideck,onDrawn);
+  hasActionCards() {
+    return this.hand.action_card.length;
   }
-  drawFromDeck(deckType){
-    let card = this.decks[deckType].pop();
-    console.log(card,this.byId[card]);
-    return this.byId[card];
+  displayCards() {
+    if (!this.hasActionCards()) return;
+    clearElement(cardDisplay);
+    let d = cardDisplay;
+    let idsAction = this.hand.action_card;
+    let idsInvestment = this.hand.action_card;
+    var n = idsAction.length;
+    var w = SZ.cardWidth;
+    var h = SZ.cardHeight;
+    for (var i = 0; i < n; i++) {
+      let card = this.get(idsAction[i]);
+      let holder = makeSvg(w, h);
+      d.appendChild(holder);
+      card.setPos(w / 2, h / 2);
+      holder.appendChild(card.elem);
+    }
+    let dims = calculateDims2(n, w, h, 1, 1);
+    var sGridColumn = `${w}px `.repeat(dims.cols);
+    d.classList.add("gridContainer");
+    d.style.gridTemplateColumns = `repeat(auto-fill,${sGridColumn})`;
+    d.style.width = dims.width + "px";
+    d.style.padding = dims.padding + "px";
+    d.style.gridGap = dims.gap + "px";
   }
-  // #endregion
+  drawDeckCard(id, o, type) {
+    let card = this.createHandCard(id, o, type);
+    // can't hurt to add json object
+    this.byId[id]["json"] = o;
 
+    this.displayCards();
+    // card is ms of card
+    // card.elem is g element
+    // how to determine pos of card?
+    // simplest: count cards displayed*widthOfCard,
+  }
+  activateDecks(onDrawn) {
+    let adeck = this.get("action_card");
+    let ideck = this.get("investment_card");
+    //console.log(adeck,ideck)
+    this.makeSelectable(adeck, onDrawn);
+    this.makeSelectable(ideck, onDrawn);
+  }
+  // drawFromDeck(deckType){
+  //   let card = this.decks[deckType].pop();
+  //   console.log(card,this.byId[card]);
+  //   return this.byId[card];
+  // }
+  // #endregion
 }

@@ -1,0 +1,62 @@
+/* #region top left: player stats */
+.sideSliderDiv {
+  /* display: none; */
+  position: absolute;
+  max-width: 0px;
+  /* width: auto;
+  height: auto; */
+  padding: 0px;
+  margin: 0px;
+  overflow:hidden;
+  background-color: transparent;
+  transition: 0.5s;
+}
+.centerSliderDiv{
+  position: absolute;
+  max-height: 0px;
+  padding: 0px;
+  margin: 0px;
+  overflow:hidden;
+  background-color: transparent;
+  transition: 0.5s;
+}
+.tableDivStyle {
+  /* display: none; */
+  font-family: Arial, sans-serif;
+  font-size: 10pt;
+  background-color: beige;
+  color:black;
+  border-radius: 6px;
+  border: 1px solid #dddddd;
+  padding: 10px;
+  margin: 10px 10px 0px 10px;
+}
+
+.bSlideInFromLeft{
+  padding: 0px 6px 0px 2px;
+  border-radius: 0 50% 50% 0;
+}
+.bSlideInFromRight{
+  padding: 0px 2px 0px 6px;
+  border-radius: 50% 0 0 50%;
+}
+.bSlideInFromTop{
+  line-height: 1;
+  margin-top: -4px;
+  padding: 0px 4px 0px 4px;
+  border-radius: 0 0 50% 50%;
+}
+.bSlideInFromBottom{
+  padding: 0px 4px 0px 4px;
+  border-radius: 0 50% 50% 0;
+}
+.slideInButton {
+  position:absolute;
+  z-index: 21;
+  font-family: Arial Black, Gadget, sans-serif;
+  font-size: 24px;
+  cursor: pointer;
+  background-color: beige;
+  color:red;
+}
+/* #endregion top left: player stats */

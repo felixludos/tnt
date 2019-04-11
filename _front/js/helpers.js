@@ -5,14 +5,13 @@ function addAll(akku, other) {
   }
   return akku;
 }
-function addIf(el,arr){
+function addIf(el, arr) {
   if (!arr.includes(el)) arr.push(el);
 }
-function orderFromTo(lst,fromOrder,toOrder){
+function orderFromTo(lst, fromOrder, toOrder) {
   let res = [];
   for (let i = 0; i < lst.length; i++) {
     res.push(lst[fromOrder.indexOf(toOrder[i])]);
-    
   }
   //console.log(res)
   return res;
@@ -53,8 +52,7 @@ function choose(arr, n) {
   return result;
 }
 function empty(arr) {
-  let result = arr === undefined || !arr || (isString(arr) && arr == '') 
-    || (Array.isArray(arr) && arr.length == 0);
+  let result = arr === undefined || !arr || (isString(arr) && arr == "") || (Array.isArray(arr) && arr.length == 0);
   //console.log(typeof(arr),result?'EMPTY':arr)
   return result;
 }
@@ -630,6 +628,16 @@ function getParentOfScript() {
   var parent = thisScript.parentElement;
   return parent;
 }
+function ellipsis(text, font, width, padding) {
+  let textLength =  getTextWidth(text,font);
+  let ellipsisLength = 0;
+  while ((textLength+ellipsisLength) > width - 2 * padding && text.length > 0) {
+    text = text.slice(0, -1).trim();
+    ellipsisLength = getTextWidth('...',font);
+    textLength = getTextWidth(text,font); //self.node().getComputedTextLength();
+  }
+  return (ellipsisLength > 0)? text+'...' : text;
+}
 function getTextWidth(text, font) {
   // re-use canvas object for better performance
   var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
@@ -650,10 +658,10 @@ function insertHere() {
     }
   }
 }
-function makeSvg(sz){
+function makeSvg(w, h) {
   const svg1 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg1.setAttribute("width", sz);
-  svg1.setAttribute("height", sz);
+  svg1.setAttribute("width", w);
+  svg1.setAttribute("height", h);
   return svg1;
 }
 
@@ -800,7 +808,7 @@ function convertToMS(p) {
 }
 //#endregion
 
-function calculateDims(n, sz = 60, minRows = 1) {
+function calculateDims(n, sz = 60, minRows = 1, maxWidth = 1000) {
   var rows = minRows;
   var cols = Math.ceil(n / rows);
   var gap = 10;
@@ -815,6 +823,36 @@ function calculateDims(n, sz = 60, minRows = 1) {
       }
     }
     w = padding * 2 - gap + (sz + gap) * cols;
+    if (w > window.innerWidth) {
+      if (gap > 1) gap -= 1;
+      else if (padding > 1) padding -= 2;
+      else {
+        minRows += 1;
+        gap = 6;
+        padding = 10;
+      }
+    } else break;
+  }
+  return {rows: rows, cols: cols, gap: gap, padding: padding, width: w};
+}
+function calculateDims2(n, wItem = 60, hItem = 100, minRows = 1, maxRows = 10, maxWidth = 1000) {
+  var rows = minRows;
+  var cols = Math.ceil(n / rows);
+  var gap = 10;
+  var padding = 20;
+
+  let w = 9999999;
+  while (true) {
+    if (maxRows > minRows) {
+      for (var i = Math.max(Math.min(2, maxRows), minRows); i < Math.min(maxRows + 1, n / 2); i++) {
+        if (n % i == 0) {
+          rows = i;
+          cols = n / i;
+          break;
+        }
+      }
+    }
+    w = padding * 2 - gap + (wItem + gap) * cols;
     if (w > window.innerWidth) {
       if (gap > 1) gap -= 1;
       else if (padding > 1) padding -= 2;

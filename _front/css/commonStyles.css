@@ -29,12 +29,17 @@ html {
 }
 .hCenterScreen {
   position: fixed;
-  top:0%;
   left: 50vw;
   margin-right: -50%;
   transform: translate(-50%, 0%);
   width:auto;
   height:auto;
+}
+.hCenterTop {
+  top:0%;
+}
+.hCenterBottom {
+  bottom:0%;
 }
 .popupStyle{
   background-color: beige;
@@ -50,3 +55,24 @@ html {
   align-items: center;
   justify-content: center;
 }
+
+/* #region table */
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  background-color: transparent;
+}
+
+td,
+th {
+  /* border: 1px solid #dddddd; */
+  text-align: left;
+  padding: 3px 8px;
+  /* text-overflow: ellipsis; */
+  white-space: nowrap; /* super!!! prevents breaking line in cell!!!! */
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+/* #endregion table */

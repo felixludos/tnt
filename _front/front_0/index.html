@@ -5,6 +5,7 @@
     <link rel="shortcut icon" href="#" />
     <link rel="stylesheet" type="text/css" href="/common/css/commonStyles.css" />
     <link rel="stylesheet" type="text/css" href="/common/css/msStyles.css" />
+    <link rel="stylesheet" type="text/css" href="/common/css/sliders.css" />
     <style>
       @font-face {
         font-family: "Military RPG";
@@ -20,12 +21,92 @@
           <image id="imgMap" width="3400" height="2200" href="/common/assets/TTmap.jpg" />
         </g>
       </svg>
+      <div id="slideInPlayerStats" class="sideSliderDiv" style="left:0px;top:10px">
+        <div id="PlayerStatsTableContainer" class="tableDivStyle">
+          <table>
+            <tr>
+              <th></th>
+              <th>West</th>
+              <th>Axis</th>
+              <th>USSR</th>
+            </tr>
+            <tr>
+              <th>Resources</th>
+              <td id="ResourcesWest">8</td>
+              <td id="ResourcesAxis">8</td>
+              <td id="ResourcesUSSR">8</td>
+            </tr>
+            <tr>
+              <th>Population</th>
+              <td id="PopulationWest">8</td>
+              <td id="PopulationAxis">8</td>
+              <td id="PopulationUSSR">8</td>
+            </tr>
+            <tr>
+              <th>Industry</th>
+              <td id="IndustryWest">8</td>
+              <td id="IndustryAxis">8</td>
+              <td id="IndustryUSSR">8</td>
+            </tr>
+            <tr>
+              <th>Hand Limit</th>
+              <td id="HandlimitWest">8</td>
+              <td id="HandlimitAxis">8</td>
+              <td id="HandlimitUSSR">8</td>
+            </tr>
+            <tr>
+              <th>Factory Cost</th>
+              <td id="FactorycostWest">8</td>
+              <td id="FactorycostAxis">8</td>
+              <td id="FactorycostUSSR">8</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <span
+        id="bslideInPlayerStats"
+        class="slideInButton bSlideInFromLeft"
+        style="left:0px;top:70px;"
+        onclick="toggleSlider('slideInPlayerStats','max-width','350px')"
+      >
+        &#43;
+      </span>
+      <div id="slideInAvailableCadres" class="sideSliderDiv" style="right:0px;top:10px">
+        <div id="AvailableCadresTableContainer" class="tableDivStyle"></div>
+      </div>
 
-      <div id="troopDisplay" class="popupStyle gridContainer hCenterScreen"></div>
+      <span
+        id="bslideInAvailableCadres"
+        class="slideInButton bSlideInFromRight"
+        style="right:0px;top:70px;"
+        onclick="toggleSlider('slideInAvailableCadres','max-width','350px')"
+      >
+        &#43;
+      </span>
+
+      <div id="troopDisplay" class="popupStyle gridContainer hCenterScreen hCenterTop"></div>
       <!-- <div id="submitButton" class="centerScreen hidden"><button onclick="submitChoice()">Submit</button></div> -->
     </div>
     <div id="logDisplay" style="position:absolute;left:1275px;top:0px;padding:10px;">log display</div>
-    <div id="cardDisplay" style="position:absolute;left:0px;top:825px;padding:10px;">card display</div>
+
+    <div id="cardDisplay" class="popupStyle gridContainer hCenterScreen hCenterBottom"></div>
+
+    <span
+      id="bcardDisplay"
+      class="slideInButton bSlideInFromBottom hCenterScreen"
+      style="bottom:0px;width:40px;height:40px;"
+      onclick="toggleSlider('cardDisplay','max-height','350px')"
+    >
+      &#43;
+    </span>
+
+    <!-- <div id="cardDisplay" style="min-width:100vw;height:200px;position:absolute;left:0px;top:825px;padding:0px;background-color:green;">
+      <svg width="100%" height="100%" style="padding:0px;box-sizing:border-box;background-color:blue;">
+        <g id="handDisplay" viewBox="0 0 1000 200">
+          <circle cx="100" cy="100" r="100" stroke="black" stroke-width="3" fill="red" />
+        </g>
+      </svg>
+    </div> -->
     <!-- #endregion html -->
 
     <!-- #region standard script loading: js-yaml, w3.js, jquery... -->
@@ -46,10 +127,11 @@
     <script src="/common/js/MS.js"></script>
     <script src="/common/js/MTree.js"></script>
     <script src="/common/js/MSManager.js"></script>
-    <script src="/common/js/MHand.js"></script>
+    <!-- <script src="/common/js/MHand.js"></script> -->
     <script src="/common/js/MSelection.js"></script>
     <script src="/common/js/MParser.js"></script>
     <script src="/common/js/MScanner.js"></script>
+    <script src="/common/js/interactions.js"></script>
     <!-- #endregion: SCRIPTS  -->
 
     <!-- #region GLOBALS -->
@@ -58,11 +140,12 @@
       const rootDiv = document.getElementById("rootDiv");
       const board = document.getElementById("board");
       const troopDisplay = document.getElementById("troopDisplay");
-      const cardDisplay = document.getElementById("cardDisplay");
+      const cardDisplay = document.getElementById("cardDisplay"); //div
+      //const handDisplay = document.getElementById("handDisplay"); //g
       const logDisplay = document.getElementById("logDisplay");
 
       var Manager = new MSManager(board, troopDisplay, cardDisplay); // manages all game objects
-      var Hand = new MHand();
+      //var Hand = new MHand(handDisplay);
 
       var unitCount; //{'Germany': {'Infantry':16,...}} reserve info dictionary, local asset:unit_count.yml
       var powerList; //['Germany',...,'USA']
@@ -73,6 +156,144 @@
       var Selection; // an MSelection object created to handle navigating selection tree
     </script>
     <!-- #endregion GLOBALS -->
+
+    <!-- #region slideIns -->
+    <script>
+      function showMessage(s) {
+        document.getElementById("MessageContainer").innerHTML = s;
+        openSlider("slideInMessage", "max-height", "500px");
+      }
+      function toggleSlider(id, toggleProperty, openVal) {
+        if (isSliderOpen(id, toggleProperty)) closeSlider(id, toggleProperty);
+        else openSlider(id, toggleProperty, openVal);
+      }
+      function isSliderOpen(id, toggleProperty) {
+        let el = document.getElementById(id);
+        let wElem = firstNumber(el.style[toggleProperty]);
+        return wElem > 0;
+      }
+      function openSlider(id, toggleProperty, openVal) {
+        //console.log("open slider: ", id);
+        document.getElementById(id).style[toggleProperty] = openVal;
+        document.getElementById("b" + id).innerHTML = "&minus;";
+      }
+      function closeSlider(id, toggleProperty) {
+        document.getElementById(id).style[toggleProperty] = "0%";
+        document.getElementById("b" + id).innerHTML = "&plus;";
+      }
+    </script>
+    <!-- #endregion slideIns -->
+
+    <!-- #region LOCAL TESTING - to be removed -->
+    <script>
+      var mapPosDict = {}; // map_pos positions per region
+      var factionDict = {}; // faction info
+      var regions = {}; // region elements, id is region
+      var influenceMarkers = [];
+      var playerName; // login name
+      var rgbs = {}; // colors for nations
+      var regionInfo = {}; // tiles.yml content
+      var unitsPerPower = {}; // unit_count.yml
+      var units = {}; // unit descriptions from units.yml
+
+      function loadLocalFactionInfo() {
+        loadYML("/common/assets/config/faction_setup.yml", data => {
+          factionDict = data;
+          loadLocalUnits();
+        });
+      }
+      function loadLocalUnits() {
+        loadYML("/common/assets/config/units.yml", data => {
+          units = data;
+          console.log(units);
+          loadLocalUnitsPerPower();
+        });
+      }
+      function loadLocalUnitsPerPower() {
+        loadYML("/common/assets/config/unit_count.yml", data => {
+          unitsPerPower = data;
+          SetupPlayerStats();
+          SetupAvailableCadres();
+        });
+      }
+      function SetupPlayerStats() {
+        for (const key in factionDict) {
+          localComputePlayerStats(key);
+        }
+      }
+      function SetupAvailableCadres() {
+        localSetPlayerFaction(playerFaction);
+      }
+
+      function localComputePlayerStats(faction) {
+        let popRes = {West: {pop: 12, res: 11}, Axis: {pop: 11, res: 6}, USSR: {pop: 12, res: 11}};
+        let info = factionDict[faction];
+        let factorycost = info["FactoryCost"][0];
+        let handlimit = info["Handlimit"];
+        let industry = info["initial_ind"];
+        let popResFaction = popRes[faction];
+        let population = popResFaction["pop"];
+        let resources = popResFaction["res"];
+        let stat = industry > population ? "Industry" : "Population"; //geht fuer setup
+
+        setPopulation(faction, population);
+        setResources(faction, resources);
+        setIndustry(faction, industry);
+        setHandlimit(faction, handlimit);
+        setFactorycost(faction, factorycost);
+        setProduction(faction, stat);
+      }
+      function localSetPlayerFaction(faction) {
+        //playerFaction = faction; // assume Axis
+        let info = factionDict[faction]; // get cadres to place
+        let allPowers = Object.keys(unitsPerPower); // ['Germany','Italy','Britain','France','USA','USSR'];
+        let cadresPlacementForPlayer = info["setup"]["cadres"]; //{Germany: {Berlin: 6,..}, Italy: {Rome: 4, Milan: 2, Tripoli: 2}}
+        let powersPlayer = Object.keys(cadresPlacementForPlayer); //[Germany,Italy]
+
+        let cadreDiv = document.getElementById("AvailableCadresTableContainer");
+        makeAvailableCadresTable(powersPlayer, unitsPerPower, "AvailableCadresTableContainer");
+      }
+
+      function makeAvailableCadresTable(powers, unitsPerPower, divId) {
+        //console.log("---------------")
+
+        var div = document.getElementById(divId);
+        if (div.childNodes.length > 0) div.removeChild(div.firstChild); //clear table if there was one already
+        var tbl = document.createElement("table");
+        var tr = document.createElement("tr");
+        tbl.appendChild(tr);
+        var th = document.createElement("th");
+        tr.appendChild(th);
+
+        for (var i = 0; i < powers.length; i++) {
+          var th = document.createElement("th");
+          tr.appendChild(th);
+          th.innerHTML = powers[i];
+        }
+
+        var rowHeaders = Object.keys(unitsPerPower[powers[0]]); //['Infantry','Fortress',...]
+        //console.log(rowHeaders);
+        //console.log(unitsPerPower);
+        //console.log(powers);
+        for (var i = 0; i < rowHeaders.length; i++) {
+          tr = document.createElement("tr");
+          tbl.appendChild(tr);
+          th = document.createElement("th");
+          tr.appendChild(th);
+          th.innerHTML = rowHeaders[i];
+          for (power of powers) {
+            var td = document.createElement("td");
+            td.id = power + rowHeaders[i];
+            //console.log(power,unitsPerPower[power]);
+            td.innerHTML = unitsPerPower[power][rowHeaders[i]];
+            tr.appendChild(td);
+          }
+        }
+        div.appendChild(tbl);
+      }
+      loadLocalFactionInfo();
+    </script>
+    <!-- #endregion LOCAL TESTING - to be removed -->
 
     <!-- #region CORS server communication -->
     <script>
@@ -164,7 +385,6 @@
         }
         return false;
       }
-
       function processData(data) {
         serverData = JSON.parse(data);
         if (skipCounter <= 0) console.log(serverData);
@@ -195,9 +415,11 @@
           let o = created[id];
           switch (o.obj_type) {
             case "action_card":
-              Manager.createDeckCard(id, "action_card");break;
+              //Manager.createDeckCard(id, "action_card");
+              break;
             case "investment_card":
-              Manager.createDeckCard(id, "investment_card");break;
+              //Manager.createDeckCard(id, "investment_card");
+              break;
             case "unit":
               //console.log(o, " is unit to be created");
               // place cadre on region
@@ -221,7 +443,26 @@
       }
       function processUpdated(upData) {
         //console.log('*** processing updated: ***');
-        //console.log('updating: ',upData);
+        console.log("updating: ", upData);
+        // je nach type, manager action
+        for (id in upData) {
+          let o = upData[id];
+          switch (o.obj_type) {
+            case "action_card":
+              Manager.drawDeckCard(id, o, "action_card");
+              break;
+            case "investment_card":
+              Manager.drawDeckCard(id, o, "investment_card");
+              break;
+            case "unit":
+              console.log("move unit " + id);
+              break;
+            default:
+              //console.log("---");
+              break;
+          }
+        }
+        
       }
       function processRemoved(remData) {
         //console.log('*** processing removed: ***');
@@ -240,23 +481,23 @@
         let idlists = Selection.getChoices();
         Manager.displayChoices(idlists, onObjectSelected);
       }
-      function processWaiting(waitingForData){
-        console.log('waiting: ',waitingForData)
+      function processWaiting(waitingForData) {
+        console.log("waiting: ", waitingForData);
         if (empty(waitingForData)) return;
+        Manager.printObjects();
         // hier muss ich warten und dann ein status message schicken
-        setTimeout(()=>sendStatus(playerFaction),10000);
-
+        //setTimeout(()=>sendStatus(playerFaction),10000);
       }
-      function onCardDrawn(ev){
-        let idSelected = evToId(ev);
-        let typeSelected = Manager.getType(idSelected);
-        console.log('card drawn!',idSelected,typeSelected);
-        let card=Manager.drawFromDeck(idSelected);
+      // function onCardDrawn(ev){
+      //   let idSelected = evToId(ev);
+      //   let typeSelected = Manager.getType(idSelected);
+      //   console.log('card drawn!',idSelected,typeSelected);
+      //   let card=Manager.drawFromDeck(idSelected);
 
-        sendAction(playerFaction, [card.type]);
-        //Hand.add(card);
+      //   sendAction(playerFaction, [card.type]);
+      //   //Hand.add(card);
 
-      }
+      // }
       function onObjectSelected(ev) {
         let idSelected = evToId(ev);
         let typeSelected = Manager.getType(idSelected);

@@ -341,7 +341,7 @@ class MS {
     this.elem.appendChild(ell);
     return this;
   }
-  text({className = "", txt = "A", fz = 20, fill = "black", alpha = 1, x = 0, y = 0, family = "arial", weight = ""} = {}) {
+  text({className = "", maxWidth = 1000, txt = "A", fz = 20, fill = "black", alpha = 1, x = 0, y = 0, family = "arial", weight = ""} = {}) {
     let r = document.createElementNS("http://www.w3.org/2000/svg", "text");
 
     fill = this.getColor(fill, alpha);
@@ -355,18 +355,28 @@ class MS {
     r.setAttribute("x", x);
     r.setAttribute("y", y + fz / 2.8);
     r.setAttribute("text-anchor", "middle");
-    r.textContent = txt;
 
     if (className !== "") {
       r.setAttribute("class", className);
     }
 
-    if (this.elem.childNodes.length == 0) {
-      sFont = weight + " " + fz + "px " + family; //"bold 12pt arial"
-      sFont = sFont.trim();
-      this.bounds.w = getTextWidth(txt, sFont);
+    let firstChild = this.elem.childNodes.length == 0;
+    let padding = 1;
+    let sFont = weight + " " + fz + "px " + family; //"bold 12pt arial"
+    sFont = sFont.trim();
+    let wText = getTextWidth(txt, sFont);
+    console.log(txt,wText,maxWidth)
+    if (wText > maxWidth) {
+      txt = ellipsis(txt, sFont, maxWidth, padding);
+      wText = getTextWidth(txt, sFont);
+      console.log('...',txt,wText)
+    }
+    if (firstChild){
+      this.bounds.w = wText + 2 * padding;
       this.bounds.h = fz;
     }
+
+    r.textContent = txt;
     this.elem.appendChild(r);
     return this;
   }
@@ -409,6 +419,7 @@ class MS {
   }
   textMultiline({
     className = "",
+    maxWidth = 1000,
     txt = ["one", "two", "three"],
     fz = 20,
     fill = "black",
@@ -425,6 +436,7 @@ class MS {
     for (const t of txt) {
       this.text({
         className: className,
+        maxWidth: maxWidth,
         txt: t,
         fz: fz,
         fill: fill,
