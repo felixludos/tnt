@@ -379,7 +379,7 @@
       function Start(dataFromServer) {
         processData(dataFromServer);
       }
-      var skipCounter = 12; // West:12 this is to skip cadre setup phase
+      var skipCounter = 0; // West:12 this is to skip cadre setup phase
       function skipActions(actionData) {
         //skipCounter times just return first alternative to server to speed up process
         if (skipCounter > 0) {
