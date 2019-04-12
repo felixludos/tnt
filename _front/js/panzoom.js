@@ -17,8 +17,9 @@ function reset() {
   //TODO: make sure dispose is not async!!!!
   pz = panzoom(board, {
     zoomDoubleClickSpeed: 1,
-    zoomSpeed: 0.1, // 0.065, // 6.5% per mouse wheel event
+    zoomSpeed: 0.3, //0.1, // 0.065, // 6.5% per mouse wheel event
     maxZoom: 2,
     minZoom: 0.1
   });
+  //console.log('zoom',pz.getTransform(),scaleFactor)
 }

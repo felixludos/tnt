@@ -92,12 +92,7 @@
 
     <div id="cardDisplay" class="cardGridContainer"></div>
 
-    <span
-      id="bcardDisplay"
-      class="slideInButton bSlideInFromBottom hCenterScreen"
-      style="bottom:0px;"
-      onclick="toggleCardDisplay()"
-    >
+    <span id="bcardDisplay" class="slideInButton bSlideInFromBottom hCenterScreen" style="bottom:0px;" onclick="toggleCardDisplay()">
       &#43;
     </span>
 
@@ -184,22 +179,23 @@
         document.getElementById("b" + id).innerHTML = "&plus;";
       }
 
-      var isCardDisplayOpen=false;
-      function toggleCardDisplay(){
-        if (isCardDisplayOpen)closeCardDisplay();else openCardDisplay();
-        console.log('display is open: '+isCardDisplayOpen)
+      var isCardDisplayOpen = false;
+      function toggleCardDisplay() {
+        if (isCardDisplayOpen) closeCardDisplay();
+        else openCardDisplay();
+        //console.log('display is open: '+isCardDisplayOpen)
       }
       function openCardDisplay() {
-        if (isCardDisplayOpen)return;
-        let id ='cardDisplay';
-        document.getElementById(id).style.display = 'grid';
+        if (isCardDisplayOpen) return;
+        let id = "cardDisplay";
+        document.getElementById(id).style.display = "grid";
         document.getElementById("b" + id).innerHTML = "&minus;";
         isCardDisplayOpen = true;
       }
       function closeCardDisplay() {
-        if (!isCardDisplayOpen)return;
-        let id ='cardDisplay';
-        document.getElementById(id).style.display = 'none';
+        if (!isCardDisplayOpen) return;
+        let id = "cardDisplay";
+        document.getElementById(id).style.display = "none";
         document.getElementById("b" + id).innerHTML = "&plus;";
         isCardDisplayOpen = false;
       }
@@ -325,7 +321,7 @@
       function sendurl(url, onResponse) {
         url = backendServerUrl + url;
         nMessages += 1;
-        console.log(nMessages, "request sent: ", url);
+        //console.log(nMessages, "request sent: ", url);
         w3.http(url, function() {
           if (this.readyState == 4 && this.status == 200) {
             onResponse(this.responseText);
@@ -416,7 +412,8 @@
       function processData(data) {
         nMessages -= 1;
         serverData = JSON.parse(data);
-        if (skipCounter <= 0) console.log(serverData);
+        if (skipCounter <= 0) {
+        } //console.log(serverData);
 
         processLog(serverData.log);
         processWaiting(serverData.waiting_for);
@@ -424,7 +421,7 @@
         processUpdated(serverData.updated);
         processRemoved(serverData.removed);
         if (skipActions(serverData.actions)) {
-          console.log("skipped action");
+          //console.log("skipped action");
         } else {
           processAction(serverData.actions);
         }
@@ -514,7 +511,7 @@
         Manager.displayChoices(idlists, onObjectSelected);
       }
       function processWaiting(waitingForData) {
-        console.log("waiting: ", waitingForData);
+        //console.log("waiting: ", waitingForData);
         if (empty(waitingForData)) return;
         //Manager.printObjects();
         // hier muss ich warten und dann ein status message schicken
@@ -523,7 +520,7 @@
       }
       function updatePlayerStats(data) {
         nMessages -= 1;
-        console.log(data);
+        //console.log(data);
       }
       // function onCardDrawn(ev){
       //   let idSelected = evToId(ev);
@@ -555,7 +552,7 @@
 
           sendAction(playerFaction, correctSorting);
         } else {
-          console.log("unselect:", result.idsToUnselect.toString());
+          //console.log("unselect:", result.idsToUnselect.toString());
           result.idsToUnselect.map(idparts => {
             Manager.undoSelection(idparts);
           });
@@ -567,9 +564,19 @@
       }
 
       setup();
-      window.addEventListener('resize', () => { 
+      window.addEventListener("resize", () => {
         Manager.calculateCardLayout(false);
       });
+    </script>
+
+    <script>
+      function scaleInfo() {
+        var m = board.getAttribute("transform");
+        var matrix = board.getCTM();
+        let x = decomposeMatrix(matrix);
+        console.log(x.scale);
+      }
+      //setInterval(scaleInfo,5000);
     </script>
   </body>
 </html>

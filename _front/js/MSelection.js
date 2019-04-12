@@ -29,17 +29,9 @@ class MSelection {
       console.log(st.choiceType, st.idlist.toString());
       console.log("node:", st.node.data.toString());
     } else console.log("stack is empty");
-    // for (const st of this.stack) {
-    //   console.log(st.choiceType, st.idlist.toString());
-    //   console.log("node:", st.node.data.toString());
-    // }
   }
   processSelection(idlist, typeSelected) {
-    //idlist is list of partial types or types involved,
-    // corresponding to a branch of tree under this.node;
-    //console.log('*** processSelection:',idlist.toString(),typeSelected);
     let t = this.node.findNodes(idlist);
-    //console.log('>>>>>>>t=',t);
     this.printStack(idlist);
     let idsToUnselect = [];
     if (!t) {

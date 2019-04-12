@@ -629,14 +629,14 @@ function getParentOfScript() {
   return parent;
 }
 function ellipsis(text, font, width, padding) {
-  let textLength =  getTextWidth(text,font);
+  let textLength = getTextWidth(text, font);
   let ellipsisLength = 0;
-  while ((textLength+ellipsisLength) > width - 2 * padding && text.length > 0) {
+  while (textLength + ellipsisLength > width - 2 * padding && text.length > 0) {
     text = text.slice(0, -1).trim();
-    ellipsisLength = getTextWidth('...',font);
-    textLength = getTextWidth(text,font); //self.node().getComputedTextLength();
+    ellipsisLength = getTextWidth("...", font);
+    textLength = getTextWidth(text, font); //self.node().getComputedTextLength();
   }
-  return (ellipsisLength > 0)? text+'...' : text;
+  return ellipsisLength > 0 ? text + "..." : text;
 }
 function getTextWidth(text, font) {
   // re-use canvas object for better performance
@@ -806,18 +806,24 @@ function convertToMS(p) {
   ////console.log("convertToMS: RESULT=", res);
   return res;
 }
+
 //#endregion
 
+function intDiv(n, q) {
+  return Math.floor(n / q);
+}
+
+//#region layout helpers
 function calculateDims(n, sz = 60, minRows = 1) {
   var rows = minRows;
   var cols = Math.ceil(n / rows);
   var gap = 10;
   var padding = 20;
   let w = 9999999;
-  console.log('calculateDims with:',rows,cols)
-  let rOld=0;
+  //console.log('calculateDims with:',rows,cols)
+  let rOld = 0;
   while (true) {
-    rOld=rows;
+    rOld = rows;
     for (var i = Math.max(2, rows); i < n / 2; i++) {
       if (n % i == 0) {
         rows = i;
@@ -827,8 +833,10 @@ function calculateDims(n, sz = 60, minRows = 1) {
     }
     w = padding * 2 - gap + (sz + gap) * cols;
     if (w > window.innerWidth) {
-      if (rows == rOld) {rows+=1;cols=Math.ceil(n/rows);}
-      else if (gap > 1) gap -= 1;
+      if (rows == rOld) {
+        rows += 1;
+        cols = Math.ceil(n / rows);
+      } else if (gap > 1) gap -= 1;
       else if (padding > 1) padding -= 2;
       else {
         minRows += 1;
@@ -840,81 +848,194 @@ function calculateDims(n, sz = 60, minRows = 1) {
   }
   return {rows: rows, cols: cols, gap: gap, padding: padding, width: w};
 }
-function findRegularFit(n,minRows){
-  var rows = minRows;
-  var cols = Math.ceil(n / rows);
-}
 
-function calcTotalWidth(n,sz,gap,padding){
-  return padding * 2 - gap + (sz + gap) * n;
+function mup(o, p, d) {
+  p = {x: p.x, y: p.y - d};
+  o.setPos(p.x, p.y);
+  return p;
 }
-function findExactMatch(n,rows){
-  console.log('start findExactMatch with:',n,rows)
-  for (var i = Math.max(2, rows); i < n / 2; i++) {
-    if (n % i == 0) {
-      console.log('found exact: rows=',i,'cols=',(n/i))
-      return {rows:i,cols:n/i};
-    }
-  }
-  rows+=1;let cols=Math.ceil(n/(rows));
-  console.log('no match found: rows=',rows,'cols=',cols)
-  return {rows:rows,cols:cols};
+function mri(o, p, d) {
+  p = {x: p.x + d, y: p.y};
+  o.setPos(p.x, p.y);
+  return p;
 }
-function layout(n,wItem=100,hItem=100,{wIdeal=0,gap=8,padding=16,minRows=1,maxRows=1}={}){
-  if (wIdeal == 0){wIdeal = window.innerWidth;}
-  let rows=minRows;
-  let cols=Math.ceil(n / rows);
-  let wTotal =calcTotalWidth(cols,wItem,gap,padding);
-  console.log('starting with rows:',rows,', cols:',cols)
-  let rOld=0;
-  while (wTotal>wIdeal && cols>=rows && rOld != rows){
-    rOld=rows;
-    let diff = wTotal-wIdeal;
-    if (diff < padding+(cols*(gap>>2))){
-      //reducing padding and gap could alreay help
-      padding>>=2;gap>>=2;break;
-    }
-    let res = findExactMatch(n,rows);
-    rows=res.rows;cols=res.cols;
-    // if (res.rows > maxRows){
-    //   rows+=1;cols=Math.ceil(n / rows);
-    // }else {
-    //   rows=res.rows;cols=res.cols;
-    // }
-    console.log('rows:',rows,', cols:',cols)
-    //wIdeal+=(window.innerWidth-wIdeal)/2;
-    wTotal =calcTotalWidth(cols,wItem,gap,padding);
-  }
-  return {rows: rows, cols: cols, gap: gap, padding: padding, width: wTotal};
+function mdo(o, p, d) {
+  p = {x: p.x, y: p.y + d};
+  o.setPos(p.x, p.y);
+  return p;
 }
+function mle(o, p, d) {
+  p = {x: p.x - d, y: p.y};
+  o.setPos(p.x, p.y);
+  return p;
+}
+function snail(p, o, d) {
+  if (o.length == 0) return;
+  //console.log(p,o)
 
-function calculateDims2(n, wItem = 60, hItem = 100, minRows = 1, maxRows = 10) {
-  var rows = minRows;
-  var cols = Math.ceil(n / rows);
-  var gap = 10;
-  var padding = 20;
-
-  let w = 9999999;
+  o[0].setPos(p.x, p.y);
+  n = o.length;
+  let step = 1;
+  let k = 1;
   while (true) {
-    if (maxRows > minRows) {
-      for (var i = Math.max(Math.min(2, maxRows), minRows); i < Math.min(maxRows + 1, n / 2); i++) {
-        if (n % i == 0) {
-          rows = i;
-          cols = n / i;
-          break;
-        }
-      }
+    for (i = 0; i < step; i++) {
+      if (k < n) {
+        p = mup(o[k], p, d);
+        k += 1;
+      } else return;
     }
-    w = padding * 2 - gap + (wItem + gap) * cols;
-    if (w > window.innerWidth) {
-      if (gap > 1) gap -= 1;
-      else if (padding > 1) padding -= 2;
-      else {
-        maxRows += 1;
-        gap = 6;
-        padding = 10;
-      }
-    } else break;
+    for (i = 0; i < step; i++) {
+      if (k < n) {
+        p = mri(o[k], p, d);
+        k += 1;
+      } else return;
+    }
+    step += 1;
+    for (i = 0; i < step; i++) {
+      if (k < n) {
+        p = mdo(o[k], p, d);
+        k += 1;
+      } else return;
+    }
+    for (i = 0; i < step; i++) {
+      if (k < n) {
+        p = mle(o[k], p, d);
+        k += 1;
+      } else return;
+    }
+    step += 1;
   }
-  return {rows: rows, cols: cols, gap: gap, padding: padding, width: w};
 }
+
+//   let p=[[x,y],[x,y-sz],[x+sz,y-sz],[x+sz,y],[x+sz,y+sz],[x,y+sz],[x-sz,y+sz],[x-sz,y],[x-sz,y-sz]];
+//   let s2=sz*2;
+//   p=p.concat([[x-sz,y-s2],[x,y-s2],[x+sz,y-s2],[x+s2,y-s2],[x+s2,y-s2]]);
+//   p=p.concat([[x+s2,y-s2],[x+s2,y-sz],[x+s2,y],[x+s2,y+sz],[x+s2,y+s2]]);
+//   p=p.concat([[x+sz,y+s2],[x,y+s2],[x-sz+s2,y+s2],[x-s2,y+s2]]);
+
+//   let i=0;
+//   for (const o of objects) {
+//     console.log('p[i]',p[i],'object',o)
+//     o.setPos(p[i][0],p[i][1]); i+=1;
+//   }
+// }
+//#endregion layout helpers
+
+// #region zooming
+function deltaTransformPoint(matrix, point) {
+  var dx = point.x * matrix.a + point.y * matrix.c + 0;
+  var dy = point.x * matrix.b + point.y * matrix.d + 0;
+  return {x: dx, y: dy};
+}
+
+function decomposeMatrix(matrix) {
+  // @see https://gist.github.com/2052247
+
+  // calculate delta transform point
+  var px = deltaTransformPoint(matrix, {x: 0, y: 1});
+  var py = deltaTransformPoint(matrix, {x: 1, y: 0});
+
+  // calculate skew
+  var skewX = (180 / Math.PI) * Math.atan2(px.y, px.x) - 90;
+  var skewY = (180 / Math.PI) * Math.atan2(py.y, py.x);
+
+  return {
+    translateX: matrix.e,
+    translateY: matrix.f,
+    scaleX: Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
+    scaleY: Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d),
+    scale: Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
+    skewX: skewX,
+    skewY: skewY,
+    rotation: skewX // rotation is the same as skew x
+  };
+}
+function getZoomFactor(gElement) {
+  //var m = gElement.getAttribute("transform");
+  var matrix = gElement.getCTM();
+  let x = decomposeMatrix(matrix);
+  return x.scale;
+  // console.log(x.scale);
+}
+
+//#endregion zooming
+//#region trash
+// function findRegularFit(n,minRows){
+//   var rows = minRows;
+//   var cols = Math.ceil(n / rows);
+// }
+
+// function calcTotalWidth(n,sz,gap,padding){
+//   return padding * 2 - gap + (sz + gap) * n;
+// }
+// function findExactMatch(n,rows){
+//   console.log('start findExactMatch with:',n,rows)
+//   for (var i = Math.max(2, rows); i < n / 2; i++) {
+//     if (n % i == 0) {
+//       console.log('found exact: rows=',i,'cols=',(n/i))
+//       return {rows:i,cols:n/i};
+//     }
+//   }
+//   rows+=1;let cols=Math.ceil(n/(rows));
+//   console.log('no match found: rows=',rows,'cols=',cols)
+//   return {rows:rows,cols:cols};
+// }
+// function layout(n,wItem=100,hItem=100,{wIdeal=0,gap=8,padding=16,minRows=1,maxRows=1}={}){
+//   if (wIdeal == 0){wIdeal = window.innerWidth;}
+//   let rows=minRows;
+//   let cols=Math.ceil(n / rows);
+//   let wTotal =calcTotalWidth(cols,wItem,gap,padding);
+//   console.log('starting with rows:',rows,', cols:',cols)
+//   let rOld=0;
+//   while (wTotal>wIdeal && cols>=rows && rOld != rows){
+//     rOld=rows;
+//     let diff = wTotal-wIdeal;
+//     if (diff < padding+(cols*(gap>>2))){
+//       //reducing padding and gap could alreay help
+//       padding>>=2;gap>>=2;break;
+//     }
+//     let res = findExactMatch(n,rows);
+//     rows=res.rows;cols=res.cols;
+//     // if (res.rows > maxRows){
+//     //   rows+=1;cols=Math.ceil(n / rows);
+//     // }else {
+//     //   rows=res.rows;cols=res.cols;
+//     // }
+//     console.log('rows:',rows,', cols:',cols)
+//     //wIdeal+=(window.innerWidth-wIdeal)/2;
+//     wTotal =calcTotalWidth(cols,wItem,gap,padding);
+//   }
+//   return {rows: rows, cols: cols, gap: gap, padding: padding, width: wTotal};
+// }
+
+// function calculateDims2(n, wItem = 60, hItem = 100, minRows = 1, maxRows = 10) {
+//   var rows = minRows;
+//   var cols = Math.ceil(n / rows);
+//   var gap = 10;
+//   var padding = 20;
+
+//   let w = 9999999;
+//   while (true) {
+//     if (maxRows > minRows) {
+//       for (var i = Math.max(Math.min(2, maxRows), minRows); i < Math.min(maxRows + 1, n / 2); i++) {
+//         if (n % i == 0) {
+//           rows = i;
+//           cols = n / i;
+//           break;
+//         }
+//       }
+//     }
+//     w = padding * 2 - gap + (wItem + gap) * cols;
+//     if (w > window.innerWidth) {
+//       if (gap > 1) gap -= 1;
+//       else if (padding > 1) padding -= 2;
+//       else {
+//         maxRows += 1;
+//         gap = 6;
+//         padding = 10;
+//       }
+//     } else break;
+//   }
+//   return {rows: rows, cols: cols, gap: gap, padding: padding, width: w};
+// }
+//#endregion
