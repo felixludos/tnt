@@ -32,6 +32,9 @@ class MSManager {
     this.byId = {}; // {id:{ms:msObject,type:'region'|'power'|'unit'|'proto'|'cadre'|'action_card'|'investment_card'|'deck'|...}}
     this.decks = {action_card: [], investment_card: []};
     this.hand = {action_card: [], investment_card: []};
+    this.regions = []; // list of region ids
+    this.cadres = []; // list of individual cadre ids
+    this.sumCadres = []; // list of summary cadre ids
   }
   // #region helpers
   makeSelectable(ms, handler) {
@@ -93,6 +96,7 @@ class MSManager {
     // msRegion.tag("sumCadres", []); // has ids like Berlin_Axis,Berlin_West,Berlin_USSR,Berline_Neutral
     msRegion.tag("zoomView", "summary"); // view can be 'summary' or 'detail'
     msRegion.elem.addEventListener("mouseover", this.switchView.bind(this));
+    this.regions.push(id);
   }
   createType(id, type) {
     this.byId[id] = {id: id, type: type};
@@ -111,6 +115,8 @@ class MSManager {
   createCadre(id, power, unit, region, cv, showDataToFactionList) {
     let cadre = this.createCadreMS(id, board, power, unit, cv, SZ.cadreDetail);
     this.byId[id] = {id: id, ms: cadre, type: "cadre"};
+
+    this.cadres.push(id);
 
     let msRegion = this.get(region);
 
@@ -155,6 +161,7 @@ class MSManager {
       msRegion.getTag("objects").push(sumId);
       this.byId[sumId] = {id: sumId, ms: sumCadre, type: "cadre"};
       sumCadre.tag("zoomView", "summary"); //should be visible only in summary view
+      this.sumCadres.push(sumId);
     } else {
       //update cv on sumCadre by cv of new cadre
       let oldval = sumCadre.getTag("cv");
@@ -249,15 +256,6 @@ class MSManager {
   //   this.decks[type].push(id);
   // }
 
-  // formatTexts(lst,wmax){
-  //   let res = [];
-  //   for (t of lst){
-  //     let words = t.split('_');
-  //     let lens = words.reduce(x=>x.length);
-  //     // split t in two lines if too long
-
-  //   }
-  // }
   createHandCard(id, o, type) {
     // creates card but does not position it (Hand does that)
     let txt = [];
@@ -273,7 +271,8 @@ class MSManager {
 
     let card = new MS(id)
       .roundedRect({w: cardWidth, h: cardHeight, fill: "white"})
-      .textMultiline({txt: txt, maxWidth: cardWidth, fz: cardWidth / 6});
+      .textMultiline({txt: txt, maxWidth: cardWidth, fz: cardWidth / 6})
+      .roundedRect({className: "overlay hible selectable", w: cardWidth, h: cardHeight});
     this.byId[id] = {id: id, ms: card, type: type};
     this.hand[type].push(id);
 
@@ -448,7 +447,29 @@ class MSManager {
 
   // #region views of objects
 
-  switchView(ev) {
+  viewObserver(){
+    // runs periodically 
+    // updates each visible region's view
+    // should be triggered by zoom or pan
+    // or just by some timer
+    console.log('starting view observer');
+    let zoom = getZoomFactor(board);
+    let view = zoom >= .9 ? "detail" : "summary"; // this is the view that should be active
+    let hasChanged=false;
+    //adapting regions
+    for (const region of this.regions) {
+      let msRegion = this.get(region);
+      let rView = msRegion.getTag('zoomView');
+      if (rView == view) continue;
+      this.switchView(region,false);
+      hasChanged = true;
+    }
+    //if (hasChanged){setTimeout(this.viewObserver.binding(this),3000)}
+    //else return;
+
+  }
+
+  switchView(ev,runViewObserver=true) {
     let region = isEvent(ev) ? evToId(ev) : ev;
     //console.log('mouseover',region)
     if (this.getType(region) != "region") return;
@@ -456,6 +477,8 @@ class MSManager {
     let view = zoom >= .9 ? "detail" : "summary"; // this is the view that should be active
 
     let msRegion = this.get(region);
+    if (msRegion.getTag('objects').length<3) return;
+
     let regionIsInView = msRegion.getTag("zoomView");
     //console.log('view of',region,'is',regionIsInView)
     if (view == regionIsInView) return;
@@ -487,6 +510,8 @@ class MSManager {
       snail(pos, objects,SZ.cadreDetail+1);
     }
     msRegion.tag("zoomView", view);
+
+    if (runViewObserver)this.viewObserver();
   }
   // #endregion views of objects
 }
