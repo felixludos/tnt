@@ -35,6 +35,7 @@ class MSManager {
     this.regions = []; // list of region ids
     this.cadres = []; // list of individual cadre ids
     this.sumCadres = []; // list of summary cadre ids
+    this.currentView = this.getViewForCurrentZoom();
   }
   // #region helpers
   makeSelectable(ms, handler) {
@@ -175,7 +176,7 @@ class MSManager {
 
     if (msRegion.getTag("zoomView") != "summary") sumCadre.hide();
     if (msRegion.getTag("zoomView") != "detail") cadre.hide();
-    this.switchView(region);
+    this.switchView(region,false);
 
     return cadre;
   }
@@ -447,14 +448,20 @@ class MSManager {
 
   // #region views of objects
 
+  getViewForCurrentZoom(){
+    let zoom = getZoomFactor(board);
+    //console.log(zoom);
+    let view = zoom >= .6 ? "detail" : "summary"; // this is the view that should be active
+    return view;
+  }
   viewObserver(){
     // runs periodically 
     // updates each visible region's view
     // should be triggered by zoom or pan
     // or just by some timer
-    console.log('starting view observer');
-    let zoom = getZoomFactor(board);
-    let view = zoom >= .9 ? "detail" : "summary"; // this is the view that should be active
+    let view = this.getViewForCurrentZoom();
+    if (this.currentView == view) return;
+    //console.log('starting view observer');
     let hasChanged=false;
     //adapting regions
     for (const region of this.regions) {
@@ -464,6 +471,7 @@ class MSManager {
       this.switchView(region,false);
       hasChanged = true;
     }
+    this.currentView = view;
     //if (hasChanged){setTimeout(this.viewObserver.binding(this),3000)}
     //else return;
 
@@ -473,8 +481,9 @@ class MSManager {
     let region = isEvent(ev) ? evToId(ev) : ev;
     //console.log('mouseover',region)
     if (this.getType(region) != "region") return;
-    let zoom = getZoomFactor(board);
-    let view = zoom >= .9 ? "detail" : "summary"; // this is the view that should be active
+
+    let view = this.getViewForCurrentZoom();
+    if (this.currentView == view) return;
 
     let msRegion = this.get(region);
     if (msRegion.getTag('objects').length<3) return;
