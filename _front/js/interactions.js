@@ -36,7 +36,7 @@ function removeAllInfluence(faction, region) {
       influenceMarkers.splice(l, 1);
     }
   }
-  console.log("Removed all influence from ", region, " ", influenceMarkers);
+  //console.log("Removed all influence from ", region, " ", influenceMarkers);
 }
 function setInfluence(faction, region, level) {
   //TODO: globals access is WRONG!!!!

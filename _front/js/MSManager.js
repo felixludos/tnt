@@ -12,8 +12,10 @@ const troopColors = {
 };
 const SZ = {
   region: 180,
+  pStartOffset: {x: -30, y: +30}, // this is where on the region placement of cadre is started
   cadrePrototype: 60,
   cadre: 60,
+  cadreDetail: 44,
   cardWidth: 100,
   cardHeight: 150
 };
@@ -53,6 +55,7 @@ class MSManager {
   get(id) {
     //returns MS with this id
     if (!(id in this.byId)) {
+      return null;
       //console.log("ERROR object[" + id + "] not created!");
     }
 
@@ -84,6 +87,12 @@ class MSManager {
       .setPos(pos.x, pos.y)
       .draw();
     this.byId[id] = {id: id, ms: msRegion, type: "region"};
+
+    msRegion.tag("objects", []);
+    // msRegion.tag("cadres", []); // all cadres on this region by id
+    // msRegion.tag("sumCadres", []); // has ids like Berlin_Axis,Berlin_West,Berlin_USSR,Berline_Neutral
+    msRegion.tag("zoomView", "summary"); // view can be 'summary' or 'detail'
+    msRegion.elem.addEventListener("mouseover", this.switchView.bind(this));
   }
   createType(id, type) {
     this.byId[id] = {id: id, type: type};
@@ -94,19 +103,73 @@ class MSManager {
     let cadre = this.createCadreMS(id, null, power, unit, cv, SZ.cadrePrototype);
     this.byId[id] = {id: id, ms: cadre, type: "proto"};
   }
+  calcStartPos(region) {
+    let posx = this.get(region).x + SZ.pStartOffset.x; //-20;
+    let posy = this.get(region).y + SZ.pStartOffset.y; //- 20; //+ 40;
+    return {x: posx, y: posy};
+  }
   createCadre(id, power, unit, region, cv, showDataToFactionList) {
-    let cadre = this.createCadreMS(id, board, power, unit, cv, SZ.cadre);
-
-    //reg provides pos
-    let posx = this.get(region).x + -20;
-    let posy = this.get(region).y + 40;
-
-    //to display cadre in hidden way, could color overlay
-
-    cadre.setPos(posx, posy).draw();
-
+    let cadre = this.createCadreMS(id, board, power, unit, cv, SZ.cadreDetail);
     this.byId[id] = {id: id, ms: cadre, type: "cadre"};
-    cadre.tag("region", this.get(region).id);
+
+    let msRegion = this.get(region);
+
+    cadre.tag("region", msRegion.id);
+
+    //cal position of this cadre on region: simplest, just in a grid
+    // how many cadres are on this region?
+    let objectIdList = msRegion.getTag("objects");
+    //console.log('list for',region,':',objectIdList)
+    let objectList = objectIdList.map(id => this.get(id));
+    //console.log('list for',region,':',objectList.length)
+    let n = 0;
+    for (var ms of objectList) {
+      let v = ms.getTag("zoomView");
+      //console.log('zoomView is ',v);
+      if (v == "detail") n += 1;
+    }
+    //let n = cadreList.filter(id=>this.get(id).getTag('zoomView') == 'detail').length;
+    //console.log('there are ',n,' detail cadres on ',region)
+
+    objectIdList.push(id); // adding new cadre to region list of cadres
+
+    let w = SZ.region;
+    let pos = {x: msRegion.x, y: msRegion.y};
+    let r = intDiv(n, 4);
+    let c = n % 4;
+    let d = w / 5;
+    let x = pos.x + (d * (c + 1) - w / 2);
+    let y = pos.y + (d * (r + 1) - w / 2);
+
+    cadre.setPos(x, y).draw();
+    cadre.tag("zoomView", "detail"); //should be visible only in detail view
+
+    // add info to sumCadre for playerFaction and this region
+    let sumId = region + "_" + playerFaction;
+    let sumCadre = this.get(sumId);
+    if (!sumCadre) {
+      // create summary cadre for this faction (playerFaction)
+      sumCadre = this.createCadreMS(sumId, board, power, unit, cv, SZ.cadre);
+      let p = this.calcStartPos(region);
+      sumCadre.setPos(p.x, p.y).draw();
+      msRegion.getTag("objects").push(sumId);
+      this.byId[sumId] = {id: sumId, ms: sumCadre, type: "cadre"};
+      sumCadre.tag("zoomView", "summary"); //should be visible only in summary view
+    } else {
+      //update cv on sumCadre by cv of new cadre
+      let oldval = sumCadre.getTag("cv");
+      //console.log(oldval,typeof(oldval));
+
+      let newval = oldval + cv;
+      sumCadre.updateTextOn("cv", newval);
+      sumCadre.tag("cv", newval);
+      //console.log('updating value on cadre',sumId,'for',region,'from',oldval,'to',newval);
+    }
+
+    // if (msRegion.getTag("zoomView") != "summary") sumCadre.hide();
+    // if (msRegion.getTag("zoomView") != "detail") cadre.hide();
+    this.switchView(region);
+
     return cadre;
   }
   createCadreMS(id, parent, power, unit, cv, sz) {
@@ -138,6 +201,7 @@ class MSManager {
     };
     let f = fs1[unit];
 
+    //console.log("SIZE IS", sz);
     let cadre = new MS(id, parent)
       .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
       .roundedRect({className: "ms", w: sz * 0.9, h: sz * 0.9, fill: "rgba(0,0,0,.5)", rounding: sz * 0.08})
@@ -149,9 +213,10 @@ class MSManager {
         txt: letter,
         fill: "rgba(255,255,255,.3)"
       })
-      .text({fz: sz / 2, y: sz * 0.1, txt: cv, fill: "white"})
+      .text({className: "cv", fz: sz / 2, y: sz * 0.1, txt: cv, fill: "white"})
       .roundedRect({className: "overlay selectable", w: sz, h: sz, fill: "rgba(0,0,0,0)", rounding: sz * 0.1});
 
+    cadre.tag("cv", cv);
     return cadre;
   }
   createDecks() {
@@ -200,7 +265,7 @@ class MSManager {
       txt = [o.top, " ", o.season, o.priority + o.value, " ", o.bottom];
       txt = txt.map(x => x.replace(/_/g, " "));
     } else if ("wildcard" in o) {
-      txt = [o.wildcard," ", o.season, o.priority + o.value," "," "];
+      txt = [o.wildcard, " ", o.season, o.priority + o.value, " ", " "];
       txt = txt.map(x => x.replace(/_/g, " "));
     }
     let cardWidth = SZ.cardWidth;
@@ -208,7 +273,7 @@ class MSManager {
 
     let card = new MS(id)
       .roundedRect({w: cardWidth, h: cardHeight, fill: "white"})
-      .textMultiline({txt: txt, maxWidth:cardWidth, fz: cardWidth / 6});
+      .textMultiline({txt: txt, maxWidth: cardWidth, fz: cardWidth / 6});
     this.byId[id] = {id: id, ms: card, type: type};
     this.hand[type].push(id);
 
@@ -323,14 +388,14 @@ class MSManager {
   hasActionCards() {
     return this.hand.action_card.length;
   }
-  calculateCardLayout(handChanged=true) {
+  calculateCardLayout(handChanged = true) {
     if (!this.hasActionCards()) return;
     if (!handChanged && this.cardRows == 1) return;
     clearElement(cardDisplay);
     let d = cardDisplay;
     let idsAction = this.hand.action_card;
     let idsInvestment = this.hand.investment_card;
-    var n = idsAction.length+idsInvestment.length;
+    var n = idsAction.length + idsInvestment.length;
     var w = SZ.cardWidth;
     var h = SZ.cardHeight;
     for (var i = 0; i < idsAction.length; i++) {
@@ -347,14 +412,14 @@ class MSManager {
       card.setPos(w / 2, h / 2);
       holder.appendChild(card.elem);
     }
-    let dims = calculateDims(n,w,1); //layout(n,w,h);
+    let dims = calculateDims(n, w, 1); //layout(n,w,h);
     var sGridColumn = `${w}px `.repeat(dims.cols);
     // d.classList.add("cardGridContainer");
     d.style.gridTemplateColumns = `repeat(auto-fill,${sGridColumn})`;
     // d.style.width = dims.width + "px";
     d.style.padding = dims.padding + "px";
     d.style.gridGap = dims.gap + "px";
-    this.cardRows=dims.rows;
+    this.cardRows = dims.rows;
   }
   drawDeckCard(id, o, type) {
     let card = this.createHandCard(id, o, type);
@@ -380,4 +445,48 @@ class MSManager {
   //   return this.byId[card];
   // }
   // #endregion
+
+  // #region views of objects
+
+  switchView(ev) {
+    let region = isEvent(ev) ? evToId(ev) : ev;
+    //console.log('mouseover',region)
+    if (this.getType(region) != "region") return;
+    let zoom = getZoomFactor(board);
+    let view = zoom >= .9 ? "detail" : "summary"; // this is the view that should be active
+
+    let msRegion = this.get(region);
+    let regionIsInView = msRegion.getTag("zoomView");
+    console.log('view of',region,'is',regionIsInView)
+    if (view == regionIsInView) return;
+
+    // hide all objects that do NOT belong to this view, show objects that belong to this view
+    // for (const id of msRegion.getTag('objects')) {
+    //   let ms = this.get(id);
+    //   let v = ms.getTag('zoomView');
+    //   //console.log('view of',id,'is',v)
+    //   if (v == view){ms.show();}else{ms.hide();}
+    // }
+
+    let objects = msRegion.getTag("objects").map(x => this.get(x)); // list of ms objects
+    for (const ms of objects) {
+      let v = ms.getTag("zoomView");
+      //console.log('view of',id,'is',v)
+      if (v == view) {
+        ms.show();
+      } else {
+        ms.hide();
+      }
+    }
+    if (view == "detail") {
+      //determine startpos
+      let pos = this.calcStartPos(region);
+      //objects.map(x=>x.setPos(pos.x,pos.y));
+      objects = objects.filter(x=>x.getTag('zoomView') == 'detail');
+      //console.log(objects);
+      snail(pos, objects,SZ.cadreDetail+1);
+    }
+    msRegion.tag("zoomView", view);
+  }
+  // #endregion views of objects
 }

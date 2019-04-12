@@ -56,6 +56,7 @@ class MS {
     return this;
   }
   setPos(x, y) {
+    //console.log(this.id,x,y)
     this.elem.setAttribute("transform", `translate(${x},${y})`);
     this.x = x;
     this.y = y;
@@ -147,12 +148,16 @@ class MS {
   }
   hide() {
     if (!this.isVisible) return;
-    this.elem.setAttribute("class", "hidden"); //addClass("hidden");
+    
+    this.elem.setAttribute('style',"visibility:hidden");
+    //this.elem.setAttribute("class", "hidden"); //addClass("hidden");
     this.isVisible = false;
   }
   show() {
+    //console.log('called show!!! ',this.id,this.isVisible)
     if (this.isVisible) return;
-    this.elem.setAttribute("class", ""); //addClass("hidden");
+    this.elem.setAttribute('style',"visibility:visible");
+    //this.elem.setAttribute("class", "svg"); //addClass("hidden");
     this.isVisible = true;
   }
   //#endregion
@@ -307,6 +312,7 @@ class MS {
     r.setAttribute("y", -h / 2 + y);
 
     if (this.elem.childNodes.length == 0) {
+      //console.log('setting bounds to ',w,h)
       this.bounds.w = w;
       this.bounds.h = h;
     }
@@ -476,8 +482,36 @@ class MS {
     this.data[key] = val;
     return this;
   }
-  hasTag(key, val) {
+  getTag(key){if (key in this.data) return this.data[key]}
+  hasTag(key){return key in this.data;}
+  hasTagWithVal(key, val) {
     return key in this.data && this.data[key] == val;
   }
   //#endregion
+
+  //#region changing properties
+  updateTextOn(className,val){
+    //console.log(this.elem,this.elem.childNodes)
+    for (const ch of [...this.elem.childNodes]) {
+      let type = ch.tagName;
+      //console.log('ch=',ch,'getTypeOf:',type,'ch.tagName:',ch.tagName,'typeof=',typeof(ch));
+      if (type == 'text'){
+        let classes = ch.getAttribute('class');
+        //console.log('class=',classes);
+        //console.log(val.toString())
+        if (classes && classes.includes(className)){
+          // this is the correct text element!
+          //console.log('current value:',ch.textContent,Number(ch.textContent))
+          ch.textContent = val;
+        }
+      }
+    }
+
+    // let matchingElements = this.elem.childNodes.filter(x=>x.getAttribute('class').includes(className));
+    // if (matchingElements.length>0){
+    //   let el = machintElements[0];
+    //   el.textContent = val;
+    // }
+  }
+  //#endregion changing properties
 }

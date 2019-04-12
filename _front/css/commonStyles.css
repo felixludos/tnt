@@ -17,6 +17,9 @@ html {
 .hidden {
   display: none;
 }
+.svg {
+  display: svg;
+}
 .cursorPointer {
   cursor: pointer;
 }
