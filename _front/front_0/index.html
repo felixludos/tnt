@@ -111,14 +111,6 @@
     <script src="https://www.w3schools.com/lib/w3.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <!-- #endregion panzoom -->
-    <!-- #region panzoom -->
-    <script src="https://unpkg.com/panzoom@7.1.2/dist/panzoom.min.js"></script>
-    <script src="/common/js/panzoom.js"></script>
-    <script>
-      document.getElementById("imgMap").addEventListener("dblclick", reset); //panzoom setup
-      reset();
-    </script>
-    <!-- #endregion panzoom -->
     <!-- #region: SCRIPTS  -->
     <script src="/common/js/helpers.js"></script>
     <script src="/common/js/MS.js"></script>
@@ -129,6 +121,17 @@
     <script src="/common/js/MParser.js"></script>
     <script src="/common/js/MScanner.js"></script>
     <script src="/common/js/interactions.js"></script>
+    <!-- #region panzoom -->
+    <script src="https://unpkg.com/panzoom@7.1.2/dist/panzoom.min.js"></script>
+    <script src="/common/js/panzoom.js"></script>
+    <script>
+      function onZoomBoard(){
+        Manager.zooming();
+      }
+      document.getElementById("imgMap").addEventListener("dblclick", ()=>reset(onZoomBoard)); //panzoom setup
+      reset(onZoomBoard);
+    </script>
+    <!-- #endregion panzoom -->
     <!-- #endregion: SCRIPTS  -->
 
     <!-- #region GLOBALS -->

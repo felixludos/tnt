@@ -36,8 +36,15 @@ class MSManager {
     this.cadres = []; // list of individual cadre ids
     this.sumCadres = []; // list of summary cadre ids
     this.currentView = this.getViewForCurrentZoom();
+    //board.onwheel = this.zooming.bind(this);
+    this.timer = -1; //signal for non-reentrant functions
+    this.counter = 0;
   }
   // #region helpers
+
+  // function scrollFinished() {
+  //     document.body.style.backgroundColor = "red";
+  // }
   makeSelectable(ms, handler) {
     ms.highlight();
     ms.isEnabled = true;
@@ -96,7 +103,7 @@ class MSManager {
     // msRegion.tag("cadres", []); // all cadres on this region by id
     // msRegion.tag("sumCadres", []); // has ids like Berlin_Axis,Berlin_West,Berlin_USSR,Berline_Neutral
     msRegion.tag("zoomView", "summary"); // view can be 'summary' or 'detail'
-    msRegion.elem.addEventListener("mouseover", this.switchView.bind(this));
+    //msRegion.elem.addEventListener("mouseover", this.switchView.bind(this));
     this.regions.push(id);
   }
   createType(id, type) {
@@ -176,7 +183,7 @@ class MSManager {
 
     if (msRegion.getTag("zoomView") != "summary") sumCadre.hide();
     if (msRegion.getTag("zoomView") != "detail") cadre.hide();
-    this.switchView(region,false);
+    this.switchView(region, false);
 
     return cadre;
   }
@@ -448,36 +455,43 @@ class MSManager {
 
   // #region views of objects
 
-  getViewForCurrentZoom(){
+  zooming() {
+    console.log(this.counter);this.counter+=1;
+    if (this.timer != -1) clearTimeout(this.timer);
+
+    this.timer = window.setTimeout(this.viewObserver.bind(this), 350);
+  }
+
+  getViewForCurrentZoom() {
     let zoom = getZoomFactor(board);
     //console.log(zoom);
-    let view = zoom >= .6 ? "detail" : "summary"; // this is the view that should be active
+    let view = zoom >= 0.4 ? "detail" : "summary"; // this is the view that should be active
     return view;
   }
-  viewObserver(){
-    // runs periodically 
+  viewObserver() {
+    // runs on wheel periodically
     // updates each visible region's view
     // should be triggered by zoom or pan
     // or just by some timer
+
     let view = this.getViewForCurrentZoom();
     if (this.currentView == view) return;
     //console.log('starting view observer');
-    let hasChanged=false;
+    //let hasChanged=false;
     //adapting regions
     for (const region of this.regions) {
       let msRegion = this.get(region);
-      let rView = msRegion.getTag('zoomView');
+      let rView = msRegion.getTag("zoomView");
       if (rView == view) continue;
-      this.switchView(region,false);
-      hasChanged = true;
+      this.switchView(region, false);
+      //hasChanged = true;
     }
     this.currentView = view;
     //if (hasChanged){setTimeout(this.viewObserver.binding(this),3000)}
     //else return;
-
   }
 
-  switchView(ev,runViewObserver=true) {
+  switchView(ev, runViewObserver = true) {
     let region = isEvent(ev) ? evToId(ev) : ev;
     //console.log('mouseover',region)
     if (this.getType(region) != "region") return;
@@ -486,7 +500,7 @@ class MSManager {
     if (this.currentView == view) return;
 
     let msRegion = this.get(region);
-    if (msRegion.getTag('objects').length<3) return;
+    if (msRegion.getTag("objects").length < 3) return;
 
     let regionIsInView = msRegion.getTag("zoomView");
     //console.log('view of',region,'is',regionIsInView)
@@ -514,13 +528,13 @@ class MSManager {
       //determine startpos
       let pos = this.calcStartPos(region);
       //objects.map(x=>x.setPos(pos.x,pos.y));
-      objects = objects.filter(x=>x.getTag('zoomView') == 'detail');
+      objects = objects.filter(x => x.getTag("zoomView") == "detail");
       //console.log(objects);
-      snail(pos, objects,SZ.cadreDetail+1);
+      snail(pos, objects, SZ.cadreDetail + 1);
     }
     msRegion.tag("zoomView", view);
 
-    if (runViewObserver)this.viewObserver();
+    //if (runViewObserver)this.viewObserver();
   }
   // #endregion views of objects
 }
