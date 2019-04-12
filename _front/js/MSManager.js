@@ -166,8 +166,8 @@ class MSManager {
       //console.log('updating value on cadre',sumId,'for',region,'from',oldval,'to',newval);
     }
 
-    // if (msRegion.getTag("zoomView") != "summary") sumCadre.hide();
-    // if (msRegion.getTag("zoomView") != "detail") cadre.hide();
+    if (msRegion.getTag("zoomView") != "summary") sumCadre.hide();
+    if (msRegion.getTag("zoomView") != "detail") cadre.hide();
     this.switchView(region);
 
     return cadre;
@@ -457,7 +457,7 @@ class MSManager {
 
     let msRegion = this.get(region);
     let regionIsInView = msRegion.getTag("zoomView");
-    console.log('view of',region,'is',regionIsInView)
+    //console.log('view of',region,'is',regionIsInView)
     if (view == regionIsInView) return;
 
     // hide all objects that do NOT belong to this view, show objects that belong to this view
