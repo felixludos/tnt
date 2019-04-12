@@ -12,48 +12,48 @@ def encode_production_actions(G):
 	code = adict()
 	
 	active_player = G.game.turn_order[G.temp.active_idx]
+	faction = G.players[active_player]
+			
+	options = xset()
 	
-	for name, faction in G.players.items():
-		if name != active_player:
+	# pass
+	options.add(('pass',))
+	
+	# cards
+	options.add(('action_card',))
+	options.add(('investment_card',))
+	
+	# new cadres
+	for nationality, tiles in faction.homeland.items():
+		groups = util.placeable_units(G, active_player, nationality, tiles)
+		if len(groups):
+			options.add((nationality, groups))
+	
+	# improve units
+	improvable = xset()
+	
+	for unit in faction.units:
+		
+		# can't upgrade a cv of 4
+		if unit.cv == 4:
 			continue
-			
-		options = xset()
 		
-		# cards
-		options.add(('action_card',))
-		options.add(('investment_card',))
+		tile = G.tiles[unit.tile]
 		
-		# new cadres
-		for nationality, tiles in faction.homeland.items():
-			groups = util.placeable_units(G, name, nationality, tiles)
-			if len(groups):
-				options.add((nationality, groups))
+		# unit must be supplied and not engaged
+		if 'disputed' in tile or 'unsupplied' in tile:
+			continue
 		
-		# improve units
-		improvable = xset()
+		# tile must be land or coast
+		if tile.type in {'Sea', 'Ocean'}:
+			continue
 		
-		for unit in faction.units:
-			
-			# can't upgrade a cv of 4
-			if unit.cv == 4:
-				continue
-			
-			tile = G.tiles[unit.tile]
-			
-			# unit must be supplied and not engaged
-			if 'disputed' in tile or 'unsupplied' in tile:
-				continue
-			
-			# tile must be land or coast
-			if tile.type in {'Sea', 'Ocean'}:
-				continue
-			
-			improvable.add(unit._id)
-		improvable -= G.temp.prod[name].upgraded_units
-		if len(improvable):
-			options.add((improvable,))
-		
-		code[name] = options
+		improvable.add(unit._id)
+	improvable -= G.temp.prod[active_player].upgraded_units
+	if len(improvable):
+		options.add((improvable,))
+	
+	code[active_player] = options
 
 	return code
 		
@@ -68,7 +68,7 @@ def production_pre_phase(G):
 	G.temp.active_idx = 0
 	G.temp.prod = tdict()
 	
-	# update blockades
+	# TODO: update blockades
 	
 	
 	for player, faction in G.players.items():
@@ -81,6 +81,9 @@ def production_pre_phase(G):
 		G.temp.prod[player].invest_cards_drawn = 0
 	
 	# remove all blockades (not unsupplied markers)
+	
+	active_player = G.game.turn_order[G.temp.active_idx]
+	G.logger.write('{} may spend {} production points'.format(active_player, G.temp.prod[active_player].production_remaining))
 	
 	return encode_production_actions(G)
 
@@ -96,6 +99,9 @@ def production_phase(G, player, action):
 		elif action == ('investment_card', ):
 			G.temp.prod[player].invest_cards_drawn += 1
 			effect = 'drawing an investment card'
+			
+		elif action == ('pass',):
+			effect = 'passing'
 		
 		else:
 			ID, = action
@@ -104,7 +110,7 @@ def production_phase(G, player, action):
 			
 			G.objects.table[ID].cv += 1
 			
-			effect = 'upgrading a cadre in {}'.format(G.objects.table[ID].tile)
+			effect = 'upgrading a unit in {}'.format(G.objects.table[ID].tile)
 		
 	else: # create new unit
 		nationality, tilename, unit_type = action
@@ -114,7 +120,9 @@ def production_phase(G, player, action):
 		unit.tile = tilename
 		unit.type = unit_type
 		
-		add_unit(G, unit)
+		unit = add_unit(G, unit)
+		
+		G.temp.prod[player].upgraded_units.add(unit._id)
 		
 		effect = 'building a new cadre in {}'.format(unit.tile)
 	
@@ -138,6 +146,10 @@ def production_phase(G, player, action):
 		G.temp.active_idx += 1
 		if G.temp.active_idx == len(G.players):
 			raise PhaseComplete # phase is done
+		
+		active_player = G.game.turn_order[G.temp.active_idx]
+		G.logger.write(
+			'{} may spend {} production points'.format(active_player, G.temp.prod[active_player].production_remaining))
 	
 	return encode_production_actions(G)
 

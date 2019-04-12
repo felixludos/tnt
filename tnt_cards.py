@@ -65,7 +65,7 @@ def draw_cards(G, stack, player, N=1):
 		card.visible.add(player)
 		G.objects.updated[card._id] = card
 		
-	G.players[player].hand.update(cards)
+	G.players[player].hand.update(card._id for card in cards)
 	
 	G.logger.write('{} draws {} {} cards (now holding {} cards)'.format(player, N, stack, len(G.players[player].hand)))
 
@@ -83,18 +83,18 @@ def get_cards(stack, N=1):
 
 
 def split_choices(options, num, dim):
-	np.random.shuffle(options)
+	random.shuffle(options)
 	
 	picks = [[] for _ in range(num)]
-	indices = np.arange(num)
+	indices = list(range(num))
 	for name, count in options:
 		
-		idx = np.random.choice(indices, count, replace=False)
+		idx = random.choice(indices, count, replace=False)
 		for i in idx:
 			picks[i].append(name)
 			if len(picks[i]) == dim:
 				indices = indices[i != indices]
-	np.random.shuffle(picks)
+	random.shuffle(picks)
 	return picks
 
 def load_gen_card_decks(G, card_config_path='config/card_stats.yml',):
@@ -125,15 +125,15 @@ def load_gen_card_decks(G, card_config_path='config/card_stats.yml',):
 			card.name = name
 			
 			wildcards.append(card)
-	np.random.shuffle(wildcards)
+	random.shuffle(wildcards)
 	
 	for season, info in config.seasons.items():
 		
 		commands = sum([[k] * v for k, v in info.commands.items()], [])
-		np.random.shuffle(commands)
+		random.shuffle(commands)
 		
 		if len(info.priorities) > info.count:
-			priorities = np.random.choice(info.priorities, info.count, replace=False).tolist()
+			priorities = random.choice(info.priorities, info.count, replace=False).tolist()
 		else:
 			priorities = info.priorities
 		assert len(priorities) == info.count
