@@ -270,7 +270,9 @@ def convert_from_saveable(data):
 def save_gamestate(filename): # save file and send it
 	data = {
 		'gamestate': convert_to_saveable(G),
-		'waiting': convert_to_saveable(WAITING),
+		'waiting_objs': convert_to_saveable(WAITING_OBJS),
+		'waiting_actions': convert_to_saveable(WAITING_ACTIONS),
+		'repeats': convert_to_saveable(REPEATS),
 	}
 	if G is not None:
 		G.logger.write('Game saved')
@@ -282,8 +284,10 @@ def save_gamestate(filename): # save file and send it
 
 def load_gamestate(path): # load from input file, or most recent checkpoint (more safe)
 	data = json.load(open(path, 'r'))
-	global WAITING, G
-	WAITING = convert_from_saveable(data['waiting'])
+	global WAITING_OBJS, WAITING_ACTIONS, REPEATS, G
+	WAITING_OBJS = convert_from_saveable(data['waiting_objs'])
+	WAITING_ACTIONS = convert_from_saveable(data['waiting_actions'])
+	REPEATS = convert_from_saveable(data['repeats'])
 	G = convert_from_saveable(data['gamestate'])
 	if G is not None:
 		G.logger.write('Game loaded')

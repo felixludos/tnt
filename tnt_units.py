@@ -65,6 +65,8 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	G.players[player].units.add(unit)
 	G.objects.table[unit._id] = unit
 	G.objects.created[unit._id] = unit
+	
+	return unit
 
 def check_for_convoy(unit, tile):
 	if (unit.type == 'Infantry' or unit.type == 'Tank') \
