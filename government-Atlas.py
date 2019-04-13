@@ -47,10 +47,12 @@ def factory_upgrade_combos(cards, cost):
 
 def check_techs(G, player, cards):
 
+	self_techs = G.players[player].techs
+
 	global_techs = xset()
 	for name, faction in G.players.items():
 		if name != player:
-			global_techs.update(faction.technologies)
+			global_techs.update(faction.techs)
 
 	science = xset(c._id for c in cards if 'science' in c and c.year <= G.game.year)
 	
@@ -72,19 +74,18 @@ def check_techs(G, player, cards):
 		espionage = available['Industrial_Espionage']
 		del available['Industrial_Espionage']
 		
-	# remove already discovered techs
-	for tech in G.players[player].technologies:
-		if tech in available:
-			del available[tech]
-		
 	options = xset()
 	
 	for tech, sIDs in available.items():
 		
 		topts = xset()
+		
+		if tech in self_techs:
+			continue
 			
 		if len(sIDs) > 1:
 			topts.update(choose_2_from(sIDs))
+			
 		
 		for sciID in science:
 			if tech in cards[sciID].science:
@@ -92,86 +93,9 @@ def check_techs(G, player, cards):
 				
 		if espionage is not None and tech in global_techs:
 			for eID in espionage:
-				combs = sIDs.copy()
-				combs.discard(eID)
-				if len(combs) > 0:
-					topts.add((sIDs, eID))
-		
-		if len(topts):
-			options.add((tech, topts))
+				pass
 
-	return options
-
-def get_adjacent_nations(G, *players):
-	nations = xset()
-	for player in players:
-		for tilename in G.players[player].territory:
-			for neighbor in G.tiles[tilename].borders.keys():
-				tile = G.tiles[neighbor]
-				if 'alligence' in tile:
-					nations.add(tile.alligence)
-	return nations
-
-def get_removable_nations(G, player):
-	
-	nations = xset()
-	
-	for rival in G.players[player].stats.rivals:
-		for iID in G.players[rival].influence:
-			nations.add(G.objects.table[iID].nation)
-	return nations
-
-def check_wildcard(G, player, card):
-	name = card.wildcard
-	info = G.cards.info.action[name]
-	
-	options = xset()
-	
-	if 'adjacent' in info: # either guarantee or intimidation
-		if info.from_self: # intimidation
-			options.update(get_adjacent_nations(G, player))
-		else: # guarantee
-			options.update(get_adjacent_nations(G, *G.players[player].stats.rivals))
-		options.discard('USA')
-		
-		for name in G.players:
-			options -= G.nations.groups[name]
-		
-	elif 'options' in info: # contains 'options'
-		if 'from_self' in info: # personalized options
-			if info.from_self: # TtB, ET, BF, BA, V
-				options.update(info.options[player])
-			else: # F&L
-				for rival in G.players[player].stats.rivals:
-					options.update(info.options[rival])
-		else: # isolationism
-			options.update(info.options)
-	elif name == 'Foreign_Aid':
-		options.update(G.neutrals.minors)
-		options.update(G.neutrals.majors)
-	else:
-		raise Exception('Unknown wildcard type: {}, {}'.format(name, list(info.keys())))
-	
-	# filter out options depending on add/remove
-	
-	if 'add' in info and 'remove' in info:
-		return options
-	
-	assert 'add' in info or 'remove' in info, 'Cant do anything, card info is missing something for {}'.format(name)
-	
-	removable = get_removable_nations(G, player)
-	
-	if 'remove' not in info:
-		options -= removable
-	
-	if 'add' not in info:
-		options *= removable
-	
-	return options
-	
-	
-	
-	
+	pass
 
 def encode_government_actions(G):
 	code = adict()
@@ -181,7 +105,7 @@ def encode_government_actions(G):
 	
 	hand = adict({ID:G.objects.table[ID] for ID in faction.hand})
 	action_cards = adict((k,v) for k,v in hand.items() if v.obj_type == 'action_card')
-	invest_cards = adict((k, v) for k, v in hand.items() if v.obj_type == 'investment_card')
+	invest_cards = adict((k, v) for k, v in hand.items() if v.obj_type == 'action_card')
 	
 	options = xset()
 	
@@ -193,19 +117,16 @@ def encode_government_actions(G):
 		if 'top' in card:
 			options.add((ID, xset([card.top, card.bottom])))
 		elif 'wildcard' in card:
-			wopts = check_wildcard(G, active_player, card)
-			if len(wopts):
-				options.add((ID, wopts))
+			options.add((ID,))
 		else:
 			raise Exception('Unknown action card properties: {}'.format(card.keys()))
 	
 	# factory upgrade options
-	options.add(('factory_upgrade',))
-	# for combo in factory_upgrade_combos(invest_cards, faction.stats.factory_cost):
-	# 	options.add(('factory_upgrade',) + combo)
+	for combo in factory_upgrade_combos(invest_cards, faction.stats.factory_cost):
+		options.add(('factory_upgrade',) + combo)
 	
 	# tech options
-	options.update(check_techs(G, active_player, invest_cards))
+	
 	
 	# espionage options
 	for ID, card in invest_cards.items():
@@ -259,8 +180,6 @@ def governmnet_phase(G, player, action): # play cards
 def government_post_phase(G, action=None):
 	
 	# diplomacy resolution, handsize, update tracks
-	
-	
 	
 	pass
 

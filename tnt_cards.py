@@ -41,7 +41,7 @@ def load_card_decks(G, action_path='config/cards/action_cards.yml',
 	G.cards.investment = investment_cards
 	G.cards.investment.discard_pile = tlist()
 	
-	G.cards.info = tdict(cinfo)
+	G.cards.info = cinfo
 	
 	shuffle(G.cards.investment)
 	shuffle(G.cards.action)

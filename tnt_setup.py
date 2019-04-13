@@ -43,13 +43,17 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 def load_players_and_minors(G):
 	player_setup = load('config/faction_setup.yml')
 	
+	G.nations = tdict()
 	nations = tdict()
 	minor_designation = 'Minor'
 	
 	for tile in G.tiles.values():
 		if 'alligence' in tile:
 			nations[tile.alligence] = minor_designation
-	G.nations = nations # map nationality to faction/minor
+	nations['USA'] = 'Major'
+	G.nations.designations = nations # map nationality to faction/minor
+	
+	G.nations.groups = tdict()
 	
 	# load factions/players
 	players = tdict()
@@ -72,6 +76,8 @@ def load_players_and_minors(G):
 		faction.stats.factory_cost = faction.stats.factory_all_costs[faction.stats.factory_idx]
 		faction.stats.emergency_command = config.EmergencyCommand
 		
+		faction.stats.rivals = rivals[name]
+		
 		faction.stats.DoW = tdict()
 		faction.stats.DoW[rivals[name][0]] = False
 		faction.stats.DoW[rivals[name][1]] = False
@@ -93,17 +99,18 @@ def load_players_and_minors(G):
 		
 		faction.members = tdict()
 		for nation, info in config.members.items():
-			nations[nation] = name
 			faction.members[nation] = tset([nation])
 			if 'Colonies' in info:
 				faction.members[nation].update(info.Colonies)
 		
-		faction.homeland = tdict({member:tset() for member in faction.members.keys()})
-		faction.territory = tset()
-		
 		full_cast = tset()
 		for members in faction.members.values():
 			full_cast.update(members)
+		for member in full_cast:
+			G.nations.designations[member] = name
+		
+		faction.homeland = tdict({member:tset() for member in faction.members.keys()})
+		faction.territory = tset()
 		
 		for tile_name, tile in G.tiles.items():
 			if 'alligence' not in tile:
@@ -122,15 +129,21 @@ def load_players_and_minors(G):
 		faction.units = tset()
 		faction.hand = tset() # for cards
 		faction.technologies = tset()
-		faction.influence = tdict()
+		faction.secret_vault = tset()
+		faction.influence = tset()
 		
 		players[name] = faction
 	G.players = players
 	
 	# load minors/diplomacy
 	minors = tdict()
-	for name, team in nations.items():
-		if team == minor_designation:
+	majors = tdict()
+	for name, team in G.nations.designations.items():
+		if team not in G.nations.groups:
+			G.nations.groups[team] = tset()
+		G.nations.groups[team].add(name)
+		
+		if team == minor_designation: # only minors
 			minor = tdict()
 			
 			minor.units = tset()
@@ -139,7 +152,19 @@ def load_players_and_minors(G):
 			minor.influence_value = 0
 			
 			minors[name] = minor
-	G.minors = minors
+			
+		if team == 'Major': # only includes neutral majors
+			major = tdict()
+			
+			major.units = tset()
+			major.is_armed = False
+			major.influence_faction = None
+			major.influence_value = 0
+			
+			majors[name] = major
+	G.neutrals = tdict()
+	G.neutrals.minors = minors
+	G.neutrals.majors = majors
 	
 
 def load_game_info(G, path='config/game_info.yml'):

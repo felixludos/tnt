@@ -103,7 +103,7 @@ Bay of Biscay:
   type: Sea
 Dublin:
   type: Land
-  alligence: IreLand
+  alligence: Ireland
   res: 0
   pop: 0
   muster: 1
@@ -285,13 +285,13 @@ Stockholm:
   muster: 2
 Petsamo:
   type: Land
-  alligence: FinLand
+  alligence: Finland
   res: 1
   pop: 0
   muster: 0
 Helsinki:
   type: Land
-  alligence: FinLand
+  alligence: Finland
   res: 0
   pop: 0
   muster: 1
@@ -317,19 +317,19 @@ Konigsberg:
   muster: 2
 Warsaw:
   type: Land
-  alligence: PoLand
+  alligence: Poland
   res: 1
   pop: 1
   muster: 3
 Vilna:
   type: Land
-  alligence: PoLand
+  alligence: Poland
   res: 0
   pop: 0
   muster: 1
 Lvov:
   type: Land
-  alligence: PoLand
+  alligence: Poland
   res: 0
   pop: 1
   muster: 2

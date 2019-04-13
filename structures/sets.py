@@ -33,12 +33,18 @@ class xset(set):
 	
 	def __isub__(self, other):
 		for x in other:
-			self.remove(x)
+			self.discard(x)
+		return self
+	
+	def __imul__(self, other):
+		for x in self.copy():
+			if x not in other:
+				self.discard(x)
 		return self
 	
 	def difference(self, *others):
 		new = self.copy()
 		for other in others:
 			for x in other:
-				new.remove(x)
+				new.discard(x)
 		return new
