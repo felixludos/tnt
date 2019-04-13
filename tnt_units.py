@@ -35,12 +35,12 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	
 	unit = idict(unit.items())
 	unit.obj_type = 'unit'
-	unit.visible = tset({G.nations[unit.nationality]})
+	unit.visible = tset({G.nations.designations[unit.nationality]})
 	
 	if 'cv' not in unit: # by default add a cadre
 		unit.cv = 1
 	
-	player = G.nations[unit.nationality]
+	player = G.nations.designations[unit.nationality]
 	tilename = unit.tile
 	
 	tile = G.tiles[tilename]
