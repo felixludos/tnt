@@ -124,18 +124,11 @@
     <!-- #region panzoom -->
     <script src="https://unpkg.com/panzoom@7.1.2/dist/panzoom.min.js"></script>
     <script src="/common/js/panzoom.js"></script>
-    <script>
-      function onZoomBoard() {
-        Manager.zooming();
-      }
-      document.getElementById("imgMap").addEventListener("dblclick", () => reset(onZoomBoard)); //panzoom setup
-      reset(onZoomBoard);
-    </script>
     <!-- #endregion panzoom -->
 
     <!-- #region GLOBALS -->
     <script>
-      const playerFaction = "West"; //set desired faction here
+      var playerFaction = "West"; //set desired faction here
       const rootDiv = document.getElementById("rootDiv");
       const board = document.getElementById("board");
       const troopDisplay = document.getElementById("troopDisplay");
@@ -143,7 +136,7 @@
       //const handDisplay = document.getElementById("handDisplay"); //g
       const logDisplay = document.getElementById("logDisplay");
 
-      var Manager = new MSManager(board, troopDisplay, cardDisplay); // manages all game objects
+      var Manager = new MSManager(board, troopDisplay, cardDisplay, playerFaction); // manages all game objects
       //var Hand = new MHand(handDisplay);
 
       var unitCount; //{'Germany': {'Infantry':16,...}} reserve info dictionary, local asset:unit_count.yml
@@ -264,7 +257,6 @@
         setProduction(faction, stat);
       }
       function localSetPlayerFaction(faction) {
-        //playerFaction = faction; // assume Axis
         let info = factionDict[faction]; // get cadres to place
         let allPowers = Object.keys(unitsPerPower); // ['Germany','Italy','Britain','France','USA','USSR'];
         let cadresPlacementForPlayer = info["setup"]["cadres"]; //{Germany: {Berlin: 6,..}, Italy: {Rome: 4, Milan: 2, Tripoli: 2}}
@@ -323,10 +315,17 @@
       function sendurl(url, onResponse) {
         url = backendServerUrl + url;
         nMessages += 1;
-        //console.log(nMessages, "request sent: ", url);
+        console.log(nMessages, "request sent: ", url);
         w3.http(url, function() {
           if (this.readyState == 4 && this.status == 200) {
-            onResponse(this.responseText);
+            try {
+              let jsonData = JSON.parse(this.responseText);
+              console.log(jsonData);
+            } catch {
+              console.log(this.responseText);
+            } finally {
+              onResponse(this.responseText);
+            }
           }
         });
       }
@@ -337,13 +336,19 @@
         let url = "action/" + faction + "/" + selectedLabels.join("+");
         sendurl(url, data => processData(data));
       }
-      function sendGetPlayerStats(faction) {
+      function sendInfo(faction) {
         //@app.route('/info/<faction>')
-        sendurl("info/" + faction, updatePlayerStats);
+        sendurl("info/" + faction, data => {
+          console.log("info response:", data);
+          //updatePlayerStats();
+        });
       }
       function sendStatus(faction) {
         let url = "status/" + faction;
-        sendurl(url, data => processData(data));
+        sendurl(url, data => {
+          console.log("status response:", data);
+          processData(data);
+        });
       }
     </script>
     <!-- #endregion CORS server communication -->
@@ -381,51 +386,60 @@
           powerList.map(x => Manager.createType(x, "power"));
           unitList.map(x => Manager.createType(x, "unit"));
 
-          sendInit(playerFaction, Start); //Start();//
+          sendInit(playerFaction, processData);
         });
       }
     </script>
     <!-- #endregion setup -->
 
     <script>
+      var skipCounter = 11; // ***SKIPCOUNTER*** West:12 this is to skip cadre setup phase
       var serverTree; // action tree from server
-      var originalOrder;
-      var nMessages = 0;
-      function Start(dataFromServer) {
-        processData(dataFromServer);
-      }
-      var skipCounter = 12; // ***SKIPCOUNTER*** West:12 this is to skip cadre setup phase
-      function skipActions(actionData) {
-        //skipCounter times just return first alternative to server to speed up process
-        if (skipCounter > 0) {
-          skipCounter -= 1;
-          //console.log('skip:',actionData)
-          let sActions = JSON.stringify(actionData);
-          let serverTree = new MParser(sActions).tree;
-          //serverTree.print();
-          let b = serverTree.branchSample();
-          //console.log('send',b);
-          sendAction(playerFaction, b);
-
-          return true;
-        }
-        return false;
-      }
+      var originalOrder; // remember order of selection params as sent by server
+      var nMessages = 0; // just to check #received==#sent
+      var turns = 0;
       function processData(data) {
         nMessages -= 1;
         serverData = JSON.parse(data);
-        if (skipCounter <= 0) {
-        } //console.log(serverData);
 
-        processLog(serverData.log);
-        processWaiting(serverData.waiting_for);
+        processLog(serverData.log); //always process log
+
+        
         processCreated(serverData.created);
         processUpdated(serverData.updated);
         processRemoved(serverData.removed);
-        if (skipActions(serverData.actions)) {
-          //console.log("skipped action");
+
+        // when receiving waiting message, just send status or info
+        if (processWaiting(serverData.waiting_for)) {
+          turns += 1;
+          //show Next Player button
+          playerFaction = serverData.waiting_for.set[0];
+          console.log("switching to player", playerFaction);
+          Manager.changeTurn(playerFaction);
+          //sendInfo(playerFaction, updatePlayerStats);
+          // if (turns>=3) {
+          //   console.log('hier beginnt das spiel');
+          //   skipCounter = 0;
+          // }else if (playerFaction == 'Axis')skipCounter = 21;
+          // else if (playerFaction == 'USSR') skipCounter=6;
+          //sendStatus(playerFaction);
         } else {
-          processAction(serverData.actions);
+          // if UI interaction should be skipped:
+          //skipCounter times just return first alternative to server to speed up process
+          if (skipCounter > 0) {
+            console.log("skipping action", skipCounter);
+            //just send first available option
+            skipCounter -= 1;
+            //console.log('skip:',actionData)
+            let sActions = JSON.stringify(serverData.actions);
+            let serverTree = new MParser(sActions).tree;
+            //serverTree.print();
+            let b = serverTree.branchSample();
+            //console.log('send',b);
+            sendAction(playerFaction, b);
+          } else {
+            processAction(serverData.actions);
+          }
         }
       }
       function processLog(msg) {
@@ -459,7 +473,7 @@
               if (unit === undefined) {
                 //console.log("unit type undefined!!!");
               } else {
-                Manager.createCadre(id, power, unit, region, cv, visibleToFactions);
+                Manager.createCadre(id, power, unit, region, cv, playerFaction, visibleToFactions);
               }
               break;
             default:
@@ -478,11 +492,11 @@
           let o = upData[id];
           switch (o.obj_type) {
             case "action_card":
-              Manager.drawDeckCard(id, o, "action_card");
+              Manager.drawDeckCard(id, o, "action_card", playerFaction);
               displayCards = true;
               break;
             case "investment_card":
-              Manager.drawDeckCard(id, o, "investment_card");
+              Manager.drawDeckCard(id, o, "investment_card", playerFaction);
               displayCards = true;
               break;
             case "unit":
@@ -514,15 +528,17 @@
       }
       function processWaiting(waitingForData) {
         //console.log("waiting: ", waitingForData);
-        if (empty(waitingForData)) return;
+        if (empty(waitingForData)) return false;
         //Manager.printObjects();
         // hier muss ich warten und dann ein status message schicken
-        sendGetPlayerStats(playerFaction, updatePlayerStats);
-        //setTimeout(()=>sendStatus(playerFaction),10000);
+        console.log("WAITING........... bekommen***", waitingForData, typeof waitingForData);
+
+        return true;
       }
       function updatePlayerStats(data) {
         nMessages -= 1;
-        //console.log(data);
+        serverData = JSON.parse(data);
+        console.log("updatePlayerStats:", serverData);
       }
       // function onCardDrawn(ev){
       //   let idSelected = evToId(ev);
@@ -564,11 +580,19 @@
           Manager.displayChoices(idlists, onObjectSelected);
         }
       }
+    </script>
 
+    <!-- ******* EXECUTION STARTS HERE ******* -->
+    <script>
+      // function onZoomBoard() {
+      //   // Manager.zooming();
+      // }
+      document.getElementById("imgMap").addEventListener("dblclick", () => reset()); //Manager.zooming)); //onZoomBoard)); //panzoom setup
+      reset(); //Manager.zooming.bind(Manager)); //onZoomBoard);
       setup();
-      window.addEventListener("resize", () => {
-        Manager.calculateCardLayout(false); //TODO: fix bug not laying out in center!
-      });
+      // window.addEventListener("resize", () => {
+      //   Manager.calculateCardLayout(playerFaction, false); //TODO: fix bug not laying out in center!
+      // });
     </script>
 
     <!-- #region testing-->

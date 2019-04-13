@@ -601,7 +601,9 @@ function clearElement(elem, eventHandlerDictByEvent = {}) {
     for (key in eventHandlerDictByEvent) {
       elem.removeEventListener(key, eventHandlerDictByEvent[key]);
     }
-    elem.removeChild(elem.firstChild);
+    let el = elem.firstChild;
+    elem.removeChild(el);
+    console.log('removed',el)
   }
 }
 function closestParent(elem, selector) {
@@ -851,22 +853,22 @@ function calculateDims(n, sz = 60, minRows = 1) {
 
 function mup(o, p, d) {
   p = {x: p.x, y: p.y - d};
-  o.setPos(p.x, p.y);
+  if (o)o.setPos(p.x, p.y);
   return p;
 }
 function mri(o, p, d) {
   p = {x: p.x + d, y: p.y};
-  o.setPos(p.x, p.y);
+  if (o)o.setPos(p.x, p.y);
   return p;
 }
 function mdo(o, p, d) {
   p = {x: p.x, y: p.y + d};
-  o.setPos(p.x, p.y);
+  if (o)o.setPos(p.x, p.y);
   return p;
 }
 function mle(o, p, d) {
   p = {x: p.x - d, y: p.y};
-  o.setPos(p.x, p.y);
+  if (o)o.setPos(p.x, p.y);
   return p;
 }
 function snail(p, o, d) {
@@ -905,6 +907,41 @@ function snail(p, o, d) {
     }
     step += 1;
   }
+}
+function calcSnailPositions(x,y,d,n){
+  let p={x:x,y:y};
+  let res = [p];
+  let step = 1;
+  let k = 1;
+  while (true) {
+    for (i = 0; i < step; i++) {
+      if (k < n) {
+        p = mup(null, p, d);res.push(p);
+        k += 1;
+      } else return res;
+    }
+    for (i = 0; i < step; i++) {
+      if (k < n) {
+        p = mri(null, p, d);res.push(p);
+        k += 1;
+      } else return res;
+    }
+    step += 1;
+    for (i = 0; i < step; i++) {
+      if (k < n) {
+        p = mdo(null, p, d);res.push(p);
+        k += 1;
+      } else return res;
+    }
+    for (i = 0; i < step; i++) {
+      if (k < n) {
+        p = mle(null, p, d);res.push(p);
+        k += 1;
+      } else return res;
+    }
+    step += 1;
+  }
+
 }
 
 //   let p=[[x,y],[x,y-sz],[x+sz,y-sz],[x+sz,y],[x+sz,y+sz],[x,y+sz],[x-sz,y+sz],[x-sz,y],[x-sz,y-sz]];

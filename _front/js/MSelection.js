@@ -32,7 +32,7 @@ class MSelection {
   }
   processSelection(idlist, typeSelected) {
     let t = this.node.findNodes(idlist);
-    this.printStack(idlist);
+    //this.printStack(idlist);
     let idsToUnselect = [];
     if (!t) {
       //console.log('processSelection: ERROR CANNOT FIND SELECTED NODES');return false;
@@ -64,7 +64,7 @@ class MSelection {
         //console.log('processSelection: IMPOSSIBLE: NO TYPE FITS ',typeSelected);
       }
     }
-    this.printStack(idlist);
+    //this.printStack(idlist);
     //console.log("end");
     return {isCompleted: typeSelected == last(this.choiceTypes), idsToUnselect: idsToUnselect};
   }

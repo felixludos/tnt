@@ -1,5 +1,5 @@
 var pz = undefined;
-function reset(fzoom) {
+function reset() {
   // get actualwidth of rootDiv
   let width = rootDiv.offsetWidth;
   let height = rootDiv.offsetHeight;
@@ -21,6 +21,6 @@ function reset(fzoom) {
     maxZoom: 2,
     minZoom: 0.1
   });
-  pz.on('zoom',fzoom);
+  //pz.on('zoom',fzoom);
   //console.log('zoom',pz.getTransform(),scaleFactor)
 }

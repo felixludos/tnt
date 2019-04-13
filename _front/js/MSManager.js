@@ -12,9 +12,11 @@ const troopColors = {
 };
 const SZ = {
   region: 180,
-  pStartOffset: {x: -30, y: +30}, // this is where on the region placement of cadre is started
+  pAxis: {x: 0, y: -30}, // this is where on the region placement of cadre is started
+  pWest: {x: -50, y: 20},
+  pUSSR: {x: +50, y: 20},
   cadrePrototype: 60,
-  cadre: 60,
+  sumCadre: 60,
   cadreDetail: 44,
   cardWidth: 100,
   cardHeight: 150
@@ -23,7 +25,7 @@ const SEPARATOR = "_";
 //#endregion
 
 class MSManager {
-  constructor(board, troopDisplay, cardDisplay) {
+  constructor(board, troopDisplay, cardDisplay, faction) {
     this.highObjects = [];
     //this.selectedObjects=[]; //do I need this?
     this.board = board;
@@ -31,15 +33,25 @@ class MSManager {
     this.cardDisplay = cardDisplay;
     this.byId = {}; // {id:{ms:msObject,type:'region'|'power'|'unit'|'proto'|'cadre'|'action_card'|'investment_card'|'deck'|...}}
     this.decks = {action_card: [], investment_card: []};
-    this.hand = {action_card: [], investment_card: []};
     this.regions = []; // list of region ids
-    this.cadres = []; // list of individual cadre ids
-    this.sumCadres = []; // list of summary cadre ids
-    this.currentView = this.getViewForCurrentZoom();
-    this.timer = -1; 
+    this.handCards = {Axis: [], West: [], USSR: []};
+    this.hand = this.handCards[faction];
+    this.tableCards = {Axis: [], West: [], USSR: []};
+    this.cadres = {Axis: [], West: [], USSR: []}; // list of cadres by faction individual cadre ids
+    this.sumCadres = {Axis: [], West: [], USSR: []}; // list of summary cadre ids by faction
+    //this.currentView = this.getViewForCurrentZoom();
+    this.timer = -1;
     this.counter = 0;
+    this.currentFaction = faction;
+    this.snailPos = calcSnailPositions(0, 0, SZ.cadreDetail, 25);
   }
   // #region helpers
+  hide(id) {
+    if (id)this.get(id).hide();
+  }
+  show(id) {
+    if (id)this.get(id).show();
+  }
   makeSelectable(ms, handler) {
     ms.highlight();
     ms.isEnabled = true;
@@ -57,19 +69,57 @@ class MSManager {
   }
   // #endregion
 
+  changeTurn(newFaction) {
+    //newFaction: show all cadres, hide sumCadre
+    // currentFaction: hide cadres, show sumCadre, mod text on sumCadre to #of cadres instead of cv!!!
+    let oldFaction = this.currentFaction;
+    for (const region of this.regions) {
+      let oldSumCadre = this.getSumCadre(region, oldFaction);
+      this.show(oldSumCadre);
+      let oldCadres = this.getCadres(region, oldFaction);
+      oldCadres.map(x => this.hide(x));
+      let newSumCadre = this.getSumCadre(region, newFaction);
+      this.hide(newSumCadre);
+      let newCadres = this.getCadres(region, newFaction);
+      newCadres.map(x => this.show(x));
+      //modify text on oldSumCadre to # cadres NEIN besser: mach einfach ein anderes fuer sumCadre und fuer foreignCadre!!!
+      //let nOldCadres = oldCadres.length;
+      //this.changeNumberOnCadre(oldSumCadre)
+    }
+    // hand: display hand for newFaction
+    this.hand = this.handCards[newFaction];
+    clearElement(this.cardDisplay);
+    //this.calculateCardLayout(newFaction, true);
+
+    this.currentFaction = newFaction;
+  }
+
   // #region getters
   get(id) {
-    //returns MS with this id
-    if (!(id in this.byId)) {
-      return null;
-      //console.log("ERROR object[" + id + "] not created!");
-    }
-
-    ////console.log(id, this.byId[id])
-    return this.byId[id].ms;
+    return id in this.byId ? this.byId[id].ms : null;
+  }
+  getSumCadre(region, faction) {
+    let ms = this.get(region);
+    let sumCadres = ms.getTag("sumCadres");
+    return faction in sumCadres?sumCadres[faction]:null;
+  }
+  getCadres(region, faction) {
+    let ms = this.get(region);
+    return ms.getTag("cadres")[faction];
+    //   let objecs = ms.getTag(objects);
+    //   let fObj = objects.filter(x => this.getFaction(x) == faction);
+    //   if (fObj) {
+    //     let n = fObj.length;
+    //     if (fObj.length > 1) console.log(region, "has", n, "cadres of", faction);
+    //     return {o: fObj, num: n};
+    //   }
+    //   return {o: [], num: 0};
   }
   getType(id) {
     return id in this.byId ? this.byId[id].type : "unknown";
+  }
+  getFaction(id) {
+    return id in this.byId ? this.byId[id].faction : "none";
   }
   getIdParts(id) {
     return id.split(SEPARATOR);
@@ -86,7 +136,7 @@ class MSManager {
   }
   //#endregion
 
-  // #region create objects
+  // #region CREATE objects
   createRegion(id, pos) {
     let msRegion = new MS(id, this.board)
       .circle({className: "overlay region hible selectable", sz: SZ.region})
@@ -94,10 +144,11 @@ class MSManager {
       .draw();
     this.byId[id] = {id: id, ms: msRegion, type: "region"};
 
-    msRegion.tag("objects", []);
-    // msRegion.tag("cadres", []); // all cadres on this region by id
-    // msRegion.tag("sumCadres", []); // has ids like Berlin_Axis,Berlin_West,Berlin_USSR,Berline_Neutral
-    msRegion.tag("zoomView", "summary"); // view can be 'summary' or 'detail'
+    //msRegion has 3 tags: objects,cadres(per faction),sumCadres(per faction)
+    msRegion.tag("objects", []); //other objects on this region, not cadres
+    msRegion.tag("cadres", {Axis: [], West: [], USSR: []});
+    msRegion.tag("sumCadres", {});
+    //msRegion.tag("zoomView", "summary"); // view can be 'summary' or 'detail'
     //msRegion.elem.addEventListener("mouseover", this.switchView.bind(this));
     this.regions.push(id);
   }
@@ -110,75 +161,99 @@ class MSManager {
     let cadre = this.createCadreMS(id, null, power, unit, cv, SZ.cadrePrototype);
     this.byId[id] = {id: id, ms: cadre, type: "proto"};
   }
-  calcStartPos(region) {
-    let posx = this.get(region).x + SZ.pStartOffset.x; //-20;
-    let posy = this.get(region).y + SZ.pStartOffset.y; //- 20; //+ 40;
-    return {x: posx, y: posy};
+  calcStartPos(region, faction) {
+    let pos = SZ["p" + faction];
+    return {x: this.get(region).x + pos.x, y: this.get(region).y + pos.y};
   }
-  createCadre(id, power, unit, region, cv, showDataToFactionList) {
+  createCadre(id, power, unit, region, cv, faction, showDataToFactionList) {
     let cadre = this.createCadreMS(id, board, power, unit, cv, SZ.cadreDetail);
-    this.byId[id] = {id: id, ms: cadre, type: "cadre"};
+    this.byId[id] = {id: id, ms: cadre, type: "cadre", faction: faction};
 
-    this.cadres.push(id);
+    this.cadres[faction].push(id);
 
     let msRegion = this.get(region);
 
     cadre.tag("region", msRegion.id);
+    cadre.tag("faction", faction);
 
-    //cal position of this cadre on region: simplest, just in a grid
-    // how many cadres are on this region?
-    let objectIdList = msRegion.getTag("objects");
-    //console.log('list for',region,':',objectIdList)
-    let objectList = objectIdList.map(id => this.get(id));
-    //console.log('list for',region,':',objectList.length)
-    let n = 0;
-    for (var ms of objectList) {
-      let v = ms.getTag("zoomView");
-      //console.log('zoomView is ',v);
-      if (v == "detail") n += 1;
-    }
-    //let n = cadreList.filter(id=>this.get(id).getTag('zoomView') == 'detail').length;
-    //console.log('there are ',n,' detail cadres on ',region)
+    //msRegion has 3 tags: objects,cadres(per faction),sumCadres(per faction)
+    msRegion.getTag("cadres")[faction].push(id);
 
-    objectIdList.push(id); // adding new cadre to region list of cadres
-
-    let w = SZ.region;
-    let pos = {x: msRegion.x, y: msRegion.y};
-    let r = intDiv(n, 4);
-    let c = n % 4;
-    let d = w / 5;
-    let x = pos.x + (d * (c + 1) - w / 2);
-    let y = pos.y + (d * (r + 1) - w / 2);
-
+    //calculate position of cadre:
+    //calc index of this cadre in snail pos
+    // how many cadres of this type does region have?
+    let cadresFaction = this.getCadres(region, faction); // includes this one already!
+    let iNewCadre = cadresFaction.length - 1;
+    console.log("createCadre", cadresFaction, iNewCadre);
+    let pSnailOffset = this.snailPos[iNewCadre];
+    let pStart = this.calcStartPos(region, faction);
+    let x = pStart.x + pSnailOffset.x;
+    let y = pStart.y + pSnailOffset.y;
     cadre.setPos(x, y).draw();
-    cadre.tag("zoomView", "detail"); //should be visible only in detail view
+    // //cal position of this cadre on region: simplest, just in a grid
+    // // how many cadres are on this region?
+    // let objectIdList = msRegion.getTag("objects");
+    // //console.log('list for',region,':',objectIdList)
+    // let objectList = objectIdList.map(id => this.get(id));
+    // //console.log('list for',region,':',objectList.length)
+    // let n = 0;
+    // for (var ms of objectList) {
+    //   let v = ms.getTag("zoomView");
+    //   //console.log('zoomView is ',v);
+    //   if (v == "detail") n += 1;
+    // }
+    // //let n = cadreList.filter(id=>this.get(id).getTag('zoomView') == 'detail').length;
+    // //console.log('there are ',n,' detail cadres on ',region)
+
+    // objectIdList.push(id); // adding new cadre to region list of cadres
+
+    // let w = SZ.region;
+    // let pos = {x: msRegion.x, y: msRegion.y};
+    // let r = intDiv(n, 4);
+    // let c = n % 4;
+    // let d = w / 5;
+    // let x = pos.x + (d * (c + 1) - w / 2);
+    // let y = pos.y + (d * (r + 1) - w / 2);
+    // cadre.setPos(x, y).draw();
+
+    //cadre.tag("zoomView", "detail"); //should be visible only in detail view
+    cadre.tag("faction", faction);
 
     // add info to sumCadre for playerFaction and this region
-    let sumId = region + "_" + playerFaction;
+    let sumId = region + "_" + faction;
     let sumCadre = this.get(sumId);
     if (!sumCadre) {
       // create summary cadre for this faction (playerFaction)
-      sumCadre = this.createCadreMS(sumId, board, power, unit, cv, SZ.cadre);
-      let p = this.calcStartPos(region);
-      sumCadre.setPos(p.x, p.y).draw();
-      msRegion.getTag("objects").push(sumId);
-      this.byId[sumId] = {id: sumId, ms: sumCadre, type: "cadre"};
+      sumCadre = this.createCadreMS(sumId, board, power, unit, 1, SZ.sumCadre);
+      //let p = this.calcStartPos(region, faction);
+      sumCadre.setPos(pStart.x, pStart.y).draw();
+
+      //msRegion has 3 tags: objects,cadres(per faction),sumCadres(per faction)
+      msRegion.getTag("sumCadres")[faction] = sumId;
+
+      this.byId[sumId] = {id: sumId, ms: sumCadre, type: "cadre", faction: faction};
       sumCadre.tag("zoomView", "summary"); //should be visible only in summary view
-      this.sumCadres.push(sumId);
+      sumCadre.tag("cv", cv);
+      sumCadre.tag("count", 1);
+      sumCadre.tag("faction", faction);
+      this.sumCadres[faction].push(sumId);
     } else {
       //update cv on sumCadre by cv of new cadre
-      let oldval = sumCadre.getTag("cv");
+      let oldval = sumCadre.getTag("count"); //"cv");
       //console.log(oldval,typeof(oldval));
 
-      let newval = oldval + cv;
+      let newval = oldval + 1; //cv;
       sumCadre.updateTextOn("cv", newval);
-      sumCadre.tag("cv", newval);
+      sumCadre.tag("count", newval); //"cv", newval);
       //console.log('updating value on cadre',sumId,'for',region,'from',oldval,'to',newval);
     }
 
-    if (msRegion.getTag("zoomView") != "summary") sumCadre.hide();
-    if (msRegion.getTag("zoomView") != "detail") cadre.hide();
-    this.switchView(region, false);
+    //TODO: calc pos of this cadre according to snail algo
+    //cadre.hide(); //for now, just display summary cadre
+    //if (msRegion.getTag("zoomView") != "summary") sumCadre.hide();
+    //if (msRegion.getTag("zoomView") != "detail") cadre.hide();
+    //this.switchView(region, false);
+    sumCadre.hide();
 
     return cadre;
   }
@@ -259,7 +334,7 @@ class MSManager {
   //   this.decks[type].push(id);
   // }
 
-  createHandCard(id, o, type) {
+  createHandCard(id, o, type, faction) {
     // creates card but does not position it (Hand does that)
     let txt = [];
     if ("top" in o) {
@@ -276,8 +351,8 @@ class MSManager {
       .roundedRect({w: cardWidth, h: cardHeight, fill: "white"})
       .textMultiline({txt: txt, maxWidth: cardWidth, fz: cardWidth / 6})
       .roundedRect({className: "overlay hible selectable", w: cardWidth, h: cardHeight});
-    this.byId[id] = {id: id, ms: card, type: type};
-    this.hand[type].push(id);
+    this.byId[id] = {id: id, ms: card, type: type, faction: faction};
+    this.handCards[faction].push(id);
 
     return card;
   }
@@ -387,28 +462,23 @@ class MSManager {
   // #endregion
 
   // #region cards
-  hasActionCards() {
-    return this.hand.action_card.length;
+  hasActionCards(faction) {
+    return this.handCards[faction].length;
   }
-  calculateCardLayout(handChanged = true) {
-    if (!this.hasActionCards()) return;
+  calculateCardLayout(faction, handChanged = true) {
     if (!handChanged && this.cardRows == 1) return;
-    clearElement(cardDisplay);
-    let d = cardDisplay;
-    let idsAction = this.hand.action_card;
-    let idsInvestment = this.hand.investment_card;
-    var n = idsAction.length + idsInvestment.length;
+    
+    console.log('clearing card display!!!',this.cardDisplay)
+    clearElement(this.cardDisplay);
+
+    if (!this.hasActionCards(faction)) return;
+    let d = this.cardDisplay;
+    let idshand = this.handCards[faction];
+    var n = idshand.length;
     var w = SZ.cardWidth;
     var h = SZ.cardHeight;
-    for (var i = 0; i < idsAction.length; i++) {
-      let card = this.get(idsAction[i]);
-      let holder = makeSvg(w, h);
-      d.appendChild(holder);
-      card.setPos(w / 2, h / 2);
-      holder.appendChild(card.elem);
-    }
-    for (var i = 0; i < idsInvestment.length; i++) {
-      let card = this.get(idsAction[i]);
+    for (var i = 0; i < n; i++) {
+      let card = this.get(idshand[i]);
       let holder = makeSvg(w, h);
       d.appendChild(holder);
       card.setPos(w / 2, h / 2);
@@ -423,81 +493,88 @@ class MSManager {
     d.style.gridGap = dims.gap + "px";
     this.cardRows = dims.rows;
   }
-  drawDeckCard(id, o, type) {
-    let card = this.createHandCard(id, o, type);
+  drawDeckCard(id, o, type, faction) {
+    let card = this.createHandCard(id, o, type, faction);
     // can't hurt to add json object
     this.byId[id]["json"] = o;
 
-    this.calculateCardLayout();
+    this.calculateCardLayout(faction);
     // card is ms of card
     // card.elem is g element
     // how to determine pos of card?
     // simplest: count cards displayed*widthOfCard,
   }
-  activateDecks(onDrawn) {
-    let adeck = this.get("action_card");
-    let ideck = this.get("investment_card");
-    //console.log(adeck,ideck)
-    this.makeSelectable(adeck, onDrawn);
-    this.makeSelectable(ideck, onDrawn);
-  }
+  //activateDecks(onDrawn) {
+  //   let adeck = this.get("action_card");
+  //   let ideck = this.get("investment_card");
+  //   //console.log(adeck,ideck)
+  //   this.makeSelectable(adeck, onDrawn);
+  //   this.makeSelectable(ideck, onDrawn);
+  // }
   // #endregion
 
   // #region views of objects
-  zooming() {
-    console.log(this.counter);
-    this.counter += 1;
-    if (this.timer != -1) clearTimeout(this.timer);
-    this.timer = window.setTimeout(this.viewObserver.bind(this), 350);
-  }
-  getViewForCurrentZoom() {
-    let zoom = getZoomFactor(board);
-    //console.log(zoom);
-    let view = zoom >= 0.4 ? "detail" : "summary"; // this is the view that should be active
-    return view;
-  }
-  viewObserver() {
-    let view = this.getViewForCurrentZoom();
-    if (this.currentView == view) return;
-    for (const region of this.regions) {
-      let msRegion = this.get(region);
-      let rView = msRegion.getTag("zoomView");
-      if (rView == view) continue;
-      this.switchView(region, false);
-    }
-    this.currentView = view;
-  }
 
-  switchView(region) {
-    if (this.getType(region) != "region") return;
+  // zooming() {
+  //   console.log(this.counter);
+  //   this.counter += 1;
+  //   if (this.timer != -1) clearTimeout(this.timer);
+  //   this.timer = window.setTimeout(this.viewObserver.bind(this), 350);
+  // }
+  // getViewForCurrentZoom() {
+  //   let zoom = getZoomFactor(board);
+  //   //console.log(zoom);
+  //   let view = zoom >= 0.4 ? "detail" : "summary"; // this is the view that should be active
+  //   return view;
+  // }
+  // viewObserver() {
+  //   let view = this.getViewForCurrentZoom();
+  //   console.log(view);
+  //   if (this.currentView == view) return;
+  //   for (const region of this.regions) {
+  //     let msRegion = this.get(region);
+  //     let rView = msRegion.getTag("zoomView");
+  //     let res=numCadres(region,this.currentFaction);
+  //     let n=res.num;
+  //     let o=res.o;
+  //     if (rView == view || n <= 1) continue;
+  //     this.switchView(region,view,o);
+  //   }
+  //   this.currentView = view;
+  // }
 
-    let view = this.getViewForCurrentZoom();
-    if (this.currentView == view) return;
+  // switchView(region, view,objects) {
+  //   if (this.getType(region) != "region") return;
 
-    let msRegion = this.get(region);
-    if (msRegion.getTag("objects").length < 3) return;
+  //   if (!view || view === undefined) {
+  //     let view = this.getViewForCurrentZoom();
+  //     if (this.currentView == view) return;
+  //   }
 
-    let regionIsInView = msRegion.getTag("zoomView");
-    //console.log('view of',region,'is',regionIsInView)
-    if (view == regionIsInView) return;
+  //   let msRegion = this.get(region);
+  //   //if (msRegion.getTag("objects").length < 3) return;
 
-    let objects = msRegion.getTag("objects").map(x => this.get(x)); // list of ms objects
-    for (const ms of objects) {
-      let v = ms.getTag("zoomView");
-      //console.log('view of',id,'is',v)
-      if (v == view) {
-        ms.show();
-      } else {
-        ms.hide();
-      }
-    }
-    if (view == "detail") {
-      let pos = this.calcStartPos(region);
-      objects = objects.filter(x => x.getTag("zoomView") == "detail");
-      //console.log(objects);
-      snail(pos, objects, SZ.cadreDetail + 1);
-    }
-    msRegion.tag("zoomView", view);
-  }
+  //   let regionIsInView = msRegion.getTag("zoomView");
+  //   //console.log('view of',region,'is',regionIsInView)
+  //   if (view == regionIsInView) return;
+
+  //   let objects = msRegion.getTag("objects").map(x => this.get(x)); // list of ms objects
+  //   for (const ms of objects) {
+  //     let v = ms.getTag("zoomView");
+  //     //console.log('view of',id,'is',v)
+  //     if (v == view) {
+  //       ms.show();
+  //     } else {
+  //       ms.hide();
+  //     }
+  //   }
+  //   if (view == "detail") {
+  //     let pos = this.calcStartPos(region);
+  //     objects = objects.filter(x => x.getTag("zoomView") == "detail");
+  //     //console.log(objects);
+  //     snail(pos, objects, SZ.cadreDetail + 1);
+  //   }
+  //   msRegion.tag("zoomView", view);
+  // }
   // #endregion views of objects
 }
