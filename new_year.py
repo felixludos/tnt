@@ -12,7 +12,7 @@ def new_year_phase(G):
 	
 	# recompute tracks
 	for player, faction in G.players.items():
-		faction.tracks.pop, faction.tracks.res = util.compute_tracks(faction.territory, G.tiles)
+		faction.tracks.POP, faction.tracks.RES = util.compute_tracks(faction.territory, G.tiles)
 	
 	# victory check
 	vps = util.count_victory_points(G)

@@ -14,11 +14,10 @@ def load_card_decks(G, action_path='config/cards/action_cards.yml',
 	
 	for ID, card in caction.items():
 		card = idict(card)
-		#card.ID = ID
 		card.obj_type = 'action_card'
-		card.visible = tset({})
+		card.visible = tset()
 		card.__dict__['_id'] = 'action_{}'.format(ID)
-		action_cards.deck.append(card)
+		action_cards.deck.append(card._id)
 		G.objects.table[card._id] = card
 	
 	investment_cards = tdict()
@@ -26,11 +25,10 @@ def load_card_decks(G, action_path='config/cards/action_cards.yml',
 	
 	for ID, card in cinvest.items():
 		card = idict(card)
-		#card.ID = ID
 		card.obj_type = 'investment_card'
-		card.visible = tset({})
+		card.visible = tset()
 		card.__dict__['_id'] = 'invest_{}'.format(ID)
-		investment_cards.deck.append(card)
+		investment_cards.deck.append(card._id)
 		G.objects.table[card._id] = card
 	
 	G.cards = tdict()
@@ -54,6 +52,11 @@ def shuffle(stack):
 	
 	stack.discard_pile.clear()
 	
+def discard_cards(G, stack, cards):
+	G.cards[stack].discard_pile.extend(cards)
+	for ID in cards:
+		G.objects.table[ID].visible.clear()
+		G.objects.updated[ID] = G.objects.table[ID]
 
 def draw_cards(G, stack, player, N=1):
 	
@@ -61,11 +64,12 @@ def draw_cards(G, stack, player, N=1):
 	
 	cards = get_cards(G.cards[stack], N)
 	
-	for card in cards:
+	for cID in cards:
+		card = G.objects.table[cID]
 		card.visible.add(player)
-		G.objects.updated[card._id] = card
+		G.objects.updated[cID] = card
 		
-	G.players[player].hand.update(card._id for card in cards)
+	G.players[player].hand.update(cards)
 	
 	G.logger.write('{} draws {} {} cards (now holding {} cards)'.format(player, N, stack, len(G.players[player].hand)))
 

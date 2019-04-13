@@ -148,16 +148,15 @@ def next_phase():  # keeps going through phases until actions are returned
 		G.logger.write('Beginning phase: {}'.format(phase))
 		
 		# maybe save G to file
+		save_gamestate('temp.json')
 		
-		if phase in PRE_PHASES:
-			if PRE_PHASES[phase] is None:
-				raise Exception('The prephase {} has not been implemented yet'.format(phase))
-			out = PRE_PHASES[phase](G)
-		else:
-			if PHASES[phase] is None:
-				raise Exception('The phase {} has not been implemented yet'.format(phase))
-			out = PHASES[phase](G)
-	
+		phase_fn = PRE_PHASES[phase] if phase in PRE_PHASES else PHASES[phase]
+		
+		if phase_fn is None:
+			raise NotImplementedError
+		
+		out = phase_fn(G)
+		
 	return out
 
 

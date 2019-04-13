@@ -1,6 +1,6 @@
 
 import tnt_util as util
-from tnt_util import adict, xset, tdict, tlist, tset
+from tnt_util import adict, xset, tdict, tlist, tset, PhaseComplete
 import random
 
 import operator
@@ -168,10 +168,7 @@ def check_wildcard(G, player, card):
 		options *= removable
 	
 	return options
-	
-	
-	
-	
+
 
 def encode_government_actions(G):
 	code = adict()
@@ -216,6 +213,21 @@ def encode_government_actions(G):
 	
 	return code
 
+def encode_factory_upgrade_actions(G):
+	code = adict()
+	
+	active_player = G.game.turn_order[G.temp.active_idx]
+	faction = G.players[active_player]
+	
+	options = xset(ID for ID in faction.hand if G.objects.table[ID].obj_type == 'investment_card')
+	
+	# options -= G.temp.factory_upgrade.selects # can unselect cards
+	
+	options.add(('cancel',))
+	
+	code[active_player] = options
+	return code
+
 def government_pre_phase(G): # prep influence
 	
 	if 'temp' in G:
@@ -242,7 +254,37 @@ def governmnet_phase(G, player, action): # play cards
 	if 'move_to_post' in G.temp:
 		return government_post_phase(G, action)
 	
-	if action == ('pass',):
+	if 'factory_upgrade' in G.temp:
+		
+		if action == ('cancel',):
+			del G.temp.factory_upgrade
+			return encode_government_actions(G)
+		
+		ID, = action
+		
+		val = G.objects.table[ID].factory_value
+		
+		if ID in G.temp.factory_upgrade.selects:
+			val = -val
+			G.temp.factory_upgrade.selects.discard(ID)
+		else:
+			G.temp.factory_upgrade.selects.add(ID)
+		
+		G.temp.factory_upgrade.value += val
+		
+		if G.temp.factory_upgrade.value < G.players[player].stats.factory_cost:
+			return encode_factory_upgrade_actions(G)
+		
+		# factory upgrade complete
+		G.players[player].tracks.IND += 1
+		
+		G.players[player].hand -= G.temp.factory_upgrade.selects
+		
+		G.cards.invest.discard_pile.extend(G.temp.factory_upgrade.selects)
+		
+		del G.temp.factory_upgrade
+	
+	elif action == ('pass',):
 		G.temp.passes += 1
 		if G.temp.passes == len(G.players):
 			G.temp.move_to_post = True  # for handsize limit options
@@ -251,6 +293,13 @@ def governmnet_phase(G, player, action): # play cards
 		G.temp.passes = 0
 		
 		# execute card effects
+		head, *tail = action
+		
+		if head == 'factory_upgrade':
+			G.temp.factory_upgrade = tdict()
+			G.temp.factory_upgrade.value = 0
+			G.temp.factory_upgrade.selects = tset()
+			
 	
 	G.temp.active_idx += 1
 	G.temp.active_idx %= len(G.players)
@@ -262,7 +311,7 @@ def government_post_phase(G, action=None):
 	
 	
 	
-	pass
+	raise PhaseComplete
 
 
 
