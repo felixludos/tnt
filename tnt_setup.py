@@ -100,6 +100,8 @@ def load_players_and_minors(G):
 		faction.members = tdict()
 		for nation, info in config.members.items():
 			faction.members[nation] = tset([nation])
+			if info.type == 'Great_Power':
+				faction.stats.great_power = nation
 			if 'Colonies' in info:
 				faction.members[nation].update(info.Colonies)
 		

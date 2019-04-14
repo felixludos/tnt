@@ -59,6 +59,10 @@ def get_G():
 def get_waiting():
 	return WAITING_ACTIONS, WAITING_OBJS
 
+def get_object_table():
+	if G is None:
+		return None
+	return G.objects.table
 
 def start_new_game(player='Axis', debug=False):
 	global G, DEBUG

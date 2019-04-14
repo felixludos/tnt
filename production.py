@@ -28,6 +28,19 @@ def encode_production_actions(G):
 		groups = util.placeable_units(G, active_player, nationality, tiles)
 		if len(groups):
 			options.add((nationality, groups))
+			
+	# new fortresses
+	if G.units.reserves[faction.stats.great_power].Fortress > 0:
+		fort_opts = xset()
+		home = xset()
+		for nationality, tiles in faction.homeland.items():
+			home.update(tiles)
+		for tilename in faction.territory:
+			if tilename not in home and util.contains_fortress(G, G.tiles[tilename]):
+				fort_opts.add(tilename)
+		
+		if len(fort_opts):
+			options.add((faction.stats.great_power, fort_opts, 'Fortress'))
 	
 	# improve units
 	improvable = xset()

@@ -4,7 +4,6 @@ __pycache__/
 info/cards/
 config/cards/
 check_cards.ipynb
-saves/
 *-Atlas.py
 *-Atlas.ipynb
 *-HESTIA.py

@@ -69,6 +69,11 @@ def count_victory_points(G):
 	
 	return points
 
+def contains_fortress(G, tile):
+	for uid in tile.units:
+		if G.objects.table[uid].type == 'Fortress':
+			return True
+	return False
 
 ######################
 # Game Actions
@@ -101,11 +106,7 @@ def placeable_units(G, player, nationality, tile_options):
 		if 'disputed' in tile:
 			continue
 		
-		has_fortress = False
-		for uid in tile.units:
-			if G.objects.table[uid].type == 'Fortress':
-				has_fortress = True
-				break
+		has_fortress = contains_fortress(G, tile)
 		
 		in_land = tile.type == 'Land'  # not including coast
 
