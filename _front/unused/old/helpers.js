@@ -492,11 +492,11 @@ function hslToHslaString(h, s, l, a = 1) {
 function hsvToHsl(h, s, v) {
   //h in [0,360], s,l in percent, a in [0,1]
   let newh = h;
-  s /= 100.0;
+  l /= 100.0;
   v /= 100.0;
   //console.log(h, s, v);
   let newl = 0.5 * v * (2 - s);
-  let news = (v * s) / (1 - Math.abs(2 * s - 1));
+  let news = (v * s) / (1 - Math.abs(2 * l - 1));
   //console.log(newh, news, newl);
   return {
     h: newh,
@@ -546,6 +546,7 @@ function randomColor(s = 100, l = 70, a = 1) {
 function rgbToHex(r, g, b) {
   return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
+
 function rgbToHsv(r, g, b) {
   let v = Math.max(r, g, b);
   let n = v - Math.min(r, g, b);
@@ -554,22 +555,9 @@ function rgbToHsv(r, g, b) {
   s = v && n / v;
   return {
     h: h,
-    s: s*100,
-    v: v*100/255
+    s: s,
+    v: v
   };
-}
-function darkerColor(r,g,b){
-  let hsv=rgbToHsv(r,g,b);
-  //console.log(hsv);
-  let h=hsv.h;
-  let s=hsv.s;
-  let v=hsv.v/2;
-  let hsl=hsvToHsl(h,s,v);
-  h=hsl.h;
-  s=hsl.s*100;
-  let l=hsl.l*100;
-  //console.log('hsl:',h,s,l)
-  return hslToHslaString(h,s,l);
 }
 //#endregion
 
@@ -632,7 +620,7 @@ function clearElement(elem, eventHandlerDictByEvent = {}) {
     }
     let el = elem.firstChild;
     elem.removeChild(el);
-    //console.log('removed',el)
+    console.log("removed", el);
   }
 }
 function closestParent(elem, selector) {
@@ -697,18 +685,6 @@ function makeSvg(w, h) {
 }
 
 //tableCreate();
-function makeKeyValueTable(data) {
-  let cols = 2;
-  let rows = data.length;
-  let res = `<table>`;
-  for (const k in data) {
-    res += `<tr><th>${k}</th><td>${data[k]}</td></tr>`;
-  }
-  res += `</table>`;
-  let res1 = (elem = new DOMParser().parseFromString(res, "text/html").body.firstChild);
-  return res1;
-}
-
 function makeTable(tableName, rowHeaders, colHeaders) {
   let cols = colHeaders.length + 1;
   let rows = rowHeaders.length + 1;
@@ -787,10 +763,6 @@ function padSep(sep, n, args) {
     s += arguments[i].toString().padStart(n, "0") + sep;
   }
   return s.substring(0, s.length - 1);
-}
-function replaceAll(str,sSub,sBy){
-  let regex=new RegExp(sSub, 'g') ;
-  return str.replace(regex, sBy);
 }
 function startsWith(s, sSub) {
   ////console.log('startWith: s='+s+', sSub='+sSub,typeof(s),typeof(sSub));
@@ -898,22 +870,22 @@ function calculateDims(n, sz = 60, minRows = 1) {
 
 function mup(o, p, d) {
   p = {x: p.x, y: p.y - d};
-  if (o)o.setPos(p.x, p.y);
+  if (o) o.setPos(p.x, p.y);
   return p;
 }
 function mri(o, p, d) {
   p = {x: p.x + d, y: p.y};
-  if (o)o.setPos(p.x, p.y);
+  if (o) o.setPos(p.x, p.y);
   return p;
 }
 function mdo(o, p, d) {
   p = {x: p.x, y: p.y + d};
-  if (o)o.setPos(p.x, p.y);
+  if (o) o.setPos(p.x, p.y);
   return p;
 }
 function mle(o, p, d) {
   p = {x: p.x - d, y: p.y};
-  if (o)o.setPos(p.x, p.y);
+  if (o) o.setPos(p.x, p.y);
   return p;
 }
 function snail(p, o, d) {
@@ -953,40 +925,43 @@ function snail(p, o, d) {
     step += 1;
   }
 }
-function calcSnailPositions(x,y,d,n){
-  let p={x:x,y:y};
+function calcSnailPositions(x, y, d, n) {
+  let p = {x: x, y: y};
   let res = [p];
   let step = 1;
   let k = 1;
   while (true) {
     for (i = 0; i < step; i++) {
       if (k < n) {
-        p = mup(null, p, d);res.push(p);
+        p = mup(null, p, d);
+        res.push(p);
         k += 1;
       } else return res;
     }
     for (i = 0; i < step; i++) {
       if (k < n) {
-        p = mri(null, p, d);res.push(p);
+        p = mri(null, p, d);
+        res.push(p);
         k += 1;
       } else return res;
     }
     step += 1;
     for (i = 0; i < step; i++) {
       if (k < n) {
-        p = mdo(null, p, d);res.push(p);
+        p = mdo(null, p, d);
+        res.push(p);
         k += 1;
       } else return res;
     }
     for (i = 0; i < step; i++) {
       if (k < n) {
-        p = mle(null, p, d);res.push(p);
+        p = mle(null, p, d);
+        res.push(p);
         k += 1;
       } else return res;
     }
     step += 1;
   }
-
 }
 
 //   let p=[[x,y],[x,y-sz],[x+sz,y-sz],[x+sz,y],[x+sz,y+sz],[x,y+sz],[x-sz,y+sz],[x-sz,y],[x-sz,y-sz]];
@@ -1032,17 +1007,11 @@ function decomposeMatrix(matrix) {
     rotation: skewX // rotation is the same as skew x
   };
 }
-function getTransformInfo(gElement){
-  //console.log(gElement)
-  var matrix = gElement.getCTM();
-  let info = decomposeMatrix(matrix);
-  return info;
-}
 function getZoomFactor(gElement) {
   //var m = gElement.getAttribute("transform");
   var matrix = gElement.getCTM();
-  let info = decomposeMatrix(matrix);
-  return info.scale;
+  let x = decomposeMatrix(matrix);
+  return x.scale;
   // console.log(x.scale);
 }
 
@@ -1126,4 +1095,25 @@ function getZoomFactor(gElement) {
 //   }
 //   return {rows: rows, cols: cols, gap: gap, padding: padding, width: w};
 // }
+//unused
+function download(data, filename, type) {
+  var file = new Blob([data], {type: type});
+  if (window.navigator.msSaveOrOpenBlob)
+    // IE10+
+    window.navigator.msSaveOrOpenBlob(file, filename);
+  else {
+    // Others
+    var a = document.createElement("a"),
+      url = URL.createObjectURL(file);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
+  }
+}
+
 //#endregion

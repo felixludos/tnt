@@ -1,0 +1,213 @@
+#change-color-form {
+  padding: 0.0em;
+  background: #FFF8DC;
+  border: solid 1px;
+}
+#nations-game {
+  padding: 0.0em;
+  background: #FFF8DC;
+  border: solid 1px;
+}
+#nations-gameheader {
+  padding: 0.5em;
+  /*margin-bottom: 0.5em;*/
+}
+#nations-gameheader IMG {
+  vertical-align: middle;
+  /*padding-right: 0.3em;*/
+border: none;
+}
+#nations-gameheader A IMG {
+border-width: 2px;
+border-color: blue;
+border-style: solid;
+}
+#nations-gameheader :link, #nations-gameheader :visited {
+color: blue;
+}
+
+#nations-board {
+position: relative;
+margin: 0.5em;
+/*height: 645;*/
+}
+#nations-board IMG {
+position: absolute;
+border: none;
+}
+#nations-board A IMG {
+border-width: 2px;
+border-color: blue;
+border-style: solid;
+}
+#nations-board A:link, #nations-board A:visited {
+color: blue;
+}
+
+#nations-actions {
+margin: 1em;
+}
+#nations-actions UL {
+padding-left: 0.5em;
+}
+#nations-actions LI {
+}
+#nations-actions IMG {
+width: 1.3em;
+border: none;
+padding-right: 0.3em;
+vertical-align: -30%;
+}
+#nations-actions A:link, #nations-actions A:visited {
+text-decoration: none;
+padding: 0.2em;
+color: black;
+background-color: #FFF8DC;
+}
+#nations-actions A:hover {
+background-color: #D8D8C4;
+color: red;
+}
+
+#nations-reserve {
+padding: 0;
+clear: left;
+}
+#nations-reserve IMG {
+position: absolute;
+border: none;
+/*margin: 0.5em;*/
+/*margin-bottom: 0.5em;*/
+}
+
+#nations-messages {
+padding: 0.5em;
+}
+
+#nations-log {
+background: #FFF8DC;
+/*width: 30em;*/
+padding: 0.5em;
+margin-bottom: 0.5em;
+border: solid 1px;
+}
+#nations-log LI {
+margin-bottom: 0.5em;
+/*border: solid 1px;*/
+}
+#nations-log IMG {
+position: static;
+}
+
+#nations-recentlog {
+background: #FFF8DC;
+/*width: 30em;*/
+padding: 0.5em;
+margin-bottom: 0.5em;
+/*border: solid 1px;*/
+}
+#nations-recentlog LI {
+margin-bottom: 0.5em;
+/*border: solid 1px;*/
+}
+#nations-recentlog IMG {
+position: static;
+}
+#recent_actions_top LI {
+margin: 0;
+}
+
+#nations-gamefooter {
+text-align: center;
+font-size: smaller;
+margin-left: 0.5em;
+margin-bottom: 0.5em;
+}
+
+.outline_text {
+position: absolute;
+color: white;
+text-shadow:
+-1px -1px 0 #000,
+1px -1px 0 #000,
+-1px 1px 0 #000,
+1px 1px 0 #000;
+}
+.outline_text a {
+text-decoration: inherit;
+color: inherit;
+font-size: inherit;
+}
+
+.resource_text {
+position: absolute;
+color: black;
+}
+
+table.vp_summary_table {
+border-collapse: collapse
+}
+table.vp_summary_table td {
+border: solid 1px;
+padding: 8px;
+}
+
+/*
+* CSS for dynamics tabs
+*/
+
+/* Style the list */
+ul.tab {
+list-style-type: none;
+margin: 0;
+padding: 0;
+overflow: hidden;
+border: 1px solid #ccc;
+/*background-color: #f1f1f1;*/
+}
+/* Float the list items side by side */
+ul.tab li {float: left;}
+/* Style the links inside the list items */
+ul.tab li a {
+display: inline-block;
+color: black;
+text-align: center;
+padding: 5px 25px;
+text-decoration: none;
+transition: 0.3s;
+font-size: 17px;
+}
+/* Change background color of links on hover */
+ul.tab li a:hover {background-color: #ddd;}
+/* Create an active/current tablink class */
+ul.tab li a:focus, .active {background-color: #ffe680;}
+/* Style the tab content */
+.tabcontent {
+display: none;
+padding: 6px 12px;
+border: 1px solid #ccc;
+border-top: none;
+}
+FONT		{FONT-FAMILY: Verdana,Helvetica; FONT-SIZE: 13px}
+TD		{FONT-FAMILY: Verdana,Helvetica; FONT-SIZE: 13px}
+BODY		{FONT-FAMILY: Verdana,Helvetica; FONT-SIZE: 13px}
+P		{FONT-FAMILY: Verdana,Helvetica; FONT-SIZE: 13px}
+DIV		{FONT-FAMILY: Verdana,Helvetica; FONT-SIZE: 13px}
+INPUT		{FONT-FAMILY: Verdana,Helvetica; FONT-SIZE: 13px}
+TEXTAREA	{FONT-FAMILY: Verdana,Helvetica; FONT-SIZE: 13px}
+FORM 		{FONT-FAMILY: Verdana,Helvetica; FONT-SIZE: 13px}
+A:link          {BACKGROUND: none; COLOR: #000000; FONT-SIZE: 13px; FONT-FAMILY: Verdana, Helvetica; TEXT-DECORATION: underline}
+A:active        {BACKGROUND: none; COLOR: #000000; FONT-SIZE: 13px; FONT-FAMILY: Verdana, Helvetica; TEXT-DECORATION: underline}
+A:visited       {BACKGROUND: none; COLOR: #000000; FONT-SIZE: 13px; FONT-FAMILY: Verdana, Helvetica; TEXT-DECORATION: underline}
+A:hover         {BACKGROUND: none; COLOR: #000000; FONT-SIZE: 13px; FONT-FAMILY: Verdana, Helvetica; TEXT-DECORATION: underline}
+.title 		{BACKGROUND: none; COLOR: #000000; FONT-SIZE: 15px; FONT-WEIGHT: bold; FONT-FAMILY: Verdana, Helvetica; TEXT-DECORATION: none}
+.content 	{BACKGROUND: none; COLOR: #000000; FONT-SIZE: 13px; FONT-FAMILY: Verdana, Helvetica}
+.storytitle 	{BACKGROUND: none; COLOR: #363636; FONT-SIZE: 16px; FONT-WEIGHT: bold; FONT-FAMILY: Verdana, Helvetica; TEXT-DECORATION: none}
+.storycat	{BACKGROUND: none; COLOR: #000000; FONT-SIZE: 15px; FONT-WEIGHT: bold; FONT-FAMILY: Verdana, Helvetica; TEXT-DECORATION: underline}
+.boxtitle 	{BACKGROUND: none; COLOR: #363636; FONT-SIZE: 13px; FONT-WEIGHT: bold; FONT-FAMILY: Verdana, Helvetica; TEXT-DECORATION: none}
+.boxcontent 	{BACKGROUND: none; COLOR: #000000; FONT-SIZE: 14px; FONT-FAMILY: Verdana, Helvetica}
+.option 	{BACKGROUND: none; COLOR: #000000; FONT-SIZE: 15px; FONT-WEIGHT: bold; FONT-FAMILY: Verdana, Helvetica; TEXT-DECORATION: none}
+.tiny		{BACKGROUND: none; COLOR: #000000; FONT-SIZE: 12px; FONT-WEIGHT: normal; FONT-FAMILY: Verdana, Helvetica; TEXT-DECORATION: none}
+.footmsg        {BACKGROUND: none; COLOR: #000000; FONT-SIZE: 10px; FONT-WEIGHT: normal; FONT-FAMILY: Verdana, Helvetica; TEXT-DECORATION: none}
+.footmsg_l	{BACKGROUND: none; COLOR: #000000; FONT-SIZE: 10px; FONT-WEIGHT: normal; FONT-FAMILY: Verdana, Helvetica; TEXT-DECORATION: underline}
+.box		{FONT-FAMILY: Verdana,Helvetica; FONT-SIZE: 13px; border: 1px solid #000000; background-color: #FFFFFF}

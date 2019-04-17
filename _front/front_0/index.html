@@ -1,610 +1,320 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Game 1234</title>
+    <title>NEW</title>
+    <link rel="shortcut icon" href="#" />
+    <title>TNT!</title>
     <link rel="shortcut icon" href="#" />
     <link rel="stylesheet" type="text/css" href="/common/css/commonStyles.css" />
     <link rel="stylesheet" type="text/css" href="/common/css/msStyles.css" />
-    <link rel="stylesheet" type="text/css" href="/common/css/sliders.css" />
-    <link rel="stylesheet" type="text/css" href="/common/css/cardDisplay.css" />
-    <style>
-      @font-face {
-        font-family: "Military RPG";
-        src: url("/common/assets/Military_RPG.ttf"); /* seems to need relatove path?!? */
-      }
-    </style>
-  </head>
-  <body>
-    <!-- #region HTML -->
-    <div id="rootDiv" style="position:absolute;width:1275px;height:825px;background-color:rgba(86, 182, 222);">
-      <svg width="100%" height="100%" style="padding:10px;box-sizing:border-box;">
-        <g id="board" viewBox="0 0 3400 2200">
-          <image id="imgMap" width="3400" height="2200" href="/common/assets/TTmap.jpg" />
-        </g>
-      </svg>
-      <div id="slideInPlayerStats" class="sideSliderDiv" style="left:0px;top:10px">
-        <div id="PlayerStatsTableContainer" class="tableDivStyle">
-          <table>
-            <tr>
-              <th></th>
-              <th>West</th>
-              <th>Axis</th>
-              <th>USSR</th>
-            </tr>
-            <tr>
-              <th>Resources</th>
-              <td id="ResourcesWest">8</td>
-              <td id="ResourcesAxis">8</td>
-              <td id="ResourcesUSSR">8</td>
-            </tr>
-            <tr>
-              <th>Population</th>
-              <td id="PopulationWest">8</td>
-              <td id="PopulationAxis">8</td>
-              <td id="PopulationUSSR">8</td>
-            </tr>
-            <tr>
-              <th>Industry</th>
-              <td id="IndustryWest">8</td>
-              <td id="IndustryAxis">8</td>
-              <td id="IndustryUSSR">8</td>
-            </tr>
-            <tr>
-              <th>Hand Limit</th>
-              <td id="HandlimitWest">8</td>
-              <td id="HandlimitAxis">8</td>
-              <td id="HandlimitUSSR">8</td>
-            </tr>
-            <tr>
-              <th>Factory Cost</th>
-              <td id="FactorycostWest">8</td>
-              <td id="FactorycostAxis">8</td>
-              <td id="FactorycostUSSR">8</td>
-            </tr>
-          </table>
-        </div>
-      </div>
-      <span
-        id="bslideInPlayerStats"
-        class="slideInButton bSlideInFromLeft"
-        style="left:0px;top:70px;"
-        onclick="toggleSlider('slideInPlayerStats','max-width','350px')"
-      >
-        &#43;
-      </span>
-      <div id="slideInAvailableCadres" class="sideSliderDiv" style="right:0px;top:10px">
-        <div id="AvailableCadresTableContainer" class="tableDivStyle"></div>
-      </div>
-
-      <span
-        id="bslideInAvailableCadres"
-        class="slideInButton bSlideInFromRight"
-        style="right:0px;top:70px;"
-        onclick="toggleSlider('slideInAvailableCadres','max-width','350px')"
-      >
-        &#43;
-      </span>
-
-      <div id="troopDisplay" class="popupStyle gridContainer hCenterScreen hCenterTop"></div>
-      <!-- <div id="submitButton" class="centerScreen hidden"><button onclick="submitChoice()">Submit</button></div> -->
-    </div>
-    <div id="logDisplay" style="position:absolute;left:1275px;top:0px;padding:10px;">log display</div>
-
-    <div id="cardDisplay" class="cardGridContainer"></div>
-
-    <span id="bcardDisplay" class="slideInButton bSlideInFromBottom hCenterScreen" style="bottom:0px;" onclick="toggleCardDisplay()">
-      &#43;
-    </span>
-
-    <!-- hallo -->
-    <!-- <div id="cardDisplay" style="min-width:100vw;height:200px;position:absolute;left:0px;top:825px;padding:0px;background-color:green;">
-      <svg width="100%" height="100%" style="padding:0px;box-sizing:border-box;background-color:blue;">
-        <g id="handDisplay" viewBox="0 0 1000 200">
-          <circle cx="100" cy="100" r="100" stroke="black" stroke-width="3" fill="red" />
-        </g>
-      </svg>
-    </div> -->
-    <!-- #endregion html -->
-
-    <!-- #region standard script loading: js-yaml, w3.js, jquery... -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.2/js-yaml.js"></script>
     <script src="https://www.w3schools.com/lib/w3.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <!-- #endregion standard script loading -->
-    <!-- #region: SCRIPTS  -->
+
     <script src="/common/js/helpers.js"></script>
+    <script src="/common/js/panzoom.js"></script>
     <script src="/common/js/MS.js"></script>
+    <script src="/common/js/BoardFactory.js"></script>
     <script src="/common/js/MTree.js"></script>
-    <script src="/common/js/MSManager.js"></script>
-    <script src="/common/js/MSelection.js"></script>
     <script src="/common/js/MParser.js"></script>
     <script src="/common/js/MScanner.js"></script>
-    <script src="/common/js/interactions.js"></script>
-    <!-- #endregion: SCRIPTS  -->
-    <!-- #region panzoom -->
-    <script src="https://unpkg.com/panzoom@7.1.2/dist/panzoom.min.js"></script>
-    <script src="/common/js/panzoom.js"></script>
-    <!-- #endregion panzoom -->
+    <script src="/common/js/MSelection.js"></script>
+  </head>
+  <body>
+    <!-- #region HTML -->
+    <div id="mainDiv" class="grid-hidefirst">
+      <div id="statusDiv" class="div">status</div>
+      <div id="selDiv" class="div hidden">
+        <svg id="selSvg" class="svg"><g id="selg"></g></svg>
+      </div>
+      <div id="rootDiv" class="div" style="background-color:rgba(86, 182, 222);">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="boardG" viewBox="0 0 3400 2200">
+            <image id="imgMap" width="3400" height="2200" href="/common/assets/TTmap.jpg" />
+          </g>
+        </svg>
+      </div>
+      <div id="logDiv" class="div">log display</div>
+      <div id="buttonDiv" class="div">
+        <button>next player</button>
+      </div>
+      <div id="cardDisplay" class="div">cards</div>
+      <div id="chatWindow" class="div">chat window</div>
+    </div>
+    <!-- #endregion HTML -->
 
-    <!-- #region GLOBALS -->
+    <!-- #region functions -->
     <script>
-      var playerFaction = "West"; //set desired faction here
-      const rootDiv = document.getElementById("rootDiv");
-      const board = document.getElementById("board");
-      const troopDisplay = document.getElementById("troopDisplay");
-      const cardDisplay = document.getElementById("cardDisplay"); //div
-      //const handDisplay = document.getElementById("handDisplay"); //g
-      const logDisplay = document.getElementById("logDisplay");
-
-      var Manager = new MSManager(board, troopDisplay, cardDisplay, playerFaction); // manages all game objects
-      //var Hand = new MHand(handDisplay);
-
-      var unitCount; //{'Germany': {'Infantry':16,...}} reserve info dictionary, local asset:unit_count.yml
-      var powerList; //['Germany',...,'USA']
-      var unitList; //['Infantry',...,'Carrier']
-      var actionDeck, investmentDeck;
-      var serverData; // json structure
-      var selectionTree; // selection tree used in automatic selection process
-      var Selection; // an MSelection object created to handle navigating selection tree
-    </script>
-    <!-- #endregion GLOBALS -->
-
-    <!-- #region slideIns -->
-    <script>
-      function showMessage(s) {
-        document.getElementById("MessageContainer").innerHTML = s;
-        openSlider("slideInMessage", "max-height", "500px");
-      }
-      function toggleSlider(id, toggleProperty, openVal) {
-        if (isSliderOpen(id, toggleProperty)) closeSlider(id, toggleProperty);
-        else openSlider(id, toggleProperty, openVal);
-      }
-      function isSliderOpen(id, toggleProperty) {
-        let el = document.getElementById(id);
-        let wElem = firstNumber(el.style[toggleProperty]);
-        return wElem > 0;
-      }
-      function openSlider(id, toggleProperty, openVal) {
-        //console.log("open slider: ", id);
-        document.getElementById(id).style[toggleProperty] = openVal;
-        document.getElementById("b" + id).innerHTML = "&minus;";
-      }
-      function closeSlider(id, toggleProperty) {
-        document.getElementById(id).style[toggleProperty] = "0%";
-        document.getElementById("b" + id).innerHTML = "&plus;";
-      }
-
-      var isCardDisplayOpen = false;
-      function toggleCardDisplay() {
-        if (isCardDisplayOpen) closeCardDisplay();
-        else openCardDisplay();
-        //console.log('display is open: '+isCardDisplayOpen)
-      }
-      function openCardDisplay() {
-        if (isCardDisplayOpen) return;
-        let id = "cardDisplay";
-        document.getElementById(id).style.display = "grid";
-        document.getElementById("b" + id).innerHTML = "&minus;";
-        isCardDisplayOpen = true;
-      }
-      function closeCardDisplay() {
-        if (!isCardDisplayOpen) return;
-        let id = "cardDisplay";
-        document.getElementById(id).style.display = "none";
-        document.getElementById("b" + id).innerHTML = "&plus;";
-        isCardDisplayOpen = false;
-      }
-    </script>
-    <!-- #endregion slideIns -->
-
-    <!-- #region LOCAL TESTING - to be removed when info works -->
-    <script>
-      var mapPosDict = {}; // map_pos positions per region
-      var factionDict = {}; // faction info
-      var regions = {}; // region elements, id is region
-      var influenceMarkers = [];
-      var playerName; // login name
-      var rgbs = {}; // colors for nations
-      var regionInfo = {}; // tiles.yml content
-      var unitsPerPower = {}; // unit_count.yml
-      var units = {}; // unit descriptions from units.yml
-
-      function loadLocalFactionInfo() {
-        loadYML("/common/assets/config/faction_setup.yml", data => {
-          factionDict = data;
-          loadLocalUnits();
-        });
-      }
-      function loadLocalUnits() {
-        loadYML("/common/assets/config/units.yml", data => {
-          units = data;
-          //console.log(units);
-          loadLocalUnitsPerPower();
-        });
-      }
-      function loadLocalUnitsPerPower() {
-        loadYML("/common/assets/config/unit_count.yml", data => {
-          unitsPerPower = data;
-          SetupPlayerStats();
-          SetupAvailableCadres();
-        });
-      }
-      function SetupPlayerStats() {
-        for (const key in factionDict) {
-          localComputePlayerStats(key);
-        }
-      }
-      function SetupAvailableCadres() {
-        localSetPlayerFaction(playerFaction);
-      }
-
-      function localComputePlayerStats(faction) {
-        let popRes = {West: {pop: 12, res: 11}, Axis: {pop: 11, res: 6}, USSR: {pop: 12, res: 11}};
-        let info = factionDict[faction];
-        let factorycost = info["FactoryCost"][0];
-        let handlimit = info["Handlimit"];
-        let industry = info["initial_ind"];
-        let popResFaction = popRes[faction];
-        let population = popResFaction["pop"];
-        let resources = popResFaction["res"];
-        let stat = industry > population ? "Industry" : "Population"; //geht fuer setup
-
-        setPopulation(faction, population);
-        setResources(faction, resources);
-        setIndustry(faction, industry);
-        setHandlimit(faction, handlimit);
-        setFactorycost(faction, factorycost);
-        setProduction(faction, stat);
-      }
-      function localSetPlayerFaction(faction) {
-        let info = factionDict[faction]; // get cadres to place
-        let allPowers = Object.keys(unitsPerPower); // ['Germany','Italy','Britain','France','USA','USSR'];
-        let cadresPlacementForPlayer = info["setup"]["cadres"]; //{Germany: {Berlin: 6,..}, Italy: {Rome: 4, Milan: 2, Tripoli: 2}}
-        let powersPlayer = Object.keys(cadresPlacementForPlayer); //[Germany,Italy]
-
-        let cadreDiv = document.getElementById("AvailableCadresTableContainer");
-        makeAvailableCadresTable(powersPlayer, unitsPerPower, "AvailableCadresTableContainer");
-      }
-
-      function makeAvailableCadresTable(powers, unitsPerPower, divId) {
-        //console.log("---------------")
-
-        var div = document.getElementById(divId);
-        if (div.childNodes.length > 0) div.removeChild(div.firstChild); //clear table if there was one already
-        var tbl = document.createElement("table");
-        var tr = document.createElement("tr");
-        tbl.appendChild(tr);
-        var th = document.createElement("th");
-        tr.appendChild(th);
-
-        for (var i = 0; i < powers.length; i++) {
-          var th = document.createElement("th");
-          tr.appendChild(th);
-          th.innerHTML = powers[i];
-        }
-
-        var rowHeaders = Object.keys(unitsPerPower[powers[0]]); //['Infantry','Fortress',...]
-        //console.log(rowHeaders);
-        //console.log(unitsPerPower);
-        //console.log(powers);
-        for (var i = 0; i < rowHeaders.length; i++) {
-          tr = document.createElement("tr");
-          tbl.appendChild(tr);
-          th = document.createElement("th");
-          tr.appendChild(th);
-          th.innerHTML = rowHeaders[i];
-          for (power of powers) {
-            var td = document.createElement("td");
-            td.id = power + rowHeaders[i];
-            //console.log(power,unitsPerPower[power]);
-            td.innerHTML = unitsPerPower[power][rowHeaders[i]];
-            tr.appendChild(td);
-          }
-        }
-        div.appendChild(tbl);
-      }
-      loadLocalFactionInfo();
-    </script>
-    <!-- #endregion LOCAL TESTING - to be removed -->
-
-    <!-- #region CORS server communication -->
-    <script>
-      //var backendServerUrl = "https://tawzz.pythonanywhere.com/"; // public server
-      //var backendServerUrl = "https://fetnt.pythonanywhere.com/"; // public server
-      var backendServerUrl = "http://localhost:5000/"; //local server
-      function sendurl(url, onResponse) {
+      function send(url) {
         url = backendServerUrl + url;
-        nMessages += 1;
-        console.log(nMessages, "request sent: ", url);
+        msgCounter += 1;
+        console.log(msgCounter, "request sent: ", url);
         w3.http(url, function() {
           if (this.readyState == 4 && this.status == 200) {
-            try {
-              let jsonData = JSON.parse(this.responseText);
-              console.log(jsonData);
-            } catch {
-              console.log(this.responseText);
-            } finally {
-              onResponse(this.responseText);
-            }
+            processData(this.responseText);
           }
         });
       }
-      function sendInit(faction, callback) {
-        sendurl("init/hotseat/" + faction, callback);
+      function processData(str) {
+        let data = JSON.parse(str);
+        if (data === undefined) {
+          console.log("!!!", str, "!!!");
+        } else {
+          let faction = G.faction;
+          let g = G[faction];
+          console.log(data);
+          //log
+          if ("log" in data) {
+            G.log.push(data.log);
+          }
+          //created
+          for (id in data.created) {
+            g[id] = data.created[id]; //overwride object of have already
+          }
+          //updated
+          for (id in data.updated) {
+            //not sure if have to do this really, since possibly no need
+            let o = g[id]; //this object should exist since it is being updated!
+            //each property of this object should be changed as in data.updated
+            let orig = data.updated[id];
+            for (prop in orig) {
+              o[prop] = orig[prop];
+            }
+          }
+          //removed
+          for (id in data.removed) {
+            //not sure if should do anything!
+            // if (id in g) {
+            //   delete g[id];
+            // }
+          }
+
+          //hier mach sowas wie Presenter.updateUI();
+          updateUI();
+
+          //either actions or waiting_for:
+          console.log("*** actions starts ***");
+          if ("actions" in data) {
+            console.log("there are actions!!!! tree:");
+            let sActions = JSON.stringify(data.actions);
+            let serverTree = new MParser(sActions).tree;
+            serverTree.print();
+            choiceTuples = getChoices(serverTree);
+            console.log("choices", choiceTuples);
+
+            //hier erstmal unique ids >> choicesByType
+            for (const choice of choiceTuples) {
+              for (const id of choice) {
+                if (id in uis) {
+                  makeSelectable(uis[id], onSelected);
+                } else {
+                  console.log(id);
+                  let ui = id in selectables ? selectables[id] : addSelectable(id);
+                  makeSelectable(ui);
+                }
+              }
+            }
+          } else {
+            console.log(data.waiting_for, "will change turn!!!");
+          }
+        }
+        console.log(G);
+        console.log("_____________");
+        //settings = {any_kind_of_object: true};
+        //json_str = JSON.stringify(G);
+        //saveFile("yourfilename.json", "data:application/json", new Blob([json_str], {type: ""}));
       }
-      function sendAction(faction, selectedLabels) {
-        let url = "action/" + faction + "/" + selectedLabels.join("+");
-        sendurl(url, data => processData(data));
+      function onSelected(ev) {
+        let id = evToId(ev);
+        console.log(id, " selected!");
       }
-      function sendInfo(faction) {
-        //@app.route('/info/<faction>')
-        sendurl("info/" + faction, data => {
-          console.log("info response:", data);
-          //updatePlayerStats();
-        });
+      function makeSelectable(ms, handler) {
+
+        ms.highlight();
+        ms.isEnabled = true;
+        //console.log(handler)
+        ms.clickHandler = handler;
       }
-      function sendStatus(faction) {
-        let url = "status/" + faction;
-        sendurl(url, data => {
-          console.log("status response:", data);
-          processData(data);
-        });
+
+      function openSelectionIfPopulated() {
+        let d = document.getElementById("selDiv");
+        if (d.style.display != "none") return;
+        for (const key in choicesByType) {
+          for (const id of choicesByType[key]) {
+            if (id in selectables) {
+              let dMain = document.getElementById("mainDiv");
+              dMain.classList.remove("grid-hidefirst");
+              dMain.classList.add("grid-container");
+              d.classList.remove("hidden");
+              console.log(id);
+              return;
+            }
+          }
+        }
+      }
+      function closeSelection() {
+        let d = document.getElementById("selDiv");
+        if (d.style.display == "none") return;
+        let dMain = document.getElementById("mainDiv");
+        dMain.classList.add("grid-hidefirst");
+        dMain.classList.remove("grid-container");
+        d.classList.add("hidden");
+      }
+      function addSelectable(id) {
+        //add a simple selectable object to selectables area selDiv
+        // <div id='selDiv' class="div" style="display:none"><svg id='selSvg' class='svg'><g id='selg'></g></svg></div>
+        let d = document.getElementById("selDiv");
+        let g = document.getElementById("selG");
+        let sz = SZ.cadreDetail;
+        let ms = undefined;
+        if (G["nationality"].includes(id)) {
+          ms = new MS(id, g).roundedRect({w: sz, h: sz, fill: troopColors[id], rounding: sz * 0.1})
+          .roundedRect({className: "overlay region hible selectable", w: sz, h: sz, rounding: sz * 0.1});
+          ms.tag("type", "nationality");
+          console.log(id);
+          selectables[id] = ms;
+        } else if (G["unit_type"].includes(id)) {
+          ms = new MS(id, g)
+            .roundedRect({w: sz, h: sz, fill: "black", rounding: sz * 0.1})
+            .image({w: sz, h: sz, path: "/_front/assets/images/" + id + ".svg", rounding: sz * 0.1})
+            .roundedRect({className: "overlay region hible selectable", w: sz, h: sz, rounding: sz * 0.1});
+
+          ms.tag("type", "unit_type");
+          console.log(id);
+          selectables[id] = ms;
+        }
+        return ms;
+        //object type will get from G[]
+      }
+      function lineupSelectables(type, ids) {
+        let gap = 10;
+        let x = 10;
+        let y = 10;
+        let sz = SZ.cadreDetail;
+        for (const id of ids) {
+          if (!(id in selectables)) {
+            console.log(id, " not in selectables!");
+            return;
+          }
+          let ms = selectables[id];
+          ms.setPos(x, y).draw();
+          y += gap + sz;
+        }
+      }
+      function getChoices(tree) {
+        let branchlist = tree.branchlist();
+        // branchlist = branchlist.map(l => l.slice(0, branchlen));
+        branchlist = branchlist.map(b => cartesianOf(b)).flat();
+        branchlist = branchlist.map(s => s.split("_"));
+        //console.log(branchlist[0].toString());
+        return branchlist;
+      }
+      function updateUI() {
+        //have to know how to create an object of type: obj_type
+        //example: create a tile object
+        //console.log("*** starting to process ***");
+        var currentFaction = G.faction;
+        var currentView = G[currentFaction];
+        for (id in currentView) {
+          let go = currentView[id];
+          let ttext = JSON.stringify(go);
+          //console.log(go.obj_type);
+          if (!(id in uis)) {
+            //create object with immutable properties (mutable properties in update)
+            switch (go.obj_type) {
+              case "tile":
+                //console.log("create region", id);
+                uis[id] = boardFactory.createTile(id, ttext);
+                //muss noch die units placen! irgendwie irgendwann!
+                break;
+              case "unit":
+                //console.log("create unit", id);
+                uis[id] = boardFactory.createUnit(id, go.nationality, go.type, ttext);
+                break;
+            }
+          }
+        }
+        for (id in currentView) {
+          let go = currentView[id];
+          //update properties
+          let ui = uis[id];
+          for (prop in go) {
+            //map values of property to ui
+            switch (prop) {
+              case "tile":
+                //make sure this is a cadre
+                if (go.obj_type != "unit") {
+                  console.log("trying to place a", go.obj_type);
+                }
+                let tile = go[prop];
+                //console.log(tile,go)
+                let uiTile = uis[tile];
+                boardFactory.placeUnit(ui, tile, uiTile, currentFaction);
+                break;
+              case "cv":
+                //make sure this is a cadre
+                if (go.obj_type != "unit") {
+                  console.log("trying to attach cv to ", go.obj_type);
+                }
+                let cv = go[prop];
+                //console.log(cv,go)
+                boardFactory.updateCv(ui, cv);
+                break;
+            }
+          }
+          //update visibility
+        }
+
+        //test area
+        //darkerColor(255,255,0);
+        //each object after creation has a
       }
     </script>
-    <!-- #endregion CORS server communication -->
+    <!-- #endregion functions -->
 
-    <!-- #region setup TODO: create regions from serverData instead of beforehand!!! -->
+    <!-- #region setup -->
     <script>
-      function loadRegions(objectManager) {
-        loadYML("/common/assets/config/map_pos.yml", data => {
-          for (const regionName in data) {
-            let position = data[regionName];
-            objectManager.createRegion(regionName, position);
-          }
-        });
-      }
-      function loadCadrePrototypes(objectManager, callback) {
+      var G = {Axis: {}, West: {}, USSR: {}, log: [], faction: "West"};
+      var uis = {}; //by id
+      var selectables = {}; // by id, parts like "Germany" or "Infantry"
+
+      var choiceTuples = []; // all tuples in a selection action
+      var choicesByType = {};
+      var selectedids = {}; // by type, depending on tuples to select, one list for each tuple component
+
+      var backendServerUrl = "http://localhost:7777/"; //local server
+      var msgCounter = 0;
+
+      const board = document.getElementById("boardG");
+
+      board.setAttribute("transform", `translate(-400,-400) scale(${1})`);
+      board.addEventListener("wheel", ev => {
+        onwheel(ev, board);
+      });
+      board.addEventListener("pointerdown", ev => {
+        onmousedown(ev);
+      });
+      addEventListener("mouseup", ev => {
+        onmouseup(ev, board);
+      });
+      addEventListener("mousemove", ev => {
+        onmousemove(ev, board);
+      });
+      addEventListener("dblclick", ev => reset(ev, board));
+
+      var boardFactory = null;
+
+      //*** execution starts here ***
+      loadYML("/common/assets/config/map_pos.yml", data => {
+        boardFactory = new BoardFactory(board, data);
         loadYML("/common/assets/config/unit_count.yml", data => {
-          for (const power in data) {
-            for (const unit in data[power]) {
-              objectManager.createCadrePrototype(power, unit);
-            }
-          }
-          callback(data);
+          G["unitCount"] = data;
+          G["nationality"] = Object.keys(data); //'Germany','Britain',...
+          G["unit_type"] = Object.keys(data["Germany"]); //'Infantry','Tank'...
+          send("init/hotseat/" + G.faction);
         });
-      }
-      function setup() {
-        Manager.hideCadrePrototypes();
-        Manager.createDecks();
-        loadRegions(Manager);
-        loadCadrePrototypes(Manager, unit_count_dictionary => {
-          unitCount = unit_count_dictionary;
-          powerList = Object.keys(unitCount);
-          unitList = Object.keys(unitCount["Germany"]);
-
-          // let manager know the type of an id 'Germany' or 'Tank'
-          powerList.map(x => Manager.createType(x, "power"));
-          unitList.map(x => Manager.createType(x, "unit"));
-
-          sendInit(playerFaction, processData);
-        });
-      }
+      });
     </script>
     <!-- #endregion setup -->
-
-    <script>
-      var skipCounter = 11; // ***SKIPCOUNTER*** West:12 this is to skip cadre setup phase
-      var serverTree; // action tree from server
-      var originalOrder; // remember order of selection params as sent by server
-      var nMessages = 0; // just to check #received==#sent
-      var turns = 0;
-      function processData(data) {
-        nMessages -= 1;
-        serverData = JSON.parse(data);
-
-        processLog(serverData.log); //always process log
-
-        
-        processCreated(serverData.created);
-        processUpdated(serverData.updated);
-        processRemoved(serverData.removed);
-
-        // when receiving waiting message, just send status or info
-        if (processWaiting(serverData.waiting_for)) {
-          turns += 1;
-          //show Next Player button
-          playerFaction = serverData.waiting_for.set[0];
-          console.log("switching to player", playerFaction);
-          Manager.changeTurn(playerFaction);
-          //sendInfo(playerFaction, updatePlayerStats);
-          // if (turns>=3) {
-          //   console.log('hier beginnt das spiel');
-          //   skipCounter = 0;
-          // }else if (playerFaction == 'Axis')skipCounter = 21;
-          // else if (playerFaction == 'USSR') skipCounter=6;
-          //sendStatus(playerFaction);
-        } else {
-          // if UI interaction should be skipped:
-          //skipCounter times just return first alternative to server to speed up process
-          if (skipCounter > 0) {
-            console.log("skipping action", skipCounter);
-            //just send first available option
-            skipCounter -= 1;
-            //console.log('skip:',actionData)
-            let sActions = JSON.stringify(serverData.actions);
-            let serverTree = new MParser(sActions).tree;
-            //serverTree.print();
-            let b = serverTree.branchSample();
-            //console.log('send',b);
-            sendAction(playerFaction, b);
-          } else {
-            processAction(serverData.actions);
-          }
-        }
-      }
-      function processLog(msg) {
-        if (empty(msg)) return;
-        let para = document.createElement("p");
-        para.textContent = msg;
-        logDisplay.appendChild(para);
-      }
-      function processCreated(createdData) {
-        //console.log("*** processing created: ***");
-        //console.log('creating: ',createdData);
-        if (empty(createdData)) return;
-        let created = createdData;
-        for (id in created) {
-          let o = created[id];
-          switch (o.obj_type) {
-            case "action_card":
-              //Manager.createDeckCard(id, "action_card");
-              break;
-            case "investment_card":
-              //Manager.createDeckCard(id, "investment_card");
-              break;
-            case "unit":
-              //console.log(o, " is unit to be created");
-              // place cadre on region
-              let power = o.nationality;
-              let unit = o.type;
-              let cv = o.cv;
-              let region = o.tile;
-              let visibleToFactions = o.visible.set;
-              if (unit === undefined) {
-                //console.log("unit type undefined!!!");
-              } else {
-                Manager.createCadre(id, power, unit, region, cv, playerFaction, visibleToFactions);
-              }
-              break;
-            default:
-              //console.log("---");
-              break;
-          }
-        }
-        //Manager.printObjects();
-      }
-      function processUpdated(upData) {
-        //console.log('*** processing updated: ***');
-        //console.log("updating: ", upData);
-        // je nach type, manager action
-        let displayCards = false;
-        for (id in upData) {
-          let o = upData[id];
-          switch (o.obj_type) {
-            case "action_card":
-              Manager.drawDeckCard(id, o, "action_card", playerFaction);
-              displayCards = true;
-              break;
-            case "investment_card":
-              Manager.drawDeckCard(id, o, "investment_card", playerFaction);
-              displayCards = true;
-              break;
-            case "unit":
-              //console.log("move unit " + id);
-              break;
-            default:
-              //console.log("---");
-              break;
-          }
-        }
-        if (displayCards) openCardDisplay();
-      }
-      function processRemoved(remData) {
-        //console.log('*** processing removed: ***');
-        //console.log('removing: ',remData);
-      }
-      function processAction(actionData) {
-        //console.log("actionData:", actionData);
-        if (empty(actionData)) return;
-        let sActions = JSON.stringify(actionData);
-        let serverTree = new MParser(sActions).tree;
-        serverTree.print();
-        let b = serverTree.branchSample();
-        originalOrder = b.map(x => Manager.getType(x));
-        let selInfo = Manager.convertActionTree(serverTree);
-        Selection = new MSelection(selInfo);
-        let idlists = Selection.getChoices();
-        Manager.displayChoices(idlists, onObjectSelected);
-      }
-      function processWaiting(waitingForData) {
-        //console.log("waiting: ", waitingForData);
-        if (empty(waitingForData)) return false;
-        //Manager.printObjects();
-        // hier muss ich warten und dann ein status message schicken
-        console.log("WAITING........... bekommen***", waitingForData, typeof waitingForData);
-
-        return true;
-      }
-      function updatePlayerStats(data) {
-        nMessages -= 1;
-        serverData = JSON.parse(data);
-        console.log("updatePlayerStats:", serverData);
-      }
-      // function onCardDrawn(ev){
-      //   let idSelected = evToId(ev);
-      //   let typeSelected = Manager.getType(idSelected);
-      //   //console.log('card drawn!',idSelected,typeSelected);
-      //   let card=Manager.drawFromDeck(idSelected);
-
-      //   sendAction(playerFaction, [card.type]);
-      //   //Hand.add(card);
-
-      // }
-      function onObjectSelected(ev) {
-        let idSelected = evToId(ev);
-        let typeSelected = Manager.getType(idSelected);
-        let idlist = Manager.getIdParts(idSelected);
-        let result = Selection.processSelection(idlist, typeSelected);
-
-        if (result.isCompleted) {
-          let selectedLabels = Selection.getSelectedNodeLabels();
-          let selectedIds = Manager.transformToIds(selectedLabels);
-          Manager.closeSelection(selectedIds);
-
-          //format correctly before send
-          let actionval = selectedLabels.flat();
-
-          // should be in originalOrder!
-          let currentOrder = actionval.map(x => Manager.getType(x));
-          let correctSorting = orderFromTo(actionval, currentOrder, originalOrder);
-
-          sendAction(playerFaction, correctSorting);
-        } else {
-          //console.log("unselect:", result.idsToUnselect.toString());
-          result.idsToUnselect.map(idparts => {
-            Manager.undoSelection(idparts);
-          });
-
-          // unselect unchose objects that are selected
-          let idlists = Selection.getChoices();
-          Manager.displayChoices(idlists, onObjectSelected);
-        }
-      }
-    </script>
-
-    <!-- ******* EXECUTION STARTS HERE ******* -->
-    <script>
-      // function onZoomBoard() {
-      //   // Manager.zooming();
-      // }
-      document.getElementById("imgMap").addEventListener("dblclick", () => reset()); //Manager.zooming)); //onZoomBoard)); //panzoom setup
-      reset(); //Manager.zooming.bind(Manager)); //onZoomBoard);
-      setup();
-      // window.addEventListener("resize", () => {
-      //   Manager.calculateCardLayout(playerFaction, false); //TODO: fix bug not laying out in center!
-      // });
-    </script>
-
-    <!-- #region testing-->
-    <script>
-      function scaleInfo() {
-        var m = board.getAttribute("transform");
-        var matrix = board.getCTM();
-        let x = decomposeMatrix(matrix);
-        console.log(x.scale);
-      }
-      //setInterval(scaleInfo,5000);
-    </script>
-    <!-- #endregion testing-->
   </body>
 </html>

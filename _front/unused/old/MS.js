@@ -5,7 +5,6 @@ class MS {
     // ms is a g element with stuff inside
     // if parent is null, this is a floating ms element that can be appended or removed to/from parent.
     // otherwise this is an element that lives on a parent and is hidden if not visible
-    //console.log('MS constructor:',id,parent)
     this.isFloating = parent == null;
     this.isDrawn = false;
     this.parent = parent;
@@ -32,7 +31,6 @@ class MS {
     this.isEnabled = false; // whether it reacts to click event
     this.clickHandler = null;
     this.elem.addEventListener("click", this.onClick.bind(this));
-    //console.log('done!')
   }
   //#region interactivity
   onClick(ev) {
@@ -305,12 +303,6 @@ class MS {
   }
   //#endregion untested and unused shapes
 
-  removeFromChildIndex(idx){
-    let el=this.elem;
-    while(el.childNodes.length>=idx){
-      el.removeChild(el.lastChild);
-    }
-  }
   //#region shapes
   rect({className = "", w = 50, h = 25, fill = "yellow", alpha = 1, x = 0, y = 0} = {}) {
     let r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -490,7 +482,7 @@ class MS {
     this.data[key] = val;
     return this;
   }
-  getTag(key){if (key in this.data) return this.data[key]; else return null;}
+  getTag(key){if (key in this.data) return this.data[key]}
   hasTag(key){return key in this.data;}
   hasTagWithVal(key, val) {
     return key in this.data && this.data[key] == val;
