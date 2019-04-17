@@ -1,9 +1,45 @@
 
 import tnt_util as util
-from tnt_util import adict, xset, tdict, tlist, tset, PhaseComplete
+from tnt_util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
+from tnt_cards import discard_cards
 import random
 
 import operator
+
+# _intelligence_table = {
+# 	'Spy_Rings': None,
+# 	'Code_Breaking': None,
+# 	'Agent': None,
+# 	'Sabotage': None,
+# 	'Coup': None,
+# 	'Double Agent': None,
+# 	'Mole': None,
+# }
+
+def play_intelligence(G, player, action):
+	pass
+
+def check_intelligence(G, player, cards):
+	
+	options = xset()
+	
+	targets = xset(G.players[player].stats.rivals)
+	
+	for cid, card in cards.items():
+		if 'intelligence' not in card or card.intelligence == 'Double_Agent':
+			continue
+			
+		if card.intelligence == 'Coup':
+			pass
+		elif card.intelligence == 'Agent':
+			pass
+		elif card.intelligence == 'Mole':
+			pass
+		else: # Spy Rings, Code Breaking, Sabotage - only requires a target
+			pass
+	
+	return options
+
 
 def choose_2_from(all):
 	
@@ -101,6 +137,54 @@ def check_techs(G, player, cards):
 			options.add((tech, topts))
 
 	return options
+
+def increment_influence(G, player, nation):
+	if nation not in G.neutrals.influence:
+		inf = idict()
+		inf.value = 1
+		inf.nation = nation
+		inf.faction = player
+		
+		G.players[player].influence.add(inf._id)
+		G.neutrals.influence[nation] = inf
+		G.objects.table[inf._id] = inf
+		G.objects.created[inf._id] = inf
+		return
+	
+	inf = G.neutrals.influence[nation]
+	
+	if player != inf.faction and inf.value == 1:
+		del G.neutrals.influence[nation]
+		G.players[inf.faction].influence.remove(inf._id)
+		del G.objects.table[inf._id]
+		G.objects.removed[inf._id] = inf
+		return
+	
+	delta = (-1)**(player != inf.faction)
+	
+	inf.value += delta
+	G.objects.updated[inf._id] = inf
+	
+def play_diplomacy(G, player, nation):
+	
+	if nation not in G.temp.diplomacy:
+		G.logger.write('{} plays {}'.format(player, nation))
+		G.temp.diplomacy[nation] = player, 1
+		return
+	
+	owner, val = G.temp.diplomacy[nation]
+	
+	if owner != player and val == 1:
+		G.logger.write('{} plays {} cancelling out with {}'.format(player, nation, owner))
+		del G.temp.diplomacy[nation]
+	elif owner != player:
+		val -= 1
+		G.temp.diplomacy[nation] = owner, val
+		G.logger.write('{} plays {} cancelling out with {} (who has {} remaining)'.format(player, nation, owner, val))
+	else:
+		val += 1
+		G.temp.diplomacy[nation] = owner, val
+		G.logger.write('{} plays {} (now has {} in {})'.format(player, nation, val, nation))
 
 def get_adjacent_nations(G, *players):
 	nations = xset()
@@ -205,9 +289,7 @@ def encode_government_actions(G):
 	options.update(check_techs(G, active_player, invest_cards))
 	
 	# espionage options
-	for ID, card in invest_cards.items():
-		if 'intelligence' in card:
-			options.add((ID,))
+	options.update(check_intelligence(G, active_player, invest_cards))
 	
 	code[active_player] = options
 	
@@ -234,17 +316,10 @@ def government_pre_phase(G): # prep influence
 		del G.temp
 	
 	G.temp = tdict()
-	G.temp.gov = tdict()
+	G.temp.diplomacy = tdict()
+	G.temp.diplomacy_cards = tset()
 	
 	G.temp.passes = 0
-	
-	for name, faction in G.players.items():
-		
-		gov = tdict()
-		
-		gov.diplomacy = tdict()
-		
-		G.temp.gov[name] = gov
 	
 	G.temp.active_idx = 0
 	return encode_government_actions(G)
@@ -280,11 +355,16 @@ def governmnet_phase(G, player, action): # play cards
 		
 		G.players[player].hand -= G.temp.factory_upgrade.selects
 		
-		G.cards.invest.discard_pile.extend(G.temp.factory_upgrade.selects)
+		G.logger.write('{} upgrades their IND to {} with factory card values of: {}'.format(player, G.players[player].tracks.IND,
+		                                                                                    ', '.join(G.objects.table[ID].factory_value
+		                                                                                              for ID in G.temp.factory_upgrade.selects)))
+		
+		discard_cards(G, 'invest', *G.temp.factory_upgrade.selects)
 		
 		del G.temp.factory_upgrade
 	
 	elif action == ('pass',):
+		G.logger.write('{} passes'.format(player))
 		G.temp.passes += 1
 		if G.temp.passes == len(G.players):
 			G.temp.move_to_post = True  # for handsize limit options
@@ -299,7 +379,39 @@ def governmnet_phase(G, player, action): # play cards
 			G.temp.factory_upgrade = tdict()
 			G.temp.factory_upgrade.value = 0
 			G.temp.factory_upgrade.selects = tset()
+		else:
+			card = G.objects.table[head]
 			
+			if 'wildcard' in card:
+				
+				nation, = tail
+				
+				increment_influence(G, player, nation)
+				
+				extra = ''
+				if card.wildcard == 'Foreign_Aid':
+					G.players[player].tracks.IND -= 1
+					extra = ' (decreasing IND to {})'.format(G.players[player].tracks.IND)
+				
+				G.logger.write('{} plays {} adding/removing influence in {}{}'.format(player, card.wildcard, nation, extra))
+				
+				discard_cards(G, 'action', head)
+				
+			elif 'intelligence' in card:
+				
+				raise NotImplementedError
+				
+				discard_cards(G, 'invest', head)
+				pass # play espionage
+			else:
+				nation, = tail
+				
+				play_diplomacy(G, player, nation)
+				
+				G.temp.diplomacy_cards.add(head)
+				card.visible = xset(G.players.keys()) # visible to everyone
+				G.objects.updated[head] = card
+				# discard_cards(G, 'action', head)
 	
 	G.temp.active_idx += 1
 	G.temp.active_idx %= len(G.players)
@@ -307,9 +419,9 @@ def governmnet_phase(G, player, action): # play cards
 
 def government_post_phase(G, action=None):
 	
-	# diplomacy resolution, handsize, update tracks
+	# diplomacy resolution (check for control, discard diplomacy_cards), handsize, update tracks
 	
-	
+	raise NotImplementedError
 	
 	raise PhaseComplete
 

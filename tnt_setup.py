@@ -164,9 +164,11 @@ def load_players_and_minors(G):
 			major.influence_value = 0
 			
 			majors[name] = major
+	
 	G.neutrals = tdict()
 	G.neutrals.minors = minors
 	G.neutrals.majors = majors
+	G.neutrals.influence = tdict()
 	
 
 def load_game_info(G, path='config/game_info.yml'):

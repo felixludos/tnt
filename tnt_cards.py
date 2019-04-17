@@ -52,7 +52,7 @@ def shuffle(stack):
 	
 	stack.discard_pile.clear()
 	
-def discard_cards(G, stack, cards):
+def discard_cards(G, stack, *cards):
 	G.cards[stack].discard_pile.extend(cards)
 	for ID in cards:
 		G.objects.table[ID].visible.clear()
