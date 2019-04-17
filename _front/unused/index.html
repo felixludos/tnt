@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>text only</title>
+    <link rel="shortcut icon" href="#" />
+    <link rel="stylesheet" type="text/css" href="/common/css/main.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.2/js-yaml.js"></script>
+    <script src="https://www.w3schools.com/lib/w3.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/panzoom@7.1.2/dist/panzoom.min.js"></script>
+    <script src="/common/js/helpers.js"></script>
+    <script src="/common/js/MParser.js"></script>
+    <script src="/common/js/MScanner.js"></script>
+    <script src="/common/js/MSelection.js"></script>
+    <script src="/common/js/Presenter.js"></script>
+    <script src="/common/js/MTree.js"></script>
+    <script src="/common/js/MS.js"></script>
+    <script src="/common/js/panzoom.js"></script>
+  </head>
+  <body>
+    <!-- #region HTML -->
+    <div id="statusDiv"></div>
+    <div class="gridmap">
+      <div id="map">
+        <svg><g id="boardG"></g></svg>
+      </div>
+      <div id="logDiv"></div>
+      <div id="buttonGrid"></div>
+    </div>
+    <div id="handDiv"></div>
+    <!-- #endregion HTML -->
+
+    <!-- #region GLOBALS -->
+    <script>
+      var boardG = document.getElementById("boardG");
+      var handDiv = document.getElementById("handDiv");
+      var buttonGrid = document.getElementById("buttonGrid");
+      var logDiv = document.getElementById("logDiv");
+
+      var G = {Axis: {}, West: {}, USSR: {}, log: [], faction: "West"};
+      // var Pres = new Presenter(G, boardG, handDiv, buttonGrid, logDiv);
+
+      var backendServerUrl = "http://localhost:7777/"; //local server
+      var msgCounter = 0;
+    </script>
+    <!-- #endregion GLOBALS -->
+
+    <!-- #region functions -->
+    <script>
+      function addPreliminaryObjectsToG() {
+        loadYML("/common/assets/config/unit_count.yml", data => {
+          G["unitCount"] = data;
+          G["nationality"] = Object.keys(data);
+          G["unit_type"] = Object.keys(data["Germany"]);
+        });
+      }
+      function send(url) {
+        url = backendServerUrl + url;
+        msgCounter += 1;
+        console.log(msgCounter, "request sent: ", url);
+        w3.http(url, function() {
+          if (this.readyState == 4 && this.status == 200) {
+            processData(this.responseText);
+          }
+        });
+      }
+      function processData(str) {
+        let data = JSON.parse(str);
+        if (data === undefined) {
+          console.log("!!!", str, "!!!");
+        } else {
+          let faction = G.faction;
+          let g = G[faction];
+          console.log(data);
+          //log
+          if ("log" in data) {
+            G.log.push(data.log);
+          }
+          //created
+          for (id in data.created) {
+            g[id] = data.created[id]; //overwride object of have already
+          }
+          //updated
+          for (id in data.updated) {
+            //not sure if have to do this really, since possibly no need
+            let o = g[id]; //this object should exist since it is being updated!
+            //each property of this object should be changed as in data.updated
+            let orig = data.updated[id];
+            for (prop in orig) {
+              o[prop] = orig[prop];
+            }
+          }
+          //removed
+          for (id in data.removed) { //not sure if should do anything!
+            // if (id in g) {
+            //   delete g[id];
+            // }
+          }
+
+          //hier mach sowas wie Presenter.updateUI();
+
+
+          //either actions or waiting_for:
+          if ("actions" in data) {
+            console.log("there are actions!!!! tree:");
+            let sActions = JSON.stringify(data.actions);
+            let serverTree = new MParser(sActions).tree;
+            serverTree.print();
+          } else {
+            console.log(data.waiting_for, "will change turn!!!");
+          }
+        }
+        console.log(G);
+        console.log("_____________");
+        //settings = {any_kind_of_object: true};
+        json_str = JSON.stringify(G);
+
+        saveFile("yourfilename.json", "data:application/json", new Blob([json_str], {type: ""}));
+      }
+
+    </script>
+    <!-- #endregion functions -->
+
+    <!-- #region *** execution starts here *** -->
+    <script>
+      addPreliminaryObjectsToG();
+      send("init/hotseat/" + G.faction);
+    </script>
+    <!-- #endregion execution -->
+  </body>
+</html>
