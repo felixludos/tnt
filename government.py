@@ -17,7 +17,7 @@ import operator
 # }
 
 def play_intelligence(G, player, action):
-	pass
+	raise NotImplementedError
 
 def check_intelligence(G, player, cards):
 	
@@ -90,18 +90,18 @@ def check_techs(G, player, cards):
 
 	science = xset(c._id for c in cards if 'science' in c and c.year <= G.game.year)
 	
-	simple = xset(cards.keys()).difference(science)
+	simple = xset(c._id for c in cards.keys() if 'top' in c)
 	
 	available = adict()
 	
 	for ID in simple:
 		if cards[ID].top not in available:
 			available[cards[ID].top] = xset()
-		cards[ID].top.add(ID)
+		available[cards[ID].top].add(ID)
 		
 		if cards[ID].bottom not in available:
 			available[cards[ID].bottom] = xset()
-		cards[ID].bottom.add(ID)
+		available[cards[ID].bottom].add(ID)
 		
 	espionage = None
 	if 'Industrial_Espionage' in available:
@@ -144,6 +144,8 @@ def increment_influence(G, player, nation):
 		inf.value = 1
 		inf.nation = nation
 		inf.faction = player
+		inf.obj_type = 'influence'
+		inf.visible = xset(G.players.keys())
 		
 		G.players[player].influence.add(inf._id)
 		G.neutrals.influence[nation] = inf
@@ -281,7 +283,9 @@ def encode_government_actions(G):
 			raise Exception('Unknown action card properties: {}'.format(card.keys()))
 	
 	# factory upgrade options
-	options.add(('factory_upgrade',))
+	total_val = sum(c.value for c in invest_cards.values())
+	if total_val >= faction.stats.factory_cost:
+		options.add(('factory_upgrade',))
 	# for combo in factory_upgrade_combos(invest_cards, faction.stats.factory_cost):
 	# 	options.add(('factory_upgrade',) + combo)
 	
@@ -305,9 +309,9 @@ def encode_factory_upgrade_actions(G):
 	
 	# options -= G.temp.factory_upgrade.selects # can unselect cards
 	
-	options.add(('cancel',))
+	options.add('cancel')
 	
-	code[active_player] = options
+	code[active_player] = (options,)
 	return code
 
 def government_pre_phase(G): # prep influence
@@ -332,20 +336,27 @@ def governmnet_phase(G, player, action): # play cards
 	if 'factory_upgrade' in G.temp:
 		
 		if action == ('cancel',):
+			G.logger.write('Cancelled factory upgrade', player=player)
 			del G.temp.factory_upgrade
 			return encode_government_actions(G)
 		
 		ID, = action
 		
-		val = G.objects.table[ID].factory_value
+		val = G.objects.table[ID].value
 		
 		if ID in G.temp.factory_upgrade.selects:
 			val = -val
 			G.temp.factory_upgrade.selects.discard(ID)
+			G.logger.write('Unselected {}'.format(ID), end='', player=player)
 		else:
 			G.temp.factory_upgrade.selects.add(ID)
+			G.logger.write('Selected {}'.format(ID), end='', player=player)
 		
 		G.temp.factory_upgrade.value += val
+		
+		G.logger.write(' (value so far: {}/{})'.format(G.temp.factory_upgrade.value, G.players[player].stats.factory_cost), player=player)
+		
+		# print(G.temp.factory_upgrade.value)
 		
 		if G.temp.factory_upgrade.value < G.players[player].stats.factory_cost:
 			return encode_factory_upgrade_actions(G)
@@ -356,12 +367,14 @@ def governmnet_phase(G, player, action): # play cards
 		G.players[player].hand -= G.temp.factory_upgrade.selects
 		
 		G.logger.write('{} upgrades their IND to {} with factory card values of: {}'.format(player, G.players[player].tracks.IND,
-		                                                                                    ', '.join(G.objects.table[ID].factory_value
+		                                                                                    ', '.join(str(G.objects.table[ID].value)
 		                                                                                              for ID in G.temp.factory_upgrade.selects)))
 		
-		discard_cards(G, 'invest', *G.temp.factory_upgrade.selects)
+		discard_cards(G, 'investment', *G.temp.factory_upgrade.selects)
 		
 		del G.temp.factory_upgrade
+		
+		G.temp.passes = 0
 	
 	elif action == ('pass',):
 		G.logger.write('{} passes'.format(player))
@@ -370,7 +383,6 @@ def governmnet_phase(G, player, action): # play cards
 			G.temp.move_to_post = True  # for handsize limit options
 			return government_post_phase(G)
 	else:
-		G.temp.passes = 0
 		
 		# execute card effects
 		head, *tail = action
@@ -379,7 +391,10 @@ def governmnet_phase(G, player, action): # play cards
 			G.temp.factory_upgrade = tdict()
 			G.temp.factory_upgrade.value = 0
 			G.temp.factory_upgrade.selects = tset()
+			G.logger.write('Select the cards to use for the factory upgrade', player=player)
+			return encode_factory_upgrade_actions(G)
 		else:
+			G.temp.passes = 0
 			card = G.objects.table[head]
 			
 			if 'wildcard' in card:

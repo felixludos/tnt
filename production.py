@@ -23,24 +23,35 @@ def encode_production_actions(G):
 	options.add(('action_card',))
 	options.add(('investment_card',))
 	
+	ex_territory = faction.territory.copy()
+	
 	# new cadres
 	for nationality, tiles in faction.homeland.items():
 		groups = util.placeable_units(G, active_player, nationality, tiles)
 		if len(groups):
 			options.add((nationality, groups))
 			
+		ex_territory -= tiles
+	
+	
 	# new fortresses
-	if G.units.reserves[faction.stats.great_power].Fortress > 0:
-		fort_opts = xset()
-		home = xset()
-		for nationality, tiles in faction.homeland.items():
-			home.update(tiles)
-		for tilename in faction.territory:
-			if tilename not in home and util.contains_fortress(G, G.tiles[tilename]):
-				fort_opts.add(tilename)
-		
-		if len(fort_opts):
-			options.add((faction.stats.great_power, fort_opts, 'Fortress'))
+	fort_opts = adict()
+	for tilename in ex_territory:
+		tile = G.tiles[tilename]
+		if not util.contains_fortress(G, tile):
+			nationality = faction.stats.great_power
+			for nat, lands in faction.members.items():
+				if tile.alligence in lands:
+					nationality = nat
+					break
+			if G.units.reserves[nationality].Fortress > 0:
+				if nationality not in fort_opts:
+					fort_opts[nationality] = xset()
+				fort_opts[nationality].add(tilename)
+	if len(fort_opts):
+		for nationality, tiles in fort_opts.items():
+			options.add((nationality, tiles, 'Fortress'))
+	
 	
 	# improve units
 	improvable = xset()

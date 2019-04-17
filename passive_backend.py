@@ -11,37 +11,40 @@ import tnt_setup as setup
 from tnt_cards import load_card_decks, draw_cards
 from collections import namedtuple
 import traceback
-from production import production_phase, production_pre_phase
 
 from new_year import new_year_phase
+from production import production_phase, production_pre_phase
+from government import governmnet_phase, government_pre_phase
+
+
 import json
 
 PRE_PHASES = adict({ # all action phases
 	'Setup': setup_pre_phase,
 	'Production': production_pre_phase,
-	'Government': None,
+	'Government': government_pre_phase,
 	'Spring': None,
 	'Summer': None,
 	'Fall': None,
 	'Winter': None,
 	
-	'Land_Combat': None,
-	'Naval_Combat': None,
+	# 'Land_Combat': None,
+	# 'Naval_Combat': None,
 })
 PHASES = adict({
 	'Setup': setup_phase,
 
     'New_Year': new_year_phase,
     'Production': production_phase,
-    'Government': None,
+    'Government': governmnet_phase,
     'Spring': None,
     'Summer': None,
     'Blockade': None,
     'Fall': None,
     'Winter': None,
 
-    'Land_Combat': None,
-    'Naval_Combat': None,
+    # 'Land_Combat': None,
+    # 'Naval_Combat': None,
 	
 	'Scoring': None,
 })
