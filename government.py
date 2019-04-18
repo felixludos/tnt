@@ -6,38 +6,124 @@ import random
 
 import operator
 
-# _intelligence_table = {
-# 	'Spy_Rings': None,
-# 	'Code_Breaking': None,
-# 	'Agent': None,
-# 	'Sabotage': None,
-# 	'Coup': None,
-# 	'Double Agent': None,
-# 	'Mole': None,
-# }
+def encode_intel_response(G, intel_card, player, target):
+	
+	code = adict()
+	
+	options = xset(('accept',))
+	
+	msg = '{} plays {} and is targetting you'.format(player, intel_card.intelligence)
+	
+	for cid in G.players[target].hand:
+		card = G.objects.table[cid]
+		if 'intelligence' in card and card.intelligence == 'Double_Agent':
+			
+			opts = get_intel_options(G, target, intel_card)
+			if len(opts):
+				msg = 'You may play your Double Agent to reverse the effect of {} played by {}'.format(intel_card.intelligence, player)
+				options.add((cid, opts))
+				
+			break
+	
+	G.logger.write('Played {} targetting {}, waiting for a response')
+	G.logger.write(msg, player=target)
+	
+	code[target] = options
+	
+	code[player] = xset(('cancel',)) # original player can cancel
+	
+	return code
 
-def play_intelligence(G, player, action):
-	raise NotImplementedError
+def play_intel(G, player, card, target, *args):
+	pass
+
+def resolve_intel(G, player, card, response):
+
+	G.temp.hack = tdict()
+	G.temp.hack.target = target
+	G.temp.hack.card = card
+	G.temp.hack.source = player
+	G.temp.hack.args = args
+	
+	if card.intelligence == 'Coup':
+		nation, = args
+		
+	elif card.intelligence == 'Agent':
+		tilename, = args
+		
+	elif card.intelligence == 'Spy_Rings':
+		
+		cid = random.choice(list(G.players[target].hand))
+		
+		G.players[target].hand.remove(cid)
+		G.players[player].hand.add(cid)
+		
+		pick = G.objects.table[cid]
+		pick.visible.clear()
+		pick.visible.add(player)
+		
+		G.objects.updated[cid] = pick
+		
+	elif card.intelligence == 'Sabotage':
+		G.players[target].tracks.IND -= 1
+		G.logger.write('{} plays Sabotage to decrease {}\'s IND to {}'.format(player, target, G.players[target].tracks.IND))
+	elif card.intelligence == 'Code_Breaking':
+		pass
+	elif card.intelligence == 'Mole':
+		pass
+	else:
+		raise Exception('Unknown intelligence card type: {}'.format(card.intelligence))
+
+def get_intel_options(G, player, targets, card):
+	opts = xset()
+	
+	targets = xset(G.players[player].stats.rivals)
+	
+	if card.intelligence == 'Coup':
+		
+		for target in targets:
+			topts = xset(G.objects.table[iid].nation for iid in G.players[target].influence)
+			if len(topts):
+				opts.add((target, topts))
+	
+	elif card.intelligence == 'Agent':
+		
+		for target in targets:
+			topts = xset(G.objects.table[uid].tile for uid in G.players[target].units)
+			if len(topts):
+				opts.add((target, topts))
+	
+	elif card.intelligence == 'Spy_Rings':
+		opts.update(target for target in targets if len(G.players[target].hand))
+	
+	elif card.intelligence == 'Sabotage':
+		opts.update(target for target in targets if G.players[target].tracks.IND > 0)
+	
+	elif card.intelligence == 'Code_Breaking':
+		opts.update(target for target in targets if len(G.players[target].hand))
+	
+	elif card.intelligence == 'Mole':
+		opts.update(target for target in targets if len(G.players[target].secret_vault))
+	
+	else:
+		raise Exception('Unknown intelligence card type: {}'.format(card.intelligence))
+	
+	return opts
+	
 
 def check_intelligence(G, player, cards):
 	
 	options = xset()
 	
-	targets = xset(G.players[player].stats.rivals)
-	
 	for cid, card in cards.items():
 		if 'intelligence' not in card or card.intelligence == 'Double_Agent':
 			continue
+		
+		opts = get_intel_options(G, player, card)
+		
+		if len(opts):
+			options.add((cid, opts))
 			
-		if card.intelligence == 'Coup':
-			pass
-		elif card.intelligence == 'Agent':
-			pass
-		elif card.intelligence == 'Mole':
-			pass
-		else: # Spy Rings, Code Breaking, Sabotage - only requires a target
-			pass
-	
 	return options
 
 
@@ -322,6 +408,7 @@ def government_pre_phase(G): # prep influence
 	G.temp = tdict()
 	G.temp.diplomacy = tdict()
 	G.temp.diplomacy_cards = tset()
+	G.temp.intel = tdict()
 	
 	G.temp.passes = 0
 	
@@ -329,6 +416,12 @@ def government_pre_phase(G): # prep influence
 	return encode_government_actions(G)
 
 def governmnet_phase(G, player, action): # play cards
+	
+	if player in G.temp.intel: # hide any temporarily visible objects from intel cards
+		for ID, obj in G.temp.intel[player]:
+			obj.visible.remove(player)
+			G.objects.updated[ID] = obj
+		del G.temp.intel[player]
 	
 	if 'move_to_post' in G.temp:
 		return government_post_phase(G, action)
@@ -414,7 +507,7 @@ def governmnet_phase(G, player, action): # play cards
 				
 			elif 'intelligence' in card:
 				
-				raise NotImplementedError
+				play_intelligence(G, player, card, tail)
 				
 				discard_cards(G, 'invest', head)
 				pass # play espionage
