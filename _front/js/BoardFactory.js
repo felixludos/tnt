@@ -32,7 +32,7 @@ class BoardFactory {
   getPosition(idTile) {
     let idPos = replaceAll(idTile, "_", " ");
     if (!(idPos in this.mapPositions)) {
-      console.log("canNOT find position for", idPos);
+      //console.log("canNOT find position for", idPos);
       return null;
     }
     return this.mapPositions[idPos];
@@ -81,21 +81,35 @@ class BoardFactory {
   getUnitCount(msTile, faction) {
     //console.log(msTile)
     let n = msTile.getTag("units")[faction].length;
-    //console.log(n);
+    console.log('getUnitCount',n);
     return n;
   }
   placeUnit(msUnit, tile, msTile, faction) {
-    if (msUnit.hasTag(tile)) {
-      //remove unit from that tile
-      //need to recompute all other units
+    let fromTile = msUnit.getTag("tile");
+    if (fromTile) {
+      if (fromTile != tile) {
+        //remove that unit from other tile
+        //update other tile's 'units' tag for ALL FACTIONS!!!
+        //muesste doch eh automatisch sein da nur 1 ui fuer each tile?!?
+      }else {
+        //this unit is already on that tile, just return
+        return;
+      }
     }
+    msUnit.tag('tile',tile);
     let pStart = this.calcStartPos(tile, faction);
     let iUnit = this.getUnitCount(msTile, faction);
-    //console.log('placeUnit',pStart,iUnit);
+    console.log('index of this unit',iUnit);
     let pSnailOffset = this.snailPos[iUnit];
     let x = pStart.x + pSnailOffset.x;
     let y = pStart.y + pSnailOffset.y;
     msUnit.setPos(x, y).draw();
+
+    console.log('msTile',msTile)
+    let unitDict = msTile.getTag("units");
+    unitDict[faction].push(msUnit.id);
+
+    console.log("placeUnit", msUnit, msTile);
     //console.log(msUnit,msTile)
   }
   updateCv(msUnit, cv) {
@@ -115,6 +129,8 @@ class BoardFactory {
       msUnit.circle({sz: diam, x: x, y: y, fill: "white"});
       x += dx;
     }
+
+    msUnit.tag('cv',cv);
     // let ms=msUnit;
     // let x=ms.x;let y=ms.y;let w=ms.bounds.w;let h=ms.bounds.h;
     // y=y-w/2+w/8;

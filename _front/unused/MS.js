@@ -37,17 +37,11 @@ class MS {
   onClick(ev) {
     //console.log('click',this.id,this.isEnabled,this.clickHandler)
     if (!this.isEnabled) return;
-    //else console.log('clickHandler=',this.clickHandler,typeof(this.clickHandler))
-
-    if (typeof(this.clickHandler) == 'function') this.clickHandler(ev);
-    //else console.log(evToId(ev))
 
     //if (!this.clickHandler) return;
-    // this.toggleSelection();
-    // if (this.isSelected && this.clickHandler){
-    //   console.log("click", this.id);
-    //   this.clickHandler(ev);
-    // } 
+    this.toggleSelection();
+    if (this.isSelected && this.clickHandler) console.log("click", this.id);
+    this.clickHandler(ev);
   }
   //#endregion
 

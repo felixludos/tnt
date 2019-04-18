@@ -38,7 +38,7 @@ body{
 
 .grid-container {
   display: grid;
-  grid-template-columns: 0 1190px auto;
+  grid-template-columns: 60px 1190px auto;
   grid-template-rows: auto 400px 360px 200px;
   grid-template-areas:
     'status status status'
