@@ -2,8 +2,12 @@ class MParser{
   constructor(data){ 
     ////console.log('hallo',data);
     this.tokens = Array.isArray(data)?data:new MScanner(data).tokenList;
+    console.log(this.tokens);
     let t = new MTree([]);
+    console.log('vor this.parse')
     t=this.parse(this.tokens,t,[t]);
+    console.log('nach this.parse',t)
+
     this.tree=t;
 
     //t.print();
@@ -33,6 +37,8 @@ class MParser{
     ////console.log('parseSetOfTuples ',tokens,t);
     tokens.splice(0,1,"@CO");
     while(tokens[0] == "@CO"){
+      console.log('pSetTu')
+
       tokens.splice(0,1);
       let newT = new MTree([]);
       newT = this.parseComplexTuple(tokens,newT,trees);
@@ -48,6 +54,7 @@ class MParser{
     let troot = new MTree([]);
     let t1 = t;//troot;
     while(tokens[0] == "@CO"){
+      console.log('pCoTu')
       tokens.splice(0,1);
       let t2 = new MTree([]);
       t1.addChildTree(this.parse(this.tokens,t2,[t1]));
