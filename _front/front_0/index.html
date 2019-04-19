@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>NEW</title>
-    <link rel="shortcut icon" href="#" />
-    <title>TNT!</title>
+    <title>a97</title>
     <link rel="shortcut icon" href="#" />
     <link rel="stylesheet" type="text/css" href="/common/css/commonStyles.css" />
     <link rel="stylesheet" type="text/css" href="/common/css/msStyles.css" />
@@ -15,10 +13,10 @@
     <script src="/common/js/panzoom.js"></script>
     <script src="/common/js/MS.js"></script>
     <script src="/common/js/BoardFactory.js"></script>
+    <script src="/common/js/CardFactory.js"></script>
     <script src="/common/js/MTree.js"></script>
     <script src="/common/js/MParser.js"></script>
     <script src="/common/js/MScanner.js"></script>
-    <script src="/common/js/MSelection.js"></script>
   </head>
   <body>
     <!-- #region HTML -->
@@ -36,10 +34,18 @@
       </div>
       <div id="logDiv" class="div">log display</div>
       <div id="buttonDiv" class="div">
-        <button>next player</button>
+        <button id="bNextPlayer" class="hidden" onclick="onClickNextPlayer()">next player</button>
+        <button id="bSave" onclick="saveGameState()">save</button>
+        <button id="bPass" class="hidden" onclick="onClickPass()">pass</button>
       </div>
-      <div id="cardDisplay" class="div">cards</div>
-      <div id="chatWindow" class="div">chat window</div>
+      <div id="cardDisplay" class="div" style='height:200px'>
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="cardsG"></g>
+        </svg>
+      </div>
+      <div id="chatWindow" class="div">
+        <button id='bSkipAction' onclick="skipAction()">skip</button>
+      </div>
     </div>
     <!-- #endregion HTML -->
 
@@ -54,6 +60,35 @@
             processData(this.responseText);
           }
         });
+      }
+      function skipAction() {
+        let tuple = choiceTuples[0];
+        let url = "action/" + G.faction + "/" + tuple.join("+");
+        closeSelection();
+        send(url);
+      }
+      function saveGameState() {
+        //console.log(G);
+        //console.log("_____________");
+        //settings = {any_kind_of_object: true};
+        json_str = JSON.stringify(G);
+        saveFile("yourfilename.json", "data:application/json", new Blob([json_str], {type: ""}));
+      }
+      function onClickNextPlayer() {
+        hide(bNextPlayer);
+        cardFactory.clearCards();
+        //TODO: hide board objects?
+
+        G.faction = nextFaction;
+        send("status/" + G.faction);
+      }
+      function onClickPass() { // macht eh dasselbe wie onClickNextPlayer
+        hide(bNextPlayer);
+        cardFactory.clearCards();
+        //TODO: hide board objects?
+
+        G.faction = nextFaction;
+        send("status/" + G.faction);
       }
       function processData(str) {
         let data = JSON.parse(str);
@@ -75,15 +110,26 @@
           //updated
           for (id in data.updated) {
             //not sure if have to do this really, since possibly no need
-            let o = g[id]; //this object should exist since it is being updated!
-            //each property of this object should be changed as in data.updated
-            let orig = data.updated[id];
-            for (prop in orig) {
-              o[prop] = orig[prop];
+            // actually, the object might NOT exist,
+            // therefore, just create it if it does not exist!!!
+
+            if (!(id in g)) {
+              console.log("NON EXISTING:", id);
+              g[id] = data.updated[id];
+            } else {
+              let o = g[id]; //this object should exist since it is being updated!
+              //each property of this object should be changed as in data.updated
+              let orig = data.updated[id];
+              for (prop in orig) {
+                o[prop] = orig[prop];
+              }
             }
           }
           //removed
+
           for (id in data.removed) {
+            console.log(id, "is in removed!!!!!!!!!!!!!!");
+            break;
             //not sure if should do anything!
             // if (id in g) {
             //   delete g[id];
@@ -95,12 +141,22 @@
 
           //either actions or waiting_for:
           console.log("*** actions starts ***");
+          console.log(data.actions);
+
+
+          json_str = JSON.stringify(data.actions);
+          //saveFile("_a"+fileCounter+".json", "data:application/json", new Blob([json_str], {type: ""}));
+          fileCounter+=1;
+
           if ("actions" in data) {
             //console.log("there are actions!!!! tree:");
             let sActions = JSON.stringify(data.actions);
+            console.log('vor make server tree')
             let serverTree = new MParser(sActions).tree;
-            //serverTree.print();
+            console.log('nach make server tree')
+            serverTree.print();
             choiceTuples = getChoices(serverTree);
+            //console.log(choiceTuples);
 
             if (skipActions > 0) {
               skipActions -= 1;
@@ -115,87 +171,18 @@
               //console.log("_____________selection:");
               //console.log(allSelectionUIs.map(x => x.id));
               openSelectionIfPopulated();
+              show(bSkipAction);
             }
           } else {
+            console.log(data.waiting_for, "*** will change turn!!! ***");
+            console.log(data);
+            show(bNextPlayer);
             hideSelectionPanel();
-            console.log(data.waiting_for, "will change turn!!!");
-            G.faction = data.waiting_for.set[0];
-            send("status/" + G.faction);
+            nextFaction = data.waiting_for.set[0];
           }
         }
-        //console.log(G);
-        //console.log("_____________");
-        //settings = {any_kind_of_object: true};
-        //json_str = JSON.stringify(G);
-        //saveFile("yourfilename.json", "data:application/json", new Blob([json_str], {type: ""}));
       }
-      function updateUI() {
-        //have to know how to create an object of type: obj_type
-        //example: create a tile object
-        //console.log("*** starting to process ***");
-        var currentFaction = G.faction;
-        var currentView = G[currentFaction];
-        for (id in currentView) {
-          let go = currentView[id];
-          let ttext = JSON.stringify(go);
-          //console.log(go.obj_type);
-          if (!(id in uis)) {
-            console.log("create:", id);
-            //create object with immutable properties (mutable properties in update)
-            switch (go.obj_type) {
-              case "tile":
-                //console.log("create region", id);
-                uis[id] = boardFactory.createTile(id, ttext);
-                //muss noch die units placen! irgendwie irgendwann!
-                break;
-              case "unit":
-                //console.log("create unit", id);
-                uis[id] = boardFactory.createUnit(id, go.nationality, go.type, ttext);
-                break;
-            }
-          }
-        }
-        for (id in currentView) {
-          let go = currentView[id];
-          //update properties
-          let ui = uis[id];
-          for (prop in go) {
-            //map values of property to ui
-            switch (prop) {
-              case "tile":
-                //make sure this is a cadre
-                if (go.obj_type != "unit") {
-                  console.log("trying to place a", go.obj_type);
-                }
-                let tile = go.tile;
-                let unitTile = ui.getTag("tile");
-                if (unitTile != tile) {
-                  console.log("update tile from", unitTile, "to", tile);
-                  let uiTile = uis[tile];
-                  boardFactory.placeUnit(ui, tile, uiTile, currentFaction);
-                }
-                break;
-              case "cv":
-                //make sure this is a cadre
-                if (go.obj_type != "unit") {
-                  console.log("trying to attach cv to ", go.obj_type);
-                }
-                let cv = go[prop];
-                let unitCV = ui.getTag("cv");
-                if (unitCV != cv) {
-                  console.log("update cv from", unitCV, "to", cv);
-                  boardFactory.updateCv(ui, cv);
-                }
-                break;
-            }
-          }
-          //update visibility
-        }
-
-        //test area
-        //darkerColor(255,255,0);
-        //each object after creation has a
-      }
+      var fileCounter=0;
       function onSelected(ev) {
         let id = evToId(ev);
         let type = getType(id);
@@ -223,9 +210,6 @@
         }
         currentChoicesByType = computeChoicesByType(matchingTuples);
 
-        //highlight or unhighlight uis based on difference between
-        //currentChoicesByType and newChoicesByType
-        //flatten currentChoicesByType
         let objectList = getObjects(currentChoicesByType);
         //console.log("new choices:", objectList.map(x => x.id));
 
@@ -244,9 +228,9 @@
 
         if (typesNeeded.length == selectedValues.length) {
           //unselect and unhighlight all choice!
-          for (const ms of allSelectionUIs) {
-            makeUnselectable(ms);
-          }
+          // for (const ms of allSelectionUIs) {
+          //   makeUnselectable(ms);
+          // }
           let tuple = findTuple(selectedValues, choiceTuples);
           closeSelection();
           //console.log(tuple, selectedValues, choiceTuples);
@@ -257,7 +241,7 @@
             send(url);
           }
         } else {
-          //console.log("*** updating selections ***");
+          console.log("*** updating selections ***");
           for (const id of selectedValues) {
             getMS(id).select();
             //console.log("select", id, getMS(id));
@@ -272,10 +256,211 @@
             makeSelectable(ms, onSelected);
             //console.log('highlight:',ms.id,ms)
           }
+          show(bSkipAction);
         }
       }
     </script>
     <!-- #endregion functions -->
+
+    <!-- #region FRONT END functions -->
+    <script>
+      function isHandCard(go, faction) {
+        let lst = go.visible.set;
+        return lst.includes(faction);
+      }
+      function updateUI() {
+        //have to know how to create an object of type: obj_type
+        //example: create a tile object
+        //console.log("*** starting to process ***");
+        var currentFaction = G.faction;
+        var currentView = G[currentFaction];
+        for (id in currentView) {
+          let go = currentView[id];
+          let ttext = JSON.stringify(go);
+          //console.log(go.obj_type);
+          if (!(id in uis)) {
+            // THIS OBJECT NEEDS TO BE CREATED!
+            //console.log("create:", id);
+            //create object with immutable properties (mutable properties in update)
+            switch (go.obj_type) {
+              case "tile":
+                //console.log("create region", id);
+                uis[id] = boardFactory.createTile(id, ttext);
+                //muss noch die units placen! irgendwie irgendwann!
+                break;
+              case "unit":
+                //console.log("create unit", id);
+                uis[id] = boardFactory.createUnit(id, go.nationality, go.type, ttext);
+                break;
+              case "action_card":
+                let ui = cardFactory.createCard(id, go, ttext);
+                uis[id] = ui;
+                if (isHandCard(go, currentFaction)) {
+                  cardFactory.placeCard(ui, currentFaction);
+                }
+                break;
+              case "investment_card":
+                uis[id] = cardFactory.createCard(id, go, ttext);
+                break;
+            }
+          }
+        }
+        for (id in currentView) {
+          let go = currentView[id];
+          let ttext = JSON.stringify(go);
+          //console.log('updateUI: update properties')
+
+          //update properties
+          if (!(id in uis)) {
+            console.log("ERROR!!!!!", id, "DOES NOT EXIST!!!!!");
+            return;
+          }
+          let ui = uis[id];
+
+          for (prop in go) {
+            //map values of property to ui
+            switch (prop) {
+              case "tile":
+                //make sure this is a cadre
+                if (go.obj_type != "unit") {
+                  //console.log("trying to place a", go.obj_type);
+                }
+                let tile = go.tile;
+                let unitTile = ui.getTag("tile");
+                if (unitTile != tile) {
+                  //console.log("update tile from", unitTile, "to", tile);
+                  let uiTile = uis[tile];
+                  boardFactory.placeUnit(ui, tile, uiTile, currentFaction);
+                }
+                break;
+              case "cv":
+                //make sure this is a cadre
+                if (go.obj_type != "unit") {
+                  //console.log("trying to attach cv to ", go.obj_type);
+                }
+                let cv = go[prop];
+                let unitCV = ui.getTag("cv");
+                if (unitCV != cv) {
+                  //console.log("update cv from", unitCV, "to", cv);
+                  boardFactory.updateCv(ui, cv);
+                }
+                break;
+              case "top":
+              case "wildcard":
+                //console.log('updating card:',ui)
+                let title = ui.getTag("title");
+                if (title != go[prop]) {
+                  cardFactory.updateCardContent(ui.id, ui, go, ttext);
+                  if (isHandCard(go, currentFaction)) {
+                    cardFactory.placeCard(ui, currentFaction);
+                  }
+                }
+                break;
+            }
+          }
+          //update visibility
+        }
+      }
+
+      function updateUI_old() {
+        //have to know how to create an object of type: obj_type
+        //example: create a tile object
+        //console.log("*** starting to process ***");
+        var currentFaction = G.faction;
+        var currentView = G[currentFaction];
+        for (id in currentView) {
+          let go = currentView[id];
+          let ttext = JSON.stringify(go);
+          //console.log(go.obj_type);
+          if (!(id in uis)) {
+            // THIS OBJECT NEEDS TO BE CREATED!
+            //console.log("create:", id);
+            //create object with immutable properties (mutable properties in update)
+            switch (go.obj_type) {
+              case "tile":
+                //console.log("create region", id);
+                uis[id] = boardFactory.createTile(id, ttext);
+                //muss noch die units placen! irgendwie irgendwann!
+                break;
+              case "unit":
+                //console.log("create unit", id);
+                uis[id] = boardFactory.createUnit(id, go.nationality, go.type, ttext);
+                break;
+              case "action_card":
+                uis[id] = cardFactory.createCard(id, go, ttext);
+                break;
+              case "investment_card":
+                uis[id] = cardFactory.createCard(id, go, ttext);
+                break;
+            }
+          }
+        }
+        for (id in currentView) {
+          let go = currentView[id];
+          let ttext = JSON.stringify(go);
+          //console.log('updateUI: update properties')
+
+          //update properties
+          if (!(id in uis)) {
+            console.log("ERROR!!!!!", id, "DOES NOT EXIST!!!!!");
+            return;
+          }
+          let ui = uis[id];
+
+          // if (go.obj_type == "action_card") {
+          //   //just place the card to next spot
+          //   // if it is a card, properties do not change
+          //   // just display cards in currenview if have not been displayed yet
+          // } else {
+          for (prop in go) {
+            //map values of property to ui
+            switch (prop) {
+              case "tile":
+                //make sure this is a cadre
+                if (go.obj_type != "unit") {
+                  //console.log("trying to place a", go.obj_type);
+                }
+                let tile = go.tile;
+                let unitTile = ui.getTag("tile");
+                if (unitTile != tile) {
+                  //console.log("update tile from", unitTile, "to", tile);
+                  let uiTile = uis[tile];
+                  boardFactory.placeUnit(ui, tile, uiTile, currentFaction);
+                }
+                break;
+              case "cv":
+                //make sure this is a cadre
+                if (go.obj_type != "unit") {
+                  //console.log("trying to attach cv to ", go.obj_type);
+                }
+                let cv = go[prop];
+                let unitCV = ui.getTag("cv");
+                if (unitCV != cv) {
+                  //console.log("update cv from", unitCV, "to", cv);
+                  boardFactory.updateCv(ui, cv);
+                }
+                break;
+              case "top":
+              case "wildcard":
+                //console.log('updating card:',ui)
+                let title = ui.getTag("title");
+                if (title != go[prop]) {
+                  cardFactory.updateCardContent(ui.id, ui, go, ttext);
+                  cardFactory.placeCard(ui);
+                }
+                break;
+            }
+          }
+          // }
+          //update visibility
+        }
+
+        //test area
+        //darkerColor(255,255,0);
+        //each object after creation has a
+      }
+    </script>
+    <!-- #endregion FRONT END functions -->
 
     <!-- #region selection super messy code: TODO CLEANUP!!!! -->
     <script>
@@ -376,11 +561,15 @@
         }
       }
       function closeSelection() {
+        hide(bSkipAction);
         selectedIds = {};
         currentChoicesByType = {};
         choiceTuples = [];
+        allSelectionUIs.map(x => makeUnselectable(x));
+        allSelectionUIs = [];
       }
       function hideSelectionPanel() {
+        closeSelection();
         let d = document.getElementById("selDiv");
         if (d.classList.contains("hidden")) return;
         let dMain = document.getElementById("mainDiv");
@@ -458,7 +647,12 @@
 
     <!-- #region setup -->
     <script>
-      var skipActions = 11;
+      var skipActions = 44;
+
+      var nextFaction;
+      // var preparingForTurnChange = false;
+      // var playerPressedPass = false;
+      // var passTimer;
 
       var G = {Axis: {}, West: {}, USSR: {}, log: [], faction: "West"};
       var uis = {}; //by id
@@ -474,8 +668,14 @@
       var msgCounter = 0;
 
       const board = document.getElementById("boardG");
+      const cardDisplay = document.getElementById("cardDisplay");
+      const cardsG = document.getElementById("cardsG");
+      const bNextPlayer = document.getElementById("bNextPlayer");
+      const bSkipAction = document.getElementById("bSkipAction");
+      const bPass = document.getElementById("bPass");
 
-      board.setAttribute("transform", `translate(-400,-400) scale(${1})`);
+      board.setAttribute("transform", `translate(0,0) scale(${MIN_SCALE})`);
+      //board.setAttribute("transform", `translate(-400,-400) scale(${1})`);
       board.addEventListener("wheel", ev => {
         onwheel(ev, board);
       });
@@ -491,10 +691,29 @@
       addEventListener("dblclick", ev => reset(ev, board));
 
       var boardFactory = null;
+      var cardFactory = null;
 
+      const SZ = {
+        //various sizes used
+        region: 180,
+        pAxis: {x: 0, y: 20}, // this is where on the region placement of cadre is started
+        pWest: {x: -50, y: -30},
+        pUSSR: {x: +50, y: -30},
+        cadrePrototype: 60,
+        sumCadre: 60,
+        cadreDetail: 44,
+        cardWidth: 100,
+        cardHeight: 150
+      };
+    </script>
+    <!-- #endregion setup -->
+
+    <script>
       //*** execution starts here ***
       loadYML("/common/assets/config/map_pos.yml", data => {
-        boardFactory = new BoardFactory(board, data);
+        boardFactory = new BoardFactory(board, data, SZ);
+        cardFactory = new CardFactory(cardDisplay, cardsG, SZ.cardWidth, SZ.cardHeight);
+        boardFactory.createDecks();
         loadYML("/common/assets/config/unit_count.yml", data => {
           G["unitCount"] = data;
           G["nationality"] = Object.keys(data); //'Germany','Britain',...
@@ -503,6 +722,5 @@
         });
       });
     </script>
-    <!-- #endregion setup -->
   </body>
 </html>

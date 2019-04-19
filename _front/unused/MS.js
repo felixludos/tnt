@@ -5,7 +5,7 @@ class MS {
     // parent is null, this is a floating ms element that can be appended or removed
     // to/from parent. otherwise this is an element that lives on a parent and is
     // hidden if not visible console.log('MS constructor:',id,parent)
-    this.isFloating = parent == null;
+    this.isFloating = parent == null; //TODO: eliminate!!!!!!!!!!!!!!!!
     this.isDrawn = false;
     this.parent = parent;
     this.id = id;
@@ -24,7 +24,7 @@ class MS {
       b: 0
     }; //dimensions of first child (supposedly largest)
     this.data = {}; // key value list that can be stored in an element
-    this.isVisible = false;
+    this.isVisible = false; //TODO: WAS???????????????????
     this.isHighlighted = false;
     this.isSelected = false;
     this.isPulsating = false;
@@ -37,16 +37,43 @@ class MS {
   onClick(ev) {
     //console.log('click',this.id,this.isEnabled,this.clickHandler)
     if (!this.isEnabled) return;
+    //else console.log('clickHandler=',this.clickHandler,typeof(this.clickHandler))
+
+    if (typeof this.clickHandler == "function") this.clickHandler(ev);
+    //else console.log(evToId(ev))
 
     //if (!this.clickHandler) return;
-    this.toggleSelection();
-    if (this.isSelected && this.clickHandler) console.log("click", this.id);
-    this.clickHandler(ev);
+    // this.toggleSelection();
+    // if (this.isSelected && this.clickHandler){
+    //   console.log("click", this.id);
+    //   this.clickHandler(ev);
+    // }
   }
   //#endregion
 
   //#region set position, draw
-
+  drawTo(newParent, x = 0, y = 0) {
+    if (newParent == this.parent && this.isDrawn){
+      if (x == 0 || (x==this.x && y == this.y)) return;
+      else this.setPos(x,y);
+    }
+    if (newParent != this.parent) {
+      this.removeFromUI();
+    }
+    this.parent = newParent;
+    if (x != 0) {
+      this.setPos(x, y);
+      console.log('setpos',x,y)
+    }
+    if (newParent) {
+      this.isFloating = false;
+      this.isDrawn = false;
+      this.draw();
+      console.log('drawn!')
+    } else {
+      this.isFloating = true;
+    }
+  }
   draw() {
     if (this.isFloating) {
       return this;

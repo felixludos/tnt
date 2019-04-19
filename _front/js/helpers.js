@@ -695,6 +695,8 @@ function makeSvg(w, h) {
   svg1.setAttribute("height", h);
   return svg1;
 }
+function hide(elem){elem.classList.add('hidden')}
+function show(elem){elem.classList.remove('hidden')}
 
 //tableCreate();
 function makeKeyValueTable(data) {
