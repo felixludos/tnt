@@ -18,7 +18,7 @@ def encode_intel_response(G, intel_card, player, target):
 		card = G.objects.table[cid]
 		if 'intelligence' in card and card.intelligence == 'Double_Agent':
 			
-			opts = get_intel_options(G, target, intel_card)
+			opts = get_intel_options(G, intel_card, player)
 			if len(opts):
 				msg = 'You may play your Double Agent to reverse the effect of {} played by {}'.format(intel_card.intelligence, player)
 				options.add((cid, opts))
@@ -35,15 +35,30 @@ def encode_intel_response(G, intel_card, player, target):
 	return code
 
 def play_intel(G, player, card, target, *args):
-	pass
-
-def resolve_intel(G, player, card, response):
-
+	
 	G.temp.hack = tdict()
 	G.temp.hack.target = target
 	G.temp.hack.card = card
 	G.temp.hack.source = player
 	G.temp.hack.args = args
+	
+	return encode_intel_response(G, card, player, target)
+
+def resolve_intel(G, player, response):
+	
+	card = G.temp.hack.card
+	
+	assert player == G.temp.hack.target, 'Target should be responding'
+	
+	if response != ('accept',):
+		
+		ID, *args = response
+		
+		G.temp.hack.target = G.temp.hack.source
+		G.temp.hack.source = player
+		G.temp.hack.args = args
+		
+		discard_cards(G, 'investment', ID)
 	
 	if card.intelligence == 'Coup':
 		nation, = args
@@ -68,16 +83,19 @@ def resolve_intel(G, player, card, response):
 		G.players[target].tracks.IND -= 1
 		G.logger.write('{} plays Sabotage to decrease {}\'s IND to {}'.format(player, target, G.players[target].tracks.IND))
 	elif card.intelligence == 'Code_Breaking':
+		
+		
+		
 		pass
 	elif card.intelligence == 'Mole':
 		pass
 	else:
 		raise Exception('Unknown intelligence card type: {}'.format(card.intelligence))
-
-def get_intel_options(G, player, targets, card):
-	opts = xset()
 	
-	targets = xset(G.players[player].stats.rivals)
+	discard_cards(G, 'investment', card._id)
+
+def get_intel_options(G, card, *targets):
+	opts = xset()
 	
 	if card.intelligence == 'Coup':
 		
@@ -426,7 +444,20 @@ def governmnet_phase(G, player, action): # play cards
 	if 'move_to_post' in G.temp:
 		return government_post_phase(G, action)
 	
-	if 'factory_upgrade' in G.temp:
+	if 'hack' in G.temp:
+		
+		if player == G.temp.hack.source:
+			assert action == ('cancel',), 'Misunderstood action: {}'.format(action)
+			
+			G.players[player].hand.add(G.temp.hack.coard._id)
+			del G.temp.hack
+			
+			return encode_government_actions(G)
+		
+		else:
+			resolve_intel(G, player, action)
+	
+	elif 'factory_upgrade' in G.temp:
 		
 		if action == ('cancel',):
 			G.logger.write('Cancelled factory upgrade', player=player)
