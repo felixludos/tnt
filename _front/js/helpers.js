@@ -1,3 +1,64 @@
+//#region set and tuple helpers
+function isSet(x){
+  return 'set' in x;
+}
+function isNumeric(x){return !isNaN(+x);}
+function isLiteral(x){
+  return isString(x) || $.isNumeric(x);
+}
+function isTuple(x){
+  return Array.isArray(x);
+}
+function isSingleton(x){
+  return isSet(x) && x.set.length == 1 || isTuple(x) && x.length == 1;
+}
+function firstElement(x){
+  if (isSet(x)) return x.set[0]; else if (isTuple(x)) return x[0]; else return null;
+}
+function expand1(x){
+  if (isEmpty(x)) return [];
+  if (isLiteral(x)) return [x];
+  if (isSingleton(x)) return expand1(firstElement(x))
+  if (isSet(x)) return x.set.map(el=>expand1(el));
+  if (isTuple(x)) {
+    let a=expand1(firstElement(x));
+    let b=x.slice(1);
+    let c=expand1(x.slice(1));
+    let d=extractStringLists(c);
+    //console.log('a=',fj(a),'b=',fj(b),'c=',fj(c))
+    //console.log('d=',fj(d))
+    return carteset(a,d);
+  }
+}
+function isListOfLiterals(lst){
+  if (!isList(lst)) return false;
+  for (const el of lst) {
+    if (isList(el)) return false;
+  }
+  return true;
+}
+function extractStringLists(lst){
+  let res = [];
+  for (const l of lst) {
+    if (isListOfLiterals(l)) res.push(l);
+    else if (isLiteral(l)) res.push([l]);
+    else {
+      let r2=extractStringLists(l);
+      r2.map(x=>res.push(x))
+    }
+  }
+  return res;
+}
+function expand(e){
+  let res = [];
+  e=expand1(e);
+  for (const el of e) {
+    if (isll(el)) el.map(x=>res.push(x)); else res.push(el);
+  }
+  return res;
+}
+function prex(x){prll(expand(x))}
+
 //#region array helpers
 function addAll(akku, other) {
   for (const el of other) {
@@ -56,6 +117,12 @@ function empty(arr) {
   //console.log(typeof(arr),result?'EMPTY':arr)
   return result;
 }
+function isEmpty(arr) {
+  return empty(arr);
+}
+function isList(arr){
+  return Array.isArray(arr);
+}
 function first(arr) {
   return arr.length > 0 ? arr[0] : null;
 }
@@ -64,6 +131,75 @@ function keepOnlyElements(func, lst) {
 }
 function last(arr) {
   return arr.length > 0 ? arr[arr.length - 1] : null;
+}
+function isll(ll){//true if arr is a list of lists of strings
+  if (!isList(ll)) {console.log('NOT a list',ll);return false;}
+  for (const l of ll) {
+    if (!isList(l)) {console.log('element',l,'NOT a list!');return false;}
+    for (const el of l) {
+      if (!isString(el) && !isNumeric(el)) return false;
+    }
+  }
+  return true;
+}
+function isllPlus(ll){//true if arr is a list of lists
+  if (!isList(ll)) {console.log('NOT a list',ll);return false;}
+  for (const l of ll) {
+    if (!isList(l)) {console.log('element',l,'NOT a list!');return false;}
+  }
+  return true;
+}
+function formatll(ll){ //return beautiful string for list of lists
+  //ensure this is a list of lists
+  if (!isll(ll)) return 'NOT list of lists!'
+  let s='[';
+  for (const l of ll) {
+    let content = isllPlus(l)? formatll(l):l.toString();
+    s+='['+content+']';
+  }
+  s+=']';
+  console.log(s);
+}
+function carteset(l1,l2) { //l1,l2 are lists of list
+  let res = [];
+  for (var el1 of l1) {
+    for (var el2 of l2) {
+      //if (isll(el2)) el2=el2.flat();
+      if (isList(el1)) res.push(el1.concat(el2))
+      else res.push([el1].concat(el2));
+    }
+  }
+  return res;
+}
+
+function formatjson(j){ //return beautiful small json 
+  let s=JSON.stringify(j);
+  s=s.replace(/\s/g,'');
+  return s;
+}
+function prjstart(j){console.log('______',formatjson(j))}
+function prj(j){console.log(formatjson(j))}
+function fj(x){return formatjson(x);}
+function pr(x){console.log(prlist(x).replace(/,,/g,','))}
+function prll(ll){
+  //ensure this is a list of lists
+  if (!isList(ll)) {console.log('NOT a list',ll);return;}
+  for (const l of ll) {
+    if (!isList(ll)) {console.log('element',l,'NOT a list!');return;}
+  }
+  let s='[';
+  for (const l of ll) {
+    s+='['+l.toString()+']';
+  }
+  s+=']';
+  console.log(s);
+}
+function prlist(arr){
+  if (isList(arr)){
+    if (isEmpty(arr)) return '';
+    else return '['+prlist(arr[0])+arr.slice(1).map(x=>','+prlist(x))+']'
+  } else return arr;
+
 }
 function sameList(l1, l2) {
   // compares 2 lists of strings if have same strings in it
