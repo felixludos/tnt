@@ -74,7 +74,7 @@ def resolve_intel(G, player, response):
 	
 	if card.intelligence == 'Coup':
 		nation, = args
-		
+
 		inf = G.diplomacy.influence[nation]
 		
 		assert inf.faction == target, 'Influence is owned by {} not the target ({})'.format(inf.faction, target)
@@ -838,6 +838,7 @@ def government_post_phase(G, player=None, action=None):
 		
 	if len(G.temp.sats):
 		return encode_sat_units(G)
+
 	
 		
 	raise PhaseComplete

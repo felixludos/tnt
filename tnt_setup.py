@@ -137,10 +137,16 @@ def load_players_and_minors(G):
 		faction.secret_vault = tset()
 		faction.influence = tset()
 		
+<<<<<<< HEAD
 		faction.diplomacy = tdict()
 		faction.diplomacy.associates = tset()
 		faction.diplomacy.protectorates = tset()
 		faction.diplomacy.satellites = tset()
+=======
+		faction.associates = tset()
+		faction.protectorates = tset()
+		faction.satellites = tset()
+>>>>>>> 2d346e779255d6c40ffa665db6df5a716fbf1e4e
 		
 		players[name] = faction
 	G.players = players
@@ -173,12 +179,21 @@ def load_players_and_minors(G):
 			
 			majors[name] = major
 	
+<<<<<<< HEAD
 	G.diplomacy = tdict()
 	G.diplomacy.minors = minors
 	G.diplomacy.majors = majors
 	G.diplomacy.neutrals = minors.copy()
 	G.diplomacy.neutrals.update(majors)
 	G.diplomacy.influence = tdict()
+=======
+	G.neutrals = tdict()
+	G.neutrals.minors = minors
+	G.neutrals.majors = majors
+	G.neutrals.influence = tdict()
+	G.neutrals.satellites = tdict()
+	
+>>>>>>> 2d346e779255d6c40ffa665db6df5a716fbf1e4e
 
 def load_game_info(G, path='config/game_info.yml'):
 	info = load(path)
