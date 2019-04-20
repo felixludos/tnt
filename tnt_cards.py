@@ -55,8 +55,11 @@ def shuffle(stack):
 def discard_cards(G, stack, *cards):
 	G.cards[stack].discard_pile.extend(cards)
 	for ID in cards:
-		G.objects.table[ID].visible.clear()
-		G.objects.updated[ID] = G.objects.table[ID]
+		card = G.objects.table[ID]
+		if 'owner' in card:
+			del card.owner
+		card.visible.clear()
+		G.objects.updated[ID] = card
 
 def draw_cards(G, stack, player, N=1):
 	
@@ -67,6 +70,7 @@ def draw_cards(G, stack, player, N=1):
 	for cID in cards:
 		card = G.objects.table[cID]
 		card.visible.add(player)
+		card.owner = player
 		G.objects.updated[cID] = card
 		
 	G.players[player].hand.update(cards)

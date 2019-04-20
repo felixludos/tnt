@@ -38,7 +38,8 @@ def convert_jsonable(msg):
 
 
 _visible_attrs = {  # attributes seen by all players even if obj isn't visible to the player
-	'unit': {'nationality', 'tile', }
+	'unit': {'nationality', 'tile', },
+	'card': {'owner'},
 }
 
 

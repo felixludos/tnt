@@ -30,7 +30,7 @@ def encode_intel_response(G, intel_card, player, target):
 	
 	code[target] = options
 	
-	code[player] = xset(('cancel',)) # original player can cancel
+	# code[player] = xset(('cancel',)) # original player can cancel
 	
 	return code
 
@@ -50,22 +50,55 @@ def resolve_intel(G, player, response):
 	
 	assert player == G.temp.hack.target, 'Target should be responding'
 	
-	if response != ('accept',):
+	G.logger.write('{} plays {}'.format(G.temp.hack.source, G.temp.hack.card.intelligence))
+	
+	if response != ('accept',): # target plays Double Agent
 		
 		ID, *args = response
 		
+		# switch target and source, update args
 		G.temp.hack.target = G.temp.hack.source
 		G.temp.hack.source = player
 		G.temp.hack.args = args
 		
+		# discard double agent card
 		discard_cards(G, 'investment', ID)
+		
+		G.logger.write('However, {} uses their double agent to reverse the effects'.format(player))
+	
+	target = G.temp.hack.target
+	player = G.temp.hack.source
+	args = G.temp.hack.args
+	
+	code = None
 	
 	if card.intelligence == 'Coup':
 		nation, = args
 		
+		inf = G.neutrals.influence[nation]
+		
+		assert inf.faction == target, 'Influence is owned by {} not the target ({})'.format(inf.faction, target)
+		
+		G.players[target].influence.remove(inf._id)
+		del G.neutrals.influence[nation]
+		del G.objects.table[inf._id]
+		G.objects.removed[inf._id] = inf
+		
+		G.logger.write('{} {} influence is removed from {}'.format(inf.value, target, nation))
 	elif card.intelligence == 'Agent':
 		tilename, = args
+		tile = G.tiles[tilename]
 		
+		G.temp.intel[player] = tdict()
+		
+		for uid in tile.units:
+			unit = G.objects.table[uid]
+			if unit.nationality in G.players[target].members:
+				unit.visible.add(player)
+				G.objects.updated[uid] = unit
+				G.temp.intel[player][uid] = unit
+		
+		G.logger.write('{} may view all {}\'s units in {} for one turn'.format(player, target, tilename))
 	elif card.intelligence == 'Spy_Rings':
 		
 		cid = random.choice(list(G.players[target].hand))
@@ -76,23 +109,60 @@ def resolve_intel(G, player, response):
 		pick = G.objects.table[cid]
 		pick.visible.clear()
 		pick.visible.add(player)
-		
+		pick.owner = player
 		G.objects.updated[cid] = pick
 		
+		G.logger.write('{} steals one card from {}\'s hand'.format(player, target))
 	elif card.intelligence == 'Sabotage':
 		G.players[target].tracks.IND -= 1
-		G.logger.write('{} plays Sabotage to decrease {}\'s IND to {}'.format(player, target, G.players[target].tracks.IND))
 	elif card.intelligence == 'Code_Breaking':
 		
+		G.temp.intel[player] = tdict()
 		
+		for cid in G.players[target].hand:
+			card = G.objects.table[cid]
+			
+			card.visible.add(player)
+			
+			G.temp.intel[player][cid] = card
+			G.objects.updated[cid] = card
 		
-		pass
+		G.logger.write('{} may view {}\'s hand for one turn'.format(player, target))
 	elif card.intelligence == 'Mole':
-		pass
+		
+		G.logger.write('{} may view {}\'s secret vault, and possibly achieve a tech therein')
+		
+		vault = G.players[target].secret_vault
+		G.logger.write('{}\'s secret vault contains: {}'.format(target, ', '.join(vault)), player=player)
+		
+		options = xset()
+		
+		for cid in G.players[player].hand:
+		
+			card = G.objects.table[cid]
+			
+			if card.obj_type == 'investment_card' and 'top' in card:
+				if card.top in vault and is_achievable_tech(G, player, card.top):
+					options.add((card.top, cid))
+				if card.bottom in vault and is_achievable_tech(G, player, card.bottom):
+					options.add((card.bottom, cid))
+		
+		if len(options):  # any tech can be achieved openly or in secret
+			options = xset((xset('open', 'secret'), options))
+		
+		options.add(('accept',))
+		
+		G.temp.mole = target
+		
+		code = adict()
+		code[player] = options
+		
 	else:
 		raise Exception('Unknown intelligence card type: {}'.format(card.intelligence))
 	
-	discard_cards(G, 'investment', card._id)
+	del G.temp.hack
+	
+	return options # is None unless mole was played
 
 def get_intel_options(G, card, *targets):
 	opts = xset()
@@ -137,7 +207,7 @@ def check_intelligence(G, player, cards):
 		if 'intelligence' not in card or card.intelligence == 'Double_Agent':
 			continue
 		
-		opts = get_intel_options(G, player, card)
+		opts = get_intel_options(G, card, *G.players[player].stats.rivals)
 		
 		if len(opts):
 			options.add((cid, opts))
@@ -185,6 +255,60 @@ def factory_upgrade_combos(cards, cost):
 	
 	return map(tuple, opposite_knapsack(IDs, options, cost))
 
+def is_achievable_tech(G, player, tech):
+	
+	if 'Atomic' not in tech:
+		return True
+	
+	level = int(tech[-1])
+	
+	if level == 1:
+		return True
+	
+	prev = tech[:-1] + str(level-1)
+	
+	if prev in G.players[player].techs or prev in G.players[player].secret_vault:
+		return True
+	
+	return False
+
+def reveal_tech(G, player, tech):
+	
+	faction = G.players[player]
+	
+	assert tech in faction.secret_vault, 'Tech {} must be in {} secret vault: {}'.format(tech, player, faction.secret_vault)
+	
+	faction.secret_vault.remove(tech)
+	faction.technologies.add(tech)
+	
+	faction.stats.handlimit += 1
+	
+	G.logger.write('{} reveals {} from their secret vault (handlimit is now {})'.format(player, tech, faction.stats.handlimit))
+
+def achieve_tech(G, player, pub, tech, *cIDs):
+	
+	if pub == 'open':
+		G.players[player].technologies.add(tech)
+		G.logger.write('{} has achieved {}'.format(player, tech))
+	elif pub == 'secret':
+		G.players[player].secret_vault.add(tech)
+		G.players[player].stats.handlimit -= 1
+		G.logger.write('{} has placed a technology in their secret vault ({} handlimit is now {})'.format(
+			player, tech, player, G.players[player].stats.handlimit))
+		G.logger.write('- You can reveal {} from your vault anytime during your turn'.format(tech), player=player)
+	
+	discard_cards(G, 'investment', *cIDs)
+	
+	
+	pass
+
+def check_revealable(G, player):
+	options = xset()
+	faction = G.players[player]
+	if len(faction.secret_vault):
+		options.add(('reveal', xset(faction.secret_vault)))
+	return options
+
 def check_techs(G, player, cards):
 
 	global_techs = xset()
@@ -216,7 +340,10 @@ def check_techs(G, player, cards):
 	for tech in G.players[player].technologies:
 		if tech in available:
 			del available[tech]
-		
+	
+	# remove unachievable techs (higher atomic techs)
+	available = adict({t:c for t,c in available.items() if is_achievable_tech(G, player, t)})
+	
 	options = xset()
 	
 	for tech, sIDs in available.items():
@@ -239,6 +366,9 @@ def check_techs(G, player, cards):
 		
 		if len(topts):
 			options.add((tech, topts))
+			
+	if len(options): # any tech can be achieved openly or in secret
+		options = (xset('open', 'secret'), options)
 
 	return options
 
@@ -388,16 +518,19 @@ def encode_government_actions(G):
 	
 	# factory upgrade options
 	total_val = sum(c.value for c in invest_cards.values())
-	if total_val >= faction.stats.factory_cost:
+	if G.temp.past_upgrades[active_player] < 2 and total_val >= faction.stats.factory_cost:
 		options.add(('factory_upgrade',))
-	# for combo in factory_upgrade_combos(invest_cards, faction.stats.factory_cost):
-	# 	options.add(('factory_upgrade',) + combo)
+		# for combo in factory_upgrade_combos(invest_cards, faction.stats.factory_cost):
+		# 	options.add(('factory_upgrade',) + combo)
 	
 	# tech options
 	options.update(check_techs(G, active_player, invest_cards))
 	
 	# espionage options
 	options.update(check_intelligence(G, active_player, invest_cards))
+	
+	# reveal techs from secret vault
+	options.update(check_revealable(G, active_player))
 	
 	code[active_player] = options
 	
@@ -427,6 +560,9 @@ def government_pre_phase(G): # prep influence
 	G.temp.diplomacy = tdict()
 	G.temp.diplomacy_cards = tset()
 	G.temp.intel = tdict()
+	G.temp.past_upgrades = tdict()
+	for player in G.players:
+		G.temp.past_upgrades[player] = 0
 	
 	G.temp.passes = 0
 	
@@ -435,14 +571,14 @@ def government_pre_phase(G): # prep influence
 
 def governmnet_phase(G, player, action): # play cards
 	
+	if 'move_to_post' in G.temp: # after phase has ended and only clean up is necessary
+		return government_post_phase(G, player, action)
+	
 	if player in G.temp.intel: # hide any temporarily visible objects from intel cards
 		for ID, obj in G.temp.intel[player]:
 			obj.visible.remove(player)
 			G.objects.updated[ID] = obj
 		del G.temp.intel[player]
-	
-	if 'move_to_post' in G.temp:
-		return government_post_phase(G, action)
 	
 	if 'hack' in G.temp:
 		
@@ -455,7 +591,20 @@ def governmnet_phase(G, player, action): # play cards
 			return encode_government_actions(G)
 		
 		else:
-			resolve_intel(G, player, action)
+			actions = resolve_intel(G, player, action)
+			
+			if actions is not None:
+				return actions
+			
+	if 'mole' in G.temp:
+		if action != ('accept',):
+			
+			_, tech, _ = action
+			G.logger.write('{} uses their mole to achieve {}'.format(player, tech), player=G.temp.mole)
+			
+			achieve_tech(G, player, *action)
+		
+		del G.temp.mole
 	
 	elif 'factory_upgrade' in G.temp:
 		
@@ -487,6 +636,7 @@ def governmnet_phase(G, player, action): # play cards
 		
 		# factory upgrade complete
 		G.players[player].tracks.IND += 1
+		G.temp.past_upgrades[player] += 1
 		
 		G.players[player].hand -= G.temp.factory_upgrade.selects
 		
@@ -504,11 +654,12 @@ def governmnet_phase(G, player, action): # play cards
 		G.logger.write('{} passes'.format(player))
 		G.temp.passes += 1
 		if G.temp.passes == len(G.players):
+			G.logger.write('All players have passed consecutively - moving on to Government resolution')
 			G.temp.move_to_post = True  # for handsize limit options
 			return government_post_phase(G)
 	else:
 		
-		# execute card effects
+		# execute action
 		head, *tail = action
 		
 		if head == 'factory_upgrade':
@@ -517,6 +668,9 @@ def governmnet_phase(G, player, action): # play cards
 			G.temp.factory_upgrade.selects = tset()
 			G.logger.write('Select the cards to use for the factory upgrade', player=player)
 			return encode_factory_upgrade_actions(G)
+		elif head == 'reveal': # reveal tech from secret vault
+			reveal_tech(G, player, tail[0])
+			return encode_government_actions(G)
 		else:
 			G.temp.passes = 0
 			card = G.objects.table[head]
@@ -528,7 +682,7 @@ def governmnet_phase(G, player, action): # play cards
 				increment_influence(G, player, nation)
 				
 				extra = ''
-				if card.wildcard == 'Foreign_Aid':
+				if card.wildcard == 'Foreign_Aid': # pay IND
 					G.players[player].tracks.IND -= 1
 					extra = ' (decreasing IND to {})'.format(G.players[player].tracks.IND)
 				
@@ -538,10 +692,10 @@ def governmnet_phase(G, player, action): # play cards
 				
 			elif 'intelligence' in card:
 				
-				play_intelligence(G, player, card, tail)
+				discard_cards(G, 'investment', head)
 				
-				discard_cards(G, 'invest', head)
-				pass # play espionage
+				return play_intel(G, player, card, *tail)
+				
 			else:
 				nation, = tail
 				
@@ -549,6 +703,7 @@ def governmnet_phase(G, player, action): # play cards
 				
 				G.temp.diplomacy_cards.add(head)
 				card.visible = xset(G.players.keys()) # visible to everyone
+				del card.owner
 				G.objects.updated[head] = card
 				# discard_cards(G, 'action', head)
 	
@@ -556,13 +711,49 @@ def governmnet_phase(G, player, action): # play cards
 	G.temp.active_idx %= len(G.players)
 	return encode_government_actions(G)
 
-def government_post_phase(G, action=None):
+def government_post_phase(G, player=None, action=None):
+	
+	code = encode_post_gov_actions(G)
+	if len(code):
+		return code
 	
 	# diplomacy resolution (check for control, discard diplomacy_cards), handsize, update tracks
 	
-	raise NotImplementedError
+	# resolve diplomacy
+	discard_cards(G, 'action' *G.temp.diplomacy_cards)
+	
+	for nation, (player, val) in G.temp.diplomacy.items():
+		for _ in range(val):
+			increment_influence(G, player, nation)
+	
+	# check for control
+	
+	
+	# update tracks
+	
 	
 	raise PhaseComplete
 
+def encode_post_gov_actions(G):
+	
+	code = adict()
+	
+	for player, faction in G.players.items():
+		
+		handsize = len(faction.hand)
+		
+		if handsize <= faction.stats.handlimit:
+			continue
+		
+		G.logger.write('{} must discard {} cards'.format(player, handsize - faction.stats.handlimit))
+		
+		options = xset((xset(faction.hand),))
+		
+		# reveal techs from secret vault
+		options.update(check_revealable(G, player))
+		
+		code[player] = options
+	
+	return code
 
 

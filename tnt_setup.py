@@ -43,16 +43,23 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 def load_players_and_minors(G):
 	player_setup = load('config/faction_setup.yml')
 	
+	capitals = load('config/capitals.yml')
+	
 	G.nations = tdict()
-	nations = tdict()
+	territories = tdict()
+	designations = tdict()
 	minor_designation = 'Minor'
 	
 	for tile in G.tiles.values():
 		if 'alligence' in tile:
-			nations[tile.alligence] = minor_designation
-	nations['USA'] = 'Major'
-	G.nations.designations = nations # map nationality to faction/minor
-	
+			designations[tile.alligence] = minor_designation
+			if tile.alligence not in territories:
+				territories[tile.alligence] = tset()
+			territories[tile.alligence].add(tile.name)
+	designations['USA'] = 'Major'
+	G.nations.designations = designations
+	G.nations.territories = territories
+	G.nations.capitals = capitals
 	G.nations.groups = tdict()
 	
 	# load factions/players
@@ -63,7 +70,7 @@ def load_players_and_minors(G):
 	for g in groups:
 		gps = groups.copy()
 		gps.remove(g)
-		rivals[g] = list(gps)
+		rivals[g] = tset(gps)
 	
 	for name, config in player_setup.items():
 		
@@ -78,13 +85,9 @@ def load_players_and_minors(G):
 		
 		faction.stats.rivals = rivals[name]
 		
-		faction.stats.DoW = tdict()
-		faction.stats.DoW[rivals[name][0]] = False
-		faction.stats.DoW[rivals[name][1]] = False
+		faction.stats.DoW = tdict({r:False for r in rivals[name]})
 		
-		faction.stats.at_war_with = tdict()
-		faction.stats.at_war_with[rivals[name][0]] = False
-		faction.stats.at_war_with[rivals[name][1]] = False
+		faction.stats.at_war_with = tdict({r:False for r in rivals[name]})
 		faction.stats.at_war = False
 		
 		faction.stats.aggressed = False
@@ -134,6 +137,10 @@ def load_players_and_minors(G):
 		faction.secret_vault = tset()
 		faction.influence = tset()
 		
+		faction.associates = tset()
+		faction.protectorates = tset()
+		faction.satellites = tset()
+		
 		players[name] = faction
 	G.players = players
 	
@@ -169,6 +176,7 @@ def load_players_and_minors(G):
 	G.neutrals.minors = minors
 	G.neutrals.majors = majors
 	G.neutrals.influence = tdict()
+	G.neutrals.satellites = tdict()
 	
 
 def load_game_info(G, path='config/game_info.yml'):
