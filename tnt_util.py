@@ -15,14 +15,14 @@ from collections import deque
 
 def compute_tracks(territory, tiles):
 	pop, res = 0, 0
-	for name, tile in tiles.items():
-		if name in territory and 'blockaded' not in tile:
+	for name in territory:
+		tile = tiles[name]
+		if 'blockaded' not in tile:
 			pop += tile['pop']
 			res += tile['res']
 			if 'res_afr' in tile and 'blockaded_afr' not in tile:
 				res += tile.res_afr
 	return pop, res
-
 
 def compute_production_level(faction):
 	at_war = sum(faction.stats.at_war_with.values())

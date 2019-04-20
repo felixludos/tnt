@@ -43,16 +43,23 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 def load_players_and_minors(G):
 	player_setup = load('config/faction_setup.yml')
 	
+	capitals = load('config/capitals.yml')
+	
 	G.nations = tdict()
-	nations = tdict()
+	territories = tdict()
+	designations = tdict()
 	minor_designation = 'Minor'
 	
 	for tile in G.tiles.values():
 		if 'alligence' in tile:
-			nations[tile.alligence] = minor_designation
-	nations['USA'] = 'Major'
-	G.nations.designations = nations # map nationality to faction/minor
-	
+			designations[tile.alligence] = minor_designation
+			if tile.alligence not in territories:
+				territories[tile.alligence] = tset()
+			territories[tile.alligence].add(tile.name)
+	designations['USA'] = 'Major'
+	G.nations.designations = designations
+	G.nations.territories = territories
+	G.nations.capitals = capitals
 	G.nations.groups = tdict()
 	
 	# load factions/players
@@ -63,7 +70,7 @@ def load_players_and_minors(G):
 	for g in groups:
 		gps = groups.copy()
 		gps.remove(g)
-		rivals[g] = list(gps)
+		rivals[g] = tset(gps)
 	
 	for name, config in player_setup.items():
 		
@@ -78,13 +85,9 @@ def load_players_and_minors(G):
 		
 		faction.stats.rivals = rivals[name]
 		
-		faction.stats.DoW = tdict()
-		faction.stats.DoW[rivals[name][0]] = False
-		faction.stats.DoW[rivals[name][1]] = False
+		faction.stats.DoW = tdict({r:False for r in rivals[name]})
 		
-		faction.stats.at_war_with = tdict()
-		faction.stats.at_war_with[rivals[name][0]] = False
-		faction.stats.at_war_with[rivals[name][1]] = False
+		faction.stats.at_war_with = tdict({r:False for r in rivals[name]})
 		faction.stats.at_war = False
 		
 		faction.stats.aggressed = False
@@ -134,6 +137,11 @@ def load_players_and_minors(G):
 		faction.secret_vault = tset()
 		faction.influence = tset()
 		
+		faction.diplomacy = tdict()
+		faction.diplomacy.associates = tset()
+		faction.diplomacy.protectorates = tset()
+		faction.diplomacy.satellites = tset()
+		
 		players[name] = faction
 	G.players = players
 	
@@ -150,8 +158,8 @@ def load_players_and_minors(G):
 			
 			minor.units = tset()
 			minor.is_armed = False
-			minor.influence_faction = None
-			minor.influence_value = 0
+			minor.faction = None
+			minor.value = 0
 			
 			minors[name] = minor
 			
@@ -160,16 +168,17 @@ def load_players_and_minors(G):
 			
 			major.units = tset()
 			major.is_armed = False
-			major.influence_faction = None
-			major.influence_value = 0
+			major.faction = None
+			major.value = 0
 			
 			majors[name] = major
 	
-	G.neutrals = tdict()
-	G.neutrals.minors = minors
-	G.neutrals.majors = majors
-	G.neutrals.influence = tdict()
-	
+	G.diplomacy = tdict()
+	G.diplomacy.minors = minors
+	G.diplomacy.majors = majors
+	G.diplomacy.neutrals = minors.copy()
+	G.diplomacy.neutrals.update(majors)
+	G.diplomacy.influence = tdict()
 
 def load_game_info(G, path='config/game_info.yml'):
 	info = load(path)
