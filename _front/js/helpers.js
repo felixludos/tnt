@@ -17,7 +17,7 @@ function firstElement(x){
 }
 function expand1(x){
   if (isEmpty(x)) return [];
-  if (isLiteral(x)) return [x];
+  if (isLiteral(x)) return [x.toString()];
   if (isSingleton(x)) return expand1(firstElement(x))
   if (isSet(x)) return x.set.map(el=>expand1(el));
   if (isTuple(x)) {
@@ -58,6 +58,7 @@ function expand(e){
   return res;
 }
 function prex(x){prll(expand(x))}
+//#endregion
 
 //#region array helpers
 function addAll(akku, other) {
@@ -68,6 +69,19 @@ function addAll(akku, other) {
 }
 function addIf(el, arr) {
   if (!arr.includes(el)) arr.push(el);
+}
+function getListsContainingAll(ll,l){
+  let res=[];
+  for (const l1 of ll) {
+    if (containsAll(l1,l)) res.push(l1);
+  }
+  return res;
+}
+function containedInAny(el,ll){ // any list in ll contains element el
+  for (const lst of ll) {
+    if (lst.includes(el)) return true;
+  }
+  return false;
 }
 function orderFromTo(lst, fromOrder, toOrder) {
   let res = [];
@@ -100,6 +114,13 @@ function cartesianOf(ll) {
 function contains(arr, el) {
   return arr.includes(el);
 }
+function containsAll(arr,lst){
+  for (const el of lst) {
+    if (!arr.includes(el)) return false;
+  }
+  return true;
+}
+function containsSet(arr,lst){return containsAll(arr,lst);}
 function choose(arr, n) {
   var result = new Array(n),
     len = arr.length,
@@ -133,9 +154,15 @@ function last(arr) {
   return arr.length > 0 ? arr[arr.length - 1] : null;
 }
 function isll(ll){//true if arr is a list of lists of strings
-  if (!isList(ll)) {console.log('NOT a list',ll);return false;}
+  if (!isList(ll)) {
+    //console.log('NOT a list',ll);
+    return false;
+  }
   for (const l of ll) {
-    if (!isList(l)) {console.log('element',l,'NOT a list!');return false;}
+    if (!isList(l)) {
+      //console.log('element',l,'NOT a list!');
+      return false;
+    }
     for (const el of l) {
       if (!isString(el) && !isNumeric(el)) return false;
     }
@@ -143,9 +170,15 @@ function isll(ll){//true if arr is a list of lists of strings
   return true;
 }
 function isllPlus(ll){//true if arr is a list of lists
-  if (!isList(ll)) {console.log('NOT a list',ll);return false;}
+  if (!isList(ll)) {
+    //console.log('NOT a list',ll);
+    return false;
+  }
   for (const l of ll) {
-    if (!isList(l)) {console.log('element',l,'NOT a list!');return false;}
+    if (!isList(l)) {
+      //console.log('element',l,'NOT a list!');
+      return false;
+    }
   }
   return true;
 }
@@ -158,7 +191,7 @@ function formatll(ll){ //return beautiful string for list of lists
     s+='['+content+']';
   }
   s+=']';
-  console.log(s);
+  //console.log(s);
 }
 function carteset(l1,l2) { //l1,l2 are lists of list
   let res = [];
@@ -183,7 +216,10 @@ function fj(x){return formatjson(x);}
 function pr(x){console.log(prlist(x).replace(/,,/g,','))}
 function prll(ll){
   //ensure this is a list of lists
-  if (!isList(ll)) {console.log('NOT a list',ll);return;}
+  if (!isList(ll)) {
+    //console.log('NOT a list',ll);
+    return;
+  }
   for (const l of ll) {
     if (!isList(ll)) {console.log('element',l,'NOT a list!');return;}
   }
@@ -192,7 +228,7 @@ function prll(ll){
     s+='['+l.toString()+']';
   }
   s+=']';
-  console.log(s);
+  //console.log(s);
 }
 function prlist(arr){
   if (isList(arr)){
@@ -200,6 +236,13 @@ function prlist(arr){
     else return '['+prlist(arr[0])+arr.slice(1).map(x=>','+prlist(x))+']'
   } else return arr;
 
+}
+function findSameSet(llst,lst){
+  // returns element of llst that has same elements as lst, even if different order
+  for (const l of llst) {
+    if (sameList(l,lst)) return l;
+  }
+  return null;
 }
 function sameList(l1, l2) {
   // compares 2 lists of strings if have same strings in it
@@ -1127,18 +1170,6 @@ function calcSnailPositions(x,y,d,n){
 
 }
 
-//   let p=[[x,y],[x,y-sz],[x+sz,y-sz],[x+sz,y],[x+sz,y+sz],[x,y+sz],[x-sz,y+sz],[x-sz,y],[x-sz,y-sz]];
-//   let s2=sz*2;
-//   p=p.concat([[x-sz,y-s2],[x,y-s2],[x+sz,y-s2],[x+s2,y-s2],[x+s2,y-s2]]);
-//   p=p.concat([[x+s2,y-s2],[x+s2,y-sz],[x+s2,y],[x+s2,y+sz],[x+s2,y+s2]]);
-//   p=p.concat([[x+sz,y+s2],[x,y+s2],[x-sz+s2,y+s2],[x-s2,y+s2]]);
-
-//   let i=0;
-//   for (const o of objects) {
-//     console.log('p[i]',p[i],'object',o)
-//     o.setPos(p[i][0],p[i][1]); i+=1;
-//   }
-// }
 //#endregion layout helpers
 
 // #region zooming
@@ -1181,87 +1212,7 @@ function getZoomFactor(gElement) {
   var matrix = gElement.getCTM();
   let info = decomposeMatrix(matrix);
   return info.scale;
-  // console.log(x.scale);
+  
 }
 
 //#endregion zooming
-//#region trash
-// function findRegularFit(n,minRows){
-//   var rows = minRows;
-//   var cols = Math.ceil(n / rows);
-// }
-
-// function calcTotalWidth(n,sz,gap,padding){
-//   return padding * 2 - gap + (sz + gap) * n;
-// }
-// function findExactMatch(n,rows){
-//   console.log('start findExactMatch with:',n,rows)
-//   for (var i = Math.max(2, rows); i < n / 2; i++) {
-//     if (n % i == 0) {
-//       console.log('found exact: rows=',i,'cols=',(n/i))
-//       return {rows:i,cols:n/i};
-//     }
-//   }
-//   rows+=1;let cols=Math.ceil(n/(rows));
-//   console.log('no match found: rows=',rows,'cols=',cols)
-//   return {rows:rows,cols:cols};
-// }
-// function layout(n,wItem=100,hItem=100,{wIdeal=0,gap=8,padding=16,minRows=1,maxRows=1}={}){
-//   if (wIdeal == 0){wIdeal = window.innerWidth;}
-//   let rows=minRows;
-//   let cols=Math.ceil(n / rows);
-//   let wTotal =calcTotalWidth(cols,wItem,gap,padding);
-//   console.log('starting with rows:',rows,', cols:',cols)
-//   let rOld=0;
-//   while (wTotal>wIdeal && cols>=rows && rOld != rows){
-//     rOld=rows;
-//     let diff = wTotal-wIdeal;
-//     if (diff < padding+(cols*(gap>>2))){
-//       //reducing padding and gap could alreay help
-//       padding>>=2;gap>>=2;break;
-//     }
-//     let res = findExactMatch(n,rows);
-//     rows=res.rows;cols=res.cols;
-//     // if (res.rows > maxRows){
-//     //   rows+=1;cols=Math.ceil(n / rows);
-//     // }else {
-//     //   rows=res.rows;cols=res.cols;
-//     // }
-//     console.log('rows:',rows,', cols:',cols)
-//     //wIdeal+=(window.innerWidth-wIdeal)/2;
-//     wTotal =calcTotalWidth(cols,wItem,gap,padding);
-//   }
-//   return {rows: rows, cols: cols, gap: gap, padding: padding, width: wTotal};
-// }
-
-// function calculateDims2(n, wItem = 60, hItem = 100, minRows = 1, maxRows = 10) {
-//   var rows = minRows;
-//   var cols = Math.ceil(n / rows);
-//   var gap = 10;
-//   var padding = 20;
-
-//   let w = 9999999;
-//   while (true) {
-//     if (maxRows > minRows) {
-//       for (var i = Math.max(Math.min(2, maxRows), minRows); i < Math.min(maxRows + 1, n / 2); i++) {
-//         if (n % i == 0) {
-//           rows = i;
-//           cols = n / i;
-//           break;
-//         }
-//       }
-//     }
-//     w = padding * 2 - gap + (wItem + gap) * cols;
-//     if (w > window.innerWidth) {
-//       if (gap > 1) gap -= 1;
-//       else if (padding > 1) padding -= 2;
-//       else {
-//         maxRows += 1;
-//         gap = 6;
-//         padding = 10;
-//       }
-//     } else break;
-//   }
-//   return {rows: rows, cols: cols, gap: gap, padding: padding, width: w};
-// }
-//#endregion

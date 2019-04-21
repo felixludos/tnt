@@ -32,7 +32,7 @@
           </g>
         </svg>
       </div>
-      <div id="logDiv" class="div">log display</div>
+      <div id="logDiv" class="div" style="overflow:scroll">Messages</div>
       <div id="buttonDiv" class="div">
         <button id="bNextPlayer" class="hidden" onclick="onClickNextPlayer()">next player</button>
         <button id="bSave" onclick="saveGameState()">save</button>
@@ -64,6 +64,8 @@
       function skipAction() {
         let tuple = choiceTuples[0];
         let url = "action/" + G.faction + "/" + tuple.join("+");
+        //choiceTuples = [];
+        //console.log("skipAction choiceTuples:", choiceTuples);
         closeSelection();
         send(url);
       }
@@ -78,47 +80,75 @@
         hide(bNextPlayer);
         cardFactory.clearCards();
         //TODO: hide board objects?
-
+        G.previousFaction = G.faction;
         G.faction = nextFaction;
         send("status/" + G.faction);
+        //send("reset/" + G.faction); //TODO: try this next!!!
       }
       function onClickPass() {
         // macht eh dasselbe wie onClickNextPlayer
         hide(bNextPlayer);
         cardFactory.clearCards();
         //TODO: hide board objects?
-
+        G.previousFaction = G.faction;
         G.faction = nextFaction;
         send("status/" + G.faction);
       }
+      function processReset(data) {
+        let faction = G.previousFaction;
+        let g = G[faction];
+        //console.log("faction", faction);
+        for (k in data) {
+          let sk = k.toString();
+          g[sk] = data[k];
+        }
+        //console.log("G[faction]", g);
+        updateUI();
+        send("status/" + faction);
+      }
       function processData(str) {
         let data = JSON.parse(str);
-        console.log(data);
+        if ("invest_55" in data) {
+          //console.log("THESE ARE RESET DATA!!!",data);
+          processReset(data);
+          return;
+        }
+        //console.log(data);
         if (data === undefined) {
           //console.log("!!!", str, "!!!");
         } else {
           let faction = G.faction;
           let g = G[faction];
-          //console.log(data);
-          //log
           if ("log" in data) {
-            G.log.push(data.log);
+            let msg=JSON.stringify(data.log);
+            msg = msg.replace(/(?:\r\n|\r|\n)/g, '<br>');
+            msg=msg.replace("\\n",'<br>');
+            msg=msg.replace(/\\n/g,'<br>');
+            msg = msg.replace(/"/g,'');
+            if (msg.trim().length > 0){
+              let para=document.createElement('p');
+              para.innerHTML = msg;
+              document.getElementById('logDiv').appendChild(para);
+              G.log.push(msg);
+            }
           }
           //created
           for (id in data.created) {
-            g[id] = data.created[id]; //overwride object of have already
+            let sid = id.toString();
+            g[sid] = data.created[id]; //overwride object of have already
           }
           //updated
           for (id in data.updated) {
+            let sid = id.toString();
             //not sure if have to do this really, since possibly no need
             // actually, the object might NOT exist,
             // therefore, just create it if it does not exist!!!
 
-            if (!(id in g)) {
-              console.log("NON EXISTING:", id);
-              g[id] = data.updated[id];
+            if (!(sid in g)) {
+              //console.log("NON EXISTING:", sid);
+              g[sid] = data.updated[id];
             } else {
-              let o = g[id]; //this object should exist since it is being updated!
+              let o = g[sid]; //this object should exist since it is being updated!
               //each property of this object should be changed as in data.updated
               let orig = data.updated[id];
               for (prop in orig) {
@@ -129,7 +159,8 @@
           //removed
 
           for (id in data.removed) {
-            console.log(id, "is in removed!!!!!!!!!!!!!!");
+            let sid = id.toString();
+            //console.log(id, "is in removed!!!!!!!!!!!!!!");
             break;
             //not sure if should do anything!
             // if (id in g) {
@@ -141,124 +172,129 @@
           updateUI();
 
           //either actions or waiting_for:
-          console.log("*** actions starts ***");
-          console.log(data.actions);
+          //console.log("*** actions starts ***");
+          //console.log(data.actions);
 
-          json_str = JSON.stringify(data.actions);
+          // to save action data in case of bug:
+          //json_str = JSON.stringify(data.actions);
           //saveFile("_a"+fileCounter+".json", "data:application/json", new Blob([json_str], {type: ""}));
-          fileCounter += 1;
+          //fileCounter += 1;
 
           if ("actions" in data) {
-            //console.log("there are actions!!!! tree:");
             choiceTuples = expand(data.actions);
-            prj(choiceTuples);
-            // let sActions = JSON.stringify(data.actions);
-            // console.log('vor make server tree')
-            // let serverTree = new MParser(sActions).tree;
-            // console.log('nach make server tree')
-            // serverTree.print();
-            // choiceTuples = getChoices(serverTree);
-            //console.log(choiceTuples);
+            //prj(choiceTuples); // //console.log
 
             if (skipActions > 0) {
               skipActions -= 1;
               let url = "action/" + G.faction + "/" + choiceTuples[0].join("+");
+              choiceTuples = [];
               send(url);
             } else {
-              currentChoiceTuples = choiceTuples.slice();
-              //console.log("choices", choiceTuples);
-              currentChoicesByType = computeChoicesByType(currentChoiceTuples);
-
-              allSelectionUIs = getObjects(currentChoicesByType);
-              //console.log("_____________selection:");
-              //console.log(allSelectionUIs.map(x => x.id));
-              openSelectionIfPopulated();
+              //find all individual ids in choiceTuples
+              //console.log("in processData:actions: vor highlithObjects");
+              //console.log(choiceTuples);
+              let uiGroups = highlightObjects(choiceTuples, choiceTuples, []);
+              //console.log("ui groups", uiGroups, uiGroups.choice);
+              openSelectionIfPopulated(uiGroups.choice);
               show(bSkipAction);
+
+              // //old code
+              // currentChoiceTuples = choiceTuples.slice();
+              // //console.log("choices", choiceTuples);
+              // currentChoicesByType = computeChoicesByType(currentChoiceTuples);
+
+              // choiceUIs = getObjects(currentChoicesByType);
+              // //console.log("_____________selection:");
+              // //console.log(choiceUIs.map(x => x.id));
             }
           } else {
-            console.log(data.waiting_for, "*** will change turn!!! ***");
-            console.log(data);
-            show(bNextPlayer);
+            //console.log(data.waiting_for, "*** will change turn!!! ***");
+            //console.log(data);
             hideSelectionPanel();
             nextFaction = data.waiting_for.set[0];
+
+            if (skipActions > 0) {
+              onClickNextPlayer();
+            } else {
+              show(bNextPlayer);
+            }
           }
         }
       }
-      var fileCounter = 0;
+      function getUI(id) {
+        //console.log('id=',id)
+        if (id in uis) {
+          //console.log(id,' is in uis!',uis[id])
+        }
+        return id in uis ? uis[id] : addUI(id);
+      }
+      function highlightObjects(allTuples, choices, selection) {
+        let allIds = [];
+        allTuples.map(x => x.map(id => addIf(id, allIds)));
+        //console.log("all ids:", allIds.toString());
+
+        let allUIs = allIds.map(id => getUI(id));
+        //console.log("all uis:", allUIs);
+
+        let choiceIds = [];
+        choices.map(x => x.map(id => addIf(id, choiceIds)));
+        let choiceUIs = choiceIds.map(id => getUI(id));
+
+        let selectedIds = selection;
+        let selUIs = selectedIds.map(id => getUI(id));
+
+        //console.log("allUIs", allUIs);
+        //console.log("selectedIds", selectedIds);
+        //console.log("choiceIds:", choiceIds.toString());
+
+        for (const ui of allUIs) {
+          if (selectedIds.includes(ui.id)) {
+            ui.select();
+          } else if (choiceIds.includes(ui.id)) {
+            //console.log("highlight:", ui.id, typeof ui.id, ui);
+            makeSelectable(ui, onSelected);
+          } else {
+            //console.log("not highlighted:", ui.id, typeof ui.id, ui);
+            makeUnselectable(ui);
+          }
+        }
+        show(bSkipAction);
+
+        return {all: allUIs, choice: choiceUIs, selected: selUIs};
+      }
       function onSelected(ev) {
         let id = evToId(ev);
-        let type = getType(id);
-        //console.log(id, " selected!");
 
-        if (selectedIds[type] == id) {
-          //unselect this object and remove selectedIds[type]
-          delete selectedIds[type];
-        } else selectedIds[type] = id;
+        //check if this object was selected, if so, unselect!
+        if (selids.includes(id)) {
+          selids = without(selids, id);
+          //console.log(id, " UNselected!!!", selids.toString());
 
-        //get all types in currentChoicesByType
-        let typesNeeded = Object.keys(currentChoicesByType);
-        //console.log("types needed:", typesNeeded);
+          //from all choiceTuples,find those that contains all elements in selids
+          let newChoiceTuples = getListsContainingAll(choiceTuples, selids);
+          //console.log("new choice tuples:");
+          //prj(newChoiceTuples);
+          highlightObjects(choiceTuples, newChoiceTuples, selids);
+        } else {
+          //console.log(id, " selected!");
+          selids.push(id);
 
-        let matchingTuples = [];
-        for (const tuple of choiceTuples) {
-          let couldbe = true;
-          for (const type in selectedIds) {
-            if (!tuple.includes(selectedIds[type])) {
-              couldbe = false;
-              break;
-            }
-          }
-          if (couldbe) matchingTuples.push(tuple);
-        }
-        currentChoicesByType = computeChoicesByType(matchingTuples);
+          //check if complete choice is selected
+          // let tuple = containsSet(choiceTuples, selids);
+          let newChoiceTuples = getListsContainingAll(choiceTuples, selids);
 
-        let objectList = getObjects(currentChoicesByType);
-        //console.log("new choices:", objectList.map(x => x.id));
-
-        for (const type in currentChoicesByType) {
-          if (currentChoicesByType[type].length == 1) {
-            selectedIds[type] = currentChoicesByType[type][0];
-            let ms = getMS(selectedIds[type]);
-            ms.select();
-          }
-        }
-
-        //if have one of each type in selectedIds, choice is complete: send it
-        let selectedValues = Object.values(selectedIds);
-        //console.log("selected Values:", selectedValues);
-        //console.log("selectedIds:", selectedIds);
-
-        if (typesNeeded.length == selectedValues.length) {
-          //unselect and unhighlight all choice!
-          // for (const ms of allSelectionUIs) {
-          //   makeUnselectable(ms);
-          // }
-          let tuple = findTuple(selectedValues, choiceTuples);
-          closeSelection();
-          //console.log(tuple, selectedValues, choiceTuples);
-          if (!tuple) {
-            //console.log("non existing tuple");
-          } else {
+          if (newChoiceTuples.length == 1) {
+            let tuple = newChoiceTuples[0];
+            //console.log("onSelected: found tuple");
+            closeSelection();
             let url = "action/" + G.faction + "/" + tuple.join("+");
             send(url);
+          } else {
+            //newChoiceTuples = getListsContainingAll(choiceTuples, selids);
+            //console.log("new choice tuples:");
+            //prj(newChoiceTuples);
+            highlightObjects(choiceTuples, newChoiceTuples, selids);
           }
-        } else {
-          console.log("*** updating selections ***");
-          for (const id of selectedValues) {
-            getMS(id).select();
-            //console.log("select", id, getMS(id));
-          }
-          for (const ms of allSelectionUIs) {
-            if (selectedValues.includes(ms.id)) continue;
-            //console.log('remove',ms.id)
-            makeUnselectable(ms);
-          }
-          for (const ms of objectList) {
-            if (selectedValues.includes(ms.id)) continue;
-            makeSelectable(ms, onSelected);
-            //console.log('highlight:',ms.id,ms)
-          }
-          show(bSkipAction);
         }
       }
     </script>
@@ -269,6 +305,9 @@
       function isHandCard(go, faction) {
         let lst = go.visible.set;
         return lst.includes(faction);
+      }
+      function getHiddenId(faction, tile) {
+        return faction + "_" + tile;
       }
       function updateUI() {
         //have to know how to create an object of type: obj_type
@@ -292,7 +331,25 @@
                 break;
               case "unit":
                 //console.log("create unit", id);
-                uis[id] = boardFactory.createUnit(id, go.nationality, go.type, ttext);
+                if (go.visible.set.includes(currentFaction)) {
+                  uis[id] = boardFactory.createUnit(id, go.nationality, go.type, ttext);
+                  let idHidden = getHiddenId(currentFaction, go.tile);
+                  if (!(idHidden in uis)) {
+                    uis[idHidden] = boardFactory.createHiddenUnit(idHidden, go);
+                  } else {
+                    //increment counter of hidden unit by 1
+                    boardFactory.updateUnitCounter(go, uis[idHidden], 1);
+                  }
+                } else {
+                  //creating foreign unit: only create hidden unit!
+                  let idHidden = getHiddenId(go.visible.set[0], go.tile);
+                  if (!(idHidden in uis)) {
+                    uis[idHidden] = boardFactory.createHiddenUnit(idHidden, go);
+                  } else {
+                    //increment counter of hidden unit by 1
+                    boardFactory.updateUnitCounter(go, uis[idHidden], 1);
+                  }
+                }
                 break;
               case "action_card":
                 let ui = cardFactory.createCard(id, go, ttext);
@@ -314,292 +371,100 @@
 
           //update properties
           if (!(id in uis)) {
-            console.log("ERROR!!!!!", id, "DOES NOT EXIST!!!!!");
-            return;
-          }
-          let ui = uis[id];
+            //console.log("now should place hidden unit for", id);
+            //console.log(go.obj_type, go.visible.set, go.visible.set.length);
+            // this can happen if a reset is called and currentFaction has foreign units
+            // in this case, should just place hidden unit
+            if (go.obj_type == "unit" && go.visible.set.length == 1) {
+              //console.log("condition passed");
+              // this is a hidden unit
+              let faction = go.visible.set[0];
+              let tile = go.tile;
+              let idHidden = getHiddenId(faction, tile);
+              if (!(idHidden in uis)) {
+                //console.log("ERROR!!!!!", idHidden, "DOES NOT EXIST!!!!! aborting...");
+                return;
+              }
+              let uiHidden = getUI(idHidden);
+              //console.log("PLACE HIDDEn UNIT!!!!", faction, tile);
+              boardFactory.placeHiddenUnit(uiHidden, faction, tile);
+            }
+          } else {
+            let ui = uis[id];
 
-          for (prop in go) {
-            //map values of property to ui
-            switch (prop) {
-              case "tile":
-                //make sure this is a cadre
-                if (go.obj_type != "unit") {
-                  //console.log("trying to place a", go.obj_type);
-                }
-                let tile = go.tile;
-                let unitTile = ui.getTag("tile");
-                if (unitTile != tile) {
-                  //console.log("update tile from", unitTile, "to", tile);
-                  let uiTile = uis[tile];
-                  boardFactory.placeUnit(ui, tile, uiTile, currentFaction);
-                }
-                break;
-              case "cv":
-                //make sure this is a cadre
-                if (go.obj_type != "unit") {
-                  //console.log("trying to attach cv to ", go.obj_type);
-                }
-                let cv = go[prop];
-                let unitCV = ui.getTag("cv");
-                if (unitCV != cv) {
-                  //console.log("update cv from", unitCV, "to", cv);
-                  boardFactory.updateCv(ui, cv);
-                }
-                break;
-              case "top":
-              case "wildcard":
-                //console.log('updating card:',ui)
-                let title = ui.getTag("title");
-                if (title != go[prop]) {
-                  cardFactory.updateCardContent(ui.id, ui, go, ttext);
-                  if (isHandCard(go, currentFaction)) {
-                    cardFactory.placeCard(ui, currentFaction);
+            for (prop in go) {
+              //map values of property to ui
+              switch (prop) {
+                case "tile":
+                  //make sure this is a cadre
+                  if (go.obj_type != "unit") {
+                    //console.log("trying to place a", go.obj_type);
                   }
-                }
-                break;
+                  let tile = go.tile;
+                  let unitTile = ui.getTag("tile");
+                  if (unitTile != tile) {
+                    //console.log("PLACE! update tile from", unitTile, "to", tile);
+                    let uiTile = uis[tile];
+                    boardFactory.placeUnit(ui, tile, uiTile, currentFaction);
+                  }
+                  break;
+                case "cv":
+                  //make sure this is a cadre
+                  if (go.obj_type != "unit") {
+                    //console.log("trying to attach cv to ", go.obj_type);
+                  }
+                  let cv = go[prop];
+                  let unitCV = ui.getTag("cv");
+                  if (unitCV != cv) {
+                    //console.log("update cv from", unitCV, "to", cv);
+                    boardFactory.updateCv(ui, cv);
+                  }
+                  break;
+                case "top":
+                case "wildcard":
+                case "year":
+                case "espionage":
+                  //console.log('updating card:',ui)
+                  let title = ui.getTag("title");
+                  if (title != go[prop]) {
+                    //console.log(title,go,ui)
+                    cardFactory.updateCardContent(ui.id, ui, go, ttext);
+                    if (isHandCard(go, currentFaction)) {
+                      cardFactory.placeCard(ui, currentFaction);
+                    }
+                  }
+                  break;
+              }
             }
           }
           //update visibility
-          
         }
-      }
-
-      function updateUI_old() {
-        //have to know how to create an object of type: obj_type
-        //example: create a tile object
-        //console.log("*** starting to process ***");
-        var currentFaction = G.faction;
-        var currentView = G[currentFaction];
-        for (id in currentView) {
-          let go = currentView[id];
-          let ttext = JSON.stringify(go);
-          //console.log(go.obj_type);
-          if (!(id in uis)) {
-            // THIS OBJECT NEEDS TO BE CREATED!
-            //console.log("create:", id);
-            //create object with immutable properties (mutable properties in update)
-            switch (go.obj_type) {
-              case "tile":
-                //console.log("create region", id);
-                uis[id] = boardFactory.createTile(id, ttext);
-                //muss noch die units placen! irgendwie irgendwann!
-                break;
-              case "unit":
-                //console.log("create unit", id);
-                uis[id] = boardFactory.createUnit(id, go.nationality, go.type, ttext);
-                break;
-              case "action_card":
-                uis[id] = cardFactory.createCard(id, go, ttext);
-                break;
-              case "investment_card":
-                uis[id] = cardFactory.createCard(id, go, ttext);
-                break;
-            }
-          }
-        }
-        for (id in currentView) {
-          let go = currentView[id];
-          let ttext = JSON.stringify(go);
-          //console.log('updateUI: update properties')
-
-          //update properties
-          if (!(id in uis)) {
-            console.log("ERROR!!!!!", id, "DOES NOT EXIST!!!!!");
-            return;
-          }
-          let ui = uis[id];
-
-          // if (go.obj_type == "action_card") {
-          //   //just place the card to next spot
-          //   // if it is a card, properties do not change
-          //   // just display cards in currenview if have not been displayed yet
-          // } else {
-          for (prop in go) {
-            //map values of property to ui
-            switch (prop) {
-              case "tile":
-                //make sure this is a cadre
-                if (go.obj_type != "unit") {
-                  //console.log("trying to place a", go.obj_type);
-                }
-                let tile = go.tile;
-                let unitTile = ui.getTag("tile");
-                if (unitTile != tile) {
-                  //console.log("update tile from", unitTile, "to", tile);
-                  let uiTile = uis[tile];
-                  boardFactory.placeUnit(ui, tile, uiTile, currentFaction);
-                }
-                break;
-              case "cv":
-                //make sure this is a cadre
-                if (go.obj_type != "unit") {
-                  //console.log("trying to attach cv to ", go.obj_type);
-                }
-                let cv = go[prop];
-                let unitCV = ui.getTag("cv");
-                if (unitCV != cv) {
-                  //console.log("update cv from", unitCV, "to", cv);
-                  boardFactory.updateCv(ui, cv);
-                }
-                break;
-              case "top":
-              case "wildcard":
-                //console.log('updating card:',ui)
-                let title = ui.getTag("title");
-                if (title != go[prop]) {
-                  cardFactory.updateCardContent(ui.id, ui, go, ttext);
-                  cardFactory.placeCard(ui);
-                }
-                break;
-            }
-          }
-          // }
-          //update visibility
-        }
-
-        //test area
-        //darkerColor(255,255,0);
-        //each object after creation has a
       }
     </script>
     <!-- #endregion FRONT END functions -->
 
     <!-- #region selection super messy code: TODO CLEANUP!!!! -->
     <script>
-      //selection functions
-      function computeChoicesByType(tuples) {
-        let chByType = {};
-        //hier erstmal unique ids >> currentChoicesByType
-
-        for (const choice of tuples) {
-          for (const id of choice) {
-            if (id in uis) {
-              let ms = uis[id];
-              let type = ms.getTag("type");
-              if (!(type in chByType)) {
-                chByType[type] = [];
-              }
-              let lst = chByType[type];
-              if (!lst.includes(id)) {
-                lst.push(id);
-                makeSelectable(ms, onSelected);
-              }
-            } else {
-              //console.log(id);
-              let ms = id in selectables ? selectables[id] : addSelectable(id);
-              let type = ms.getTag("type");
-              if (!(type in chByType)) {
-                chByType[type] = [];
-              }
-              let lst = chByType[type];
-              if (!lst.includes(id)) {
-                lst.push(id);
-                makeSelectable(ms, onSelected);
-              }
-            }
-          }
-        }
-        return chByType;
-      }
-      function getType(id) {
-        //den type von einer id sollte ich sehr viel einfacher finden!!!
-        let ms = id in selectables ? selectables[id] : id in uis ? uis[id] : null; //consolidate?
-        if (ms) return ms.getTag("type");
-        else return "unknown";
-      }
-      function getMS(id) {
-        let ms = id in selectables ? selectables[id] : id in uis ? uis[id] : null; //consolidate?
-        return ms;
-      }
-      function getObjects(choicesByType) {
-        return Object.values(choicesByType)
-          .map(ids => ids.map(id => getMS(id)))
-          .flat();
-      }
-      function findTuple(ids, tuples) {
-        //console.log("findTuples", ids);
-        for (const tuple of tuples) {
-          let cand = true;
-          for (const id of ids) {
-            if (!tuple.includes(id)) {
-              cand = false;
-              break;
-            }
-          }
-          if (cand) return tuple;
-        }
-        return null;
-      }
-      function makeSelectable(ms, handler) {
-        ms.highlight();
-        ms.isEnabled = true;
-        //console.log(handler)
-        ms.clickHandler = handler;
-      }
-      function makeUnselectable(ms) {
-        ms.unselect();
-        ms.unhighlight();
-        ms.isEnabled = false;
-        ms.clickHandler = null;
-      }
-      function openSelectionIfPopulated() {
-        let d = document.getElementById("selDiv");
-        //console.log(d.classList)
-        if (!d.classList.contains("hidden")) return;
-        //console.log("_________________________");
-        //console.log("*** openSelectionIfPopulated ***", currentChoicesByType);
-        lineupSelectables();
-        for (const key in currentChoicesByType) {
-          for (const id of currentChoicesByType[key]) {
-            if (id in selectables) {
-              let dMain = document.getElementById("mainDiv");
-              dMain.classList.remove("grid-hidefirst");
-              dMain.classList.add("grid-container");
-              d.classList.remove("hidden");
-              //console.log(id);
-              return;
-            }
-          }
-        }
-      }
-      function closeSelection() {
-        hide(bSkipAction);
-        selectedIds = {};
-        currentChoicesByType = {};
-        choiceTuples = [];
-        allSelectionUIs.map(x => makeUnselectable(x));
-        allSelectionUIs = [];
-      }
-      function hideSelectionPanel() {
-        closeSelection();
-        let d = document.getElementById("selDiv");
-        if (d.classList.contains("hidden")) return;
-        let dMain = document.getElementById("mainDiv");
-        let g = document.getElementById("selG");
-        NodeList.prototype.forEach = Array.prototype.forEach;
-        var children = g.childNodes;
-        children.forEach(ch => getMS(ch.id).hide());
-        d.classList.add("hidden");
-        dMain.classList.add("grid-hidefirst");
-        dMain.classList.remove("grid-container");
-      }
-      function addSelectable(id) {
+      function addUI(id) {
         //add a simple selectable object to selectables area selDiv
         // <div id='selDiv' class="div" style="display:none"><svg id='selSvg' class='svg'><g id='selG'></g></svg></div>
-        let d = document.getElementById("selDiv");
-        let g = document.getElementById("selG");
-        let sz = SZ.cadreDetail;
         let ms = undefined;
         if (G["nationality"].includes(id)) {
+          let d = document.getElementById("selDiv");
+          let g = document.getElementById("selG");
+          let sz = SZ.cadreDetail;
           ms = new MS(id, g)
             .roundedRect({w: sz, h: sz, fill: troopColors[id], rounding: sz * 0.1})
             .text({txt: id, fz: 12})
             .roundedRect({className: "overlay region hible selectable", w: sz, h: sz, rounding: sz * 0.1});
           ms.tag("type", "nationality");
           //console.log(id);
-          selectables[id] = ms;
+          uis[id] = ms;
+          return ms;
         } else if (G["unit_type"].includes(id)) {
+          let d = document.getElementById("selDiv");
+          let g = document.getElementById("selG");
+          let sz = SZ.cadreDetail;
           ms = new MS(id, g)
             .roundedRect({w: sz, h: sz, fill: "black", rounding: sz * 0.1})
             .image({w: sz, h: sz, path: "/_front/assets/images/" + id + ".svg", rounding: sz * 0.1})
@@ -607,50 +472,130 @@
 
           ms.tag("type", "unit_type");
           //console.log(id);
-          selectables[id] = ms;
+          uis[id] = ms;
+          return ms;
+        } else {
+          //this is some kind of a command
+          //console.log("addUI: adding button!!!!!!!!!!!!!!!!!!!*******", id);
+          G.commands.push(id);
+          let d = document.getElementById("buttonDiv");
+          let b = new MS(id, d, false).button({txt: id, className: "msToggleButton"}).draw();
+          //console.log(b);
+
+          //let b = document.createElement('button');
+          //b.id = id;
+          //b.textContent = id;
+          //d.appendChild(b);
+          //b.addEventListener("click", onSelected);
+          uis[id] = b;
+          //console.log("button ms", b, d);
+          return b;
         }
-        return ms;
-        //object type will get from G[]
       }
-      function lineupSelectables() {
+      function lineupSelectables(choiceUIs) {
         let gap = 10;
         let x = 30;
         let y = 20;
         let sz = SZ.cadreDetail;
-        for (const key in currentChoicesByType) {
-          let id = currentChoicesByType[key][0];
-          if (id in selectables) {
+        let res = [];
+        //console.log('lineupSelectables',choiceUIs)
+        for (const ui of choiceUIs) {
+          //console.log(ui.id)
+          if (isNationality(ui) || isUnit(ui)) {
+            //console.log('is selectable:',ui.id)
+            res.push(ui);
             y += gap;
-            let ids = currentChoicesByType[key];
-            let type = key;
-            //console.log(type, ids);
-            for (const id of ids) {
-              if (!(id in selectables)) {
-                //console.log(id, " not in selectables!");
-                return;
-              }
-              let ms = selectables[id];
-              ms.show();
-              ms.setPos(x, y).draw();
-              y += gap + sz;
-            }
+            ui.show();
+            ui.setPos(x, y).draw();
+            y += gap + sz;
           }
         }
+        return res;
       }
-      function getChoices(tree) {
-        let branchlist = tree.branchlist();
-        // branchlist = branchlist.map(l => l.slice(0, branchlen));
-        branchlist = branchlist.map(b => cartesianOf(b)).flat();
-        branchlist = branchlist.map(s => s.split("_"));
-        //console.log(branchlist[0].toString());
-        return branchlist;
+      function makeSelectable(ui, handler) {
+        if (ui.id in G.commands) {
+          show(ui);
+        } //for buttons
+        else {
+          ui.highlight();
+          ui.isEnabled = true;
+          //console.log(handler)
+          ui.clickHandler = handler;
+        }
+      }
+      function makeUnselectable(ui) {
+        if (ui.id in G.commands) {
+          hide(ui);
+        } //for buttons
+        else {
+          // it is an ms
+          ui.unselect();
+          ui.unhighlight();
+          ui.isEnabled = false;
+          ui.clickHandler = null;
+        }
+      }
+      function openSelectionIfPopulated(choiceUIs) {
+        let d = document.getElementById("selDiv");
+        //console.log(d.classList)
+        if (!d.classList.contains("hidden")) return;
+        //console.log("_________________________");
+        //console.log("*** openSelectionIfPopulated ***", currentChoicesByType);
+        let natOrUnits = lineupSelectables(choiceUIs);
+        //console.log('OPENSELECTIONIFPOPULATED',natOrUnits)
+        if (!empty(natOrUnits)) {
+          let dMain = document.getElementById("mainDiv");
+          dMain.classList.remove("grid-hidefirst");
+          dMain.classList.add("grid-container");
+          d.classList.remove("hidden");
+        }
+      }
+      function closeSelection() {
+        //console.log("closeSelection");
+        hide(bSkipAction);
+
+        let allUIs = [];
+        choiceTuples.map(x => x.map(id => addIf(uis[id], allUIs)));
+
+        selids = [];
+        // selectedIds = {};
+        // currentChoicesByType = {};
+        choiceTuples = [];
+        //console.log("allUIs", allUIs);
+        allUIs.map(x => makeUnselectable(x));
+        //choiceUIs = [];
+      }
+      function hideSelectionPanel() {
+        //console.log("hideSelectionPanel", choiceTuples);
+        closeSelection();
+        let d = document.getElementById("selDiv");
+        if (d.classList.contains("hidden")) return;
+        let dMain = document.getElementById("mainDiv");
+        let g = document.getElementById("selG");
+        NodeList.prototype.forEach = Array.prototype.forEach;
+        var children = g.childNodes;
+        children.forEach(ch => getUI(ch.id).hide());
+        d.classList.add("hidden");
+        dMain.classList.add("grid-hidefirst");
+        dMain.classList.remove("grid-container");
+      }
+      function isNationality(ui) {
+        return G.nationality.includes(ui.id);
+        //return ui.constructor.name == "MS" && ui.getTag('type')=='nationality';
+      }
+      function isUnit(ui) {
+        return G["unit_type"].includes(ui.id);
+      }
+      function iCommand(ui) {
+        return G["commands"].includes(ui.id);
       }
     </script>
     <!-- #endregion selection -->
 
     <!-- #region setup -->
     <script>
-      var skipActions = 44;
+      var skipActions = 46;
+      var fileCounter = 0;
 
       var nextFaction;
       // var preparingForTurnChange = false;
@@ -659,13 +604,10 @@
 
       var G = {Axis: {}, West: {}, USSR: {}, log: [], faction: "West"};
       var uis = {}; //by id
-      var selectables = {}; // by id, parts like "Germany" or "Infantry"
 
+      var selids = [];
       var choiceTuples = []; // all tuples in a selection action
-      var allSelectionUIs = [];
-      var currentChoiceTuples = [];
-      var currentChoicesByType = {};
-      var selectedIds = {}; // one per type by type, depending on tuples to select, one list for each tuple component
+      //var choiceUIs = [];
 
       var backendServerUrl = "http://localhost:7777/"; //local server
       var msgCounter = 0;
@@ -716,11 +658,17 @@
       loadYML("/common/assets/config/map_pos.yml", data => {
         boardFactory = new BoardFactory(board, data, SZ);
         cardFactory = new CardFactory(cardDisplay, cardsG, SZ.cardWidth, SZ.cardHeight);
-        boardFactory.createDecks();
+        let decks = boardFactory.createDecks();
+        //console.log(decks);
+        uis.action_card = decks.action_card;
+        uis.investment_card = decks.investment_card;
+        //console.log(uis);
         loadYML("/common/assets/config/unit_count.yml", data => {
           G["unitCount"] = data;
           G["nationality"] = Object.keys(data); //'Germany','Britain',...
           G["unit_type"] = Object.keys(data["Germany"]); //'Infantry','Tank'...
+          G["commands"] = [];
+          //console.log(G);
           send("init/hotseat/" + G.faction);
         });
       });

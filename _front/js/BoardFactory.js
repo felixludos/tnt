@@ -40,7 +40,42 @@ class BoardFactory {
     msRegion.tag("type", "tile");
     return msRegion;
   }
+  createHiddenUnit(id,o){
+    //console.log('create HIDDEN unit',id,typeof(id),'.........');
+    let color = troopColors[o.nationality];
+    let darker = darkerColor(color[0], color[1], color[2]);
+    //console.log(darker);
+    let sz = this.SZ.sumCadre;
+    let sz80 = sz * 0.86;
+    let szImage = sz / 1.5;
+    let y = szImage / 6;
+    //console.log(id)
+    let ms = new MS(id, this.board, true)
+      .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
+      .roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
+      .text({txt:1,fz:sz/2,fill:'white'})
+      .roundedRect({className: "unit hible selectable", w: sz, h: sz, fill:darker, rounding: sz * 0.1});
+    ms.tag("type", "unit");
+    ms.tag('count',1);
+
+    return ms;
+
+
+  }
+  updateUnitCounter(o,ms,inc){
+    //console.log('updateUnitCounter')
+    let n=ms.getTag('count');
+    n+=inc;
+    let color = troopColors[o.nationality];
+    let darker = darkerColor(color[0], color[1], color[2]);
+    let sz = this.SZ.sumCadre;
+    ms.removeFromChildIndex(3);
+    ms.text({txt:n,fz:sz/2,fill:'white'})
+    .roundedRect({className: "unit hible selectable", w: sz, h: sz, fill:darker, rounding: sz * 0.1});
+    ms.tag('count',n);
+  }
   createUnit(id, nationality, type, ttext) {
+    //console.log('create unit',id,typeof(id),type,'.........');
     let imagePath = "/_front/assets/images/" + type + ".svg";
     let color = troopColors[nationality];
     let darker = darkerColor(color[0], color[1], color[2]);
@@ -50,13 +85,20 @@ class BoardFactory {
     let sz80 = sz * 0.86;
     let szImage = sz / 1.5;
     let y = szImage / 6;
-    let ms = new MS(id, this.board)
-      .roundedRect({w: sz, h: sz, fill: darker, rounding: sz * 0.1})
-      .roundedRect({w: sz90, h: sz90, fill: color, rounding: sz * 0.1})
+    //console.log(id)
+    let ms = new MS(id, this.board, true)
+      .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
+      //.roundedRect({w: sz90, h: sz90, fill: color, rounding: sz * 0.1})
       .roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
-      //.rect({w: szImage, h: szImage, fill: darker})
       .image({path: imagePath, y: y, w: szImage, h: szImage})
-      .roundedRect({className: "overlay region hible selectable", w: sz, h: sz, rounding: sz * 0.1});
+      .roundedRect({className: "unit hible selectable", w: sz, h: sz, fill:darker, rounding: sz * 0.1});
+    // let ms = new MS(id, this.board)
+    //   .roundedRect({w: sz, h: sz, fill: darker, rounding: sz * 0.1})
+    //   .roundedRect({w: sz90, h: sz90, fill: color, rounding: sz * 0.1})
+    //   .roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
+    //   .image({path: imagePath, y: y, w: szImage, h: szImage})
+    //   .roundedRect({className: "unit hible selectable", w: sz, h: sz, fill:'green', rounding: sz * 0.1});
+    //ms.elem.
     ms.tag("ttext", ttext); //for tooltip
     ms.tag("type", "unit");
 
@@ -84,7 +126,7 @@ class BoardFactory {
       .roundedRect({className: "cardDeck overlay hible selectable", w: 253, h: 356, fill: "transparent", rounding: 6})
       .setPos(centerInvestmentDeck.x, centerInvestmentDeck.y)
       .draw();
-    return {idAction:actionDeck,idInvestment:investmentDeck};
+    return {action_card:actionDeck,investment_card:investmentDeck};
   }
 
   calcStartPos(tile, faction) {
@@ -126,6 +168,10 @@ class BoardFactory {
     //console.log("placeUnit", msUnit, msTile);
     //console.log(msUnit,msTile)
   }
+  placeHiddenUnit(msHidden,faction,tile){
+    let p = this.calcStartPos(tile, faction);
+    msHidden.setPos(p.x, p.y).draw();
+  }
   updateCv(msUnit, cv) {
     //console.log(cv,typeof(cv))
     //plaziere 1 circle foreach  #
@@ -145,17 +191,5 @@ class BoardFactory {
     }
 
     msUnit.tag('cv',cv);
-    // let ms=msUnit;
-    // let x=ms.x;let y=ms.y;let w=ms.bounds.w;let h=ms.bounds.h;
-    // y=y-w/2+w/8;
-    // let d=w/cv;
-    // w=w/14;
-    // let color='white';
-    // for (let i = 0; i < cv; i++) {
-    //   ms.circle({sz:20,x:i*d,y:y,fill:color});
-    //   console.log('circle')
-    // }
-    // console.log(ms)
-    // ms.redraw();
   }
 }

@@ -1,4 +1,24 @@
 /* used for MS (game objects) */
+.unit {
+  fill: transparent;
+}
+.unit.highlighted{
+  fill: rgba(255, 255, 0, 0.6);
+}
+.unit.selected{
+  fill: rgba(255, 0, 0, 0.6);
+}
+.unit:hover {
+  /* fill:red;  */
+  fill: rgba(0,0,0, 0.5);
+  z-index: 20;
+}
+.unit:active {
+  /* fill:red;  */
+  fill: rgba(255, 0, 0, 0.6);
+  z-index: 20;
+}
+
 .overlay {
   fill: transparent;
 }
@@ -17,6 +37,16 @@
   fill: rgba(0, 0, 0, 0.1);
   z-index: 0;
 }
+.msToggleButton.highlighted{
+  background-color:yellow;
+}
+.msToggleButton.selected{
+  background-color:brown;
+}
+.msToggleButton.highlighted:hover{
+  background-color:orange;
+}
+
 
 /* 
 .ms {

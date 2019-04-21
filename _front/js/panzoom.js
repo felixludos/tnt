@@ -80,8 +80,6 @@ function onmousemove(ev, board) {
   }
   //console.log(ev);
   if (couldBePanning) {
-    // let offset = $(board.id).offset();
-    // console.log(offset);
     let x = Math.abs(ev.screenX-xStart); //offsetX;
     let y = Math.abs(ev.screenY-yStart); //offsetY;
     totalMaxDelta += Math.max(x,y);

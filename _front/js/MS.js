@@ -1,15 +1,22 @@
 class MS {
-  constructor(id, parent = null) {
+  constructor(id, parent = null,isSvg=true) {
     // id must be unique (TODO: check for uniqueness, wahrscheinlich im MSManager)
     // parent should be g or svg element ms is a g element with stuff inside if
     // parent is null, this is a floating ms element that can be appended or removed
     // to/from parent. otherwise this is an element that lives on a parent and is
-    // hidden if not visible console.log('MS constructor:',id,parent)
+    // hidden if not visible
     this.isFloating = parent == null; //TODO: eliminate!!!!!!!!!!!!!!!!
     this.isDrawn = false;
     this.parent = parent;
     this.id = id;
-    this.elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    this.isSvg=isSvg;
+    if (isSvg){
+      this.elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    }else{
+      this.elem = document.createElement('div');
+      
+      this.elem.classList.add('msDiv');
+    }
     this.elem.id = id;
     this.x = 0;
     this.y = 0;
@@ -37,17 +44,8 @@ class MS {
   onClick(ev) {
     //console.log('click',this.id,this.isEnabled,this.clickHandler)
     if (!this.isEnabled) return;
-    //else console.log('clickHandler=',this.clickHandler,typeof(this.clickHandler))
 
     if (typeof this.clickHandler == "function") this.clickHandler(ev);
-    //else console.log(evToId(ev))
-
-    //if (!this.clickHandler) return;
-    // this.toggleSelection();
-    // if (this.isSelected && this.clickHandler){
-    //   console.log("click", this.id);
-    //   this.clickHandler(ev);
-    // }
   }
   //#endregion
 
@@ -87,7 +85,10 @@ class MS {
   }
   setPos(x, y) {
     //console.log(this.id,x,y)
-    this.elem.setAttribute("transform", `translate(${x},${y})`);
+    //if (this.isSvg){
+      this.elem.setAttribute("transform", `translate(${x},${y})`);
+    //}
+
     this.x = x;
     this.y = y;
     this.bounds.cx = x;
@@ -112,7 +113,7 @@ class MS {
   }
   clone(newId, parent = null, drawit = false) {
     //the clone is only drawn if drawit==true
-    let cl = new MS(newId, parent ? parent : this.parent);
+    let cl = new MS(newId, parent ? parent : this.parent, this.isSvg);
     cl.bounds = this.bounds.slice(); //shallow copy
     cl.data = this.data.slice(); // the following 3 not used right now!
     cl.elem = this.elem.cloneNode(true);
@@ -158,8 +159,6 @@ class MS {
     let els = [...this.elem.childNodes];
     for (const el of els) {
       let cl = el.getAttribute("class");
-      // console.log('>>>>>>>>>>',this.id,cl)
-      // console.log('oldClass',oldClass,'newClass',newClass)
       if (cl && cl.includes(oldClass)) {
         cl = cl.replace(oldClass, newClass);
         el.setAttribute("class", cl);
@@ -317,8 +316,6 @@ class MS {
     }
 
     r.setAttribute("points", spts);
-    // console.log("set points"); console.log(spts1, "\r\n");
-    // //points.map(p=>{return(p.x+','+y+' ')}).join()); console.log(spts);
     r.setAttribute("stroke", "black");
     r.setAttribute("stroke-width", 5);
     r.setAttribute("style", `fill:${fill};`);
@@ -339,6 +336,23 @@ class MS {
   //#endregion untested and unused shapes
 
   //#region shapes
+  button({className="",txt='click',w=100,h=25,fill='red',alpha=1,x=0,y=0}={}){
+    let b=document.createElement('button');
+    b.classList.add(className);
+    b.classList.add('hible');
+    b.classList.add('selectable');
+    b.textContent = txt;
+    this.elem.appendChild(b);
+    return this;
+    //b.style.width=w;
+    //b.style.height=h;
+  }
+  toggleButton({className="",w=100,h=25,fill='red',alpha=1,x=0,y=0}={}){
+    let b=document.createElement('button');
+    b.classList.add(className);
+    //b.style.width=w;
+    //b.style.height=h;
+  }
   rect({className = "", w = 50, h = 25, fill = "yellow", alpha = 1, x = 0, y = 0} = {}) {
     let r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     r.setAttribute("width", w);
@@ -538,9 +552,9 @@ class MS {
       //of(ch));
       if (type == "text") {
         let classes = ch.getAttribute("class");
-        //console.log('class=',classes); console.log(val.toString())
+        //console.log('class=',classes);
         if (classes && classes.includes(className)) {
-          // this is the correct text element! console.log('current
+          // this is the correct text element!
           // value:',ch.textContent,Number(ch.textContent))
           ch.textContent = val;
         }
