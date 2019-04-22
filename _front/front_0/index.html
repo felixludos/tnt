@@ -261,9 +261,6 @@
 
     <!-- #region FRONT END functions -->
     <script>
-      function isUnitOfFaction(go, faction) {
-        return go.visible.set.includes(faction);
-      }
       function updateUI() {
         var currentFaction = G.faction;
         var currentView = G[currentFaction];
@@ -480,6 +477,9 @@
         show(bSkipAction);
 
         return {all: allUIs, choice: choiceUIs, selected: selUIs};
+      }
+      function isUnitOfFaction(go, faction) {
+        return go.visible.set.includes(faction);
       }
       function lineupSelectables(choiceUIs) {
         let gap = 10;
