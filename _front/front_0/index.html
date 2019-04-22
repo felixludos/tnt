@@ -210,6 +210,7 @@
           } else {
             //console.log(data.waiting_for, "*** will change turn!!! ***");
             //console.log(data);
+            hideCommands();
             hideSelectionPanel();
             nextFaction = data.waiting_for.set[0];
 
@@ -383,6 +384,9 @@
 
     <!-- #region helper functions -->
     <script>
+      function hideCommands(){
+        G.commands.map(id=>{if(id in uis){uis[id].hide();}});
+      }
       function addUI(id) {
         //add a simple selectable object to selectables area selDiv
         // <div id='selDiv' class="div" style="display:none"><svg id='selSvg' class='svg'><g id='selG'></g></svg></div>
@@ -594,7 +598,7 @@
 
     <!-- #region setup -->
     <script>
-      var skipActions = 46;
+      var skipActions = 72; //skip to gov: 73; //skip to prod: 46; //0;
       var fileCounter = 0;
 
       var nextFaction;
