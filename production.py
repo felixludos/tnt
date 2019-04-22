@@ -132,7 +132,9 @@ def production_phase(G, player, action):
 			
 			G.temp.prod[player].upgraded_units.add(ID)
 			
-			G.objects.table[ID].cv += 1
+			unit = G.objects.table[ID]
+			unit.cv += 1
+			G.objects.updated[ID] = unit
 			
 			effect = 'upgrading a unit in {}'.format(G.objects.table[ID].tile)
 		

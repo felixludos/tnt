@@ -2,6 +2,7 @@
 import tnt_util as util
 from tnt_util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
 from tnt_cards import discard_cards
+from tnt_units import add_unit
 import random
 
 import operator
@@ -537,7 +538,7 @@ def encode_government_actions(G):
 	# diplomacy options
 	for ID, card in action_cards.items():
 		if 'top' in card:
-			lopts = xset(nation for nation in [card.top, card.bottom] if nation not in G.diplomacy.satellites)
+			lopts = xset(nation for nation in [card.top, card.bottom] if nation in G.diplomacy.neutrals)
 			if len(lopts):
 				options.add((ID, lopts))
 		elif 'wildcard' in card:
@@ -690,7 +691,9 @@ def governmnet_phase(G, player, action): # play cards
 		if G.temp.passes == len(G.players):
 			G.logger.write('All players have passed consecutively - moving on to Government resolution')
 			G.temp.move_to_post = tdict()  # for handsize limit options
-			for name in G.players:
+			for name, faction in G.players.items():
+				handsize = len(faction.hand)
+				G.logger.write('{} must discard {} cards'.format(player, handsize - faction.stats.handlimit))
 				G.temp.move_to_post[name] = True
 			return government_post_phase(G)
 	else:
@@ -752,15 +755,20 @@ def governmnet_phase(G, player, action): # play cards
 	G.temp.active_idx %= len(G.players)
 	return encode_government_actions(G)
 
-# diplvl = {
-# 	1: 'associate',
-# 	2: 'protectorate',
-# 	3: 'satellite',
-# }
+diplvl = {
+	1: 'associates',
+	2: 'protectorates',
+	3: 'satellites',
+}
+dipname = {
+	1: 'an Associate',
+	2: 'a Protectorate',
+	3: 'a Satellite',
+}
 
 def government_post_phase(G, player=None, action=None):
 	
-	if action is not None:
+	if len(G.temp.move_to_post) and action is not None:
 		action, = action
 		if action == 'accept':
 			G.temp.move_to_post[player] = False
@@ -771,6 +779,7 @@ def government_post_phase(G, player=None, action=None):
 			reveal_tech(G, player, action)
 		else:
 			decrement_influence(G, player, action)
+		action = None
 	
 	code = encode_post_gov_actions(G)
 	if len(code):
@@ -782,9 +791,9 @@ def government_post_phase(G, player=None, action=None):
 	if 'diplomacy' in G.temp:
 		discard_cards(G, 'action', *G.temp.diplomacy_cards)
 		del G.temp.diplomacy_cards
-		for nation, (player, val) in G.temp.diplomacy.items():
+		for nation, (fname, val) in G.temp.diplomacy.items():
 			for _ in range(val):
-				increment_influence(G, player, nation)
+				increment_influence(G, fname, nation)
 		del G.temp.diplomacy
 	
 		# check for control
@@ -792,62 +801,179 @@ def government_post_phase(G, player=None, action=None):
 		for nation, dipl in G.diplomacy.neutrals.items():
 			
 			if nation not in G.diplomacy.influence:
-				continue
-				
-			inf = G.diplomacy.influence[nation]
-			
-			gainer = None
-			loser = None
-			
-			if nation == 'USA': # handle USA separately
-				
-				if dipl.faction != inf.faction:
-					
-					
-					pass
-				
-				pass
-			else:
-				
-				val = min(inf.value, 3) # cap influence at 3
-				
 				if dipl.faction is None:
-					gainer = inf.faction
-				elif dipl.faction != inf.faction:
-					loser = dipl.faction
-					gainer = inf.faction
-				elif dipl.value == val: # no change required
 					continue
+				else:
+					faction = G.players[dipl.faction]
+					
+					faction.diplomacy[diplvl[dipl.value]].remove(nation)
+					
+					pop, res = util.compute_tracks(G.nations.territories[nation], G.tiles)
+					
+					faction.tracks.POP -= pop
+					faction.tracks.RES -= res
+					
+					G.logger.write('{} lost influence over {} (losing POP={} RES={})'.format(dipl.faction, nation, pop, res))
+					
+					dipl.value = 0
+					dipl.faction = None
 				
-			faction = G.players[inf.faction]
-			
-			if val == 1:
-				faction.diplomacy.associates.add(nation)
-				dname = 'an Associate'
-			elif val == 2:
-				faction.diplomacy.protectorates.add(nation)
-				dname = 'a Protectorate'
 			else:
-				new_sats.add(nation)
-				faction.territory.update(G.nations.territories[nation])
-				dname = 'a Satellite'
+				
+				inf = G.diplomacy.influence[nation]
+				val = min(inf.value, 3)
+				gainer = None
+				loser = None
+				
+				if nation == 'USA': # handle USA separately
+					if dipl.faction is None:
+						if G.players[inf.faction].stats.enable_USA:
+							gainer = inf.faction
+							
+					elif dipl.faction == inf.faction:
+						if G.players[dipl.faction].stats.enable_USA and dipl.value != val:
+							G.players[dipl.faction].diplomacy[diplvl[dipl.value]].remove(nation)
+					else:
+						if G.players[dipl.faction].stats.enable_USA:
+							loser = dipl.faction
+							G.players[dipl.faction].diplomacy[diplvl[dipl.value]].remove(nation)
+						if G.players[inf.faction].stats.enable_USA:
+							gainer = inf.faction
+							
+				else:
+					
+					val = min(inf.value, 3) # cap influence at 3
+					
+					if dipl.faction is None:
+						gainer = inf.faction
+					elif dipl.faction != inf.faction:
+						loser = dipl.faction
+						gainer = inf.faction
+						G.players[dipl.faction].diplomacy[diplvl[dipl.value]].remove(nation)
+					elif dipl.value == val: # no change required
+						continue
+					else: # value has changed
+						G.players[inf.faction].diplomacy[diplvl[dipl.value]].remove(dipl.faction)
+				
+				faction = G.players[inf.faction]
+				faction.diplomacy[diplvl[inf.value]].add(dipl.faction)
+				
+				dipl.faction = inf.faction
+				dipl.value = inf.value
+				
+				if inf.value == 3:
+					new_sats[nation] = inf.faction
+				
+				# update tracks
+				tmsg = ''
+				if gainer is not None or loser is not None:
+					pop, res = util.compute_tracks(G.nations.territories[nation], G.tiles)
+					
+					if gainer is not None:
+						G.players[gainer].tracks.POP += pop
+						G.players[gainer].tracks.RES += res
+						tmsg += ' ({} gains POP={}, RES={})'.format(gainer, pop, res)
+						
+					if loser is not None:
+						G.players[loser].tracks.POP -= pop
+						G.players[loser].tracks.RES -= res
+						tmsg += ' (lost by {})'.format(loser)
+				
+				dname = dipname[inf.value]
+				G.logger.write('{} becomes {} of {}{}'.format(nation, dname, inf.faction, tmsg))
 			
-			G.logger.write('{} becomes {} of {}'.format(nation, dname, inf.faction))
+		if 'USA' in new_sats:
+			name = new_sats['USA']
+			del new_sats['USA']
 			
-			# update tracks
-			pop, res = util.compute_tracks(G.nations.territories[nation], G.tiles)
-			faction.tracks.POP += pop
-			faction.tracks.RES += res
+			becomes_satellite(G, 'USA')
 			
-		G.temp.sats = new_sats
-		
-	if len(G.temp.sats):
+			# USA specific stuff
+			faction = G.players[name]
+			
+			faction.members['USA'] = tset('USA')
+			faction.homeland['USA'] = G.nations.territories['USA'].copy()
+			
+			G.nations.designations['USA'] = name
+			
+			unit = adict()
+			unit.nationality = 'USA'
+			unit.type = 'Fortress'
+			unit.tile = 'Washington'
+			unit.cv = 4
+			add_unit(G, unit)
+			
+			unit = adict()
+			unit.nationality = 'USA'
+			unit.type = 'Fortress'
+			unit.tile = 'New_York'
+			unit.cv = 2
+			add_unit(G, unit)
+			
+			faction.stats.factory_idx += 1
+			faction.stats.factory_cost = faction.stats.factory_all_costs[faction.stats.factory_idx]
+			
+			G.logger.write('{} factory cost decreases to {}'.format())
+			
+		sat_units = tdict()
+		for nation, fname in new_sats.items():
+			becomes_satellite(G, nation)
+			
+			for tilename in G.nations.territories[nation]:
+				tile = G.tiles[tilename]
+				if 'muster' in tile:
+					if fname not in sat_units:
+						sat_units[fname] = tdict()
+					sat_units[fname][tilename] = tile.muster
+				
+		G.temp.sat_units = sat_units
+	
+	
+	# place garrison in new satellites
+	if action is not None:
+		unit = adict()
+		unit.nationality, unit.tile, unit.type = action
+		unit.cv = G.temp.sat_units[player][unit.tile]
+		add_unit(G, unit)
+		del G.temp.sat_units[player][unit.tile]
+		if len(G.temp.sat_units[player]) == 0:
+			del G.temp.sat_units[player]
+	if len(G.temp.sat_units):
 		return encode_sat_units(G)
 		
 	raise PhaseComplete
 
+def becomes_satellite(G, nation):
+	del G.diplomacy.neutrals[nation] # no longer neutral
+	
+	inf = G.diplomacy.influence[nation]
+	
+	faction = G.players[inf.faction]
+	
+	faction.diplomacy.satellites.add(nation)
+	G.objects.removed[inf._id] = inf
+	del G.objects.table[inf._id]
+	
+	faction.territory.update(G.nations.territories[nation])
+	
+	# for tilename in G.nations.territories['USA']:
+	# 	tile = G.tiles[tilename]
+	# 	tile.alligence = inf.faction
+	# 	G.objects.updated[tilename] = tile
+	
+	G.logger.write('{} takes control of {}'.format(inf.faction, nation))
+
+
 def encode_sat_units(G):
-	pass
+	
+	code = adict()
+	
+	for player, tilenames in G.temp.sat_units.items():
+		options = util.placeable_units(G, player, G.players[player].stats.great_power, tilenames)
+		if len(options):
+			code[player] = options
+	
+	return code
 
 def encode_post_gov_actions(G):
 	
@@ -863,7 +989,7 @@ def encode_post_gov_actions(G):
 		options = xset()
 		
 		if handsize > faction.stats.handlimit:
-			G.logger.write('{} must discard {} cards'.format(player, handsize - faction.stats.handlimit))
+			
 			options.update((xset(faction.hand),))
 			
 		if is_active:
@@ -876,6 +1002,10 @@ def encode_post_gov_actions(G):
 			options.update((removable_nations(G, player),))
 			
 		code[player] = options
+		
+	for player in G.players:
+		if player not in code and player in G.temp.move_to_post:
+			del G.temp.move_to_post[player]
 		
 	return code
 
