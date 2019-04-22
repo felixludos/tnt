@@ -185,4 +185,4 @@ def take_action(faction, vals):
 	return out
 
 if __name__ == "__main__":
-	app.run(host='localhost',port=7777)
+	app.run(host='localhost',port=5000)

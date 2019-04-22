@@ -252,6 +252,7 @@ function sameList(l1, l2) {
   }
   return true;
 }
+
 function without(arr, elementToRemove) {
   return arr.filter(function(el) {
     return el !== elementToRemove;
