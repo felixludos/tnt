@@ -788,7 +788,6 @@ def government_post_phase(G, player=None, action=None):
 		del G.temp.diplomacy
 	
 		# check for control
-		influenced = xset()
 		new_sats = tdict()
 		for nation, dipl in G.diplomacy.neutrals.items():
 			
@@ -801,6 +800,12 @@ def government_post_phase(G, player=None, action=None):
 			loser = None
 			
 			if nation == 'USA': # handle USA separately
+				
+				if dipl.faction != inf.faction:
+					
+					
+					pass
+				
 				pass
 			else:
 				
@@ -838,8 +843,6 @@ def government_post_phase(G, player=None, action=None):
 		
 	if len(G.temp.sats):
 		return encode_sat_units(G)
-
-	
 		
 	raise PhaseComplete
 
