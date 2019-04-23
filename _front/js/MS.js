@@ -4,7 +4,7 @@ class MS {
     // parent should be g or svg element ms is a g element with stuff inside if
     // parent is null, this is a floating ms element that can be appended or removed
     // to/from parent. otherwise this is an element that lives on a parent and is
-    // hidden if not visible
+    // hidden if not visible console.log('MS constructor:',id,parent)
     this.isFloating = parent == null; //TODO: eliminate!!!!!!!!!!!!!!!!
     this.isDrawn = false;
     this.parent = parent;
@@ -143,10 +143,12 @@ class MS {
     }
   }
   removeFromChildIndex(idx) {
+    //if (idx == 0){$(this.elem).empty();console.log('hallo!!!',this.elem,this);return;}
     let el = this.elem;
     while (el.childNodes.length >= idx) {
       el.removeChild(el.lastChild);
     }
+    //console.log(el,this)
   }
 
   //#endregion UI: elem,parent,position,draw...
@@ -159,6 +161,8 @@ class MS {
     let els = [...this.elem.childNodes];
     for (const el of els) {
       let cl = el.getAttribute("class");
+      // console.log('>>>>>>>>>>',this.id,cl)
+      // console.log('oldClass',oldClass,'newClass',newClass)
       if (cl && cl.includes(oldClass)) {
         cl = cl.replace(oldClass, newClass);
         el.setAttribute("class", cl);
@@ -237,8 +241,10 @@ class MS {
   //#region color
   getColor(fill, alpha = 1) {
     if (Array.isArray(fill)) {
+      //console.log('richtig!')
       return `rgba(${fill[0]},${fill[1]},${fill[2]},${alpha})`;
     } else if (fill[0] != "#" && alpha != 1) {
+      //console.log('falsch!!!')
       return `${fill};opacity:${alpha}`;
     } else return fill;
   }
@@ -316,6 +322,8 @@ class MS {
     }
 
     r.setAttribute("points", spts);
+    // console.log("set points"); console.log(spts1, "\r\n");
+    // //points.map(p=>{return(p.x+','+y+' ')}).join()); console.log(spts);
     r.setAttribute("stroke", "black");
     r.setAttribute("stroke-width", 5);
     r.setAttribute("style", `fill:${fill};`);
@@ -552,9 +560,9 @@ class MS {
       //of(ch));
       if (type == "text") {
         let classes = ch.getAttribute("class");
-        //console.log('class=',classes);
+        //console.log('class=',classes); console.log(val.toString())
         if (classes && classes.includes(className)) {
-          // this is the correct text element!
+          // this is the correct text element! console.log('current
           // value:',ch.textContent,Number(ch.textContent))
           ch.textContent = val;
         }
