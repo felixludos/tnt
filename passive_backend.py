@@ -167,6 +167,8 @@ def next_phase():  # keeps going through phases until actions are returned
 	return out
 
 
+PHASE_DONE = False
+
 def step(player, action):
 	
 	phase = PHASES[G.game.sequence[G.game.index]]
@@ -177,23 +179,34 @@ def step(player, action):
 	
 	G.begin()
 	
+	global PHASE_DONE
+	
 	try:
 		
-		# validate action
-		assert player in WAITING_ACTIONS, 'It is not {}\'s turn'.format(player)
-		options = util.decode_actions(WAITING_ACTIONS[player])
-		assert action in options, 'Invalid action: {}'.format(action)
-		
-		try:
-			all_actions = phase(G, player, action)
-		except PhaseComplete:
+		if PHASE_DONE:
+			PHASE_DONE = False
 			all_actions = next_phase()
+		else:
+			# validate action
+			assert player in WAITING_ACTIONS, 'It is not {}\'s turn'.format(player)
+			options = util.decode_actions(WAITING_ACTIONS[player])
+			assert action in options, 'Invalid action: {}'.format(action)
+			
+			try:
+				all_actions = phase(G, player, action)
+			except PhaseComplete:
+				if DEBUG:
+					PHASE_DONE = True
+					all_actions = adict()
+				else:
+					all_actions = next_phase()
+				
 			
 	except Exception as e:
 		G.abort()
-		
-		if DEBUG:
-			raise e
+		#
+		# if DEBUG:
+		# 	raise e
 		
 		return process_actions('error', sys.exc_info(), player)
 		
@@ -279,6 +292,7 @@ def save_gamestate(filename): # save file and send it
 		'waiting_objs': convert_to_saveable(WAITING_OBJS),
 		'waiting_actions': convert_to_saveable(WAITING_ACTIONS),
 		'repeats': convert_to_saveable(REPEATS),
+		'phase_done': PHASE_DONE,
 	}
 	if G is not None:
 		G.logger.write('Game saved')
@@ -290,11 +304,12 @@ def save_gamestate(filename): # save file and send it
 
 def load_gamestate(path): # load from input file, or most recent checkpoint (more safe)
 	data = json.load(open(path, 'r'))
-	global WAITING_OBJS, WAITING_ACTIONS, REPEATS, G
+	global WAITING_OBJS, WAITING_ACTIONS, REPEATS, G, PHASE_DONE
 	WAITING_OBJS = convert_from_saveable(data['waiting_objs'])
 	WAITING_ACTIONS = convert_from_saveable(data['waiting_actions'])
 	REPEATS = convert_from_saveable(data['repeats'])
 	G = convert_from_saveable(data['gamestate'])
+	PHASE_DONE = data['phase_done']
 	if G is not None:
 		G.logger.write('Game loaded')
 

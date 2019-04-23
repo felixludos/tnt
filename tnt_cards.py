@@ -57,6 +57,7 @@ def discard_cards(G, stack, *cards):
 	for ID in cards:
 		card = G.objects.table[ID]
 		if 'owner' in card:
+			G.players[card.owner].hand.discard(ID)
 			del card.owner
 		card.visible.clear()
 		G.objects.updated[ID] = card
