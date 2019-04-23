@@ -1,21 +1,21 @@
 Ottawa:
-  x: 231
-  y: 451
+  x: 230
+  y: 421
 North Atlantic Ocean:
   x: 349
   y: 659
 New York:
-  x: 63
-  y: 523
+  x: 52
+  y: 496
 Washington:
-  x: 61
-  y: 617
+  x: 38
+  y: 627
 Irminger Sea:
   x: 509
   y: 417
 Irish Sea:
   x: 641
-  y: 587
+  y: 577
 Iceland:
   x: 693
   y: 361
@@ -98,8 +98,8 @@ Sicily:
   x: 1391
   y: 1729
 Rome:
-  x: 1333
-  y: 1531
+  x: 1306
+  y: 1481
 Taranto:
   x: 1459
   y: 1533
@@ -326,7 +326,7 @@ Gulf of Bothnia:
   x: 1571
   y: 489
 Riga:
-  x: 1777
+  x: 1743
   y: 663
 Gallivare:
   x: 1545

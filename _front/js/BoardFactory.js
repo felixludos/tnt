@@ -18,6 +18,14 @@ class BoardFactory {
     this.SZ = SZ;
     this.snailPos = calcSnailPositions(0, 0, this.SZ.cadreDetail, 25);
     this.units = {'Axis':{},'West':{},'USSR':{}};
+    this.influence = {}; //key:nation,value:ms, needs tags for faction and value;
+  }
+  addMapPositions(nationsDict){
+    console.log(nationsDict)
+    for (const key in nationsDict) {
+      const nat = nationsDict[key];
+      this.mapPositions[nat]={x:nat.x,y:nat.y};
+    }
   }
   createDecks() {
     let wDeckArea = 251;
@@ -42,6 +50,28 @@ class BoardFactory {
       .setPos(centerInvestmentDeck.x, centerInvestmentDeck.y)
       .draw();
     return {action_card:actionDeck,investment_card:investmentDeck};
+  }
+  createInfluence(id,faction,nation,level){//level can be 1,2,3
+    //let fnamePrefix=level<3?'influence':'control';
+    let imagePath = "/_front/assets/images/" + faction + ".svg";
+    let color = troopColors[faction];
+    let darker = darkerColor(color[0], color[1], color[2]);
+    let sz = this.SZ.sumCadre*(level/2); //influence grows with level!
+    let sz90 = sz * 0.96;
+    let sz80 = sz * 0.86;
+    let szImage = sz / 1.5;
+    let y = szImage / 6;
+    let ms = new MS(id, this.board, true)
+    .circle({fill:color, sz: sz})
+    .image({path: imagePath, w: szImage, h: szImage})
+    .text({txt:text,fill:red,fz:sz/3})
+    .circle({className: "overlay hible selectable", sz: sz})
+    //ms.tag("ttext", ttext); //for tooltip, not yet used
+    ms.tag("nation", nation);
+    ms.tag('faction',faction);
+    
+    this.placeUnit(ms,tile);
+    return ms;
   }
   createTile(id, ttext) {
     //console.log(this.mapPositions, id);
