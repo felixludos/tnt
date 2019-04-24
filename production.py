@@ -1,7 +1,7 @@
 
 
-import tnt_util as util
-from tnt_util import adict, xset, tdict, tlist, tset, PhaseComplete
+from util import adict, xset, tdict, tlist, tset, PhaseComplete
+from tnt_util import placeable_units, contains_fortress, compute_production_level
 from tnt_cards import draw_cards
 from tnt_units import add_unit
 import random
@@ -27,7 +27,7 @@ def encode_production_actions(G):
 	
 	# new cadres
 	for nationality, tiles in faction.homeland.items():
-		groups = util.placeable_units(G, active_player, nationality, tiles)
+		groups = placeable_units(G, active_player, nationality, tiles)
 		if len(groups):
 			options.add((nationality, groups))
 			
@@ -38,7 +38,7 @@ def encode_production_actions(G):
 	fort_opts = adict()
 	for tilename in ex_territory:
 		tile = G.tiles[tilename]
-		if not util.contains_fortress(G, tile):
+		if not contains_fortress(G, tile):
 			nationality = faction.stats.great_power
 			for nat, lands in faction.members.items():
 				if tile.alligence in lands:
@@ -97,7 +97,7 @@ def production_pre_phase(G):
 	
 	for player, faction in G.players.items():
 		G.temp.prod[player] = tdict()
-		G.temp.prod[player].production_remaining = util.compute_production_level(faction)
+		G.temp.prod[player].production_remaining = compute_production_level(faction)
 		
 		G.temp.prod[player].upgraded_units = tset()
 		

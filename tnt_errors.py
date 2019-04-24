@@ -1,5 +1,5 @@
 from collections import deque
-from tnt_util import adict, idict, xset, load, save, collate, uncollate
+from util import adict, idict, xset, load, save, collate, uncollate
 #import torch.multiprocessing as mp
 #from torch.multiprocessing import BaseManager
 from multiprocessing.managers import BaseManager

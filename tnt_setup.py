@@ -1,5 +1,5 @@
-from tnt_util import tdict, tset, adict, tlist, idict, load, save, collate, uncollate, xset, seq_iterate, PhaseComplete
-import tnt_util as util
+from util import tdict, tset, adict, tlist, idict, load, save, collate, uncollate, xset, seq_iterate, PhaseComplete
+from tnt_util import compute_tracks, placeable_units
 from tnt_cards import load_card_decks, draw_cards
 from tnt_errors import ActionError
 from tnt_units import load_unit_rules, add_unit
@@ -126,7 +126,7 @@ def load_players_and_minors(G):
 				faction.territory.add(tile_name)
 		
 		faction.tracks = tdict()
-		pop, res = util.compute_tracks(faction.territory, G.tiles)
+		pop, res = compute_tracks(faction.territory, G.tiles)
 		faction.tracks.POP = pop
 		faction.tracks.RES = res
 		faction.tracks.IND = config.initial_ind
@@ -228,7 +228,7 @@ def encode_setup_actions(G):
 		# if player is not None and faction != player:
 		# 	continue
 		
-		options = util.placeable_units(G, faction, nationality, tilenames)
+		options = placeable_units(G, faction, nationality, tilenames)
 		
 		if len(options) == 0:
 			continue

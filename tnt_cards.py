@@ -1,5 +1,5 @@
 import random
-from tnt_util import tdict, tlist, tset, adict, idict, xset, load
+from util import tdict, tlist, tset, adict, idict, xset, load
 
 def load_card_decks(G, action_path='config/cards/action_cards.yml',
                     investment_path='config/cards/investment_cards.yml',
@@ -52,10 +52,15 @@ def shuffle(stack):
 	
 	stack.discard_pile.clear()
 	
-def discard_cards(G, stack, *cards):
-	G.cards[stack].discard_pile.extend(cards)
+def discard_cards(G, *cards):
 	for ID in cards:
 		card = G.objects.table[ID]
+		
+		if 'action' in card.obj_type:
+			G.cards.action.discard_pile.append(ID)
+		else:
+			G.cards.investment.discard_pile.append(ID)
+		
 		if 'owner' in card:
 			G.players[card.owner].hand.discard(ID)
 			del card.owner

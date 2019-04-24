@@ -1,4 +1,4 @@
-from tnt_util import adict, idict, xset, load, save, collate, uncollate, tset
+from util import adict, idict, xset, load, save, collate, uncollate, tset
 from tnt_errors import ActionError
 
 
@@ -35,12 +35,25 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	
 	unit = idict(unit.items())
 	unit.obj_type = 'unit'
-	unit.visible = tset({G.nations.designations[unit.nationality]})
 	
 	if 'cv' not in unit: # by default add a cadre
 		unit.cv = 1
 	
 	player = G.nations.designations[unit.nationality]
+	
+	if player is 'Minor':
+		unit.visible = tset(G.players.keys())
+	else:
+		unit.visible = tset({G.nations.designations[unit.nationality]})
+		
+		# check/update reserves
+		reserves = G.units.reserves[unit.nationality]
+		if unit.type not in reserves or reserves[unit.type] == 0:
+			raise OutOfReservesError('{} has no more {}'.format(unit.nationality, unit.type))
+		reserves[unit.type] -= 1
+		
+		G.players[player].units.add(unit)
+	
 	tilename = unit.tile
 	
 	tile = G.tiles[tilename]
@@ -51,18 +64,11 @@ def add_unit(G, unit): # tile, type, cv, nationality
 		for unit_id in tile.units:
 			assert G.objects.table[unit_id].type != 'Fortress', 'There is already a Fortress in {}'.format(G.objects.table[unit_id].tile)
 	
-	# check/update reserves
-	reserves = G.units.reserves[unit.nationality]
-	if unit.type not in reserves or reserves[unit.type] == 0:
-		raise OutOfReservesError('{} has no more {}'.format(unit.nationality, unit.type))
-	reserves[unit.type] -= 1
-	
 	# check convoy
 	check_for_convoy(unit, tile)
 	
 	# add to sets
 	tile.units.add(unit._id)
-	G.players[player].units.add(unit)
 	G.objects.table[unit._id] = unit
 	G.objects.created[unit._id] = unit
 	

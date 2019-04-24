@@ -1,6 +1,6 @@
 
-import tnt_util as util
-from tnt_util import adict, xset, tdict, tlist, tset
+from tnt_util import compute_tracks, count_victory_points
+from util import adict, xset, tdict, tlist, tset
 import random
 from tnt_cards import shuffle
 
@@ -12,10 +12,10 @@ def new_year_phase(G):
 	
 	# recompute tracks
 	for player, faction in G.players.items():
-		faction.tracks.POP, faction.tracks.RES = util.compute_tracks(faction.territory, G.tiles)
+		faction.tracks.POP, faction.tracks.RES = compute_tracks(faction.territory, G.tiles)
 	
 	# victory check
-	vps = util.count_victory_points(G)
+	vps = count_victory_points(G)
 	for player, vp in vps.items():
 		if vp >= G.game.victory.economic:
 			G.logger.write('{} has won the Economic Victory'.format(player))

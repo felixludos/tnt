@@ -1,8 +1,9 @@
 
-import tnt_util as util
-from tnt_util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
+
+from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
 from tnt_cards import discard_cards
 from tnt_units import add_unit
+from tnt_util import dipname, diplvl, placeable_units, compute_tracks, increment_influence, decrement_influence, becomes_satellite, USA_becomes_satellite
 import random
 
 import operator
@@ -11,7 +12,8 @@ def encode_intel_response(G, intel_card, player, target):
 	
 	code = adict()
 	
-	options = xset(('accept',))
+	options = xset()
+	options.add(('accept',))
 	
 	msg = None #'{} plays {} and is targetting you'.format(player, intel_card.intelligence)
 	
@@ -62,10 +64,12 @@ def resolve_intel(G, player, response):
 		# switch target and source, update args
 		G.temp.hack.target = G.temp.hack.source
 		G.temp.hack.source = player
+		if len(args) > 1:
+			args = args[-1]
 		G.temp.hack.args = args
 		
 		# discard double agent card
-		discard_cards(G, 'investment', ID)
+		discard_cards(G, ID)
 		
 		G.logger.write('However, {} uses their double agent to reverse the effects'.format(player))
 	
@@ -102,7 +106,7 @@ def resolve_intel(G, player, response):
 				G.temp.intel[player][uid] = unit
 		
 		G.logger.write('{} may view all {}\'s units in {} for one turn'.format(player, target, tilename))
-	elif card.intelligence == 'Spy_Rings':
+	elif card.intelligence == 'Spy_Ring':
 		
 		cid = random.choice(list(G.players[target].hand))
 		
@@ -119,7 +123,7 @@ def resolve_intel(G, player, response):
 	elif card.intelligence == 'Sabotage':
 		G.players[target].tracks.IND -= 1
 		G.logger.write('{} IND is decreased to {}'.format(target, G.players[target].tracks.IND))
-	elif card.intelligence == 'Code_Breaking':
+	elif card.intelligence == 'Code_Break':
 		
 		G.temp.intel[player] = tdict()
 		
@@ -129,6 +133,7 @@ def resolve_intel(G, player, response):
 			card.visible.add(player)
 			
 			G.temp.intel[player][cid] = card
+			print(cid, card.visible)
 			G.objects.updated[cid] = card
 		
 		G.logger.write('{} may view {}\'s hand for one turn'.format(player, target))
@@ -301,7 +306,7 @@ def achieve_tech(G, player, pub, tech, *cIDs):
 			player, player, G.players[player].stats.handlimit))
 		G.logger.write('- You can reveal {} from your vault anytime during your turn'.format(tech), player=player)
 	
-	discard_cards(G, 'investment', *cIDs)
+	discard_cards(G, *cIDs)
 	
 	
 	pass
@@ -310,7 +315,8 @@ def check_revealable(G, player):
 	options = xset()
 	faction = G.players[player]
 	if len(faction.secret_vault):
-		options.add(('reveal', xset(faction.secret_vault)))
+		# options.add(('reveal', xset(faction.secret_vault)))
+		options.add((xset(faction.secret_vault),))
 	return options
 
 def check_techs(G, player, cards):
@@ -385,51 +391,6 @@ def check_techs(G, player, cards):
 
 	return options
 
-def increment_influence(G, player, nation):
-	if nation not in G.diplomacy.influence:
-		inf = idict()
-		inf.value = 1
-		inf.nation = nation
-		inf.faction = player
-		inf.obj_type = 'influence'
-		inf.visible = xset(G.players.keys())
-		
-		G.players[player].influence.add(inf._id)
-		G.diplomacy.influence[nation] = inf
-		G.objects.table[inf._id] = inf
-		G.objects.created[inf._id] = inf
-		return
-	
-	inf = G.diplomacy.influence[nation]
-	
-	if player != inf.faction and inf.value == 1:
-		del G.diplomacy.influence[nation]
-		G.players[inf.faction].influence.remove(inf._id)
-		del G.objects.table[inf._id]
-		G.objects.removed[inf._id] = inf
-		return
-	
-	delta = (-1)**(player != inf.faction)
-	
-	inf.value += delta
-	G.objects.updated[inf._id] = inf
-
-
-def decrement_influence(G, player, nation):
-	if nation not in G.diplomacy.influence:
-		return
-	
-	inf = G.diplomacy.influence[nation]
-	
-	if player != inf.faction and inf.value == 1:
-		del G.diplomacy.influence[nation]
-		G.players[inf.faction].influence.remove(inf._id)
-		del G.objects.table[inf._id]
-		G.objects.removed[inf._id] = inf
-		return
-	
-	inf.value -= 1
-	G.objects.updated[inf._id] = inf
 	
 def play_diplomacy(G, player, nation):
 	
@@ -625,7 +586,8 @@ def governmnet_phase(G, player, action): # play cards
 		return government_post_phase(G, player, action)
 	
 	if player in G.temp.intel: # hide any temporarily visible objects from intel cards
-		for ID, obj in G.temp.intel[player]:
+		for ID, obj in G.temp.intel[player].items():
+			print(ID, obj.visible)
 			obj.visible.remove(player)
 			G.objects.updated[ID] = obj
 		del G.temp.intel[player]
@@ -695,7 +657,7 @@ def governmnet_phase(G, player, action): # play cards
 		                                                                                    ', '.join(str(G.objects.table[ID].value)
 		                                                                                              for ID in G.temp.factory_upgrade.selects)))
 		
-		discard_cards(G, 'investment', *G.temp.factory_upgrade.selects)
+		discard_cards(G, *G.temp.factory_upgrade.selects)
 		
 		del G.temp.factory_upgrade
 		
@@ -709,7 +671,7 @@ def governmnet_phase(G, player, action): # play cards
 			G.temp.move_to_post = tdict()  # for handsize limit options
 			for name, faction in G.players.items():
 				handsize = len(faction.hand)
-				G.logger.write('{} must discard {} cards'.format(player, handsize - faction.stats.handlimit))
+				G.logger.write('{} must discard {} cards'.format(name, handsize - faction.stats.handlimit))
 				G.temp.move_to_post[name] = True
 			return government_post_phase(G)
 	else:
@@ -723,12 +685,12 @@ def governmnet_phase(G, player, action): # play cards
 			G.temp.factory_upgrade.selects = tset()
 			G.logger.write('Select the cards to use for the factory upgrade', player=player)
 			return encode_factory_upgrade_actions(G)
-		elif head == 'reveal': # reveal tech from secret vault
-			reveal_tech(G, player, tail[0])
+		elif head in G.players[player].secret_vault: # reveal tech from secret vault
+			reveal_tech(G, player, head)
 			return encode_government_actions(G)
 		elif head == 'remove':
 			nation, = tail
-			decrement_influence(G, player, nation)
+			decrement_influence(G, nation)
 			G.logger.write('{} removes one of their influence from {}'.format(player, nation))
 			return encode_government_actions(G)
 		elif head in {'open', 'secret'}:
@@ -753,11 +715,11 @@ def governmnet_phase(G, player, action): # play cards
 				
 				G.logger.write('{} plays {} adding/removing influence in {}{}'.format(player, card.wildcard, nation, extra))
 				
-				discard_cards(G, 'action', head)
+				discard_cards(G, head)
 				
 			elif 'intelligence' in card:
 				
-				discard_cards(G, 'investment', head)
+				discard_cards(G, head)
 				
 				return play_intel(G, player, card, *tail)
 				
@@ -771,22 +733,13 @@ def governmnet_phase(G, player, action): # play cards
 				G.players[card.owner].hand.discard(card._id)
 				del card.owner
 				G.objects.updated[head] = card
-				# discard_cards(G, 'action', head)
+				# discard_cards(G, head)
 	
 	G.temp.active_idx += 1
 	G.temp.active_idx %= len(G.players)
 	return encode_government_actions(G)
 
-diplvl = {
-	1: 'associates',
-	2: 'protectorates',
-	3: 'satellites',
-}
-dipname = {
-	1: 'an Associate',
-	2: 'a Protectorate',
-	3: 'a Satellite',
-}
+
 
 def government_post_phase(G, player=None, action=None):
 	
@@ -795,12 +748,11 @@ def government_post_phase(G, player=None, action=None):
 		if action == 'accept':
 			G.temp.move_to_post[player] = False
 		elif action in G.players[player].hand:
-			stack = 'action' if 'action' in action else 'investment'
-			discard_cards(G, stack, action)
+			discard_cards(G, action)
 		elif action in G.players[player].secret_vault:
 			reveal_tech(G, player, action)
 		else:
-			decrement_influence(G, player, action)
+			decrement_influence(G, action)
 		action = None
 	
 	code = encode_post_gov_actions(G)
@@ -811,7 +763,7 @@ def government_post_phase(G, player=None, action=None):
 	
 	# resolve diplomacy
 	if 'diplomacy' in G.temp:
-		discard_cards(G, 'action', *G.temp.diplomacy_cards)
+		discard_cards(G, *G.temp.diplomacy_cards)
 		del G.temp.diplomacy_cards
 		for nation, (fname, val) in G.temp.diplomacy.items():
 			for _ in range(val):
@@ -830,7 +782,7 @@ def government_post_phase(G, player=None, action=None):
 					
 					faction.diplomacy[diplvl[dipl.value]].remove(nation)
 					
-					pop, res = util.compute_tracks(G.nations.territories[nation], G.tiles)
+					pop, res = compute_tracks(G.nations.territories[nation], G.tiles)
 					
 					faction.tracks.POP -= pop
 					faction.tracks.RES -= res
@@ -889,7 +841,7 @@ def government_post_phase(G, player=None, action=None):
 				# update tracks
 				tmsg = ''
 				if gainer is not None or loser is not None:
-					pop, res = util.compute_tracks(G.nations.territories[nation], G.tiles)
+					pop, res = compute_tracks(G.nations.territories[nation], G.tiles)
 					
 					if gainer is not None:
 						G.players[gainer].tracks.POP += pop
@@ -908,34 +860,7 @@ def government_post_phase(G, player=None, action=None):
 			name = new_sats['USA']
 			del new_sats['USA']
 			
-			becomes_satellite(G, 'USA')
-			
-			# USA specific stuff
-			faction = G.players[name]
-			
-			faction.members['USA'] = tset('USA')
-			faction.homeland['USA'] = G.nations.territories['USA'].copy()
-			
-			G.nations.designations['USA'] = name
-			
-			unit = adict()
-			unit.nationality = 'USA'
-			unit.type = 'Fortress'
-			unit.tile = 'Washington'
-			unit.cv = 4
-			add_unit(G, unit)
-			
-			unit = adict()
-			unit.nationality = 'USA'
-			unit.type = 'Fortress'
-			unit.tile = 'New_York'
-			unit.cv = 2
-			add_unit(G, unit)
-			
-			faction.stats.factory_idx += 1
-			faction.stats.factory_cost = faction.stats.factory_all_costs[faction.stats.factory_idx]
-			
-			G.logger.write('{} factory cost decreases to {}'.format())
+			USA_becomes_satellite(G, name)
 			
 		sat_units = tdict()
 		for nation, fname in new_sats.items():
@@ -965,25 +890,7 @@ def government_post_phase(G, player=None, action=None):
 		
 	raise PhaseComplete
 
-def becomes_satellite(G, nation):
-	del G.diplomacy.neutrals[nation] # no longer neutral
-	
-	inf = G.diplomacy.influence[nation]
-	
-	faction = G.players[inf.faction]
-	
-	faction.diplomacy.satellites.add(nation)
-	G.objects.removed[inf._id] = inf
-	del G.objects.table[inf._id]
-	
-	faction.territory.update(G.nations.territories[nation])
-	
-	# for tilename in G.nations.territories['USA']:
-	# 	tile = G.tiles[tilename]
-	# 	tile.alligence = inf.faction
-	# 	G.objects.updated[tilename] = tile
-	
-	G.logger.write('{} takes control of {}'.format(inf.faction, nation))
+
 
 
 def encode_sat_units(G):
@@ -991,7 +898,7 @@ def encode_sat_units(G):
 	code = adict()
 	
 	for player, tilenames in G.temp.sat_units.items():
-		options = util.placeable_units(G, player, G.players[player].stats.great_power, tilenames)
+		options = placeable_units(G, player, G.players[player].stats.great_power, tilenames)
 		if len(options):
 			code[player] = options
 	
@@ -1012,7 +919,12 @@ def encode_post_gov_actions(G):
 		
 		if handsize > faction.stats.handlimit:
 			
-			options.update((xset(faction.hand),))
+			for cid in faction.hand:
+				options.add((cid,))
+			
+			# options.update(faction.hand.copy())
+			#
+			# options = xset((options,))
 			
 		if is_active:
 			options.add(('accept',))
@@ -1021,7 +933,7 @@ def encode_post_gov_actions(G):
 			options.update(check_revealable(G, player))
 			
 			# removable nations
-			options.update((removable_nations(G, player),))
+			options.add((removable_nations(G, player),))
 			
 		code[player] = options
 		
