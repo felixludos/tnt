@@ -63,6 +63,11 @@
       }
       function skipAction() {
         let tuple = choiceTuples[0];
+        if (favorAction){
+          //select this action if it exists
+          let favs = choiceTuples.filter(x=>x.includes(favorAction));
+          if (favs.length > 0){ tuple = favs[0];}
+        }
         let url = "action/" + G.faction + "/" + tuple.join("+");
         //choiceTuples = [];
         //console.log("skipAction choiceTuples:", choiceTuples);
@@ -184,7 +189,7 @@
 
           if ("actions" in data) {
             choiceTuples = expand(data.actions);
-            //prj(choiceTuples); // //console.log
+            prj(choiceTuples); // //console.log
 
             if (skipActions > 0) {
               skipActions -= 1;
@@ -854,7 +859,8 @@
 
     <!-- #region setup -->
     <script>
-      var skipActions = 46; //skip to gov: 73; //skip to prod: 46; //0;
+      var favorAction = 'investment_card';
+      var skipActions = 72;//46; //skip to gov: 73; //skip to prod: 46; //0;
       var fileCounter = 0;
 
       var nextFaction;

@@ -38,7 +38,8 @@ def convert_jsonable(msg):
 
 
 _visible_attrs = {  # attributes seen by all players even if obj isn't visible to the player
-	'unit': {'nationality', 'tile', }
+	'unit': {'nationality', 'tile', },
+	'card': {'owner'},
 }
 
 
@@ -184,4 +185,4 @@ def take_action(faction, vals):
 	return out
 
 if __name__ == "__main__":
-	app.run()
+	app.run(host='localhost',port=5000)
