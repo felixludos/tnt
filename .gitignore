@@ -3,6 +3,7 @@ __pycache__/
 .ipynb_checkpoints/
 info/cards/
 config/cards/
+config/cards.zip
 check_cards.ipynb
 *-Atlas.py
 *-Atlas.ipynb
