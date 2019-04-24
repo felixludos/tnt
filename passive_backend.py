@@ -4,8 +4,8 @@ import sys, os, time
 import numpy as np
 import pickle
 import networkx as nx
-import tnt_util as util
-from tnt_util import adict, idict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete
+import util as util
+from util import adict, idict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete
 from tnt_setup import init_gamestate, setup_phase, setup_pre_phase
 import tnt_setup as setup
 from tnt_cards import load_card_decks, draw_cards

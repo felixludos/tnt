@@ -1,17 +1,22 @@
-import sys, os, time
-import numpy as np
-#import matplotlib.pyplot as plt
-import yaml
-import networkx as nx
-import uuid
-from IPython.display import display_javascript, display_html
-from structures import tdict, tlist, tset, adict, idict, xset, pull_ID, Transactionable
-from itertools import product, chain
-from collections import deque
+
+from util import adict, tdict, tset, tlist, xset, idict
+from tnt_cards import draw_cards
+from tnt_units import add_unit
 
 ######################
 # Game Processing
 ######################
+
+diplvl = {
+	1: 'associates',
+	2: 'protectorates',
+	3: 'satellites',
+}
+dipname = {
+	1: 'an Associate',
+	2: 'a Protectorate',
+	3: 'a Satellite',
+}
 
 def compute_tracks(territory, tiles):
 	pop, res = 0, 0
@@ -75,6 +80,201 @@ def contains_fortress(G, tile):
 			return True
 	return False
 
+
+######################
+# Diplomacy
+######################
+
+def increment_influence(G, player, nation):
+	if nation not in G.diplomacy.influence:
+		inf = idict()
+		inf.value = 1
+		inf.nation = nation
+		inf.faction = player
+		inf.obj_type = 'influence'
+		inf.visible = xset(G.players.keys())
+		
+		G.players[player].influence.add(inf._id)
+		G.diplomacy.influence[nation] = inf
+		G.objects.table[inf._id] = inf
+		G.objects.created[inf._id] = inf
+		return
+	
+	inf = G.diplomacy.influence[nation]
+	
+	if player != inf.faction and inf.value == 1:
+		del G.diplomacy.influence[nation]
+		G.players[inf.faction].influence.remove(inf._id)
+		del G.objects.table[inf._id]
+		G.objects.removed[inf._id] = inf
+		return
+	
+	delta = (-1) ** (player != inf.faction)
+	
+	inf.value += delta
+	G.objects.updated[inf._id] = inf
+
+
+def decrement_influence(G, nation, val=1):
+	if nation not in G.diplomacy.influence:
+		return
+	
+	inf = G.diplomacy.influence[nation]
+	
+	future = inf.value - val
+	
+	if future <= 0:
+		del G.diplomacy.influence[nation]
+		G.players[inf.faction].influence.remove(inf._id)
+		del G.objects.table[inf._id]
+		G.objects.removed[inf._id] = inf
+		return
+	
+	inf.value = future
+	G.objects.updated[inf._id] = inf
+
+def declaration_of_war(G, declarer, victim):
+	
+	G.players[declarer].stats.DoW[victim] = True
+	
+	G.players[declarer].stats.at_war_with[victim] = True
+	G.players[victim].stats.at_war_with[declarer] = True
+	
+	G.players[declarer].stats.at_war = True
+	G.players[victim].stats.at_war = True
+	
+	G.players[victim].stats.factory_idx += 1
+	G.players[victim].stats.factory_cost = G.players[victim].stats.factory_all_costs[G.players[victim].stats.factory_idx]
+	
+	G.logger.write('The {} delares war on the {}'.format(declarer, victim))
+	G.logger.write('{} loses 1 victory point'.format(declarer))
+	G.logger.write('{} decreases their factory cost to {}'.format())
+
+
+def violation_of_neutrality(G, declarer, nation): # including world reaction and placing armed minor units
+	
+	assert nation in G.diplomacy.neutrals, '{} is no longer neutral'.format(nation)
+	
+	G.players[declarer].stats.aggressed = True
+	
+	G.logger.write('{} has violated the neutrality of {}'.format(declarer, nation))
+	
+	# world reaction
+	
+	reaction = G.tiles[G.nations.capitals[nation]].muster
+	rivals = G.players[declarer].stats.rivals
+	
+	G.logger.write('{} draw {} cards for world reaction'.format(' and '.join(rivals, reaction)))
+	
+	for rival in rivals:
+		draw_cards(G, 'action', rival, reaction)
+	
+	# remove influence
+	if nation == 'USA':
+		assert declarer not in  {'West', 'USSR'}, 'West/USSR cannot violate the neutrality of the USA'
+		
+		if 'USA' in G.diplomacy.influence:
+			inf = G.diplomacy.influence['USA']
+			del G.diplomacy.influence['USA']
+			del G.objects.table[inf._id]
+			G.objects.removed[inf._id] = inf
+			
+			G.logger.write('{} loses {} influence in the USA'.format(inf.faction, inf.value))
+			
+		# USA becomes a West satellite
+		USA_becomes_satellite(G, 'West')
+		
+		if not G.players[declarer].stats.at_war_with['West']:
+			declaration_of_war(G, declarer, 'West')
+			
+		return
+	
+	if nation in G.diplomacy.influence:
+		
+		inf = G.diplomacy.influence[nation]
+		
+		if inf.faction != declarer and inf.value == 2 and not G.players[declarer].stats.at_war_with[inf.faction]:
+			G.logger.write('Since {} was a protectorate of {}, {} hereby declares war on {}'.format(nation, inf.faction, declarer, inf.faction))
+			
+			declaration_of_war(G, declarer, inf.faction)
+			
+			# nation should now become a satellite of inf.faction - including placing units
+			raise NotImplementedError
+		
+		
+		lvl = diplvl[inf.value]
+		
+		G.players[inf.faction].diplomacy[lvl].remove(nation)
+		decrement_influence(G, nation, inf.value)
+		
+		G.logger.write('{} loses {} influence in {}'.format(inf.faction, inf.value, nation))
+		
+	
+	# arming the minor
+	for tilename in G.nations.territories[nation]:
+		tile = G.tiles[tilename]
+		
+		if tile.muster > 0:
+			unit = adict()
+			unit.nationality = nation
+			unit.type = 'Fortress'
+			unit.tile = tilename
+			unit.cv = tile.muster
+			add_unit(G, unit)
+			G.logger.write('A Fortress of {} appears in {} with cv={}'.format(nation, unit.tile, unit.cv))
+			
+
+
+def becomes_satellite(G, nation):
+	del G.diplomacy.neutrals[nation]  # no longer neutral
+	
+	inf = G.diplomacy.influence[nation]
+	
+	faction = G.players[inf.faction]
+	
+	faction.influence.remove(inf._id)
+	G.objects.removed[inf._id] = inf
+	del G.objects.table[inf._id]
+	
+	faction.territory.update(G.nations.territories[nation])
+	
+	G.logger.write('{} takes control of {}'.format(inf.faction, nation))
+
+def USA_becomes_satellite(G, player='West'):
+	
+	assert player == 'West', 'The USA can only become a satellite of West'
+	
+	becomes_satellite(G, 'USA')
+	
+	# USA specific stuff
+	faction = G.players[player]
+	
+	faction.members['USA'] = tset('USA')
+	faction.homeland['USA'] = G.nations.territories['USA'].copy()
+	
+	G.nations.designations['USA'] = player
+	
+	unit = adict()
+	unit.nationality = 'USA'
+	unit.type = 'Fortress'
+	unit.tile = 'Washington'
+	unit.cv = 4
+	add_unit(G, unit)
+	
+	unit = adict()
+	unit.nationality = 'USA'
+	unit.type = 'Fortress'
+	unit.tile = 'New_York'
+	unit.cv = 2
+	add_unit(G, unit)
+	
+	faction.stats.factory_idx += 1
+	faction.stats.factory_cost = faction.stats.factory_all_costs[faction.stats.factory_idx]
+	
+	G.logger.write('{} factory cost decreases to {}'.format())
+	
+	
+
 ######################
 # Game Actions
 ######################
@@ -84,8 +284,8 @@ def placeable_units(G, player, nationality, tile_options):
 	# Groups: in land, no fortress, not supplied,
 	
 	reserves = xset(ut for ut in G.units.placeable
-			        if ut in G.units.reserves[nationality]
-			            and G.units.reserves[nationality][ut]>0)
+	                if ut in G.units.reserves[nationality]
+	                and G.units.reserves[nationality][ut ] >0)
 	
 	base = adict({
 		'unsupplied': xset('Fortress'),
@@ -109,7 +309,7 @@ def placeable_units(G, player, nationality, tile_options):
 		has_fortress = contains_fortress(G, tile)
 		
 		in_land = tile.type == 'Land'  # not including coast
-
+		
 		unsupplied = 'unsupplied' in tile and player in tile.unsupplied
 		
 		cond = has_fortress, in_land
@@ -118,278 +318,12 @@ def placeable_units(G, player, nationality, tile_options):
 		
 		if unsupplied and has_fortress:
 			continue
-			
+		
 		# add new options based on cond
 		if cond not in options:
 			options[cond] = xset(), base[cond]
 		options[cond][0].add(tilename)
-		
+	
 	return xset(options.values())
-
-
-######################
-# Log
-######################
-
-class Logger(Transactionable):
-	def __init__(self, *players, stdout=False):
-		self.stdout = stdout
-		self.logs = adict({p:deque() for p in players})
-		self.updates = adict({p:deque() for p in players})
-		self.collectors = None
-		
-	def save_state(self):
-		state = {
-			'stdout': self.stdout,
-			'logs': {k:list(v) for k,v in self.logs.items()},
-			'updates': {k:list(v) for k,v in self.updates.items()},
-		}
-		if self.collectors is not None:
-			state['collectors'] = {k:list(v) for k,v in self.collectors.items()}
-		return state
-	
-	def load_state(self, data):
-		self.stdout = data['stdout']
-		self.logs = adict(data['logs'])
-		self.updates = adict(data['updates'])
-		if 'collectors' in data:
-			self.collectors = adict(data['collectors'])
-	
-	def begin(self):
-		if self.in_transaction():
-			self.abort()
-		self.collectors = adict({p:deque() for p in self.updates.keys()})
-	
-	def in_transaction(self):
-		return self.collectors is not None
-	
-	def commit(self):
-		if not self.in_transaction():
-			return
-		collectors = self.collectors
-		self.collectors = None
-		for p, objs in collectors.items():
-			self.update_all(objs, player=p)
-	
-	def abort(self):
-		if not self.in_transaction():
-			return
-		self.collectors = None
-	
-	def update_all(self, objs, player=None):
-		if player is not None:
-			self.updates[player].extend(objs)
-			self.logs[player].extend(objs)
-			return
-		for update, log in zip(self.updates.values(), self.logs.values()):
-			update.extend(objs)
-			log.extend(objs)
-	
-	def write(self, obj, end='\n', player=None):
-		obj += end
-		if self.in_transaction():
-			if player is None:
-				for collector in self.collectors.values():
-					collector.append(obj)
-				return
-			return self.collectors[player].append(obj)
-		self.update(obj, player=player)
-		if self.stdout:
-			print(obj, end='')
-	
-	def update(self, obj, player=None):
-		
-		if player is not None:
-			self.updates[player].append(obj)
-			self.logs[player].append(obj)
-			return
-		for update, log in zip(self.updates.values(), self.logs.values()):
-			update.append(obj)
-			log.append(obj)
-	
-	def pull(self, player):
-		log = ''.join(self.updates[player])
-		self.updates[player].clear()
-		return log
-	
-	def get_full(self, player=None):
-		if player is not None:
-			return ''.join(self.logs[player])
-		return adict({p:''.join(self.logs[p]) for p in self.logs})
-
-######################
-# misc
-######################
-
-class PhaseComplete(Exception):
-	pass
-
-def seq_iterate(content, itrs, end=False): # None will return that value for each
-	if len(itrs) == 0: # base case - iterate over content
-		try:
-			if end:
-				yield content
-			else:
-				yield from content
-		except TypeError:
-			yield content
-	else: # return only those samples that match specified (non None) tuples
-		
-		i, *itrs = itrs
-		
-		if isinstance(content, (list, tuple, set)):
-			
-			if i is None:
-				for x in content:
-					yield from seq_iterate(x, itrs, end=end)
-			elif isinstance(i, int) and i < len(content):
-				yield from seq_iterate(content[i], itrs, end=end)
-		
-		elif isinstance(content, dict):
-			
-			if i is None:
-				for k, v in content.items():  # expand with id
-					for rest in seq_iterate(v, itrs, end=end):
-						if isinstance(rest, tuple):
-							yield (k,) + rest
-						else:
-							yield k, rest
-			elif i in content:
-				yield from seq_iterate(content[i], itrs, end=end)
-
-
-def expand_actions(code):
-	if isinstance(code, set) and len(code) == 1:
-		return expand_actions(next(iter(code)))
-	
-	if isinstance(code, str) or isinstance(code, int):
-		return [code]
-	
-	# tuple case
-	if isinstance(code, (tuple, list)):
-		return list(product(*map(expand_actions, code)))
-	if isinstance(code, set):
-		return chain(*map(expand_actions, code))
-	return code
-
-def flatten(bla):
-	output = ()
-	for item in bla:
-		output += flatten(item) if isinstance(item, (tuple, list)) else (item,)
-	return output
-
-def decode_actions(code):
-	code = expand_actions(code)
-	return xset(map(flatten, code))
-
-
-
-
-def collate(raw, remove_space=True, transactionable=True):
-	dicttype, settype, listtype = adict, xset, list
-	if transactionable:
-		dicttype, settype, listtype = tdict, tset, tlist
-	if isinstance(raw, dict):
-		return dicttype((collate(k, remove_space=remove_space, transactionable=transactionable),
-		                  collate(v, remove_space=remove_space, transactionable=transactionable))
-		                 for k,v in raw.items())
-	elif isinstance(raw, list):
-		return listtype(collate(x, remove_space=remove_space, transactionable=transactionable)
-		                for x in raw)
-	elif isinstance(raw, tuple):
-		return (collate(x, remove_space=remove_space, transactionable=transactionable)
-		        for x in raw)
-	elif isinstance(raw, set):
-		return settype(collate(x, remove_space=remove_space, transactionable=transactionable)
-		            for x in raw)
-	elif isinstance(raw, str) and remove_space:
-		return raw.replace(' ', '_')
-	return raw
-
-def uncollate(raw, with_id=True):
-	if isinstance(raw, dict):
-		if isinstance(raw, idict) and with_id:
-			return dict((uncollate(k,with_id),uncollate(v,with_id))
-						for k,v in raw.to_dict(with_id).items())
-		return dict((uncollate(k,with_id),uncollate(v,with_id))
-					for k,v in raw.items())
-	elif isinstance(raw, list):
-		return [uncollate(x,with_id) for x in raw]
-	elif isinstance(raw, tuple):
-		return (uncollate(x,with_id) for x in raw)
-	elif isinstance(raw, set) and type(raw) != xset:
-		return set(uncollate(x,with_id) for x in raw)
-	# elif isinstance(raw, str):
-	#     return raw.replace('_', ' ')
-	return raw
-
-
-
-
-def save(data, path):
-	yaml.dump(uncollate(data), open(path,'w'),
-			  default_flow_style=False)
-
-def load(path):
-	return collate(yaml.load(open(path, 'r')))
-
-
-
-
-def render_format(raw):
-	if isinstance(raw, dict):
-		return dict((str(k),render_format(v)) for k,v in raw.items())
-	elif isinstance(raw, list):
-		return list(render_format(el) for el in raw)
-	# 	itr = dict()
-	# 	for i, el in enumerate(raw):
-	# 		itr['l{}'.format(i)] = render_format(el)
-	# 	return itr
-	elif isinstance(raw, set):
-		return list(render_format(el) for el in raw)
-		# itr = dict()
-		# for i, el in enumerate(raw):
-		# 	itr['s{}'.format(i)] = render_format(el)
-		# return itr
-	elif isinstance(raw, tuple):
-		return list(render_format(el) for el in raw)
-		# itr = dict()
-		# for i, el in enumerate(raw):
-		# 	itr['t{}'.format(i)] = render_format(el)
-		# return itr
-	return str(raw)
-
-class render_dict(object):
-	def __init__(self, json_data):
-	
-		self.json_str = render_format( json_data )
-		
-		# if isinstance(json_data, dict):
-		#     self.json_str = json_data
-		#     #self.json_str = json.dumps(json_data)
-		# else:
-		#     self.json_str = json
-		self.uuid = str(uuid.uuid4())
-
-	def _ipython_display_(self):
-		display_html('<div id="{}" style="height: 600px; width:100%;"></div>'.format(self.uuid),
-			raw=True
-		)
-		display_javascript("""
-		require(["https://rawgit.com/caldwell/renderjson/master/renderjson.js"], function() {
-		  renderjson.set_show_to_level(1)
-		  document.getElementById('%s').appendChild(renderjson(%s))
-		});
-		""" % (self.uuid, self.json_str), raw=True)
-
-
-
-
-
-
-
-
-
-
 
 
