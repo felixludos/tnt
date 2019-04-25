@@ -4,9 +4,10 @@ import sys, os, time
 import numpy as np
 import pickle
 import networkx as nx
-import util as util
+import util
 from util import adict, idict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete
 from tnt_setup import init_gamestate, setup_phase, setup_pre_phase
+from tnt_util import count_victory_points
 import tnt_setup as setup
 from tnt_cards import load_card_decks, draw_cards
 from collections import namedtuple
@@ -74,7 +75,7 @@ def start_new_game(player='Axis', debug=False):
 
 	G = setup.init_gamestate()
 	
-	G.logger = util.Logger(*G.players.keys(), stdout=True)
+	G.logger = Logger(*G.players.keys(), stdout=True)
 	
 	G.objects.created = G.objects.table.copy()
 	G.objects.updated = tdict()
@@ -204,9 +205,6 @@ def step(player, action):
 			
 	except Exception as e:
 		G.abort()
-		#
-		# if DEBUG:
-		# 	raise e
 		
 		return process_actions('error', sys.exc_info(), player)
 		
@@ -216,7 +214,37 @@ def step(player, action):
 		return process_actions('actions', all_actions, player)
 	
 
-
+def get_game_info(player):
+	
+	info = adict()
+	
+	info.game = adict()
+	info.game.year = G.game.year
+	info.game.phase = G.game.sequence[G.game.index]
+	if 'turn_order' in G.game:
+		info.game.turn_order = G.game.turn_order
+	
+	info.players = adict()
+	
+	vps = count_victory_points(G)
+	
+	for p, faction in G.players.items():
+		
+		play = adict()
+		
+		play.tracks = adict()
+		for track, val in faction.tracks.items():
+			play.tracks[track] = val
+		
+		play.at_war_with = faction.stats.at_war_with
+		play.DoW = faction.stats.DoW
+		
+		if p == player:
+			play.victory_points = vps[p]
+	
+		info.players[p] = play
+	
+	return info
 
 
 
