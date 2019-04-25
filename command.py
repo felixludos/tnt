@@ -106,6 +106,7 @@ def command_phase(G, player, action):
 			cmd.priority = card.priority
 			cmd.moved = tset()
 			cmd.borders = tdict()
+			cmd.declarations = tset()
 			
 			if card.season == G.temp.season:
 				val = card.value
