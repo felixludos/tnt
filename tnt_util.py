@@ -230,6 +230,7 @@ def becomes_satellite(G, nation):
 	
 	inf = G.diplomacy.influence[nation]
 	
+	G.nations.designations[nation] = inf.faction
 	faction = G.players[inf.faction]
 	
 	faction.influence.remove(inf._id)
@@ -327,3 +328,45 @@ def placeable_units(G, player, nationality, tile_options):
 	return xset(options.values())
 
 
+def check_land_movement(G, player, loc, fuel=1, path=None):
+	if path is None:
+		path = []
+		
+	
+	pass
+
+def check_sea_movement(G, player, loc, fuel=1, path=None):
+	if path is None:
+		path = []
+	
+	pass
+
+def disengaging_movement(G, player):
+	pass
+
+def engaging_movement(G, player):
+	pass
+
+land_mov = {'Land', 'Coast', 'Strait'}
+sea_mov = {'Coast', 'Strait', 'Sea', 'Ocean'}
+
+def travel_options(G, unit):
+	pts = G.units.rules[unit.type].move
+	
+	options = xset()
+	
+	if pts == 0:
+		return options
+	
+	player = G.nations.designations[unit.nationality]
+	faction = G.players[player]
+	
+	tile = G.tiles[unit.tile]
+	
+	
+	
+	
+	
+	
+	
+	
