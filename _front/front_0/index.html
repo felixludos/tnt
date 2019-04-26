@@ -481,13 +481,20 @@
                 case "wildcard":
                 case "year":
                 case "espionage":
-                  //console.log('updating card:',ui)
+                case "intelligence":
+                //default:
+                  //console.log('updating card:',ui.id)
                   let title = ui.getTag("title");
                   if (title != go[prop]) {
                     //console.log(title,go,ui)
                     cardFactory.updateCardContent(ui.id, ui, go, ttext);
                   }
                   break;
+                default: if (startsWith(ui.id,'invest_') && (!['obj_type','visible','units','visible',
+                'type','alligence','muster','pop','res','borders','name',
+                'season','priority','bottom','name'].includes(prop))){
+                  //console.log(prop,go[prop]);
+                }
               }
             }
           }

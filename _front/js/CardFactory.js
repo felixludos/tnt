@@ -35,9 +35,9 @@ class CardFactory {
     } else if ("wildcard" in o) {
       txt = [o.wildcard, " ", o.season, o.priority + o.value, " ", " "];
       title=o.wildcard;
-    } else if ("espionage" in o) {
-      txt = [o.espionage, " ", " ",o.value?o.value.toString():" ", " "," ", " "];
-      title=o.espionage;
+    } else if ("intelligence" in o) {
+      txt = [o.intelligence, " ", " ",o.value?o.value.toString():" ", " "," ", " "];
+      title=o.intelligence;
     } else if ("science" in o) {
       txt = [o.value+'   ('+o.year.toString()+')'];
       o.science.map(x=>txt.push(x));
@@ -62,11 +62,13 @@ class CardFactory {
     return ms;
   }
   createCard(id, o, ttext) {
+    if (startsWith(id,'invest_')) console.log('create',JSON.stringify(o),id)
     let ms = new MS(id,null);
     this.setCardContent(ms,o);
     return ms;
   }
   updateCardContent(id, ms, o, ttext) {
+    if (startsWith(id,'invest_')) console.log('update',JSON.stringify(o),id)
     ms.removeFromChildIndex(2);
     //console.log("updateCardContent:");
     this.setCardContent(ms,o);
