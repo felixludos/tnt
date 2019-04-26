@@ -51,27 +51,34 @@ class MS {
 
   //#region set position, draw
   drawTo(newParent, x = 0, y = 0) {
+    console.log('drawTo',this.id, newParent, parent)
     if (newParent == this.parent && this.isDrawn){
-      if (x == 0 || (x==this.x && y == this.y)) return;
-      else this.setPos(x,y);
+      if (x == 0 || (x==this.x && y == this.y)) {
+        console.log(this.id,'card already on same parent same pos and isDrawn!',this.parent)
+        return;
+      }else this.setPos(x,y);
     }
     if (newParent != this.parent) {
+      console.log(this.id,'card removed from',this.newParent)
       this.removeFromUI();
     }
     this.parent = newParent;
+    console.log(this.id,'set new parent',this.parent)
     if (x != 0) {
       this.setPos(x, y);
-      //console.log('setpos',x,y)
+      console.log(this.id,'setpos',x,y)
     }
     if (newParent) {
       this.isFloating = false;
       this.isDrawn = false;
       this.draw();
-      //console.log('drawn!')
+      console.log(this.id,'drawn to ',this.parent)
     } else {
       this.isFloating = true;
+      console.log(this.id,'set to isFloating',this.parent)
     }
   }
+  isCard(){return startsWith(this.id,'invest_') || startsWith(this.id,'action_');}
   draw() {
     if (this.isFloating) {
       return this;
@@ -79,6 +86,9 @@ class MS {
     } else if (!this.isDrawn) {
       this.isDrawn = true;
       this.parent.appendChild(this.elem);
+      if (this.isCard()){
+        console.log(this.id,'appended to and shown',this.parent.id)
+      }
       this.show();
     }
     return this;
@@ -140,6 +150,7 @@ class MS {
     if (this.isDrawn && this.parent) {
       this.parent.removeChild(this.elem);
       this.isDrawn = false;
+      console.log(this.id,'removed from parent',this.parent)
     }
   }
   removeFromChildIndex(idx) {

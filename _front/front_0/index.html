@@ -36,11 +36,16 @@
       <div id="buttonDiv" class="div">
         <button id="bNextPlayer" class="hidden" onclick="onClickNextPlayer()">next player</button>
         <button id="bSave" onclick="saveGameState()">save</button>
-        <button id="bPass" class="hidden" onclick="onClickPass()">pass</button>
+        <!-- <button id="bPass" class="hidden" onclick="onClickPass()">pass</button> -->
       </div>
       <div id="cardDisplay" class="div" style="height:200px">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
           <g id="cardsG"></g>
+        </svg>
+      </div>
+      <div id="openCardDisplay" class="div" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="openCardsG"></g>
         </svg>
       </div>
       <div id="chatWindow" class="div">
@@ -85,9 +90,9 @@
         send("status/" + G.faction);
         //send("reset/" + G.faction); //TODO: try this next!!!
       }
-      function onClickPass() {
-        onClickNextPlayer();
-      }
+      // function onClickPass() {
+      //   onClickNextPlayer();
+      // }
       function processData(str) {
         let data = JSON.parse(str);
         //console.log(data);
@@ -99,6 +104,10 @@
         if (data === undefined) {
           //console.log("!!!", str, "!!!");
         } else {
+          if (outputData) {
+            console.log(data);
+            outputData = false;
+          }
           let faction = G.faction;
           let g = G[faction];
           if ("log" in data) {
@@ -167,7 +176,7 @@
 
           if ("actions" in data) {
             tuplesInAction = expand(data.actions);
-            if (outputActions){
+            if (outputActions) {
               console.log(data.actions);
               prj(tuplesInAction);
               outputActions = false;
@@ -227,6 +236,7 @@
       var uisSelected = [];
       var uisCommand = {};
       var outputActions = false;
+      var outputData = false;
       function processActions() {
         tuplesPossible = tuplesInAction.slice();
         tuplePartSelected = [];
@@ -267,7 +277,7 @@
       }
       function isCommand(ui) {
         //console.log('isCommand',ui)
-        if ((ui.id in uisCommand) != (ui.getTag("isCommand")!=null)) {
+        if (ui.id in uisCommand != (ui.getTag("isCommand") != null)) {
           //console.log("isCommand DOES NOT work!!!!");
         }
         return ui.id in uisCommand;
@@ -295,7 +305,7 @@
           //filter possible tuples to just the ones containing this id
           tuplesPossible = tuplesPossible.filter(x => x.includes(id));
           //console.log('possible tuples after new selection:',tuplesPossible)
-          if (isInvestmentCard(ui.id)){
+          if (isInvestmentCard(ui.id)) {
             //console.log('clicked',ui.id,':',ui.json)
           }
         }
@@ -304,7 +314,13 @@
         if (tuplesPossible.length == 1) {
           let tuple = tuplesPossible[0];
           //console.log("onSelected: found tuple");
-          //if (tuple.includes('factory_upgrade')){outputActions = true;}
+
+          //test
+          //if (tuple.includes("factory_upgrade") || tuple.includes("pass")) {
+          //outputActions = true;
+          outputData = true;
+          //}
+
           closeSelection();
           let url = "action/" + G.faction + "/" + tuple.join("+");
           send(url);
@@ -332,9 +348,9 @@
             //console.log("looping through tuplesInAction", tuple);
             if (tuple.length == 1) {
               let id = tuple[0];
-              if (isCard(id)){
+              if (isCard(id)) {
                 addIf(uis[id], uisInAction);
-              }else{
+              } else {
                 addIf(getCommandUI(tuple[0]), uisInAction);
               }
             } else if (isDiplomacyTuple(tuple)) {
@@ -492,9 +508,9 @@
                 case "top":
                 case "wildcard":
                 case "year":
-                case "espionage":
+                //case "espionage":
                 case "intelligence":
-                //default:
+                  //default:
                   //console.log('updating card:',ui.id)
                   let title = ui.getTag("title");
                   if (title != go[prop]) {
@@ -502,19 +518,44 @@
                     cardFactory.updateCardContent(ui.id, ui, go, ttext);
                   }
                   break;
-                default: if (startsWith(ui.id,'invest_') && (!['obj_type','visible','units','visible',
-                'type','alligence','muster','pop','res','borders','name',
-                'season','priority','bottom','name'].includes(prop))){
-                  //console.log(prop,go[prop]);
-                }
+                default:
+                  if (
+                    startsWith(ui.id, "invest_") &&
+                    ![
+                      "obj_type",
+                      "visible",
+                      "units",
+                      "visible",
+                      "type",
+                      "alligence",
+                      "muster",
+                      "pop",
+                      "res",
+                      "borders",
+                      "name",
+                      "season",
+                      "priority",
+                      "bottom",
+                      "name"
+                    ].includes(prop)
+                  ) {
+                    //console.log(prop,go[prop]);
+                  }
               }
             }
           }
 
+          //visibility
           switch (go.obj_type) {
             case "action_card":
             case "investment_card":
-              if (go.visible.set.includes(currentFaction)) {
+              if (go.visible.set.length == 3) {
+                cardFactory.placeCardInOpenCards(uis[id], currentFaction);
+              } else if (go.visible.set.includes(currentFaction)) {
+                if (go.visible.set.length == 2) {
+                  //someone is showing this guy this card
+                  cardFactory.showForeignCard(uis[id], go.visible.set, currentFaction);
+                }
                 cardFactory.placeCard(uis[id], currentFaction);
               }
               break;
@@ -531,243 +572,6 @@
                 if (id in uis) {
                   uis[id].hide();
                 }
-              }
-              break;
-          }
-        }
-      }
-
-      function updateUI_vorOverride() {
-        var currentFaction = G.faction;
-        var currentView = G[currentFaction];
-
-        for (id in currentView) {
-          let go = currentView[id];
-          let ttext = JSON.stringify(go);
-
-          if (!(id in uis)) {
-            //create object
-            switch (go.obj_type) {
-              case "tile":
-                //console.log("create region", id);
-                uis[id] = boardFactory.createTile(id, ttext);
-                break;
-              case "unit":
-                //console.log("create unit", id);
-                let faction = currentFaction;
-
-                if (isUnitOfFaction(go, currentFaction)) {
-                  uis[id] = boardFactory.createUnit(id, currentFaction, go, ttext);
-                  boardFactory.updateCv(uis[id], go.cv);
-                } else {
-                  faction = go.visible.set[0];
-                }
-                //console.log("unit", uis[id], "id:::", id);
-                //create or update hidden unit
-                let idHidden = getHiddenId(faction, go.tile);
-                if (!(idHidden in uis)) {
-                  uis[idHidden] = boardFactory.createHiddenUnit(idHidden, go);
-                  //console.log("created hidden unit:", idHidden, id, uis[idHidden]);
-                } else {
-                  //increment counter of hidden unit by 1
-                  boardFactory.updateUnitCounter(go, uis[idHidden], 1);
-                }
-                break;
-              case "action_card":
-              case "investment_card":
-                let ui = cardFactory.createCard(id, go, ttext);
-                uis[id] = ui;
-                if (isHandCard(go, currentFaction)) {
-                  cardFactory.placeCard(ui, currentFaction);
-                }
-                break;
-            }
-          } else {
-            //check property changes
-            let ui = uis[id];
-
-            for (prop in go) {
-              //map values of property to ui
-              switch (prop) {
-                case "tile":
-                  //make sure this is a cadre
-                  if (go.obj_type != "unit") {
-                    //console.log("trying to place a", go.obj_type);
-                  }
-                  let tile = go.tile;
-                  let unitTile = ui.getTag("tile");
-                  if (unitTile != tile) {
-                    //console.log("PLACE! update tile from", unitTile, "to", tile);
-                    //remove unit from old tile
-                    boardFactory.removeUnitFrom(ui, tile);
-                    boardFactory.placeUnit(ui, tile);
-                  }
-                  break;
-                case "cv":
-                  //make sure this is a cadre
-                  if (go.obj_type != "unit") {
-                    //console.log("trying to attach cv to ", go.obj_type);
-                  }
-                  let cv = go[prop];
-                  let unitCV = ui.getTag("cv");
-                  if (unitCV != cv) {
-                    //console.log("update cv from", unitCV, "to", cv);
-                    boardFactory.updateCv(ui, cv);
-                  }
-                  break;
-                case "top":
-                case "wildcard":
-                case "year":
-                case "espionage":
-                  //console.log('updating card:',ui)
-                  let title = ui.getTag("title");
-                  if (title != go[prop]) {
-                    //console.log(title,go,ui)
-                    cardFactory.updateCardContent(ui.id, ui, go, ttext);
-                  }
-                  break;
-              }
-            }
-          }
-
-          switch (go.obj_type) {
-            case "action_card":
-            case "investment_card":
-              if (go.visible.set.includes(currentFaction)) {
-                cardFactory.placeCard(uis[id], currentFaction);
-              }
-              break;
-            case "unit":
-              let faction = go.visible.set[0]; //ms.getTag("faction");
-              let tile = go.tile; //ms.getTag("tile");
-              let idHidden = getHiddenId(faction, tile);
-              //show unit if owner currentFaction, otherwise show hidden unit
-              if (faction == currentFaction) {
-                uis[id].show();
-                uis[idHidden].hide();
-              } else {
-                uis[idHidden].show();
-                if (id in uis) {
-                  uis[id].hide();
-                }
-              }
-              break;
-          }
-        }
-      }
-
-      function updateUI_couldBreak() {
-        var currentFaction = G.faction;
-        var currentView = G[currentFaction];
-
-        for (id in currentView) {
-          let go = currentView[id];
-          let ttext = JSON.stringify(go);
-
-          if (!(id in uis)) {
-            //create object
-            switch (go.obj_type) {
-              case "tile":
-                //console.log("create region", id);
-                uis[id] = boardFactory.createTile(id, ttext);
-                break;
-              case "unit":
-                //console.log("create unit", id);
-                let faction = currentFaction;
-                if (isUnitOfFaction(go, currentFaction)) {
-                  uis[id] = boardFactory.createUnit(id, currentFaction, go, ttext);
-                  boardFactory.updateCv(uis[id], go.cv);
-                } else {
-                  faction = go.visible.set[0];
-                }
-                //create or update hidden unit
-                let idHidden = getHiddenId(faction, go.tile);
-                if (!(idHidden in uis)) {
-                  uis[idHidden] = boardFactory.createHiddenUnit(idHidden, go);
-                  //console.log("created hidden unit:", idHidden, id, uis[idHidden]);
-                } else {
-                  //increment counter of hidden unit by 1
-                  boardFactory.updateUnitCounter(go, uis[idHidden], 1);
-                }
-                break;
-              case "action_card":
-              case "investment_card":
-                let ui = cardFactory.createCard(id, go, ttext);
-                uis[id] = ui;
-                if (isHandCard(go, currentFaction)) {
-                  cardFactory.placeCard(ui, currentFaction);
-                }
-                break;
-            }
-          } else {
-            //check property changes
-            let ui = uis[id];
-
-            for (prop in go) {
-              //map values of property to ui
-              switch (prop) {
-                case "tile":
-                  //make sure this is a cadre
-                  if (go.obj_type != "unit") {
-                    //console.log("trying to place a", go.obj_type);
-                  }
-                  let tile = go.tile;
-                  let unitTile = ui.getTag("tile");
-                  if (unitTile != tile) {
-                    //console.log("PLACE! update tile from", unitTile, "to", tile);
-                    //remove unit from old tile
-                    boardFactory.removeUnitFrom(ui, tile);
-                    boardFactory.placeUnit(ui, tile);
-                  }
-                  break;
-                case "cv":
-                  //make sure this is a cadre
-                  if (go.obj_type != "unit") {
-                    //console.log("trying to attach cv to ", go.obj_type);
-                  }
-                  let cv = go[prop];
-                  let unitCV = ui.getTag("cv");
-                  if (unitCV != cv) {
-                    //console.log("update cv from", unitCV, "to", cv);
-                    boardFactory.updateCv(ui, cv);
-                  }
-                  break;
-                case "top":
-                case "wildcard":
-                case "year":
-                case "espionage":
-                  //console.log('updating card:',ui)
-                  let title = ui.getTag("title");
-                  if (title != go[prop]) {
-                    //console.log(title,go,ui)
-                    cardFactory.updateCardContent(ui.id, ui, go, ttext);
-                  }
-                  break;
-              }
-            }
-          }
-
-          //update visibility
-          let ms = uis[id];
-
-          switch (go.obj_type) {
-            case "action_card":
-            case "investment_card":
-              if (go.visible.set.includes(currentFaction)) {
-                cardFactory.placeCard(ms, currentFaction);
-              }
-              break;
-            case "unit":
-              let faction = ms.getTag("faction");
-              let tile = ms.getTag("tile");
-              let idHidden = getHiddenId(faction, tile);
-              //show unit if owner currentFaction, otherwise show hidden unit
-              if (faction == currentFaction) {
-                uis[id].show();
-                uis[idHidden].hide();
-              } else {
-                uis[idHidden].show();
-                uis[id].hide();
               }
               break;
           }
@@ -878,8 +682,8 @@
       }
       function hideCommands() {
         G.commands.map(id => {
-          if (id in uis) {
-            uis[id].hide();
+          if (id in uisCommand) {
+            uisCommand[id].hide();
           }
         });
       }
@@ -1054,10 +858,12 @@
 
       const board = document.getElementById("boardG");
       const cardDisplay = document.getElementById("cardDisplay");
+      const openCardDisplay = document.getElementById("openCardDisplay");
+      const openCardsG = document.getElementById("openCardsG");
       const cardsG = document.getElementById("cardsG");
       const bNextPlayer = document.getElementById("bNextPlayer");
       const bSkipAction = document.getElementById("bSkipAction");
-      const bPass = document.getElementById("bPass");
+      //const bPass = document.getElementById("bPass");
 
       board.setAttribute("transform", `translate(0,0) scale(${MIN_SCALE})`);
       //board.setAttribute("transform", `translate(-400,-400) scale(${1})`);
@@ -1097,7 +903,7 @@
       //*** execution starts here ***
       loadYML("/common/assets/config/map_pos.yml", data => {
         boardFactory = new BoardFactory(board, data, SZ);
-        cardFactory = new CardFactory(cardDisplay, cardsG, SZ.cardWidth, SZ.cardHeight);
+        cardFactory = new CardFactory(openCardDisplay, openCardsG, cardDisplay, cardsG, SZ.cardWidth, SZ.cardHeight);
         let decks = boardFactory.createDecks();
         //console.log(decks);
         uis.action_card = decks.action_card;

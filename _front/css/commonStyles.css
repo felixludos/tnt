@@ -29,6 +29,10 @@ body{
   grid-area: cards;
   height: 200px;
 } 
+#openCardDisplay{
+  grid-area: openCards;
+  height: 200px;
+} 
 #chatWindow{
   grid-area: chat;
 }
@@ -39,12 +43,13 @@ body{
 .grid-container {
   display: grid;
   grid-template-columns: 60px 1190px auto;
-  grid-template-rows: auto 400px 360px auto;
+  grid-template-rows: auto 400px 360px auto auto;
   grid-template-areas:
     'status status status'
     'sel map  log'
     'sel map  buttons'
-    'cards cards  chat';
+    'cards cards buttons'
+    'openCards openCards chat';
   grid-gap: 8px;
   background-color: #2196F3;
   padding: 8px;
@@ -52,12 +57,13 @@ body{
 .grid-hidefirst{
   display: grid;
   grid-template-columns: 1190px auto;
-  grid-template-rows: auto 400px 360px auto;
+  grid-template-rows: auto 400px 360px auto auto;
   grid-template-areas:
     'status status'
     'map  log'
     'map  buttons'
-    'cards  chat';
+    'cards  buttons'
+    'openCards chat';
   grid-gap: 8px;
   background-color: #2196F3;
   padding: 8px;

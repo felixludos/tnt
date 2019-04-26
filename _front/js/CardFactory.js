@@ -1,6 +1,8 @@
 class CardFactory {
-  constructor(cardDisplay,cardsG, w, h) {
+  constructor(openCardDisplay,openCardsG,cardDisplay,cardsG, w, h) {
+    this.openCardDisplay = openCardDisplay;
     this.cardDisplay = cardDisplay;
+    this.openCardsG = openCardsG;
     this.cardsG = cardsG;
     //console.log(cardDisplay,cardsG)
     this.cardWidth = w;
@@ -12,15 +14,21 @@ class CardFactory {
     this.y = this.yStart;
     //console.log(this.xStart,this.yStart,this.x,this.y,w,h)
     this.cards = [];
+    this.openCards = [];
   }
   clearCards() {
     //console.log("cardFactory.clearCards");
     //clearElement(cardDisplay);
     this.cards.map(x => x.removeFromUI());
     this.cards=[];
+    this.openCards.map(x => x.removeFromUI()); // not sure if need to do this and next
+    this.openCards = [];
     this.x = this.xStart;
     this.y = this.yStart;
+    this.xOpen = this.xStart;
+    this.yOpen = this.yStart;
     this.cardDisplay.style.height = '200px';
+    this.openCardDisplay.style.height = '200px';
   }
   setCardContent(ms,o){
     let txt = [];
@@ -51,8 +59,12 @@ class CardFactory {
     let cardHeight = this.cardHeight;
     //console.log(cardWidth, cardHeight);
 
+    let testText=ms.id;
+    if ('owner' in o){testText += ' '+o.owner;}
+
     ms.roundedRect({w: cardWidth, h: cardHeight, fill: "white"})
-    .textMultiline({txt: txt, maxWidth: cardWidth, fz: cardWidth / 6})
+    .text({txt:testText,fill:'red',y:cardHeight/2,fz:cardWidth/7})
+    .textMultiline({txt: txt, maxWidth: cardWidth, fz: cardWidth /7}) // / 6})
     .roundedRect({className: "overlay hible selectable", w: cardWidth, h: cardHeight});
 
     ms.tag('content',txt)
@@ -93,9 +105,42 @@ class CardFactory {
 
     //console.log("placeCard:", ui, parentG, this.x, this.y, ui.bounds.w, ui.bounds.h);
     ui.drawTo(parentG, this.x, this.y);
+    ui.show();
     this.x += this.gap + ui.bounds.w;
     addIf(ui, this.cards);
     ui.tag('hand',faction)
     //TODO: if card does not fit!!!
+  }
+  placeCardInOpenCards(ui, faction) {
+    if (this.openCards.includes(ui)){
+      console.log('card is already in OPEN',ui.id)
+      return; //already in open card area!
+    } 
+    let  parentG = this.openCardsG;
+
+    let wTotal=this.openCardDisplay.offsetWidth;
+    //console.log(wTotal)
+    if (this.xOpen+this.cardWidth+this.gap > wTotal){
+      //console.log('MUSS ERWEITERN!!!!',this.cardDisplay.style.height)
+      let h= firstNumber( this.openCardDisplay.style.height);
+      //console.log('current height of cardDisplay:',h)
+      h += this.cardHeight;
+      //console.log('new height of cardDisplay:',h)
+      this.openCardDisplay.style.height=h+'px';
+      this.xOpen=this.xStart;
+      this.yOpen+=this.gap+this.cardHeight;
+    }
+
+    //console.log("placeCard:", ui, parentG, this.x, this.y, ui.bounds.w, ui.bounds.h);
+    ui.drawTo(parentG, this.xOpen, this.yOpen);
+    ui.show();
+    console.log('card',ui.id,'drawn to pos',this.xOpen,this.yOpen);
+    this.xOpen += this.gap + ui.bounds.w;
+    addIf(ui, this.openCards);
+    ui.tag('openCard',faction);//todo make it more meaningful!
+  }
+
+  showForeignCard(ui,visibleToList,currentFaction){
+    console.log('card',ui.id, 'shown to',visibleToList.toString())
   }
 }

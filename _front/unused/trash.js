@@ -1,3 +1,239 @@
+function updateUI_vorOverride() {
+  var currentFaction = G.faction;
+  var currentView = G[currentFaction];
+
+  for (id in currentView) {
+    let go = currentView[id];
+    let ttext = JSON.stringify(go);
+
+    if (!(id in uis)) {
+      //create object
+      switch (go.obj_type) {
+        case "tile":
+          //console.log("create region", id);
+          uis[id] = boardFactory.createTile(id, ttext);
+          break;
+        case "unit":
+          //console.log("create unit", id);
+          let faction = currentFaction;
+
+          if (isUnitOfFaction(go, currentFaction)) {
+            uis[id] = boardFactory.createUnit(id, currentFaction, go, ttext);
+            boardFactory.updateCv(uis[id], go.cv);
+          } else {
+            faction = go.visible.set[0];
+          }
+          //console.log("unit", uis[id], "id:::", id);
+          //create or update hidden unit
+          let idHidden = getHiddenId(faction, go.tile);
+          if (!(idHidden in uis)) {
+            uis[idHidden] = boardFactory.createHiddenUnit(idHidden, go);
+            //console.log("created hidden unit:", idHidden, id, uis[idHidden]);
+          } else {
+            //increment counter of hidden unit by 1
+            boardFactory.updateUnitCounter(go, uis[idHidden], 1);
+          }
+          break;
+        case "action_card":
+        case "investment_card":
+          let ui = cardFactory.createCard(id, go, ttext);
+          uis[id] = ui;
+          if (isHandCard(go, currentFaction)) {
+            cardFactory.placeCard(ui, currentFaction);
+          }
+          break;
+      }
+    } else {
+      //check property changes
+      let ui = uis[id];
+
+      for (prop in go) {
+        //map values of property to ui
+        switch (prop) {
+          case "tile":
+            //make sure this is a cadre
+            if (go.obj_type != "unit") {
+              //console.log("trying to place a", go.obj_type);
+            }
+            let tile = go.tile;
+            let unitTile = ui.getTag("tile");
+            if (unitTile != tile) {
+              //console.log("PLACE! update tile from", unitTile, "to", tile);
+              //remove unit from old tile
+              boardFactory.removeUnitFrom(ui, tile);
+              boardFactory.placeUnit(ui, tile);
+            }
+            break;
+          case "cv":
+            //make sure this is a cadre
+            if (go.obj_type != "unit") {
+              //console.log("trying to attach cv to ", go.obj_type);
+            }
+            let cv = go[prop];
+            let unitCV = ui.getTag("cv");
+            if (unitCV != cv) {
+              //console.log("update cv from", unitCV, "to", cv);
+              boardFactory.updateCv(ui, cv);
+            }
+            break;
+          case "top":
+          case "wildcard":
+          case "year":
+          case "espionage":
+            //console.log('updating card:',ui)
+            let title = ui.getTag("title");
+            if (title != go[prop]) {
+              //console.log(title,go,ui)
+              cardFactory.updateCardContent(ui.id, ui, go, ttext);
+            }
+            break;
+        }
+      }
+    }
+
+    switch (go.obj_type) {
+      case "action_card":
+      case "investment_card":
+        if (go.visible.set.includes(currentFaction)) {
+          cardFactory.placeCard(uis[id], currentFaction);
+        }
+        break;
+      case "unit":
+        let faction = go.visible.set[0]; //ms.getTag("faction");
+        let tile = go.tile; //ms.getTag("tile");
+        let idHidden = getHiddenId(faction, tile);
+        //show unit if owner currentFaction, otherwise show hidden unit
+        if (faction == currentFaction) {
+          uis[id].show();
+          uis[idHidden].hide();
+        } else {
+          uis[idHidden].show();
+          if (id in uis) {
+            uis[id].hide();
+          }
+        }
+        break;
+    }
+  }
+}
+
+function updateUI_couldBreak() {
+  var currentFaction = G.faction;
+  var currentView = G[currentFaction];
+
+  for (id in currentView) {
+    let go = currentView[id];
+    let ttext = JSON.stringify(go);
+
+    if (!(id in uis)) {
+      //create object
+      switch (go.obj_type) {
+        case "tile":
+          //console.log("create region", id);
+          uis[id] = boardFactory.createTile(id, ttext);
+          break;
+        case "unit":
+          //console.log("create unit", id);
+          let faction = currentFaction;
+          if (isUnitOfFaction(go, currentFaction)) {
+            uis[id] = boardFactory.createUnit(id, currentFaction, go, ttext);
+            boardFactory.updateCv(uis[id], go.cv);
+          } else {
+            faction = go.visible.set[0];
+          }
+          //create or update hidden unit
+          let idHidden = getHiddenId(faction, go.tile);
+          if (!(idHidden in uis)) {
+            uis[idHidden] = boardFactory.createHiddenUnit(idHidden, go);
+            //console.log("created hidden unit:", idHidden, id, uis[idHidden]);
+          } else {
+            //increment counter of hidden unit by 1
+            boardFactory.updateUnitCounter(go, uis[idHidden], 1);
+          }
+          break;
+        case "action_card":
+        case "investment_card":
+          let ui = cardFactory.createCard(id, go, ttext);
+          uis[id] = ui;
+          if (isHandCard(go, currentFaction)) {
+            cardFactory.placeCard(ui, currentFaction);
+          }
+          break;
+      }
+    } else {
+      //check property changes
+      let ui = uis[id];
+
+      for (prop in go) {
+        //map values of property to ui
+        switch (prop) {
+          case "tile":
+            //make sure this is a cadre
+            if (go.obj_type != "unit") {
+              //console.log("trying to place a", go.obj_type);
+            }
+            let tile = go.tile;
+            let unitTile = ui.getTag("tile");
+            if (unitTile != tile) {
+              //console.log("PLACE! update tile from", unitTile, "to", tile);
+              //remove unit from old tile
+              boardFactory.removeUnitFrom(ui, tile);
+              boardFactory.placeUnit(ui, tile);
+            }
+            break;
+          case "cv":
+            //make sure this is a cadre
+            if (go.obj_type != "unit") {
+              //console.log("trying to attach cv to ", go.obj_type);
+            }
+            let cv = go[prop];
+            let unitCV = ui.getTag("cv");
+            if (unitCV != cv) {
+              //console.log("update cv from", unitCV, "to", cv);
+              boardFactory.updateCv(ui, cv);
+            }
+            break;
+          case "top":
+          case "wildcard":
+          case "year":
+          case "espionage":
+            //console.log('updating card:',ui)
+            let title = ui.getTag("title");
+            if (title != go[prop]) {
+              //console.log(title,go,ui)
+              cardFactory.updateCardContent(ui.id, ui, go, ttext);
+            }
+            break;
+        }
+      }
+    }
+
+    //update visibility
+    let ms = uis[id];
+
+    switch (go.obj_type) {
+      case "action_card":
+      case "investment_card":
+        if (go.visible.set.includes(currentFaction)) {
+          cardFactory.placeCard(ms, currentFaction);
+        }
+        break;
+      case "unit":
+        let faction = ms.getTag("faction");
+        let tile = ms.getTag("tile");
+        let idHidden = getHiddenId(faction, tile);
+        //show unit if owner currentFaction, otherwise show hidden unit
+        if (faction == currentFaction) {
+          uis[id].show();
+          uis[idHidden].hide();
+        } else {
+          uis[idHidden].show();
+          uis[id].hide();
+        }
+        break;
+    }
+  }
+}
 function highlightObjects_orig(allTuples, possibleTuples, partialTuple) {
   let allIds = [];
   let possibleIds = [];
