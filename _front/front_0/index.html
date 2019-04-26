@@ -54,7 +54,7 @@
       function send(url) {
         url = backendServerUrl + url;
         msgCounter += 1;
-        console.log(msgCounter, "request sent: ", url);
+        //console.log(msgCounter, "request sent: ", url);
         w3.http(url, function() {
           if (this.readyState == 4 && this.status == 200) {
             processData(this.responseText);
@@ -62,24 +62,19 @@
         });
       }
       function skipAction() {
-        let tuple = choiceTuples[0];
-        if (favorAction){
+        let tuple = tuplesInAction[0];
+        if (favorAction) {
           //select this action if it exists
-          let favs = choiceTuples.filter(x=>x.includes(favorAction));
-          if (favs.length > 0){ tuple = favs[0];}
+          let favs = tuplesInAction.filter(x => x.includes(favorAction));
+          if (favs.length > 0) {
+            tuple = favs[0];
+          }
         }
         let url = "action/" + G.faction + "/" + tuple.join("+");
-        //choiceTuples = [];
-        //console.log("skipAction choiceTuples:", choiceTuples);
+        //tuplesInAction = [];
+        //console.log("skipAction tuplesInAction:", tuplesInAction);
         closeSelection();
         send(url);
-      }
-      function saveGameState() {
-        //console.log(G);
-        //console.log("_____________");
-        //settings = {any_kind_of_object: true};
-        json_str = JSON.stringify(G);
-        saveFile("yourfilename.json", "data:application/json", new Blob([json_str], {type: ""}));
       }
       function onClickNextPlayer() {
         hide(bNextPlayer);
@@ -91,29 +86,11 @@
         //send("reset/" + G.faction); //TODO: try this next!!!
       }
       function onClickPass() {
-        // macht eh dasselbe wie onClickNextPlayer
-        hide(bNextPlayer);
-        cardFactory.clearCards();
-        //TODO: hide board objects?
-        G.previousFaction = G.faction;
-        G.faction = nextFaction;
-        send("status/" + G.faction);
-      }
-      function processReset(data) {
-        let faction = G.previousFaction;
-        let g = G[faction];
-        //console.log("faction", faction);
-        for (k in data) {
-          let sk = k.toString();
-          g[sk] = data[k];
-        }
-        //console.log("G[faction]", g);
-        updateUI();
-        send("status/" + faction);
+        onClickNextPlayer();
       }
       function processData(str) {
         let data = JSON.parse(str);
-        console.log(data);
+        //console.log(data);
         if ("invest_55" in data) {
           //console.log("THESE ARE RESET DATA!!!",data);
           processReset(data);
@@ -131,12 +108,15 @@
             msg = msg.replace(/\\n/g, "<br>");
             msg = msg.replace(/"/g, "");
             if (msg.trim().length > 0) {
-              let d=document.getElementById("logDiv");
+              let d = document.getElementById("logDiv");
               let para = document.createElement("p");
               para.innerHTML = msg;
               d.appendChild(para);
               para.scrollIntoView();
               G.log.push(msg);
+              if (msg.includes("Government")) {
+                phase = "government";
+              }
             }
           }
           //created
@@ -178,8 +158,6 @@
           //hier mach sowas wie Presenter.updateUI();
           updateUI();
 
-          //either actions or waiting_for:
-          //console.log("*** actions starts ***");
           //console.log(data.actions);
 
           // to save action data in case of bug:
@@ -188,31 +166,18 @@
           //fileCounter += 1;
 
           if ("actions" in data) {
-            choiceTuples = expand(data.actions);
-            prj(choiceTuples); // //console.log
+            tuplesInAction = expand(data.actions);
+            if (isGovPhase()) {
+              //prj(tuplesInAction);
+            } // //console.log
 
             if (skipActions > 0) {
               skipActions -= 1;
-              let url = "action/" + G.faction + "/" + choiceTuples[0].join("+");
-              choiceTuples = [];
+              let url = "action/" + G.faction + "/" + tuplesInAction[0].join("+");
+              tuplesInAction = [];
               send(url);
             } else {
-              //find all individual ids in choiceTuples
-              //console.log("in processData:actions: vor highlithObjects");
-              //console.log(choiceTuples);
-              let uiGroups = highlightObjects(choiceTuples, choiceTuples, []);
-              //console.log("ui groups", uiGroups, uiGroups.choice);
-              openSelectionIfPopulated(uiGroups.choice);
-              show(bSkipAction);
-
-              // //old code
-              // currentChoiceTuples = choiceTuples.slice();
-              // //console.log("choices", choiceTuples);
-              // currentChoicesByType = computeChoicesByType(currentChoiceTuples);
-
-              // choiceUIs = getObjects(currentChoicesByType);
-              // //console.log("_____________selection:");
-              // //console.log(choiceUIs.map(x => x.id));
+              processActions();
             }
           } else {
             //console.log(data.waiting_for, "*** will change turn!!! ***");
@@ -229,38 +194,191 @@
           }
         }
       }
+
+      function processReset(data) {
+        let faction = G.previousFaction;
+        let g = G[faction];
+        //console.log("faction", faction);
+        for (k in data) {
+          let sk = k.toString();
+          g[sk] = data[k];
+        }
+        //console.log("G[faction]", g);
+        updateUI();
+        send("status/" + faction);
+      }
+    </script>
+    <!-- #endregion functions -->
+
+    <!-- #region *** SELECTION selection *** -->
+    <script>
+      var skipActions = 72; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
+
+      var tuplesInAction = [];
+      var tuplesPossible = [];
+      var tuplePartSelected = [];
+      var uisInAction = [];
+      var uisPossible = [];
+      var uisSelected = [];
+      var uisCommand = {};
+      function processActions() {
+        tuplesPossible = tuplesInAction.slice();
+        tuplePartSelected = [];
+
+        //clear everything
+        uisInAction = [];
+        uisPossible = [];
+        uisSelected = [];
+        hideCommands();
+
+        highlightObjects();
+        if (phase == "setup" || phase == "production") {
+          openCadreSelectionIfPopulated(); //uiGroups.choice);
+        }
+
+        show(bSkipAction);
+      }
+      function highlightObjects() {
+        if (empty(uisInAction)) {
+          computeUisInAction();
+        }
+        computeUisPossible();
+        uisSelected = uisPossible.filter(x => tuplePartSelected.includes(x.id));
+        hideCommands();
+        for (const ui of uisInAction) {
+          if (uisSelected.includes(ui)) {
+            //console.log("should be selected:", ui.id);
+            ui.select();
+          } else if (uisPossible.includes(ui)) {
+            //console.log("should highlight", ui.id);
+            makeSelectable(ui, onSelected);
+          } else {
+            //console.log("should hide or unhighlight", ui.id);
+            makeUnselectable(ui);
+          }
+        }
+        show(bSkipAction);
+      }
+      function isCommand(ui) {
+        //console.log('isCommand',ui)
+        if ((ui.id in uisCommand) != (ui.getTag("isCommand")!=null)) {
+          //console.log("isCommand DOES NOT work!!!!");
+        }
+        return ui.id in uisCommand;
+      }
       function onSelected(ev) {
         let id = evToId(ev);
+        let ui = firstCond(uisPossible, x => x.id == id);
 
-        //check if this object was selected, if so, unselect!
-        if (selids.includes(id)) {
-          selids = without(selids, id);
-          //console.log(id, " UNselected!!!", selids.toString());
+        //console.log("selected:", id, ui);
 
-          //from all choiceTuples,find those that contains all elements in selids
-          let newChoiceTuples = getListsContainingAll(choiceTuples, selids);
-          //console.log("new choice tuples:");
-          //prj(newChoiceTuples);
-          highlightObjects(choiceTuples, newChoiceTuples, selids);
+        // if it is in uisSelected, need to unselect it and go from there
+        if (uisSelected.includes(ui)) {
+          // same as tuplePartSelected.includes(id)) {
+          //remove this id from tuplePartSelected
+          tuplePartSelected = without(tuplePartSelected, id);
+          ui.unselect();
+          uisSelected = without(uisSelected, ui);
+          //filter tuplesInAction to all containing tuplePartSelect
+          tuplesPossible = getListsContainingAll(tuplesInAction, tuplePartSelected);
         } else {
-          //console.log(id, " selected!");
-          selids.push(id);
+          // add it to tuplePartSelected
+          tuplePartSelected.push(id);
+          ui.select();
+          uisSelected.push(ui);
+          //filter possible tuples to just the ones containing this id
+          tuplesPossible = tuplesPossible.filter(x => x.includes(id));
+          //console.log('possible tuples after new selection:',tuplesPossible)
+          if (isInvestmentCard(ui.id)){
+            console.log('clicked',ui.id,':',ui.json)
+          }
+        }
 
-          //check if complete choice is selected
-          // let tuple = containsSet(choiceTuples, selids);
-          let newChoiceTuples = getListsContainingAll(choiceTuples, selids);
+        //check if only one tuple matches, in which case finished!
+        if (tuplesPossible.length == 1) {
+          let tuple = tuplesPossible[0];
+          //console.log("onSelected: found tuple");
+          closeSelection();
+          let url = "action/" + G.faction + "/" + tuple.join("+");
+          send(url);
+        } else {
+          // check if there is an id that is same in all tuplesPossible and not in
+          // tuplePartSelected >> that should also go in tuplePartSelected!!!
 
-          if (newChoiceTuples.length == 1) {
-            let tuple = newChoiceTuples[0];
-            //console.log("onSelected: found tuple");
-            closeSelection();
-            let url = "action/" + G.faction + "/" + tuple.join("+");
-            send(url);
+          // now that tuples are updated, highlight again
+          highlightObjects();
+        }
+      }
+      function computeUisInAction() {
+        if (isSetupOrProductionPhase()) {
+          //setup and production: got it
+          //uisInAction are simply all uis[id] for ids in tuplesInAction
+          uisInAction = extractUniqueStrings(tuplesInAction).map(x => getUI(x));
+        } else if (isGovPhase()) {
+          for (const tuple of tuplesInAction) {
+            //if this tuples contains an action cards, need to enter card and
+            //produce command ui for each nation: addIfCommand to G.commands
+            //OK: command uis should not be treated as normal uis!
+            //OK: therefore, need a getCommandUI(id)
+            //because there could be overlapping ids!!!!!!
+            //TODO: should I still check for overlapping ids!!!!!?????
+            //console.log("looping through tuplesInAction", tuple);
+            if (tuple.length == 1) {
+              addIf(getCommandUI(tuple[0]), uisInAction);
+            } else if (isDiplomacyTuple(tuple)) {
+              //[actionCard,nation]
+              let actionCard = getActionCardFromTuple(tuple);
+              let nation = getNationFromTuple(tuple);
+              addIf(uis[actionCard], uisInAction);
+              addIf(getCommandUI(nation), uisInAction);
+            } else if (isIntelTuple(tuple)) {
+              //[investcard,faction,tile]
+              let investCard = getInvestmentCardsFromTuple(tuple)[0];
+              let faction = getFactionFromTuple(tuple);
+              addIf(uis[investCard], uisInAction);
+              //console.log("intel", uis[investCard].getTag("json"));
+              if (tuple.length > 2) {
+                let area = getTileOrMinorFromTuple(tuple);
+                addIf(getCommandUI(faction), uisInAction);
+                addIf(getCommandUI(area), uisInAction);
+              } else {
+                addIf(getCommandUI(faction), uisInAction);
+              }
+            } else if (isTechnologyTuple(tuple)) {
+              let invCards = getInvestmentCardsFromTuple(tuple);
+              invCards.map(x => addIf(uis[x], uisInAction));
+              let tech = getTechnologyFromTuple(tuple);
+              //console.log('technology:',tech)
+              addIf(getCommandUI(tech), uisInAction);
+              addIf(getCommandUI("open"), uisInAction);
+              addIf(getCommandUI("secret"), uisInAction);
+            }
+          }
+        }
+      }
+      function computeUisPossible() {
+        if (isSetupOrProductionPhase()) {
+          //setup and production: got it
+          //uisInAction are simply all uis[id] for ids in tuplesInAction
+          uisPossible = extractUniqueStrings(tuplesPossible).map(x => getUI(x));
+        } else if (isGovPhase()) {
+          if (empty(tuplePartSelected)) {
+            // if nothing is selected only highlight cards
+            uisPossible = [];
+            for (const ui of uisInAction) {
+              if (isCard(ui.id)) {
+                //console.log(ui.id, " is a CARD!");
+                uisPossible.push(ui);
+              } else if (isSingletonCommand(ui.id)) {
+                uisPossible.push(ui);
+              }
+            }
+            //console.log("starting uisPossible:", uisPossible);
+            //uisPossible = uisInAction.filter(x => isCard(x.id));//.map(x => getUI(x));
           } else {
-            //newChoiceTuples = getListsContainingAll(choiceTuples, selids);
-            //console.log("new choice tuples:");
-            //prj(newChoiceTuples);
-            highlightObjects(choiceTuples, newChoiceTuples, selids);
+            let ids = extractUniqueStrings(tuplesPossible);
+            uisPossible = uisInAction.filter(x => ids.includes(x.id));
+            //console.log("uisPossible:", uisPossible.map(x => x.id).toString());
           }
         }
       }
@@ -416,7 +534,7 @@
                 uis[id] = boardFactory.createTile(id, ttext);
                 break;
               case "unit":
-                console.log("create unit", id);
+                //console.log("create unit", id);
                 let faction = currentFaction;
 
                 if (isUnitOfFaction(go, currentFaction)) {
@@ -425,12 +543,12 @@
                 } else {
                   faction = go.visible.set[0];
                 }
-                console.log("unit", uis[id], "id:::", id);
+                //console.log("unit", uis[id], "id:::", id);
                 //create or update hidden unit
                 let idHidden = getHiddenId(faction, go.tile);
                 if (!(idHidden in uis)) {
                   uis[idHidden] = boardFactory.createHiddenUnit(idHidden, go);
-                  console.log("created hidden unit:", idHidden, id, uis[idHidden]);
+                  //console.log("created hidden unit:", idHidden, id, uis[idHidden]);
                 } else {
                   //increment counter of hidden unit by 1
                   boardFactory.updateUnitCounter(go, uis[idHidden], 1);
@@ -455,7 +573,7 @@
                 case "tile":
                   //make sure this is a cadre
                   if (go.obj_type != "unit") {
-                    console.log("trying to place a", go.obj_type);
+                    //console.log("trying to place a", go.obj_type);
                   }
                   let tile = go.tile;
                   let unitTile = ui.getTag("tile");
@@ -469,7 +587,7 @@
                 case "cv":
                   //make sure this is a cadre
                   if (go.obj_type != "unit") {
-                    console.log("trying to attach cv to ", go.obj_type);
+                    //console.log("trying to attach cv to ", go.obj_type);
                   }
                   let cv = go[prop];
                   let unitCV = ui.getTag("cv");
@@ -547,7 +665,7 @@
                 let idHidden = getHiddenId(faction, go.tile);
                 if (!(idHidden in uis)) {
                   uis[idHidden] = boardFactory.createHiddenUnit(idHidden, go);
-                  console.log("created hidden unit:", idHidden, id, uis[idHidden]);
+                  //console.log("created hidden unit:", idHidden, id, uis[idHidden]);
                 } else {
                   //increment counter of hidden unit by 1
                   boardFactory.updateUnitCounter(go, uis[idHidden], 1);
@@ -572,7 +690,7 @@
                 case "tile":
                   //make sure this is a cadre
                   if (go.obj_type != "unit") {
-                    console.log("trying to place a", go.obj_type);
+                    //console.log("trying to place a", go.obj_type);
                   }
                   let tile = go.tile;
                   let unitTile = ui.getTag("tile");
@@ -586,7 +704,7 @@
                 case "cv":
                   //make sure this is a cadre
                   if (go.obj_type != "unit") {
-                    console.log("trying to attach cv to ", go.obj_type);
+                    //console.log("trying to attach cv to ", go.obj_type);
                   }
                   let cv = go[prop];
                   let unitCV = ui.getTag("cv");
@@ -641,6 +759,104 @@
 
     <!-- #region helper functions -->
     <script>
+      function makeSelectable(ui, handler) {
+        if (isCommand(ui)) {
+          ui.show();
+        }
+        ui.highlight();
+        ui.isEnabled = true;
+        ui.clickHandler = handler;
+      }
+      function makeUnselectable(ui) {
+        ui.unselect();
+        ui.unhighlight();
+        ui.isEnabled = false;
+        ui.clickHandler = null;
+        if (isCommand(ui)) {
+          ui.hide();
+        }
+        // //console.log(G.commands)
+        // if (ui in uisCommand){ // .id in G.commands) {
+        //   //console.log('hiding',ui.id,'!!!!!!!!!!!!')
+        //   hide(ui);
+        // } //for buttons
+        // else {
+        //   // it is an ms
+        //   ui.unselect();
+        //   ui.unhighlight();
+        //   ui.isEnabled = false;
+        //   ui.clickHandler = null;
+        // }
+      }
+      function firstCond(arr, func) {
+        let res = arr.filter(x => func(x));
+        return res.length > 0 ? res[0] : null;
+      }
+      function getActionCardFromTuple(tuple) {
+        return firstCond(tuple, x => isActionCard(x));
+      }
+      function getNationFromTuple(tuple) {
+        //assumes action card tuple!
+        return firstCond(tuple, x => !isActionCard(x));
+      }
+      function getFactionFromTuple(tuple) {
+        return firstCond(tuple, x => G.factions.includes(x));
+      }
+      function getTileOrMinorFromTuple(tuple) {
+        return firstCond(tuple, x => !G.factions.includes(x) && !isInvestmentCard(x));
+      }
+      function getInvestmentCardsFromTuple(tuple) {
+        return tuple.filter(x => isInvestmentCard(x));
+      }
+      function getTechnologyFromTuple(tuple) {
+        return firstCond(tuple, x => !isInvestmentCard(x) && x != "open" && x != "secret");
+      }
+      function isSetupOrProductionPhase() {
+        return phase == "setup" || phase == "production";
+      }
+      function isGovPhase() {
+        return startsWith(phase, "gov");
+      }
+      function isDiplomacyTuple(tuple) {
+        return getActionCardFromTuple(tuple) != null;
+      }
+      function isIntelTuple(tuple) {
+        let invCards = getInvestmentCardsFromTuple(tuple);
+        return invCards.length == 1;
+      }
+      function isIntelCardsTuple(tuple) {
+        let invCards = getInvestmentCardsFromTuple(tuple);
+        return invCards.length == 1 && tuple.length == 2;
+      }
+      function isIntelCadreTuple(tuple) {
+        let invCards = getInvestmentCardsFromTuple(tuple);
+        return invCards.length == 1 && tuple.length == 3;
+      }
+      function isTechnologyTuple(tuple) {
+        let invCards = getInvestmentCardsFromTuple(tuple);
+        return invCards.length == 2;
+      }
+      function isInvestmentCard(id) {
+        return startsWith(id, "invest_");
+      }
+      function isActionCard(id) {
+        return id != "action_card" && startsWith(id, "action_");
+      }
+      function isCard(id) {
+        // all cards have id action_num or invest_num
+        //console.log(id);
+        return (id != "action_card" && startsWith(id, "action_")) || startsWith(id, "invest_");
+      }
+      function isSingletonCommand(id) {
+        return findSameSet(tuplesInAction, [id]) != null;
+      }
+      function saveGameState() {
+        //console.log(G);
+        //console.log("_____________");
+        //settings = {any_kind_of_object: true};
+        json_str = JSON.stringify(G);
+        saveFile("yourfilename.json", "data:application/json", new Blob([json_str], {type: ""}));
+      }
       function hideCommands() {
         G.commands.map(id => {
           if (id in uis) {
@@ -678,29 +894,33 @@
           uis[id] = ms;
           return ms;
         } else {
-          //this is some kind of a command
-          //console.log("addUI: adding button!!!!!!!!!!!!!!!!!!!*******", id);
-          G.commands.push(id);
-          let d = document.getElementById("buttonDiv");
-          let b = new MS(id, d, false).button({txt: id, className: "msToggleButton"}).draw();
-          //console.log(b);
-
-          //let b = document.createElement('button');
-          //b.id = id;
-          //b.textContent = id;
-          //d.appendChild(b);
-          //b.addEventListener("click", onSelected);
-          uis[id] = b;
-          //console.log("button ms", b, d);
-          return b;
+          return addCommand(id);
         }
       }
-      function getUI(id) {
-        //console.log('id=',id)
-        if (id in uis) {
-          //console.log(id,' is in uis!',uis[id])
+      function addCommand(id) {
+        //this is some kind of a command
+        if (id in uisCommand) {
+          //console.log("DUPLICATE command!!!!!!!!!", id);
+          return uisCommand[id];
         }
-        return id in uis ? uis[id] : addUI(id);
+        //console.log("addCommand: adding button!!!!!!!!!!!!!!!!!!!*******", id);
+
+        addIf(id, G.commands);
+        //console.log("added " + id + " to G.commands", G.commands.toString());
+        let d = document.getElementById("buttonDiv");
+        let b = new MS(id, d, false).button({txt: id, className: "msToggleButton"}).draw();
+        uisCommand[id] = b;
+        //console.log(b,d);
+        return b;
+      }
+      function getUI(id) {
+        //returns command only if no other ui found!
+        //console.log('getUI id=',id)
+        return id in uis ? uis[id] : id in uisCommand ? uisCommand[id] : addUI(id);
+      }
+      function getCommandUI(id) {
+        //console.log('getCommandUI id=',id)
+        return id in uisCommand ? uisCommand[id] : addCommand(id);
       }
       function isHandCard(go, faction) {
         let lst = go.visible.set;
@@ -709,51 +929,17 @@
       function getHiddenId(faction, tile) {
         return faction + "_" + tile;
       }
-      function highlightObjects(allTuples, choices, selection) {
-        let allIds = [];
-        allTuples.map(x => x.map(id => addIf(id, allIds)));
-        //console.log("all ids:", allIds.toString());
-
-        let allUIs = allIds.map(id => getUI(id));
-        //console.log("all uis:", allUIs);
-
-        let choiceIds = [];
-        choices.map(x => x.map(id => addIf(id, choiceIds)));
-        let choiceUIs = choiceIds.map(id => getUI(id));
-
-        let selectedIds = selection;
-        let selUIs = selectedIds.map(id => getUI(id));
-
-        //console.log("allUIs", allUIs);
-        //console.log("selectedIds", selectedIds);
-        //console.log("choiceIds:", choiceIds.toString());
-
-        for (const ui of allUIs) {
-          if (selectedIds.includes(ui.id)) {
-            ui.select();
-          } else if (choiceIds.includes(ui.id)) {
-            //console.log("highlight:", ui.id, typeof ui.id, ui);
-            makeSelectable(ui, onSelected);
-          } else {
-            //console.log("not highlighted:", ui.id, typeof ui.id, ui);
-            makeUnselectable(ui);
-          }
-        }
-        show(bSkipAction);
-
-        return {all: allUIs, choice: choiceUIs, selected: selUIs};
-      }
       function isUnitOfFaction(go, faction) {
         return go.visible.set.includes(faction);
       }
-      function lineupSelectables(choiceUIs) {
+      function lineupSelectables() {
         let gap = 10;
         let x = 30;
         let y = 20;
         let sz = SZ.cadreDetail;
         let res = [];
-        //console.log('lineupSelectables',choiceUIs)
-        for (const ui of choiceUIs) {
+        //console.log('lineupSelectables',uisPossible)
+        for (const ui of uisPossible) {
           //console.log(ui.id)
           if (isNationality(ui)) {
             //console.log('is selectable:',ui.id)
@@ -764,7 +950,7 @@
             y += gap + sz;
           }
         }
-        for (const ui of choiceUIs) {
+        for (const ui of uisPossible) {
           //console.log(ui.id)
           if (isUnit(ui)) {
             //console.log('is selectable:',ui.id)
@@ -777,36 +963,13 @@
         }
         return res;
       }
-      function makeSelectable(ui, handler) {
-        if (ui.id in G.commands) {
-          show(ui);
-        } //for buttons
-        else {
-          ui.highlight();
-          ui.isEnabled = true;
-          //console.log(handler)
-          ui.clickHandler = handler;
-        }
-      }
-      function makeUnselectable(ui) {
-        if (ui.id in G.commands) {
-          hide(ui);
-        } //for buttons
-        else {
-          // it is an ms
-          ui.unselect();
-          ui.unhighlight();
-          ui.isEnabled = false;
-          ui.clickHandler = null;
-        }
-      }
-      function openSelectionIfPopulated(choiceUIs) {
+      function openCadreSelectionIfPopulated() {
         let d = document.getElementById("selDiv");
         //console.log(d.classList)
         if (!d.classList.contains("hidden")) return;
         //console.log("_________________________");
-        //console.log("*** openSelectionIfPopulated ***", currentChoicesByType);
-        let natOrUnits = lineupSelectables(choiceUIs);
+        //console.log("*** openCadreSelectionIfPopulated ***", currentChoicesByType);
+        let natOrUnits = lineupSelectables(uisPossible);
         //console.log('OPENSELECTIONIFPOPULATED',natOrUnits)
         if (!empty(natOrUnits)) {
           let dMain = document.getElementById("mainDiv");
@@ -818,20 +981,15 @@
       function closeSelection() {
         //console.log("closeSelection");
         hide(bSkipAction);
-
-        let allUIs = [];
-        choiceTuples.map(x => x.map(id => addIf(uis[id], allUIs)));
-
-        selids = [];
-        // selectedIds = {};
-        // currentChoicesByType = {};
-        choiceTuples = [];
-        //console.log("allUIs", allUIs);
-        allUIs.map(x => makeUnselectable(x));
-        //choiceUIs = [];
+        uisInAction.map(x => makeUnselectable(x));
+        uisPossible = [];
+        uisInAction = [];
+        uisSelected = [];
+        tuplePartSelected = [];
+        tuplesInAction = [];
+        tuplesPossible = [];
       }
       function hideSelectionPanel() {
-        //console.log("hideSelectionPanel", choiceTuples);
         closeSelection();
         let d = document.getElementById("selDiv");
         if (d.classList.contains("hidden")) return;
@@ -855,12 +1013,11 @@
         return G["commands"].includes(ui.id);
       }
     </script>
-    <!-- #endregion selection -->
+    <!-- #endregion partialTuple -->
 
     <!-- #region setup -->
     <script>
-      var favorAction = 'investment_card';
-      var skipActions = 72;//46; //skip to gov: 73; //skip to prod: 46; //0;
+      var favorAction = "investment_card";
       var fileCounter = 0;
 
       var nextFaction;
@@ -869,11 +1026,9 @@
       // var passTimer;
 
       var G = {Axis: {}, West: {}, USSR: {}, log: [], faction: "West"};
+      G["factions"] = ["Axis", "West", "USSR"];
       var uis = {}; //by id
-
-      var selids = [];
-      var choiceTuples = []; // all tuples in a selection action
-      //var choiceUIs = [];
+      var phase = "setup";
 
       var backendServerUrl = "http://localhost:5000/"; //local server
       var msgCounter = 0;
@@ -937,7 +1092,7 @@
           //console.log(G);
           loadYML("/common/assets/config/nations.yml", data => {
             G["nations"] = Object.keys(data);
-            boardFactory.addMapPositions(data);
+            boardFactory.addNationPositions(data);
             send("init/hotseat/" + G.faction);
           });
         });

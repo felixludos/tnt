@@ -38,7 +38,7 @@
   z-index: 0;
 }
 .msToggleButton.highlighted{
-  background-color:yellow;
+  background-color:red;
 }
 .msToggleButton.selected{
   background-color:brown;

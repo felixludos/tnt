@@ -1,63 +1,76 @@
 //#region set and tuple helpers
-function isSet(x){
-  return 'set' in x;
+function extractUniqueStrings(tupleList) {
+  let idlist = [];
+  tupleList.map(x => x.map(y => addIf(y, idlist)));
+  return idlist;
 }
-function isNumeric(x){return !isNaN(+x);}
-function isLiteral(x){
+
+function isSet(x) {
+  return "set" in x;
+}
+function isNumeric(x) {
+  return !isNaN(+x);
+}
+function isLiteral(x) {
   return isString(x) || $.isNumeric(x);
 }
-function isTuple(x){
+function isTuple(x) {
   return Array.isArray(x);
 }
-function isSingleton(x){
-  return isSet(x) && x.set.length == 1 || isTuple(x) && x.length == 1;
+function isSingleton(x) {
+  return (isSet(x) && x.set.length == 1) || (isTuple(x) && x.length == 1);
 }
-function firstElement(x){
-  if (isSet(x)) return x.set[0]; else if (isTuple(x)) return x[0]; else return null;
+function firstElement(x) {
+  if (isSet(x)) return x.set[0];
+  else if (isTuple(x)) return x[0];
+  else return null;
 }
-function expand1(x){
+function expand1(x) {
   if (isEmpty(x)) return [];
   if (isLiteral(x)) return [x.toString()];
-  if (isSingleton(x)) return expand1(firstElement(x))
-  if (isSet(x)) return x.set.map(el=>expand1(el));
+  if (isSingleton(x)) return expand1(firstElement(x));
+  if (isSet(x)) return x.set.map(el => expand1(el));
   if (isTuple(x)) {
-    let a=expand1(firstElement(x));
-    let b=x.slice(1);
-    let c=expand1(x.slice(1));
-    let d=extractStringLists(c);
+    let a = expand1(firstElement(x));
+    let b = x.slice(1);
+    let c = expand1(x.slice(1));
+    let d = extractStringLists(c);
     //console.log('a=',fj(a),'b=',fj(b),'c=',fj(c))
     //console.log('d=',fj(d))
-    return carteset(a,d);
+    return carteset(a, d);
   }
 }
-function isListOfLiterals(lst){
+function isListOfLiterals(lst) {
   if (!isList(lst)) return false;
   for (const el of lst) {
     if (isList(el)) return false;
   }
   return true;
 }
-function extractStringLists(lst){
+function extractStringLists(lst) {
   let res = [];
   for (const l of lst) {
     if (isListOfLiterals(l)) res.push(l);
     else if (isLiteral(l)) res.push([l]);
     else {
-      let r2=extractStringLists(l);
-      r2.map(x=>res.push(x))
+      let r2 = extractStringLists(l);
+      r2.map(x => res.push(x));
     }
   }
   return res;
 }
-function expand(e){
+function expand(e) {
   let res = [];
-  e=expand1(e);
+  e = expand1(e);
   for (const el of e) {
-    if (isll(el)) el.map(x=>res.push(x)); else res.push(el);
+    if (isll(el)) el.map(x => res.push(x));
+    else res.push(el);
   }
   return res;
 }
-function prex(x){prll(expand(x))}
+function prex(x) {
+  prll(expand(x));
+}
 //#endregion
 
 //#region array helpers
@@ -70,14 +83,15 @@ function addAll(akku, other) {
 function addIf(el, arr) {
   if (!arr.includes(el)) arr.push(el);
 }
-function getListsContainingAll(ll,l){
-  let res=[];
+function getListsContainingAll(ll, l) {
+  let res = [];
   for (const l1 of ll) {
-    if (containsAll(l1,l)) res.push(l1);
+    if (containsAll(l1, l)) res.push(l1);
   }
   return res;
 }
-function containedInAny(el,ll){ // any list in ll contains element el
+function containedInAny(el, ll) {
+  // any list in ll contains element el
   for (const lst of ll) {
     if (lst.includes(el)) return true;
   }
@@ -114,13 +128,15 @@ function cartesianOf(ll) {
 function contains(arr, el) {
   return arr.includes(el);
 }
-function containsAll(arr,lst){
+function containsAll(arr, lst) {
   for (const el of lst) {
     if (!arr.includes(el)) return false;
   }
   return true;
 }
-function containsSet(arr,lst){return containsAll(arr,lst);}
+function containsSet(arr, lst) {
+  return containsAll(arr, lst);
+}
 function choose(arr, n) {
   var result = new Array(n),
     len = arr.length,
@@ -141,7 +157,7 @@ function empty(arr) {
 function isEmpty(arr) {
   return empty(arr);
 }
-function isList(arr){
+function isList(arr) {
   return Array.isArray(arr);
 }
 function first(arr) {
@@ -153,7 +169,8 @@ function keepOnlyElements(func, lst) {
 function last(arr) {
   return arr.length > 0 ? arr[arr.length - 1] : null;
 }
-function isll(ll){//true if arr is a list of lists of strings
+function isll(ll) {
+  //true if arr is a list of lists of strings
   if (!isList(ll)) {
     //console.log('NOT a list',ll);
     return false;
@@ -169,7 +186,8 @@ function isll(ll){//true if arr is a list of lists of strings
   }
   return true;
 }
-function isllPlus(ll){//true if arr is a list of lists
+function isllPlus(ll) {
+  //true if arr is a list of lists
   if (!isList(ll)) {
     //console.log('NOT a list',ll);
     return false;
@@ -182,65 +200,78 @@ function isllPlus(ll){//true if arr is a list of lists
   }
   return true;
 }
-function formatll(ll){ //return beautiful string for list of lists
+function formatll(ll) {
+  //return beautiful string for list of lists
   //ensure this is a list of lists
-  if (!isll(ll)) return 'NOT list of lists!'
-  let s='[';
+  if (!isll(ll)) return "NOT list of lists!";
+  let s = "[";
   for (const l of ll) {
-    let content = isllPlus(l)? formatll(l):l.toString();
-    s+='['+content+']';
+    let content = isllPlus(l) ? formatll(l) : l.toString();
+    s += "[" + content + "]";
   }
-  s+=']';
+  s += "]";
   //console.log(s);
 }
-function carteset(l1,l2) { //l1,l2 are lists of list
+function carteset(l1, l2) {
+  //l1,l2 are lists of list
   let res = [];
   for (var el1 of l1) {
     for (var el2 of l2) {
       //if (isll(el2)) el2=el2.flat();
-      if (isList(el1)) res.push(el1.concat(el2))
+      if (isList(el1)) res.push(el1.concat(el2));
       else res.push([el1].concat(el2));
     }
   }
   return res;
 }
 
-function formatjson(j){ //return beautiful small json 
-  let s=JSON.stringify(j);
-  s=s.replace(/\s/g,'');
+function formatjson(j) {
+  //return beautiful small json
+  let s = JSON.stringify(j);
+  s = s.replace(/\s/g, "");
   return s;
 }
-function prjstart(j){console.log('______',formatjson(j))}
-function prj(j){console.log(formatjson(j))}
-function fj(x){return formatjson(x);}
-function pr(x){console.log(prlist(x).replace(/,,/g,','))}
-function prll(ll){
+function prjstart(j) {
+  console.log("______", formatjson(j));
+}
+function prj(j) {
+  console.log(formatjson(j));
+}
+function fj(x) {
+  return formatjson(x);
+}
+function pr(x) {
+  console.log(prlist(x).replace(/,,/g, ","));
+}
+function prll(ll) {
   //ensure this is a list of lists
   if (!isList(ll)) {
     //console.log('NOT a list',ll);
     return;
   }
   for (const l of ll) {
-    if (!isList(ll)) {console.log('element',l,'NOT a list!');return;}
+    if (!isList(ll)) {
+      console.log("element", l, "NOT a list!");
+      return;
+    }
   }
-  let s='[';
+  let s = "[";
   for (const l of ll) {
-    s+='['+l.toString()+']';
+    s += "[" + l.toString() + "]";
   }
-  s+=']';
+  s += "]";
   //console.log(s);
 }
-function prlist(arr){
-  if (isList(arr)){
-    if (isEmpty(arr)) return '';
-    else return '['+prlist(arr[0])+arr.slice(1).map(x=>','+prlist(x))+']'
+function prlist(arr) {
+  if (isList(arr)) {
+    if (isEmpty(arr)) return "";
+    else return "[" + prlist(arr[0]) + arr.slice(1).map(x => "," + prlist(x)) + "]";
   } else return arr;
-
 }
-function findSameSet(llst,lst){
+function findSameSet(llst, lst) {
   // returns element of llst that has same elements as lst, even if different order
   for (const l of llst) {
-    if (sameList(l,lst)) return l;
+    if (sameList(l, lst)) return l;
   }
   return null;
 }
@@ -734,38 +765,38 @@ function rgbToHsv(r, g, b) {
   s = v && n / v;
   return {
     h: h,
-    s: s*100,
-    v: v*100/255
+    s: s * 100,
+    v: (v * 100) / 255
   };
 }
-function darkerColor(r,g,b){
-  let hsv=rgbToHsv(r,g,b);
+function darkerColor(r, g, b) {
+  let hsv = rgbToHsv(r, g, b);
   //console.log(hsv);
-  let h=hsv.h;
-  let s=hsv.s;
-  let v=hsv.v/2;
-  let hsl=hsvToHsl(h,s,v);
-  h=hsl.h;
-  s=hsl.s*100;
-  let l=hsl.l*100;
+  let h = hsv.h;
+  let s = hsv.s;
+  let v = hsv.v / 2;
+  let hsl = hsvToHsl(h, s, v);
+  h = hsl.h;
+  s = hsl.s * 100;
+  let l = hsl.l * 100;
   //console.log('hsl:',h,s,l)
-  return hslToHslaString(h,s,l);
+  return hslToHslaString(h, s, l);
 }
-function lighterColor(r,g,b){
-  let hsv=rgbToHsv(r,g,b);
+function lighterColor(r, g, b) {
+  let hsv = rgbToHsv(r, g, b);
   //console.log(hsv);
-  let h=hsv.h;
-  let s=hsv.s;
-  let v=hsv.v*1.5;
-  let hsl=hsvToHsl(h,s,v);
-  h=hsl.h;
-  s=hsl.s*100;
-  let l=hsl.l*100;
+  let h = hsv.h;
+  let s = hsv.s;
+  let v = hsv.v * 1.5;
+  let hsl = hsvToHsl(h, s, v);
+  h = hsl.h;
+  s = hsl.s * 100;
+  let l = hsl.l * 100;
   //console.log('hsl:',h,s,l)
-  return hslToHslaString(h,s,l);
+  return hslToHslaString(h, s, l);
 }
-function transColor(r,g,b,a){
-  return 'rgba(r,g,b,a)'
+function transColor(r, g, b, a) {
+  return "rgba(r,g,b,a)";
 }
 //#endregion
 
@@ -891,8 +922,12 @@ function makeSvg(w, h) {
   svg1.setAttribute("height", h);
   return svg1;
 }
-function hide(elem){elem.classList.add('hidden')}
-function show(elem){elem.classList.remove('hidden')}
+function hide(elem) {
+  elem.classList.add("hidden");
+}
+function show(elem) {
+  elem.classList.remove("hidden");
+}
 
 //tableCreate();
 function makeKeyValueTable(data) {
@@ -986,8 +1021,8 @@ function padSep(sep, n, args) {
   }
   return s.substring(0, s.length - 1);
 }
-function replaceAll(str,sSub,sBy){
-  let regex=new RegExp(sSub, 'g') ;
+function replaceAll(str, sSub, sBy) {
+  let regex = new RegExp(sSub, "g");
   return str.replace(regex, sBy);
 }
 function startsWith(s, sSub) {
@@ -1096,22 +1131,22 @@ function calculateDims(n, sz = 60, minRows = 1) {
 
 function mup(o, p, d) {
   p = {x: p.x, y: p.y - d};
-  if (o)o.setPos(p.x, p.y);
+  if (o) o.setPos(p.x, p.y);
   return p;
 }
 function mri(o, p, d) {
   p = {x: p.x + d, y: p.y};
-  if (o)o.setPos(p.x, p.y);
+  if (o) o.setPos(p.x, p.y);
   return p;
 }
 function mdo(o, p, d) {
   p = {x: p.x, y: p.y + d};
-  if (o)o.setPos(p.x, p.y);
+  if (o) o.setPos(p.x, p.y);
   return p;
 }
 function mle(o, p, d) {
   p = {x: p.x - d, y: p.y};
-  if (o)o.setPos(p.x, p.y);
+  if (o) o.setPos(p.x, p.y);
   return p;
 }
 function snail(p, o, d) {
@@ -1151,40 +1186,43 @@ function snail(p, o, d) {
     step += 1;
   }
 }
-function calcSnailPositions(x,y,d,n){
-  let p={x:x,y:y};
+function calcSnailPositions(x, y, d, n) {
+  let p = {x: x, y: y};
   let res = [p];
   let step = 1;
   let k = 1;
   while (true) {
     for (i = 0; i < step; i++) {
       if (k < n) {
-        p = mup(null, p, d);res.push(p);
+        p = mup(null, p, d);
+        res.push(p);
         k += 1;
       } else return res;
     }
     for (i = 0; i < step; i++) {
       if (k < n) {
-        p = mri(null, p, d);res.push(p);
+        p = mri(null, p, d);
+        res.push(p);
         k += 1;
       } else return res;
     }
     step += 1;
     for (i = 0; i < step; i++) {
       if (k < n) {
-        p = mdo(null, p, d);res.push(p);
+        p = mdo(null, p, d);
+        res.push(p);
         k += 1;
       } else return res;
     }
     for (i = 0; i < step; i++) {
       if (k < n) {
-        p = mle(null, p, d);res.push(p);
+        p = mle(null, p, d);
+        res.push(p);
         k += 1;
       } else return res;
     }
     step += 1;
   }
-
 }
 
 //   let p=[[x,y],[x,y-sz],[x+sz,y-sz],[x+sz,y],[x+sz,y+sz],[x,y+sz],[x-sz,y+sz],[x-sz,y],[x-sz,y-sz]];
@@ -1230,7 +1268,7 @@ function decomposeMatrix(matrix) {
     rotation: skewX // rotation is the same as skew x
   };
 }
-function getTransformInfo(gElement){
+function getTransformInfo(gElement) {
   //console.log(gElement)
   var matrix = gElement.getCTM();
   let info = decomposeMatrix(matrix);

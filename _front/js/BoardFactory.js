@@ -10,32 +10,131 @@ const troopColors = {
   Axis: [174, 174, 176],
   West: [86, 182, 222]
 };
+const vpPositions = {
+  West: {
+    1: {x: 1289, y: 63},
+    2: {x: 1231, y: 69},
+    3: {x: 1171, y: 69},
+    4: {x: 1103, y: 57},
+    5: {x: 1034, y: 63},
+    6: {x: 971, y: 63},
+    7: {x: 914, y: 63},
+    8: {x: 834, y: 63},
+    9: {x: 771, y: 63},
+    10: {x: 711, y: 63},
+    11: {x: 646, y: 63},
+    12: {x: 586, y: 63},
+    13: {x: 523, y: 63},
+    14: {x: 457, y: 63},
+    15: {x: 394, y: 63},
+    16: {x: 326, y: 63},
+    17: {x: 260, y: 63},
+    18: {x: 200, y: 63},
+    19: {x: 140, y: 63},
+    20: {x: 77, y: 63},
+    21: {x: 77, y: 140},
+    22: {x: 77, y: 194},
+    23: {x: 77, y: 263},
+    24: {x: 77, y: 317},
+    25: {x: 77, y: 394}
+  },
+  Axis: {
+    1: {x: 594, y: 2106},
+    2: {x: 654, y: 2106},
+    3: {x: 726, y: 2106},
+    4: {x: 777, y: 2106},
+    5: {x: 594, y: 2106},
+    6: {x: 594, y: 2106},
+    7: {x: 594, y: 2106},
+    8: {x: 594, y: 2106},
+    9: {x: 594, y: 2106},
+    10: {x: 594, y: 2106},
+    11: {x: 594, y: 2106},
+    12: {x: 594, y: 2106},
+    13: {x: 594, y: 2106},
+    14: {x: 594, y: 2106},
+    15: {x: 594, y: 2106},
+    16: {x: 594, y: 2106},
+    17: {x: 594, y: 2106},
+    18: {x: 594, y: 2106},
+    19: {x: 594, y: 2106},
+    20: {x: 594, y: 2106},
+    21: {x: 594, y: 2106},
+    22: {x: 594, y: 2106},
+    23: {x: 594, y: 2106},
+    24: {x: 594, y: 2106},
+    25: {x: 594, y: 2106}
+  }
+};
 //#endregion const
+//TODO: info weiter
 class BoardFactory {
   constructor(board, mapPositions, SZ) {
-    this.mapPositions = {};
-    for (const key in mapPositions) {
-      if (mapPositions.hasOwnProperty(key)) {
-        const val = mapPositions[key];
-        this.mapPositions[key] = val;
-      }
-    }
+    this.mapPositions = mapPositions; //{};
+    // for (const key in mapPositions) {
+    //   if (mapPositions.hasOwnProperty(key)) {
+    //     const val = mapPositions[key];
+    //     this.mapPositions[key] = val;
+    //   }
+    // }
+    this.nationPositions = null;
     this.board = board;
     this.SZ = SZ;
     this.snailPos = calcSnailPositions(0, 0, this.SZ.cadreDetail, 25);
     this.units = {Axis: {}, West: {}, USSR: {}};
     this.influence = {}; //key:nation,value:ms, needs tags for faction and value;
-  }
-  addMapPositions(nationsDict) {
-    //console.log(nationsDict)
-    for (const key in nationsDict) {
-      const nat = nationsDict[key];
-      //console.log(key,nat)
-      this.mapPositions[key] = nat;
+    this.vpts = {Axis: [], West: [], USSR: []};
+    let arr = [];
+    let x = 591;
+    let y = 2106;
+    for (let i = 0; i < 25; i++) {
+      arr.push({x: x, y: y});
+      x += 66;
     }
-    //console.log('_________!!!____________!!!')
-    //console.log(this.mapPositions)
+    this.vpts.Axis = arr;
+    arr = [];
+    x = 1303;
+    y = 66;
+    for (let i = 0; i < 20; i++) {
+      arr.push({x: x, y: y});
+      x -= 66;
+    }
+    for (let i = 20; i < 25; i++) {
+      arr.push({x: x, y: y});
+      y += 66;
+    }
+    this.vpts.West = arr;
+    arr = [];
+    x = 2217;
+    y = 66;
+    for (let i = 0; i < 18; i++) {
+      arr.push({x: x, y: y});
+      x += 66;
+    }
+    for (let i = 18; i < 25; i++) {
+      arr.push({x: x, y: y});
+      y += 66;
+    }
+    this.vpts.USSR = arr;
+    //msChips is for all uis used to mark things like population, resources, blockage....
+    this.msChips = {};
   }
+  setPopulation(faction, n) {
+    let pts = this.vpts[faction];
+    let pos = pts[n - 1];
+    let prefix = "pop";
+    let id = prefix + faction;
+    if (!(id in this.msChips)) {
+      this.msChips[id] = this.createChip(id);
+    }
+    let ms = msChips[id];
+    ms.setPos(pos.x, pos.y);
+  }
+  createChip(prefix, faction) {
+    //id is also the filename
+    let ms = new MS();
+  }
+
   createDecks() {
     let wDeckArea = 251;
     let hDeckArea = 354;
@@ -59,6 +158,21 @@ class BoardFactory {
       .setPos(centerInvestmentDeck.x, centerInvestmentDeck.y)
       .draw();
     return {action_card: actionDeck, investment_card: investmentDeck};
+  }
+
+  addNationPositions(nationsDict) {
+    this.nationPositions = nationsDict;
+    // //console.log(nationsDict)
+    // for (const key in nationsDict) {
+    //   if (key in mapPositions){
+
+    //   }
+    //   const nat = nationsDict[key];
+    //   //console.log(key,nat)
+    //   this.mapPositions[key] = nat;
+    // }
+    // //console.log('_________!!!____________!!!')
+    // //console.log(this.mapPositions)
   }
   drawInfluence(ms, nation, faction, level) {
     let imagePath = "./assets/images/" + faction + ".svg";
@@ -93,8 +207,8 @@ class BoardFactory {
     this.influence[nation] = ms;
 
     //console.log(this.mapPositions)
-    let x = this.mapPositions[nation].x;
-    let y = this.mapPositions[nation].y;
+    let x = this.nationPositions[nation].x;
+    let y = this.nationPositions[nation].y;
     ms.setPos(x, y).draw();
 
     return ms;
@@ -120,6 +234,7 @@ class BoardFactory {
       //entire ms is redrawn!
     }
   }
+
   createTile(id, ttext) {
     //console.log(this.mapPositions, id);
     let pos = this.getPosition(id);
@@ -134,6 +249,7 @@ class BoardFactory {
     msRegion.tag("type", "tile");
     return msRegion;
   }
+
   createUnit(id, faction, go, ttext) {
     //console.log('create unit',id,faction,go,ttext,'.........');
     let nationality = go.nationality;
@@ -227,7 +343,6 @@ class BoardFactory {
     });
     ms.tag("count", n);
   }
-
   calcStartPos(tile, faction) {
     let pFaction = this.SZ["p" + faction];
     let pTile = this.getPosition(tile);

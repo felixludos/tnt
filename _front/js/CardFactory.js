@@ -58,6 +58,7 @@ class CardFactory {
     ms.tag('content',txt)
     ms.tag('type',o.obj_type);
     ms.tag('title',title)
+    ms.tag('json',JSON.stringify(o));
     return ms;
   }
   createCard(id, o, ttext) {

@@ -187,9 +187,9 @@ class MS {
     else show();
   }
   hide() {
-    if (!this.isVisible) return;
+    //if (!this.isVisible) return;
 
-    this.elem.setAttribute("style", "visibility:hidden");
+    this.elem.setAttribute("style", "visibility:hidden;display:none");
     //this.elem.setAttribute("class", "hidden"); //addClass("hidden");
     this.isVisible = false;
   }
@@ -351,6 +351,7 @@ class MS {
     b.classList.add('selectable');
     b.textContent = txt;
     this.elem.appendChild(b);
+    this.tag('isCommand','yes');
     return this;
     //b.style.width=w;
     //b.style.height=h;
