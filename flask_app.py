@@ -170,7 +170,7 @@ def init_game(game_type='hotseat', player='Axis', debug=False):
 
 @app.route('/info/<faction>')
 def get_info(faction):
-	return 'Error: NOT IMPLEMENTED: Will send info about {}'.format(faction)
+	return FORMAT_MSG(get_game_info(faction))
 
 @app.route('/status/<faction>')
 def get_status(faction):

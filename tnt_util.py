@@ -230,6 +230,7 @@ def becomes_satellite(G, nation):
 	
 	inf = G.diplomacy.influence[nation]
 	
+	G.nations.designations[nation] = inf.faction
 	faction = G.players[inf.faction]
 	
 	faction.influence.remove(inf._id)
@@ -326,4 +327,99 @@ def placeable_units(G, player, nationality, tile_options):
 	
 	return xset(options.values())
 
+def tile_hostile(G, player, tile):
+	
+	wars = G.players[player].stats.at_war_with
+	
+	for uid in tile.units:
+		unit = G.objects.table[uid]
+		owner = G.nations.designations[unit.nationality]
+		if owner != player:
+			return ((owner == 'Minor' and owner in G.temp.commands[player].declarations)
+			       or wars[owner])
+	
+	return None
 
+def fill_movement(G, player, tile, destinations, crossings=None, move_type='land', fuel=1,
+                  friendly_only=False, hidden_movement=False):
+	
+	# friendly_only should be true for disengaging troops or strategic movement
+	# crossing is not None <=> unit_type == 'G'
+	# hidden_movement <=> unit_type in {'S', 'A'}
+	
+	if fuel == 0:
+		return
+	
+	fuel -= 1
+	
+	for name, border in tile.neighbors.items():
+		
+		neighbor = G.tiles[name]
+		remaining = fuel
+		
+		# is access physically possible
+		
+		if border == 'Ocean': # costs an additional movement point
+			remaining -= 1
+			if fuel < 0:
+				continue
+				
+		
+		
+		
+		# is access politically possible
+		
+		engaging = tile_hostile(G, player, neighbor)
+		
+		if engaging is None: # can enter - no hostile troops
+			
+			destinations.add(neighbor.name)
+			fill_movement(G, player, neighbor, destinations, crossings, move_type, remaining, friendly_only)
+			
+		elif engaging and not friendly_only:
+			
+			if crossings is not None: # crossings matter => ground unit
+				
+				if neighbor.name not in crossings:
+					crossings[neighbor.name] = xset()
+				crossings[neighbor.name].add(tile.name)  # make note of each possible entry point for engaging
+			
+			destinations.add(neighbor.name)
+			# no recursion
+	
+	
+	pass
+
+movement_restrictions = {
+	'land': {'Land', 'Coast', 'Strait'},
+	'sea': {'Coast', 'Strait', 'Sea', 'Ocean'}
+}
+
+border_limits = {
+	'Plains': 3,
+	'Forest': 2,
+	'River': 2,
+	'Strait': 1,
+	'Mountains': 1,
+}
+
+def travel_options(G, unit):
+	pts = G.units.rules[unit.type].move
+	
+	options = xset()
+	
+	if pts == 0:
+		return options
+	
+	player = G.nations.designations[unit.nationality]
+	faction = G.players[player]
+	
+	tile = G.tiles[unit.tile]
+	
+	
+	
+	
+	
+	
+	
+	
