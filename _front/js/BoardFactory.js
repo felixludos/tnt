@@ -84,17 +84,23 @@ class BoardFactory {
     this.units = {Axis: {}, West: {}, USSR: {}};
     this.influence = {}; //key:nation,value:ms, needs tags for faction and value;
     this.vpts = {Axis: [], West: [], USSR: []};
+    this.calculateStatsPositions();
+    //msChips is for all uis used to mark things like population, resources, blockage....
+    this.msChips = {};
+  }
+  calculateStatsPositions() {
     let arr = [];
-    let x = 591;
-    let y = 2106;
+    let x = 580;
+    let y = 2120;
     for (let i = 0; i < 25; i++) {
       arr.push({x: x, y: y});
       x += 66;
     }
     this.vpts.Axis = arr;
+
     arr = [];
-    x = 1303;
-    y = 66;
+    x = 1310;
+    y = 76;
     for (let i = 0; i < 20; i++) {
       arr.push({x: x, y: y});
       x -= 66;
@@ -104,9 +110,10 @@ class BoardFactory {
       y += 66;
     }
     this.vpts.West = arr;
+
     arr = [];
-    x = 2217;
-    y = 66;
+    x = 2210;
+    y = 76;
     for (let i = 0; i < 18; i++) {
       arr.push({x: x, y: y});
       x += 66;
@@ -116,23 +123,42 @@ class BoardFactory {
       y += 66;
     }
     this.vpts.USSR = arr;
-    //msChips is for all uis used to mark things like population, resources, blockage....
-    this.msChips = {};
   }
   setPopulation(faction, n) {
+    this.setChip('pop','P',faction,n,'sienna');
+  }
+  setIndustry(faction, n) {
+    this.setChip('ind','I',faction,n,'red');
+  }
+  setResource(faction, n) {
+    this.setChip('res','R',faction,n,'green');
+  }
+  setChip(prefix,text,faction,n,color){
     let pts = this.vpts[faction];
     let pos = pts[n - 1];
-    let prefix = "pop";
     let id = prefix + faction;
     if (!(id in this.msChips)) {
-      this.msChips[id] = this.createChip(id);
+      this.msChips[id] = this.createChip(id, {text: text, prefix: prefix, faction: faction, color: color});
     }
-    let ms = msChips[id];
+    let ms = this.msChips[id];
+    //this.setChipText(n);
+    //ms.removeFromChildIndex(2);
+    console.log("pos is:", pos);
     ms.setPos(pos.x, pos.y);
   }
-  createChip(prefix, faction) {
+  
+  //setChipText(txt){}
+  createChip(id, {text = "", filename = "", prefix = "", faction = "", color = "beige"} = {}) {
     //id is also the filename
-    let ms = new MS();
+    let sz = this.SZ.chip;
+    let pts = this.vpts[faction];
+    let pos = pts[0];
+    let ms = new MS(id, this.board)
+      .roundedRect({w: sz, h: sz, fill: color})
+      .text({txt: text, fill: "white", weight: "bold"})
+      .setPos(pos.x + sz / 2, pos.y + sz / 2)
+      .draw();
+    return ms;
   }
 
   createDecks() {

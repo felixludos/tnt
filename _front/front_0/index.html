@@ -56,13 +56,16 @@
 
     <!-- #region functions -->
     <script>
+      function statusMessage(msg) {
+        document.getElementById("statusDiv").innerHTML = msg;
+      }
       function send(url) {
         url = backendServerUrl + url;
         msgCounter += 1;
-        //console.log(msgCounter, "request sent: ", url);
+        console.log(msgCounter, "request sent: ", url);
         w3.http(url, function() {
           if (this.readyState == 4 && this.status == 200) {
-            processData(this.responseText);
+            processIncomingMessage(this.responseText);
           }
         });
       }
@@ -93,7 +96,7 @@
       // function onClickPass() {
       //   onClickNextPlayer();
       // }
-      function processData(str) {
+      function processIncomingMessage(str) {
         let data = JSON.parse(str);
         //console.log(data);
         if ("invest_55" in data) {
@@ -104,108 +107,119 @@
         if (data === undefined) {
           //console.log("!!!", str, "!!!");
         } else {
-          if (outputData) {
-            console.log(data);
-            outputData = false;
-          }
-          let faction = G.faction;
-          let g = G[faction];
-          if ("log" in data) {
-            let msg = JSON.stringify(data.log);
-            msg = msg.replace(/(?:\r\n|\r|\n)/g, "<br>");
-            msg = msg.replace("\\n", "<br>");
-            msg = msg.replace(/\\n/g, "<br>");
-            msg = msg.replace(/"/g, "");
-            if (msg.trim().length > 0) {
-              let d = document.getElementById("logDiv");
-              let para = document.createElement("p");
-              para.innerHTML = msg;
-              d.appendChild(para);
-              para.scrollIntoView();
-              G.log.push(msg);
-              if (msg.includes("Government")) {
-                phase = "government";
-              }
-            }
-          }
-          //created
-          for (id in data.created) {
-            let sid = id.toString();
-            g[sid] = data.created[id]; //overwride object of have already
-          }
-          //updated
-          for (id in data.updated) {
-            let sid = id.toString();
-            //not sure if have to do this really, since possibly no need
-            // actually, the object might NOT exist,
-            // therefore, just create it if it does not exist!!!
-
-            if (!(sid in g)) {
-              //console.log("NON EXISTING:", sid);
-              g[sid] = data.updated[id];
-            } else {
-              let o = g[sid]; //this object should exist since it is being updated!
-              //each property of this object should be changed as in data.updated
-              let orig = data.updated[id];
-              for (prop in orig) {
-                o[prop] = orig[prop];
-              }
-            }
-          }
-          //removed
-
-          for (id in data.removed) {
-            let sid = id.toString();
-            //console.log(id, "is in removed!!!!!!!!!!!!!!");
-            break;
-            //not sure if should do anything!
-            // if (id in g) {
-            //   delete g[id];
-            // }
-          }
-
-          //hier mach sowas wie Presenter.updateUI();
-          updateUI();
-
-          //console.log(data.actions);
-
-          // to save action data in case of bug:
-          //json_str = JSON.stringify(data.actions);
-          //saveFile("_a"+fileCounter+".json", "data:application/json", new Blob([json_str], {type: ""}));
-          //fileCounter += 1;
-
-          if ("actions" in data) {
-            tuplesInAction = expand(data.actions);
-            if (outputActions) {
-              console.log(data.actions);
-              prj(tuplesInAction);
-              outputActions = false;
-            }
-            if (isGovPhase()) {
-              //prj(tuplesInAction);
-            } // //console.log
-
-            if (skipActions > 0) {
-              skipActions -= 1;
-              let url = "action/" + G.faction + "/" + tuplesInAction[0].join("+");
-              tuplesInAction = [];
-              send(url);
-            } else {
-              processActions();
-            }
+          processData(data);
+        }
+      }
+      function processData(data) {
+        if (outputData) {
+          console.log(data);
+          outputData = false;
+        }
+        let faction = G.faction;
+        let g = G[faction];
+        if ("players" in data) {
+          phase = data.game.phase;
+          statusMessage("Phase:" + data.game.phase + ", Year:" + data.game.year);
+          console.log(data);
+          updateInfo(data);
+          if (skipActions > 0) {
+            onClickNextPlayer();
           } else {
-            //console.log(data.waiting_for, "*** will change turn!!! ***");
-            //console.log(data);
-            hideCommands();
-            hideSelectionPanel();
-            nextFaction = data.waiting_for.set[0];
-
-            if (skipActions > 0) {
-              onClickNextPlayer();
-            } else {
-              show(bNextPlayer);
+            show(bNextPlayer);
+          }
+          return;
+        }
+        if ("log" in data) {
+          let msg = JSON.stringify(data.log);
+          msg = msg.replace(/(?:\r\n|\r|\n)/g, "<br>");
+          msg = msg.replace("\\n", "<br>");
+          msg = msg.replace(/\\n/g, "<br>");
+          msg = msg.replace(/"/g, "");
+          if (msg.trim().length > 0) {
+            let d = document.getElementById("logDiv");
+            let para = document.createElement("p");
+            para.innerHTML = msg;
+            d.appendChild(para);
+            para.scrollIntoView();
+            G.log.push(msg);
+            if (msg.includes("Government")) {
+              phase = "government";
             }
           }
+        }
+        //created
+        for (id in data.created) {
+          let sid = id.toString();
+          g[sid] = data.created[id]; //overwride object of have already
+        }
+        //updated
+        for (id in data.updated) {
+          let sid = id.toString();
+          //not sure if have to do this really, since possibly no need
+          // actually, the object might NOT exist,
+          // therefore, just create it if it does not exist!!!
+
+          if (!(sid in g)) {
+            //console.log("NON EXISTING:", sid);
+            g[sid] = data.updated[id];
+          } else {
+            let o = g[sid]; //this object should exist since it is being updated!
+            //each property of this object should be changed as in data.updated
+            let orig = data.updated[id];
+            for (prop in orig) {
+              o[prop] = orig[prop];
+            }
+          }
+        }
+        //removed
+
+        for (id in data.removed) {
+          let sid = id.toString();
+          //console.log(id, "is in removed!!!!!!!!!!!!!!");
+          break;
+          //not sure if should do anything!
+          // if (id in g) {
+          //   delete g[id];
+          // }
+        }
+
+        //hier mach sowas wie Presenter.updateUI();
+        updateUI();
+
+        //console.log(data.actions);
+
+        // to save action data in case of bug:
+        //json_str = JSON.stringify(data.actions);
+        //saveFile("_a"+fileCounter+".json", "data:application/json", new Blob([json_str], {type: ""}));
+        //fileCounter += 1;
+
+        if ("actions" in data) {
+          tuplesInAction = expand(data.actions);
+          if (outputActions) {
+            console.log(data.actions);
+            prj(tuplesInAction);
+            outputActions = false;
+          }
+          if (isGovPhase()) {
+            //prj(tuplesInAction);
+          } // //console.log
+
+          if (skipActions > 0) {
+            skipActions -= 1;
+            let url = "action/" + G.faction + "/" + tuplesInAction[0].join("+");
+            tuplesInAction = [];
+            send(url);
+          } else {
+            processActions();
+          }
+        } else if ("waiting_for" in data) {
+          //console.log(data.waiting_for, "*** will change turn!!! ***");
+          //console.log(data);
+          hideCommands();
+          hideSelectionPanel();
+          nextFaction = data.waiting_for.set[0];
+
+          send("info/" + G.faction);
         }
       }
 
@@ -415,6 +429,15 @@
 
     <!-- #region FRONT END functions -->
     <script>
+      function updateInfo(data) {
+        for (const faction of G.factions) {
+          console.log("updating info for", faction);
+          boardFactory.setPopulation(faction, data.players[faction].tracks.POP);
+          boardFactory.setResource(faction, data.players[faction].tracks.RES);
+          boardFactory.setIndustry(faction, data.players[faction].tracks.IND);
+        }
+      }
+
       function getInfluenceId(nation) {
         return "inf_" + nation;
       }
@@ -635,10 +658,10 @@
         return firstCond(tuple, x => !isInvestmentCard(x) && x != "open" && x != "secret");
       }
       function isSetupOrProductionPhase() {
-        return phase == "setup" || phase == "production";
+        return phase.toLowerCase() == "setup" || phase.toLowerCase() == "production";
       }
       function isGovPhase() {
-        return startsWith(phase, "gov");
+        return startsWith(phase.toLowerCase(), "gov");
       }
       function isDiplomacyTuple(tuple) {
         return getActionCardFromTuple(tuple) != null;
@@ -894,7 +917,8 @@
         sumCadre: 60,
         cadreDetail: 44,
         cardWidth: 100,
-        cardHeight: 150
+        cardHeight: 150,
+        chip: 40
       };
     </script>
     <!-- #endregion setup -->

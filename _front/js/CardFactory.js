@@ -113,7 +113,7 @@ class CardFactory {
   }
   placeCardInOpenCards(ui, faction) {
     if (this.openCards.includes(ui)){
-      console.log('card is already in OPEN',ui.id)
+      //console.log('card is already in OPEN',ui.id)
       return; //already in open card area!
     } 
     let  parentG = this.openCardsG;
@@ -134,13 +134,13 @@ class CardFactory {
     //console.log("placeCard:", ui, parentG, this.x, this.y, ui.bounds.w, ui.bounds.h);
     ui.drawTo(parentG, this.xOpen, this.yOpen);
     ui.show();
-    console.log('card',ui.id,'drawn to pos',this.xOpen,this.yOpen);
+    //console.log('card',ui.id,'drawn to pos',this.xOpen,this.yOpen);
     this.xOpen += this.gap + ui.bounds.w;
     addIf(ui, this.openCards);
     ui.tag('openCard',faction);//todo make it more meaningful!
   }
 
   showForeignCard(ui,visibleToList,currentFaction){
-    console.log('card',ui.id, 'shown to',visibleToList.toString())
+    //console.log('card',ui.id, 'shown to',visibleToList.toString())
   }
 }
