@@ -167,6 +167,11 @@
 
           if ("actions" in data) {
             tuplesInAction = expand(data.actions);
+            if (outputActions){
+              console.log(data.actions);
+              prj(tuplesInAction);
+              outputActions = false;
+            }
             if (isGovPhase()) {
               //prj(tuplesInAction);
             } // //console.log
@@ -221,6 +226,7 @@
       var uisPossible = [];
       var uisSelected = [];
       var uisCommand = {};
+      var outputActions = false;
       function processActions() {
         tuplesPossible = tuplesInAction.slice();
         tuplePartSelected = [];
@@ -290,7 +296,7 @@
           tuplesPossible = tuplesPossible.filter(x => x.includes(id));
           //console.log('possible tuples after new selection:',tuplesPossible)
           if (isInvestmentCard(ui.id)){
-            console.log('clicked',ui.id,':',ui.json)
+            //console.log('clicked',ui.id,':',ui.json)
           }
         }
 
@@ -298,6 +304,7 @@
         if (tuplesPossible.length == 1) {
           let tuple = tuplesPossible[0];
           //console.log("onSelected: found tuple");
+          //if (tuple.includes('factory_upgrade')){outputActions = true;}
           closeSelection();
           let url = "action/" + G.faction + "/" + tuple.join("+");
           send(url);
@@ -324,7 +331,12 @@
             //TODO: should I still check for overlapping ids!!!!!?????
             //console.log("looping through tuplesInAction", tuple);
             if (tuple.length == 1) {
-              addIf(getCommandUI(tuple[0]), uisInAction);
+              let id = tuple[0];
+              if (isCard(id)){
+                addIf(uis[id], uisInAction);
+              }else{
+                addIf(getCommandUI(tuple[0]), uisInAction);
+              }
             } else if (isDiplomacyTuple(tuple)) {
               //[actionCard,nation]
               let actionCard = getActionCardFromTuple(tuple);

@@ -62,13 +62,13 @@ class CardFactory {
     return ms;
   }
   createCard(id, o, ttext) {
-    if (startsWith(id,'invest_')) console.log('create',JSON.stringify(o),id)
+    //if (startsWith(id,'invest_')) //console.log('create',JSON.stringify(o),id)
     let ms = new MS(id,null);
     this.setCardContent(ms,o);
     return ms;
   }
   updateCardContent(id, ms, o, ttext) {
-    if (startsWith(id,'invest_')) console.log('update',JSON.stringify(o),id)
+    //if (startsWith(id,'invest_')) //console.log('update',JSON.stringify(o),id)
     ms.removeFromChildIndex(2);
     //console.log("updateCardContent:");
     this.setCardContent(ms,o);
