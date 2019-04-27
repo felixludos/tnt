@@ -143,7 +143,7 @@ class BoardFactory {
     let ms = this.msChips[id];
     //this.setChipText(n);
     //ms.removeFromChildIndex(2);
-    console.log("pos is:", pos);
+    //console.log("pos is:", pos);
     ms.setPos(pos.x, pos.y);
   }
   

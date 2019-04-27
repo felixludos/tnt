@@ -56,8 +56,14 @@
 
     <!-- #region functions -->
     <script>
-      function statusMessage(msg) {
-        document.getElementById("statusDiv").innerHTML = msg;
+      var serverData; // last message from server as JSON object
+      var skipActions = 110; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
+      var favorAction = "action_"; //"investment_card";
+
+      function statusMessage(msgAdd = "") {
+        let s = "Phase:" + phase + ", Year:" + year + ", Player:" + G.faction;
+        s += " " + msgAdd;
+        document.getElementById("statusDiv").innerHTML = s;
       }
       function send(url) {
         url = backendServerUrl + url;
@@ -70,17 +76,42 @@
         });
       }
       function skipAction() {
-        let tuple = tuplesInAction[0];
+        console.log("skipAction............");
+        let tuple = '';//tuplesInAction[0];
         if (favorAction) {
-          //select this action if it exists
-          let favs = tuplesInAction.filter(x => x.includes(favorAction));
-          if (favs.length > 0) {
-            tuple = favs[0];
+          for (const t of tuplesInAction) {
+            if (t.length == 2 && startsWith(t[0],'action_')){
+              tuple = t; break;
+            }
           }
+          if (tuple == '' && isGovPhase() && tuplesInAction.includes(['pass'])){
+            tuple = ['pass'];
+            // not action_ card left to play
+            // look if pass is a possibility
+          }else{
+            tuple = tuplesInAction.find(x=>!empty(x));
+            console.log('found non-empty:',tuple);
+            if (tuple.includes('remove')){
+              console.log('remove tuple!',serverData);
+              tuple = tuplesInAction.find(x=>!empty(x) && !(x.includes('remove')));
+
+            }
+          }
+          //select this action if it exists
+          // let favs = tuplesInAction.filter(x => x.includes(favorAction));
+          // if (favs.length > 0) {
+          //   console.log("selecting favor:", favs[0]);
+          //   tuple = favs[0];
+          // }
         }
+        if (tuple == ''){tuple = tuplesInAction[0];}
+        if (!Array.isArray(tuple)){
+          console.log('ERROR NOT A LL: serverData:',serverData);
+          console.log('problem tuple',tuple)
+          tuple = [tuple];
+        }
+        console.log("tuple", tuple,tuplesInAction);
         let url = "action/" + G.faction + "/" + tuple.join("+");
-        //tuplesInAction = [];
-        //console.log("skipAction tuplesInAction:", tuplesInAction);
         closeSelection();
         send(url);
       }
@@ -111,6 +142,7 @@
         }
       }
       function processData(data) {
+        serverData = data;
         if (outputData) {
           console.log(data);
           outputData = false;
@@ -119,8 +151,9 @@
         let g = G[faction];
         if ("players" in data) {
           phase = data.game.phase;
-          statusMessage("Phase:" + data.game.phase + ", Year:" + data.game.year);
-          console.log(data);
+          year = data.game.year;
+          statusMessage();
+          //console.log(data);
           updateInfo(data);
           if (skipActions > 0) {
             onClickNextPlayer();
@@ -194,21 +227,20 @@
         //fileCounter += 1;
 
         if ("actions" in data) {
+          statusMessage();
           tuplesInAction = expand(data.actions);
           if (outputActions) {
             console.log(data.actions);
             prj(tuplesInAction);
             outputActions = false;
           }
-          if (isGovPhase()) {
-            //prj(tuplesInAction);
-          } // //console.log
+          // if (isGovPhase()) {
+          //   //prj(tuplesInAction);
+          // } // //console.log
 
           if (skipActions > 0) {
             skipActions -= 1;
-            let url = "action/" + G.faction + "/" + tuplesInAction[0].join("+");
-            tuplesInAction = [];
-            send(url);
+            skipAction();
           } else {
             processActions();
           }
@@ -240,8 +272,6 @@
 
     <!-- #region *** SELECTION selection *** -->
     <script>
-      var skipActions = 72; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
-
       var tuplesInAction = [];
       var tuplesPossible = [];
       var tuplePartSelected = [];
@@ -431,7 +461,7 @@
     <script>
       function updateInfo(data) {
         for (const faction of G.factions) {
-          console.log("updating info for", faction);
+          //console.log("updating info for", faction);
           boardFactory.setPopulation(faction, data.players[faction].tracks.POP);
           boardFactory.setResource(faction, data.players[faction].tracks.RES);
           boardFactory.setIndustry(faction, data.players[faction].tracks.IND);
@@ -863,7 +893,6 @@
 
     <!-- #region setup -->
     <script>
-      var favorAction = "investment_card";
       var fileCounter = 0;
 
       var nextFaction;
@@ -875,6 +904,7 @@
       G["factions"] = ["Axis", "West", "USSR"];
       var uis = {}; //by id
       var phase = "setup";
+      var year = "1935";
 
       var backendServerUrl = "http://localhost:5000/"; //local server
       var msgCounter = 0;
