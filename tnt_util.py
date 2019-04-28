@@ -340,55 +340,7 @@ def tile_hostile(G, player, tile):
 	
 	return None
 
-def fill_movement(G, player, tile, destinations, crossings=None, move_type='land', fuel=1,
-                  friendly_only=False, hidden_movement=False):
-	
-	# friendly_only should be true for disengaging troops or strategic movement
-	# crossing is not None <=> unit_type == 'G'
-	# hidden_movement <=> unit_type in {'S', 'A'}
-	
-	if fuel == 0:
-		return
-	
-	fuel -= 1
-	
-	for name, border in tile.neighbors.items():
-		
-		neighbor = G.tiles[name]
-		remaining = fuel
-		
-		# is access physically possible
-		
-		if border == 'Ocean': # costs an additional movement point
-			remaining -= 1
-			if fuel < 0:
-				continue
-				
-		
-		
-		
-		# is access politically possible
-		
-		engaging = tile_hostile(G, player, neighbor)
-		
-		if engaging is None: # can enter - no hostile troops
-			
-			destinations.add(neighbor.name)
-			fill_movement(G, player, neighbor, destinations, crossings, move_type, remaining, friendly_only)
-			
-		elif engaging and not friendly_only:
-			
-			if crossings is not None: # crossings matter => ground unit
-				
-				if neighbor.name not in crossings:
-					crossings[neighbor.name] = xset()
-				crossings[neighbor.name].add(tile.name)  # make note of each possible entry point for engaging
-			
-			destinations.add(neighbor.name)
-			# no recursion
-	
-	
-	pass
+
 
 movement_restrictions = {
 	'land': {'Land', 'Coast', 'Strait'},
@@ -401,7 +353,103 @@ border_limits = {
 	'River': 2,
 	'Strait': 1,
 	'Mountains': 1,
+	'Coast': 1,
 }
+
+def fill_movement(G, player, tile, destinations, crossings=None, borders=None,
+                  move_type='land', fuel=1,
+                  friendly_only=False, hidden_movement=False):
+	
+	# crossings tracks the currently available border crossings (for limited borders)
+	# borders tracks the past crossings that have been made
+	
+	# friendly_only should be true for disengaging troops or strategic movement
+	# crossing is not None <=> unit_type == 'G'
+	# hidden_movement <=> unit_type in {'S', 'A'}
+	
+	if fuel == 0:
+		return
+	
+	fuel -= 1
+	
+	for name, border in tile.neighbors.items():
+		
+		if name in destinations: # neighbor already processed
+			continue
+		
+		neighbor = G.tiles[name]
+		remaining = fuel
+		
+		# is access physically possible
+		
+		if move_type in movement_restrictions \
+			and neighbor.type not in movement_restrictions[move_type]:
+			continue
+			
+		if move_type == 'sea' and neighbor.type == 'Coast':
+			
+			remaining = 0 # must stop at coast
+			
+			if tile.type == 'Coast':
+				
+				common = xset(tile.neighbors.keys()).intersection(neighbor.neighbors.keys())
+				is_contiguous = False
+				for c in common:
+					if G.tiles[c].type in {'Sea', 'Ocean'}:
+						is_contiguous = True
+						break
+				if not is_contiguous:
+					continue
+		
+		if 'Ocean' in neighbor.type:  # costs an additional movement point
+			remaining -= 1
+			if fuel < 0:
+				continue
+		
+		if crossings is not None \
+			and borders is not None \
+			and (neighbor.name, tile.name) in borders:
+			past = borders[neighbor.name, tile.name]
+			limit = border_limits[border]
+			if border == 'Coast' and 'LSTs' in G.players[player].technologies:
+				limit += 1
+			
+			if past >= limit:
+				continue
+		
+		# is access politically possible
+		
+		engaging = tile_hostile(G, player, neighbor)
+		
+		if engaging is None: # can enter - no hostile troops
+			
+			destinations.add(neighbor.name)
+			
+			# recurse
+			fill_movement(G, player, neighbor, destinations, crossings=crossings,
+			              move_type=move_type, fuel=remaining,
+			              friendly_only=friendly_only, hidden_movement=hidden_movement)
+			
+		elif engaging and not friendly_only:
+			
+			if crossings is not None: # crossings matter => ground unit
+				
+				if neighbor.name not in crossings:
+					crossings[neighbor.name] = xset()
+				crossings[neighbor.name].add(tile.name)  # make note of each possible entry point for engaging
+			
+			elif hidden_movement: # unit_type in {A, S}
+				
+				# recurse
+				fill_movement(G, player, neighbor, destinations, crossings=crossings,
+				              move_type=move_type, fuel=remaining,
+				              friendly_only=friendly_only, hidden_movement=hidden_movement)
+				
+			
+			destinations.add(neighbor.name)
+			# no recursion
+	
+	
 
 def travel_options(G, unit):
 	pts = G.units.rules[unit.type].move
@@ -416,6 +464,20 @@ def travel_options(G, unit):
 	
 	tile = G.tiles[unit.tile]
 	
+	destinations = xset()
+	crossings = adict()
+	
+	cls = G.units.rules.[unit.type].type
+	
+	hidden_movement = cls == 'S' or cls == 'A'
+	fuel = pts
+	
+	if cls in 'NS' or (cls == 'G' and tile.type in movement_restrictions['sea']): # sea movement
+		pass
+		
+	fill_movement(G, player, tile, destinations, crossings=None, borders=G.temp.commands[player].borders,
+	              move_type='land', fuel=fuel,
+	              friendly_only=False, hidden_movement=hidden_movement)
 	
 	
 	

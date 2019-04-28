@@ -41,6 +41,8 @@ def encode_movement(G):
 		if len(locs):
 			options.add((uid, locs))
 	
+	# reveal techs in secret vault
+	
 	pass
 
 def pre_command_phase(G):
