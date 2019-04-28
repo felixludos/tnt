@@ -1,8 +1,8 @@
 
-import util as util
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
 from tnt_cards import discard_cards
-from tnt_units import add_unit, travel_options
+from tnt_units import add_unit
+from tnt_util import travel_options
 import random
 
 
@@ -36,14 +36,16 @@ def encode_movement(G):
 		
 		pass
 	
-	for uid in faction.units:
-		locs = travel_options(G, G.objects.table[uid])
+	for unit in faction.units:
+		locs = travel_options(G, unit)
 		if len(locs):
-			options.add((uid, locs))
+			options.add((unit._id, locs))
 	
 	# reveal techs in secret vault
 	
-	pass
+	code = adict()
+	code[player] = options
+	return code
 
 def pre_command_phase(G):
 
@@ -80,6 +82,7 @@ def command_phase(G, player, action):
 	elif head in faction.hand:
 		G.temp.passes = 0
 		card = G.objects.table[head]
+		#if 'owner'
 		del card.owner
 		G.objects.updated[head] = card
 		
@@ -90,7 +93,8 @@ def command_phase(G, player, action):
 		G.logger.write('{} plays a card'.format(player))
 		
 		G.temp.active_players.remove(player)
-		G.temp.active_idx %= len(G.temp.active_players)
+		if len(G.temp.active_players):
+			G.temp.active_idx %= len(G.temp.active_players)
 	
 	if len(G.temp.active_players) > G.temp.passes:
 		return encode_command_card_phase(G)
@@ -102,7 +106,7 @@ def command_phase(G, player, action):
 	
 	G.temp.commands = tdict()
 	
-	for p, card in G.temp.decision: # RULE OVERRULED: emergency priority tie breaks are automatic
+	for p, card in G.temp.decision.items(): # RULE OVERRULED: emergency priority tie breaks are automatic
 		if 'season' in card:
 			cmd = tdict()
 			cmd.priority = card.priority
@@ -117,7 +121,6 @@ def command_phase(G, player, action):
 				cmd.emergency = True
 				val = G.players[p].stats.emergency_command
 				msg = 'n emergency command: {} {}'.format(card.priority, val)
-				G.temp.emergency.add(p)
 			
 			cmd.value = val
 			G.temp.commands[p] = cmd

@@ -16,6 +16,7 @@ import traceback
 from new_year import new_year_phase
 from production import production_phase, production_pre_phase
 from government import governmnet_phase, government_pre_phase
+from command import command_phase, pre_command_phase
 
 
 import json
@@ -24,10 +25,10 @@ PRE_PHASES = adict({ # all action phases
 	'Setup': setup_pre_phase,
 	'Production': production_pre_phase,
 	'Government': government_pre_phase,
-	'Spring': None,
-	'Summer': None,
-	'Fall': None,
-	'Winter': None,
+	'Spring': pre_command_phase,
+	'Summer': pre_command_phase,
+	'Fall': pre_command_phase,
+	'Winter': pre_command_phase,
 	
 	# 'Land_Combat': None,
 	# 'Naval_Combat': None,
@@ -38,11 +39,11 @@ PHASES = adict({
     'New_Year': new_year_phase,
     'Production': production_phase,
     'Government': governmnet_phase,
-    'Spring': None,
-    'Summer': None,
+    'Spring': command_phase,
+    'Summer': command_phase,
     'Blockade': None,
-    'Fall': None,
-    'Winter': None,
+    'Fall': command_phase,
+    'Winter': command_phase,
 
     # 'Land_Combat': None,
     # 'Naval_Combat': None,
@@ -241,6 +242,11 @@ def get_game_info(player):
 		
 		if p == player:
 			play.victory_points = vps[p]
+			
+			reserves = adict()
+			for member in faction.members.keys():
+				reserves[member] = G.units.reserves[member]
+			play.reserves = reserves
 	
 		info.players[p] = play
 	

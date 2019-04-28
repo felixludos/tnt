@@ -671,7 +671,9 @@ def governmnet_phase(G, player, action): # play cards
 			G.temp.move_to_post = tdict()  # for handsize limit options
 			for name, faction in G.players.items():
 				handsize = len(faction.hand)
-				G.logger.write('{} must discard {} cards'.format(name, handsize - faction.stats.handlimit))
+				diff = handsize - faction.stats.handlimit
+				if diff > 0:
+					G.logger.write('{} must discard {} cards'.format(name, diff))
 				G.temp.move_to_post[name] = True
 			return government_post_phase(G)
 	else:
@@ -879,7 +881,8 @@ def government_post_phase(G, player=None, action=None):
 	# place garrison in new satellites
 	if action is not None:
 		unit = adict()
-		unit.nationality, unit.tile, unit.type = action
+		unit.tile, unit.type = action
+		unit.nationality = G.players[player].stats.great_power
 		unit.cv = G.temp.sat_units[player][unit.tile]
 		add_unit(G, unit)
 		del G.temp.sat_units[player][unit.tile]

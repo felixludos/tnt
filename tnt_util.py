@@ -327,20 +327,32 @@ def placeable_units(G, player, nationality, tile_options):
 	
 	return xset(options.values())
 
-def tile_hostile(G, player, tile):
+def tile_hostile(G, player, tile, decl=None):
+	
+	if decl is None:
+		decl = G.temp.commands[player].declarations
 	
 	wars = G.players[player].stats.at_war_with
+	
+	status = None
+	
+	if 'alligence' in tile:
+		
+		owner = G.nations.designations[tile.alligence]
+		if owner != player:
+			if ((owner == 'Minor' and tile.alligence not in decl) or (owner in wars and not wars[owner])):
+				return False # tile owner is not in a conflict with player
+			status = True
 	
 	for uid in tile.units:
 		unit = G.objects.table[uid]
 		owner = G.nations.designations[unit.nationality]
 		if owner != player:
-			return ((owner == 'Minor' and owner in G.temp.commands[player].declarations)
-			       or wars[owner])
+			if owner in wars and not wars[owner]: # assumes minor units cant move
+				return False
+			status = True
 	
-	return None
-
-
+	return status
 
 movement_restrictions = {
 	'land': {'Land', 'Coast', 'Strait'},
@@ -372,7 +384,7 @@ def fill_movement(G, player, tile, destinations, crossings=None, borders=None,
 	
 	fuel -= 1
 	
-	for name, border in tile.neighbors.items():
+	for name, border in tile.borders.items():
 		
 		if name in destinations: # neighbor already processed
 			continue
@@ -392,7 +404,7 @@ def fill_movement(G, player, tile, destinations, crossings=None, borders=None,
 			
 			if tile.type == 'Coast':
 				
-				common = xset(tile.neighbors.keys()).intersection(neighbor.neighbors.keys())
+				common = xset(tile.borders.keys()).intersection(neighbor.borders.keys())
 				is_contiguous = False
 				for c in common:
 					if G.tiles[c].type in {'Sea', 'Ocean'}:
@@ -460,28 +472,66 @@ def travel_options(G, unit):
 		return options
 	
 	player = G.nations.designations[unit.nationality]
-	faction = G.players[player]
 	
 	tile = G.tiles[unit.tile]
 	
 	destinations = xset()
 	crossings = adict()
+	cmd = G.temp.commands[player]
+	borders = cmd.borders
 	
-	cls = G.units.rules.[unit.type].type
+	cls = G.units.rules[unit.type].type
 	
 	hidden_movement = cls == 'S' or cls == 'A'
-	fuel = pts
 	
-	if cls in 'NS' or (cls == 'G' and tile.type in movement_restrictions['sea']): # sea movement
-		pass
+	for defensive in range(2): # gen all steps once with strategic movement and once without
 		
-	fill_movement(G, player, tile, destinations, crossings=None, borders=G.temp.commands[player].borders,
-	              move_type='land', fuel=fuel,
-	              friendly_only=False, hidden_movement=hidden_movement)
+		# TODO: handling disengaging - especially border limits and emergency
+		
+		if 'emergency' in cmd: # emergency
+			if not defensive:
+				continue
+			
+		if defensive and 'disputed' in tile: # no disengaging with strategic movement
+			continue
+		
+		
+		xing = crossings if cls == 'G' and not defensive else None
+		
+		fuel = pts * (1 + defensive)
+		
+		if cls in 'NS' or (cls == 'G' and tile.type in movement_restrictions['sea']): # sea movement
+			
+			fill_movement(G, player, tile, destinations, crossings=xing, borders=borders,
+			              move_type='sea', fuel=fuel,
+			              friendly_only=defensive, hidden_movement=hidden_movement)
+			
+		if cls == 'G':
+			
+			fill_movement(G, player, tile, destinations, crossings=xing, borders=borders,
+			              move_type='land', fuel=fuel,
+			              friendly_only=defensive, hidden_movement=hidden_movement)
+		
+		if cls == 'A':
+			
+			if tile.type in {'Sea', 'Ocean'}:
+				fuel = pts # no strategic movement
+				defensive = 1 # no engaging
+			
+			fill_movement(G, player, tile, destinations, crossings=xing, borders=borders,
+			              move_type='air', fuel=fuel,
+			              friendly_only=defensive, hidden_movement=hidden_movement)
+			
+			if tile.type in {'Sea', 'Ocean'}:
+				break
 	
 	
+	for dest in destinations:
+		if dest in crossings:
+			options.add((dest, crossings[dest]))
+		else:
+			options.add((dest,))
 	
-	
-	
+	return options
 	
 	
