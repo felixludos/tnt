@@ -58,7 +58,7 @@
     <script>
       var abort = false;
       var serverData; // last message from server as JSON object
-      var skipActions = 110; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
+      var skipActions = 114; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
       var favorAction = "action_"; //"investment_card";
 
       function statusMessage(msgAdd = "") {
@@ -69,19 +69,19 @@
       function send(url) {
         url = backendServerUrl + url;
         msgCounter += 1;
-        console.log(msgCounter, "request sent: ", url);
+        //console.log(msgCounter, "request sent: ", url);
         w3.http(url, function() {
           if (this.readyState == 4 && this.status == 200) {
             if (!abort) processIncomingMessage(this.responseText);
             else {
               let d=JSON.parse(this.responseText);
-              console.log('ABORTING!',d);
+              //console.log('ABORTING!',d);
             }
           }
         });
       }
       function skipAction() {
-        console.log("skipAction............");
+        //console.log("skipAction............");
         let tuple = '';//tuplesInAction[0];
         if (favorAction) {
           for (const t of tuplesInAction) {
@@ -95,9 +95,9 @@
             // look if pass is a possibility
           }else{
             tuple = tuplesInAction.find(x=>!empty(x));
-            console.log('found non-empty:',tuple);
+            //console.log('found non-empty:',tuple);
             if (tuple.includes('remove')){
-              console.log('remove tuple!',serverData);
+              //console.log('remove tuple!',serverData);
               tuple = tuplesInAction.find(x=>!empty(x) && !(x.includes('remove')));
 
             }
@@ -105,17 +105,17 @@
           //select this action if it exists
           // let favs = tuplesInAction.filter(x => x.includes(favorAction));
           // if (favs.length > 0) {
-          //   console.log("selecting favor:", favs[0]);
+          //   //console.log("selecting favor:", favs[0]);
           //   tuple = favs[0];
           // }
         }
         if (tuple == ''){tuple = tuplesInAction[0];}
         if (!Array.isArray(tuple)){
-          console.log('ERROR NOT A LL: serverData:',serverData);
-          console.log('problem tuple',tuple)
+          //console.log('ERROR NOT A LL: serverData:',serverData);
+          //console.log('problem tuple',tuple)
           tuple = [tuple];
         }
-        console.log("tuple", tuple,tuplesInAction);
+        //console.log("tuple", tuple,tuplesInAction);
         let url = "action/" + G.faction + "/" + tuple.join("+");
         closeSelection();
         send(url);
@@ -153,11 +153,12 @@
       function processData(data) {
         serverData = data;
         if (outputData) {
-          console.log(data);
+          //console.log(data);
           outputData = false;
         }
         let faction = G.faction;
         let g = G[faction];
+        //info
         if ("players" in data) {
           phase = data.game.phase;
           year = data.game.year;
@@ -171,6 +172,7 @@
           }
           return;
         }
+        //log
         if ("log" in data) {
           let msg = JSON.stringify(data.log);
           msg = msg.replace(/(?:\r\n|\r|\n)/g, "<br>");
@@ -239,7 +241,7 @@
           statusMessage();
           tuplesInAction = expand(data.actions);
           if (outputActions) {
-            console.log(data.actions);
+            //console.log(data.actions);
             prj(tuplesInAction);
             outputActions = false;
           }
@@ -477,11 +479,12 @@
         }
       }
 
-      function getInfluenceId(nation) {
-        return "inf_" + nation;
-      }
-      function setInfluence(nation, faction, level) {
-        let id = getInfluenceId(nation);
+      // function getInfluenceId(nation) {
+      //   return "inf_" + nation;
+      // }
+      function setInfluence(id, nation, faction, level) {
+        //console.log('setInfluence',id,nation,faction,level)
+        //let id = getInfluenceId(nation);
         if (!(id in uis)) {
           let ms = boardFactory.createInfluence(id, nation, faction, level); //also places!
           uis[id] = ms;
@@ -497,9 +500,13 @@
           let go = currentView[id];
           let ttext = JSON.stringify(go);
 
+          //handle CREATED
           if (!(id in uis)) {
             //create object
             switch (go.obj_type) {
+              case "influence":
+                setInfluence(id,go.nation,go.faction,go.value) 
+                break;
               case "tile":
                 //console.log("create region", id);
                 uis[id] = boardFactory.createTile(id, ttext);
@@ -534,13 +541,18 @@
                 }
                 break;
             }
-          } else {
+          } else { //handle UPDATED
             //check property changes
             let ui = uis[id];
 
             for (prop in go) {
               //map values of property to ui
               switch (prop) {
+                case "value":
+                  if (go.obj_type == "influence"){
+                    setInfluence(id,go.nation,go.faction,go[prop]);
+                  }
+                  break;
                 case "tile":
                   //make sure this is a cadre
                   if (go.obj_type != "unit") {
@@ -611,6 +623,7 @@
           switch (go.obj_type) {
             case "action_card":
             case "investment_card":
+              //console.log('visibility update for ',go)
               if (go.visible.set.length == 3) {
                 cardFactory.placeCardInOpenCards(uis[id], currentFaction);
               } else if (go.visible.set.includes(currentFaction)) {
@@ -623,6 +636,7 @@
               break;
             case "unit":
               let faction = go.visible.set[0]; //ms.getTag("faction");
+              //console.log('visibility update for ',go,id,faction,currentFaction);
               let tile = go.tile; //ms.getTag("tile");
               let idHidden = getHiddenId(faction, tile);
               //show unit if owner currentFaction, otherwise show hidden unit
