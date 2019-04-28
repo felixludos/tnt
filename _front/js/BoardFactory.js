@@ -186,20 +186,6 @@ class BoardFactory {
     return {action_card: actionDeck, investment_card: investmentDeck};
   }
 
-  addNationPositions(nationsDict) {
-    this.nationPositions = nationsDict;
-    // //console.log(nationsDict)
-    // for (const key in nationsDict) {
-    //   if (key in mapPositions){
-
-    //   }
-    //   const nat = nationsDict[key];
-    //   //console.log(key,nat)
-    //   this.mapPositions[key] = nat;
-    // }
-    // //console.log('_________!!!____________!!!')
-    // //console.log(this.mapPositions)
-  }
   drawInfluence(ms, nation, faction, level) {
     let imagePath = "./assets/images/" + faction + ".svg";
     let color = troopColors[faction];
@@ -261,6 +247,45 @@ class BoardFactory {
     }
   }
 
+  addNationPositions(nationsDict) {
+    this.nationPositions = nationsDict;
+    let res=[];
+    for (const nat in nationsDict) {
+      let pos = nationsDict[nat];
+    }
+    let ms = new MS(nat, this.board)
+      .circle({className: "overlay nation hible selectable", sz: this.SZ.influence})
+      .setPos(pos.x, pos.y)
+      .draw();
+      ms.tag("type", "nation");
+    res.push(ms);
+    return res;
+    // //console.log(nationsDict)
+    // for (const key in nationsDict) {
+    //   if (key in mapPositions){
+
+    //   }
+    //   const nat = nationsDict[key];
+    //   //console.log(key,nat)
+    //   this.mapPositions[key] = nat;
+    // }
+    // //console.log('_________!!!____________!!!')
+    // //console.log(this.mapPositions)
+  }
+  createNation(id, ttext) {
+    //console.log(this.mapPositions, id);
+    let pos = this.getPosition(id);
+    //console.log(pos);
+    //console.log("createRegion id=", id, "pos=", pos, "ttext=", ttext, this.SZ.region);
+    let msRegion = new MS(id, this.board)
+      .circle({className: "overlay region hible selectable", sz: this.SZ.region})
+      .setPos(pos.x, pos.y)
+      .draw();
+    msRegion.tag("ttext", ttext); //for tooltip
+    msRegion.tag("units", {Axis: [], West: [], USSR: []});
+    msRegion.tag("type", "tile");
+    return msRegion;
+  }
   createTile(id, ttext) {
     //console.log(this.mapPositions, id);
     let pos = this.getPosition(id);

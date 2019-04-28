@@ -56,6 +56,7 @@
 
     <!-- #region functions -->
     <script>
+      var abort = false;
       var serverData; // last message from server as JSON object
       var skipActions = 110; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
       var favorAction = "action_"; //"investment_card";
@@ -71,7 +72,11 @@
         console.log(msgCounter, "request sent: ", url);
         w3.http(url, function() {
           if (this.readyState == 4 && this.status == 200) {
-            processIncomingMessage(this.responseText);
+            if (!abort) processIncomingMessage(this.responseText);
+            else {
+              let d=JSON.parse(this.responseText);
+              console.log('ABORTING!',d);
+            }
           }
         });
       }
@@ -137,6 +142,10 @@
         }
         if (data === undefined) {
           //console.log("!!!", str, "!!!");
+        } else if ('error' in data){
+          send('reset/'+G.faction);
+          abort=true;
+
         } else {
           processData(data);
         }
@@ -948,7 +957,8 @@
         cadreDetail: 44,
         cardWidth: 100,
         cardHeight: 150,
-        chip: 40
+        chip: 40,
+        influence: 60,
       };
     </script>
     <!-- #endregion setup -->
@@ -971,7 +981,9 @@
           //console.log(G);
           loadYML("/common/assets/config/nations.yml", data => {
             G["nations"] = Object.keys(data);
-            boardFactory.addNationPositions(data);
+            let msNationList = boardFactory.addNationPositions(data);
+            msNationList.map(x=>uis[x.id]=x); //overritten bei tiles of same name
+            // Albania, Malta, Gibraltar
             send("init/hotseat/" + G.faction);
           });
         });
