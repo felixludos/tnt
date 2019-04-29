@@ -346,4 +346,5 @@ def load_gamestate(path): # load from input file, or most recent checkpoint (mor
 	PHASE_DONE = data['phase_done']
 	if G is not None:
 		G.logger.write('Game loaded')
+		return path
 

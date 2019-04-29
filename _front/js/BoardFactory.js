@@ -181,7 +181,7 @@ class BoardFactory {
       .draw();
     return {action_card: actionDeck, investment_card: investmentDeck};
   }
-  createHiddenUnit(id, o) {
+  createHiddenUnit(id, faction, o) {
     //console.log('create HIDDEN unit',id,typeof(id),'.........');
     let color = troopColors[o.nationality];
     let darker = darkerColor(color[0], color[1], color[2]);
@@ -198,8 +198,10 @@ class BoardFactory {
       .roundedRect({className: "unit hible selectable", w: sz, h: sz, fill: darker, rounding: sz * 0.1});
     ms.tag("type", "unit");
     ms.tag("count", 1);
+    ms.tag('faction',faction);
+    ms.tag('tile',o.tile)
 
-    this.placeHiddenUnit(ms, o.visible.set[0], o.tile);
+    this.placeHiddenUnit(ms, faction, o.tile);
 
     return ms;
   }

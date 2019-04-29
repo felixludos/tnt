@@ -159,9 +159,6 @@
         //outputData = true;
         //send("reset/" + G.faction); //TODO: try this next!!!
       }
-      // function onClickPass() {
-      //   onClickNextPlayer();
-      // }
       function processIncomingMessage(str) {
         let data = JSON.parse(str);
         //console.log(data);
@@ -532,19 +529,23 @@
                   break;
                 case "unit":
                   //console.log("create unit", id);
+                  let owner = getUnitOwner(go.nationality);
                   let faction = currentFaction;
 
-                  if (isUnitOfFaction(go, currentFaction)) {
-                    uis[id] = boardFactory.createUnit(id, currentFaction, go, ttext);
-                    boardFactory.updateCv(uis[id], go.cv);
-                  } else {
-                    faction = go.visible.set[0];
-                  }
+                  uis[id] = boardFactory.createUnit(id, owner, go, ttext);
+                  boardFactory.updateCv(uis[id], go.cv);
+
+                  //if (owner == currentFaction) {
+                    // uis[id] = boardFactory.createUnit(id, currentFaction, go, ttext);
+                    // boardFactory.updateCv(uis[id], go.cv);
+                  //} else {
+                  //  faction = owner;
+                  //}
                   //console.log("unit", uis[id],'id:::',id);
                   //create or update hidden unit
-                  let idHidden = getHiddenId(faction, go.tile);
+                  let idHidden = getHiddenId(owner, go.tile);
                   if (!(idHidden in uis)) {
-                    uis[idHidden] = boardFactory.createHiddenUnit(idHidden, go);
+                    uis[idHidden] = boardFactory.createHiddenUnit(idHidden, owner, go);
                     //console.log("created hidden unit:", idHidden, id, uis[idHidden]);
                   } else {
                     //increment counter of hidden unit by 1
@@ -657,8 +658,9 @@
                 break;
               case "unit":
                 let unit = uis[id];
+                console.log('...........unit is:',unit,id)
                 let owner = unit.getTag("faction");
-                let faction = go.visible.set[0]; // owner; //ms.getTag("faction");
+                let faction = owner; //go.visible.set[0]; // owner; //ms.getTag("faction");
                 //console.log('visibility update for ',go,id,faction,currentFaction);
                 let tile = go.tile; //ms.getTag("tile");
                 let idHidden = getHiddenId(faction, tile);
@@ -791,6 +793,17 @@
           return id in selectables? selectables[id]:addSelectableOrCommand(id);
         }
         return id in uis ? uis[id] : id in uisCommand ? uisCommand[id] : addSelectableOrCommand(id);
+      }
+      function getUnitOwner(nationality){
+        if (nationality == 'Germany' || nationality == 'Italy'){
+          return 'Axis';
+        }else if (nationality == 'USSR'){
+          return 'USSR';
+        }else if (nationality == 'Britain' || nationality == 'France'){
+          return 'West';
+        }else {
+          return 'Neutral';
+        }
       }
       function hideCommands() {
         G.commands.map(id => {
