@@ -63,6 +63,8 @@ def pre_command_phase(G):
 	G.temp.decision = tdict()
 	G.temp.passes = 0
 	
+	G.temp.borders = tdict({p:tdict() for p in G.players})
+	
 	return encode_command_card_phase(G)
 
 
@@ -111,7 +113,6 @@ def command_phase(G, player, action):
 			cmd = tdict()
 			cmd.priority = card.priority
 			cmd.moved = tset()
-			cmd.borders = tdict()
 			cmd.declarations = tset()
 			
 			if card.season == G.temp.season:
