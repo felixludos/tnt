@@ -88,6 +88,27 @@ class BoardFactory {
     //msChips is for all uis used to mark things like population, resources, blockage....
     this.msChips = {};
   }
+  addNationPositions(nationsDict) {
+    this.nationPositions = nationsDict;
+    let res = [];
+    for (const nat in nationsDict) {
+      let pos = this.getNationPosition(nat);
+      //let id = nat.replace(/\s/g,'_');
+      
+      let ms = new MS(nat, this.board)
+        .circle({className: "overlay nation hible selectable", sz: this.SZ.influence})
+        .setPos(pos.x, pos.y)
+        .draw();
+      ms.tag("type", "nation");
+      res.push(ms);
+    }
+    return res;
+  }
+  calcStartPos(tile, faction) {
+    let pFaction = this.SZ["p" + faction];
+    let pTile = this.getPosition(tile);
+    return {x: pTile.x + pFaction.x, y: pTile.y + pFaction.y};
+  }
   calculateStatsPositions() {
     let arr = [];
     let x = 580;
@@ -124,30 +145,6 @@ class BoardFactory {
     }
     this.vpts.USSR = arr;
   }
-  setPopulation(faction, n) {
-    this.setChip("pop", "P", faction, n, "sienna");
-  }
-  setIndustry(faction, n) {
-    this.setChip("ind", "I", faction, n, "red");
-  }
-  setResource(faction, n) {
-    this.setChip("res", "R", faction, n, "green");
-  }
-  setChip(prefix, text, faction, n, color) {
-    let pts = this.vpts[faction];
-    let pos = pts[n - 1];
-    let id = prefix + faction;
-    if (!(id in this.msChips)) {
-      this.msChips[id] = this.createChip(id, {text: text, prefix: prefix, faction: faction, color: color});
-    }
-    let ms = this.msChips[id];
-    //this.setChipText(n);
-    //ms.removeFromChildIndex(2);
-    //console.log("pos is:", pos);
-    ms.setPos(pos.x, pos.y);
-  }
-
-  //setChipText(txt){}
   createChip(id, {text = "", filename = "", prefix = "", faction = "", color = "beige"} = {}) {
     //id is also the filename
     let sz = this.SZ.chip;
@@ -160,7 +157,6 @@ class BoardFactory {
       .draw();
     return ms;
   }
-
   createDecks() {
     let wDeckArea = 251;
     let hDeckArea = 354;
@@ -185,30 +181,26 @@ class BoardFactory {
       .draw();
     return {action_card: actionDeck, investment_card: investmentDeck};
   }
-
-  drawInfluence(ms, nation, faction, level) {
-    let imagePath = "/_front/assets/images/" + faction + ".svg";
-    let color = troopColors[faction];
-    //console.log('COLOR:',color)
+  createHiddenUnit(id, o) {
+    //console.log('create HIDDEN unit',id,typeof(id),'.........');
+    let color = troopColors[o.nationality];
     let darker = darkerColor(color[0], color[1], color[2]);
-    let sz = 25 + this.SZ.sumCadre * (level / 4.5); //influence grows with level!
-    let sz90 = sz * 0.96;
+    //console.log(darker);
+    let sz = this.SZ.sumCadre;
     let sz80 = sz * 0.86;
-    let szImage = 30; //sz / 1.5;
+    let szImage = sz / 1.5;
     let y = szImage / 6;
-    let text = level;
-    let fontColor = level == 1 ? "black" : level == 2 ? "red" : darker;
-    ms.circle({fill: color, alpha: 0.5, sz: sz})
-      .circle({fill: darker, sz: szImage + 6})
-      .circle({fill: color, sz: szImage + 4})
-      .image({path: imagePath, w: szImage, h: szImage})
-      .text({txt: text, fill: fontColor, fz: szImage - 5, weight: "bold"})
-      .circle({className: "overlay", sz: sz});
-    //ms.tag("ttext", ttext); //for tooltip, not yet used
-    ms.tag("nation", nation);
-    ms.tag("faction", faction);
-    ms.tag("level", level);
-    ms.tag("type","influence");
+    //console.log(id)
+    let ms = new MS(id, this.board, true)
+      .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
+      .roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
+      .text({txt: 1, fz: sz / 2, fill: "white"})
+      .roundedRect({className: "unit hible selectable", w: sz, h: sz, fill: darker, rounding: sz * 0.1});
+    ms.tag("type", "unit");
+    ms.tag("count", 1);
+
+    this.placeHiddenUnit(ms, o.visible.set[0], o.tile);
+
     return ms;
   }
   createInfluence(id, nation, faction, level) {
@@ -229,70 +221,6 @@ class BoardFactory {
 
     return ms;
   }
-  removeInfluence(nation) {
-    if (nation in this.influence) {
-      let ms = this.influence[nation];
-      ms.hide();
-    }
-  }
-  updateInfluence(id, nation, faction, level) { //this assumes there is always only influence of <=1 faction on 1 nation
-    if (level == 0) {
-      this.removeInfluence(nation);
-    } else {
-      if (!(nation in this.influence)) {
-        console.log("ERROR!!!! updating non-existent influence!!!!");
-      }
-      let ms = this.influence[nation];
-      ms.show();
-      ms.removeFromChildIndex(1);
-      //console.log('removing all children from ms.elem',ms);
-      this.drawInfluence(ms, nation, faction, level);
-      //entire ms is redrawn!
-    }
-  }
-
-  addNationPositions(nationsDict) {
-    this.nationPositions = nationsDict;
-    let res = [];
-    for (const nat in nationsDict) {
-      let pos = this.getNationPosition(nat);
-      //let id = nat.replace(/\s/g,'_');
-      
-      let ms = new MS(nat, this.board)
-        .circle({className: "overlay nation hible selectable", sz: this.SZ.influence})
-        .setPos(pos.x, pos.y)
-        .draw();
-      ms.tag("type", "nation");
-      res.push(ms);
-    }
-    //console.log()
-    return res;
-    // //console.log(nationsDict)
-    // for (const key in nationsDict) {
-    //   if (key in mapPositions){
-
-    //   }
-    //   const nat = nationsDict[key];
-    //   //console.log(key,nat)
-    //   this.mapPositions[key] = nat;
-    // }
-    // //console.log('_________!!!____________!!!')
-    // //console.log(this.mapPositions)
-  }
-  // createNation(id, ttext) {
-  //   //console.log(this.mapPositions, id);
-  //   let pos = this.getPosition(id);
-  //   //console.log(pos);
-  //   //console.log("createRegion id=", id, "pos=", pos, "ttext=", ttext, this.SZ.region);
-  //   let msRegion = new MS(id, this.board)
-  //     .circle({className: "overlay region hible selectable", sz: this.SZ.region})
-  //     .setPos(pos.x, pos.y)
-  //     .draw();
-  //   msRegion.tag("ttext", ttext); //for tooltip
-  //   msRegion.tag("units", {Axis: [], West: [], USSR: []});
-  //   msRegion.tag("type", "tile");
-  //   return msRegion;
-  // }
   createTile(id, ttext) {
     //console.log(this.mapPositions, id);
     let pos = this.getPosition(id);
@@ -307,7 +235,6 @@ class BoardFactory {
     msRegion.tag("type", "tile");
     return msRegion;
   }
-
   createUnit(id, faction, go, ttext) {
     //console.log('create unit',id,faction,go,ttext,'.........');
     let nationality = go.nationality;
@@ -334,27 +261,48 @@ class BoardFactory {
     this.placeUnit(ms, tile);
     return ms;
   }
-  createHiddenUnit(id, o) {
-    //console.log('create HIDDEN unit',id,typeof(id),'.........');
-    let color = troopColors[o.nationality];
+  drawInfluence(ms, nation, faction, level) {
+    let imagePath = "/_front/assets/images/" + faction + ".svg";
+    let color = troopColors[faction];
+    //console.log('COLOR:',color)
     let darker = darkerColor(color[0], color[1], color[2]);
-    //console.log(darker);
-    let sz = this.SZ.sumCadre;
+    let szBase = this.SZ.influence/1.5;
+    let szRest = this.SZ.influence - szBase;
+    let sz = szBase + szBase * (level-1) / 2; //influence grows with level!
+    let sz90 = sz * 0.96;
     let sz80 = sz * 0.86;
-    let szImage = sz / 1.5;
+    let szImage = 30; //sz / 1.5;
     let y = szImage / 6;
-    //console.log(id)
-    let ms = new MS(id, this.board, true)
-      .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
-      .roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
-      .text({txt: 1, fz: sz / 2, fill: "white"})
-      .roundedRect({className: "unit hible selectable", w: sz, h: sz, fill: darker, rounding: sz * 0.1});
-    ms.tag("type", "unit");
-    ms.tag("count", 1);
-
-    this.placeHiddenUnit(ms, o.visible.set[0], o.tile);
-
+    let text = level;
+    let fontColor = level == 1 ? "black" : level == 2 ? "red" : darker;
+    ms.circle({fill: 'yellow', alpha: 1, sz: sz})
+      .circle({fill: darker, sz: szImage + 6})
+      .circle({fill: color, sz: szImage + 4})
+      .image({path: imagePath, w: szImage, h: szImage})
+      .text({txt: text, fill: fontColor, fz: szImage - 5, weight: "bold"})
+      .circle({className: "overlay", sz: sz});
+    //ms.tag("ttext", ttext); //for tooltip, not yet used
+    ms.tag("nation", nation);
+    ms.tag("faction", faction);
+    ms.tag("level", level);
+    ms.tag("type","influence");
     return ms;
+  }
+  getPosition(idTile) {
+    let idPos = replaceAll(idTile, "_", " ");
+    if (!(idPos in this.mapPositions)) {
+      //console.log("canNOT find position for", idPos);
+      return null;
+    }
+    return this.mapPositions[idPos];
+  }
+  getNationPosition(idTile) {
+    let idPos = replaceAll(idTile, "_", " ");
+    if (!(idPos in this.nationPositions)) {
+      console.log("canNOT find position for nation", idPos);
+      return null;
+    }
+    return this.nationPositions[idPos];
   }
   placeUnit(msUnit, tile) {
     let faction = msUnit.getTag("faction");
@@ -384,6 +332,53 @@ class BoardFactory {
     let faction = ms.getTag("faction");
     this.units[faction][tile] = without(this.units[faction][tile], ms.id);
   }
+  removeInfluence(nation) {
+    if (nation in this.influence) {
+      let ms = this.influence[nation];
+      ms.hide();
+    }
+  }
+  reset(){
+    this.units = {Axis: {}, West: {}, USSR: {}};
+    this.influence = {}; //key:nation,value:ms, needs tags for faction and value;
+  }
+  setPopulation(faction, n) {
+    this.setChip("pop", "P", faction, n, "sienna");
+  }
+  setIndustry(faction, n) {
+    this.setChip("ind", "I", faction, n, "red");
+  }
+  setResource(faction, n) {
+    this.setChip("res", "R", faction, n, "green");
+  }
+  setChip(prefix, text, faction, n, color) {
+    let pts = this.vpts[faction];
+    let pos = pts[n - 1];
+    let id = prefix + faction;
+    if (!(id in this.msChips)) {
+      this.msChips[id] = this.createChip(id, {text: text, prefix: prefix, faction: faction, color: color});
+    }
+    let ms = this.msChips[id];
+    //this.setChipText(n);
+    //ms.removeFromChildIndex(2);
+    //console.log("pos is:", pos);
+    ms.setPos(pos.x, pos.y);
+  }
+  updateInfluence(id, nation, faction, level) { //this assumes there is always only influence of <=1 faction on 1 nation
+    if (level == 0) {
+      this.removeInfluence(nation);
+    } else {
+      if (!(nation in this.influence)) {
+        console.log("ERROR!!!! updating non-existent influence!!!!");
+      }
+      let ms = this.influence[nation];
+      ms.show();
+      ms.removeFromChildIndex(1);
+      //console.log('removing all children from ms.elem',ms);
+      this.drawInfluence(ms, nation, faction, level);
+      //entire ms is redrawn!
+    }
+  }
   updateUnitCounter(o, ms, inc) {
     //console.log('updateUnitCounter')
     let n = ms.getTag("count");
@@ -400,27 +395,6 @@ class BoardFactory {
       rounding: sz * 0.1
     });
     ms.tag("count", n);
-  }
-  calcStartPos(tile, faction) {
-    let pFaction = this.SZ["p" + faction];
-    let pTile = this.getPosition(tile);
-    return {x: pTile.x + pFaction.x, y: pTile.y + pFaction.y};
-  }
-  getPosition(idTile) {
-    let idPos = replaceAll(idTile, "_", " ");
-    if (!(idPos in this.mapPositions)) {
-      //console.log("canNOT find position for", idPos);
-      return null;
-    }
-    return this.mapPositions[idPos];
-  }
-  getNationPosition(idTile) {
-    let idPos = replaceAll(idTile, "_", " ");
-    if (!(idPos in this.nationPositions)) {
-      console.log("canNOT find position for nation", idPos);
-      return null;
-    }
-    return this.nationPositions[idPos];
   }
   updateCv(msUnit, cv) {
     //console.log(cv,typeof(cv))

@@ -16,6 +16,9 @@ class CardFactory {
     this.cards = [];
     this.openCards = [];
   }
+  reset(){
+    this.clearCards();
+  }
   clearCards() {
     //console.log("cardFactory.clearCards");
     //clearElement(cardDisplay);

@@ -36,6 +36,7 @@
       <div id="buttonDiv" class="div">
         <button id="bNextPlayer" class="hidden" onclick="onClickNextPlayer()">next player</button>
         <button id="bSave" onclick="saveGameState()">save</button>
+        <button id="bLoad" onclick="loadGameState()">load</button>
         <!-- <button id="bPass" class="hidden" onclick="onClickPass()">pass</button> -->
       </div>
       <div id="cardDisplay" class="div" style="height:200px">
@@ -58,7 +59,7 @@
     <script>
       var abort = false;
       var serverData; // last message from server as JSON object
-      var skipActions = 114; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
+      var skipActions = 0; //120; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
       var favorAction = "action_"; //"investment_card";
 
       function statusMessage(msgAdd = "") {
@@ -66,40 +67,66 @@
         s += " " + msgAdd;
         document.getElementById("statusDiv").innerHTML = s;
       }
+      function saveGameState() {
+        //console.log(G);
+        //console.log("_____________");
+        //settings = {any_kind_of_object: true};
+        json_str = JSON.stringify(G);
+        saveFile("yourfilename.json", "data:application/json", new Blob([json_str], {type: ""}));
+        send("save/gs01");
+      }
+      function loadGameState() {
+        resetGame();
+
+        console.log('game state:',G)
+        send("load/scAgent.json");
+        //send('reset/'+player);
+
+      }
       function send(url) {
         url = backendServerUrl + url;
         msgCounter += 1;
-        //console.log(msgCounter, "request sent: ", url);
+        console.log(msgCounter, "request sent: ", url);
         w3.http(url, function() {
           if (this.readyState == 4 && this.status == 200) {
-            if (!abort) processIncomingMessage(this.responseText);
-            else {
-              let d=JSON.parse(this.responseText);
-              //console.log('ABORTING!',d);
+            try {
+              serverData = JSON.parse(this.responseText);
+              console.log(serverData);
+            } catch (err) {
+              console.log(this.responseText);
+              console.log("not a JSON");
+              send("reset/" + G.faction);
+              return;
+            }
+            if (!abort) {
+              processIncomingMessage(this.responseText);
+            } else {
+              let d = JSON.parse(this.responseText);
+              console.log("ABORTING!", d);
             }
           }
         });
       }
       function skipAction() {
         //console.log("skipAction............");
-        let tuple = '';//tuplesInAction[0];
+        let tuple = ""; //tuplesInAction[0];
         if (favorAction) {
           for (const t of tuplesInAction) {
-            if (t.length == 2 && startsWith(t[0],'action_')){
-              tuple = t; break;
+            if (t.length == 2 && startsWith(t[0], "action_")) {
+              tuple = t;
+              break;
             }
           }
-          if (tuple == '' && isGovPhase() && tuplesInAction.includes(['pass'])){
-            tuple = ['pass'];
+          if (tuple == "" && isGovPhase() && tuplesInAction.includes(["pass"])) {
+            tuple = ["pass"];
             // not action_ card left to play
             // look if pass is a possibility
-          }else{
-            tuple = tuplesInAction.find(x=>!empty(x));
+          } else {
+            tuple = tuplesInAction.find(x => !empty(x));
             //console.log('found non-empty:',tuple);
-            if (tuple.includes('remove')){
+            if (tuple.includes("remove")) {
               //console.log('remove tuple!',serverData);
-              tuple = tuplesInAction.find(x=>!empty(x) && !(x.includes('remove')));
-
+              tuple = tuplesInAction.find(x => !empty(x) && !x.includes("remove"));
             }
           }
           //select this action if it exists
@@ -109,8 +136,10 @@
           //   tuple = favs[0];
           // }
         }
-        if (tuple == ''){tuple = tuplesInAction[0];}
-        if (!Array.isArray(tuple)){
+        if (tuple == "") {
+          tuple = tuplesInAction[0];
+        }
+        if (!Array.isArray(tuple)) {
           //console.log('ERROR NOT A LL: serverData:',serverData);
           //console.log('problem tuple',tuple)
           tuple = [tuple];
@@ -125,8 +154,9 @@
         cardFactory.clearCards();
         //TODO: hide board objects?
         G.previousFaction = G.faction;
-        G.faction = nextFaction;
+        G.faction = player = nextFaction;
         send("status/" + G.faction);
+        //outputData = true;
         //send("reset/" + G.faction); //TODO: try this next!!!
       }
       // function onClickPass() {
@@ -136,24 +166,23 @@
         let data = JSON.parse(str);
         //console.log(data);
         if ("invest_55" in data) {
-          //console.log("THESE ARE RESET DATA!!!",data);
+          console.log("THESE ARE RESET DATA!!!",data);
           processReset(data);
           return;
         }
         if (data === undefined) {
           //console.log("!!!", str, "!!!");
-        } else if ('error' in data){
-          send('reset/'+G.faction);
-          abort=true;
-
+        } else if ("error" in data) {
+          send("reset/" + G.faction);
+          abort = true;
         } else {
           processData(data);
         }
       }
       function processData(data) {
-        serverData = data;
+        //serverData = data;
         if (outputData) {
-          //console.log(data);
+          console.log(data);
           outputData = false;
         }
         let faction = G.faction;
@@ -163,7 +192,7 @@
           phase = data.game.phase;
           year = data.game.year;
           statusMessage();
-          //console.log(data);
+          //console.log("info", data);
           updateInfo(data);
           if (skipActions > 0) {
             onClickNextPlayer();
@@ -267,16 +296,19 @@
       }
 
       function processReset(data) {
-        let faction = G.previousFaction;
+        let faction = G.faction; //G.previousFaction;
         let g = G[faction];
-        //console.log("faction", faction);
         for (k in data) {
           let sk = k.toString();
           g[sk] = data[k];
         }
-        //console.log("G[faction]", g);
         updateUI();
-        send("status/" + faction);
+        console.log('after reset:')
+        console.log("faction:", faction);
+        console.log("G:", g);
+        console.log("uis:", uis);
+        send("info/" + G.faction);
+        //send("status/" + faction);
       }
     </script>
     <!-- #endregion functions -->
@@ -339,52 +371,59 @@
       }
       function onSelected(ev) {
         let id = evToId(ev);
-        let ui = firstCond(uisPossible, x => x.id == id);
 
-        //console.log("selected:", id, ui);
+        try {
+          let ui = firstCond(uisPossible, x => x.id == id);
 
-        // if it is in uisSelected, need to unselect it and go from there
-        if (uisSelected.includes(ui)) {
-          // same as tuplePartSelected.includes(id)) {
-          //remove this id from tuplePartSelected
-          tuplePartSelected = without(tuplePartSelected, id);
-          ui.unselect();
-          uisSelected = without(uisSelected, ui);
-          //filter tuplesInAction to all containing tuplePartSelect
-          tuplesPossible = getListsContainingAll(tuplesInAction, tuplePartSelected);
-        } else {
-          // add it to tuplePartSelected
-          tuplePartSelected.push(id);
-          ui.select();
-          uisSelected.push(ui);
-          //filter possible tuples to just the ones containing this id
-          tuplesPossible = tuplesPossible.filter(x => x.includes(id));
-          //console.log('possible tuples after new selection:',tuplesPossible)
-          if (isInvestmentCard(ui.id)) {
-            //console.log('clicked',ui.id,':',ui.json)
+          //console.log("selected:", id, ui);
+
+          // if it is in uisSelected, need to unselect it and go from there
+          if (uisSelected.includes(ui)) {
+            // same as tuplePartSelected.includes(id)) {
+            //remove this id from tuplePartSelected
+            tuplePartSelected = without(tuplePartSelected, id);
+            ui.unselect();
+            uisSelected = without(uisSelected, ui);
+            //filter tuplesInAction to all containing tuplePartSelect
+            tuplesPossible = getListsContainingAll(tuplesInAction, tuplePartSelected);
+          } else {
+            // add it to tuplePartSelected
+            tuplePartSelected.push(id);
+            ui.select();
+            uisSelected.push(ui);
+            //filter possible tuples to just the ones containing this id
+            tuplesPossible = tuplesPossible.filter(x => x.includes(id));
+            //console.log('possible tuples after new selection:',tuplesPossible)
+            if (isInvestmentCard(ui.id)) {
+              //console.log('clicked',ui.id,':',ui.json)
+            }
           }
-        }
 
-        //check if only one tuple matches, in which case finished!
-        if (tuplesPossible.length == 1) {
-          let tuple = tuplesPossible[0];
-          //console.log("onSelected: found tuple");
+          //check if only one tuple matches, in which case finished!
+          if (tuplesPossible.length == 1) {
+            let tuple = tuplesPossible[0];
+            //console.log("onSelected: found tuple");
 
-          //test
-          //if (tuple.includes("factory_upgrade") || tuple.includes("pass")) {
-          //outputActions = true;
-          outputData = true;
-          //}
+            //test
+            //if (tuple.includes("factory_upgrade") || tuple.includes("pass")) {
+            //outputActions = true;
+            //outputData = true;
+            //}
 
-          closeSelection();
-          let url = "action/" + G.faction + "/" + tuple.join("+");
-          send(url);
-        } else {
-          // check if there is an id that is same in all tuplesPossible and not in
-          // tuplePartSelected >> that should also go in tuplePartSelected!!!
+            closeSelection();
+            let url = "action/" + G.faction + "/" + tuple.join("+");
+            send(url);
+          } else {
+            // check if there is an id that is same in all tuplesPossible and not in
+            // tuplePartSelected >> that should also go in tuplePartSelected!!!
 
-          // now that tuples are updated, highlight again
-          highlightObjects();
+            // now that tuples are updated, highlight again
+            highlightObjects();
+          }
+        } catch (err) {
+          console.log(err);
+          console.log(id);
+          throw "onSelect ERROR!!!!!";
         }
       }
       function computeUisInAction() {
@@ -468,30 +507,8 @@
     </script>
     <!-- #endregion functions -->
 
-    <!-- #region FRONT END functions -->
+    <!-- #region UPDATE UI -->
     <script>
-      function updateInfo(data) {
-        for (const faction of G.factions) {
-          //console.log("updating info for", faction);
-          boardFactory.setPopulation(faction, data.players[faction].tracks.POP);
-          boardFactory.setResource(faction, data.players[faction].tracks.RES);
-          boardFactory.setIndustry(faction, data.players[faction].tracks.IND);
-        }
-      }
-
-      // function getInfluenceId(nation) {
-      //   return "inf_" + nation;
-      // }
-      function setInfluence(id, nation, faction, level) {
-        //console.log('setInfluence',id,nation,faction,level)
-        //let id = getInfluenceId(nation);
-        if (!(id in uis)) {
-          let ms = boardFactory.createInfluence(id, nation, faction, level); //also places!
-          uis[id] = ms;
-        } else {
-          boardFactory.updateInfluence(id, nation, faction, level);
-        }
-      }
       function updateUI() {
         var currentFaction = G.faction;
         var currentView = G[currentFaction];
@@ -500,156 +517,175 @@
           let go = currentView[id];
           let ttext = JSON.stringify(go);
 
-          //handle CREATED
-          if (!(id in uis)) {
-            //create object
-            switch (go.obj_type) {
-              case "influence":
-                setInfluence(id,go.nation,go.faction,go.value) 
-                break;
-              case "tile":
-                //console.log("create region", id);
-                uis[id] = boardFactory.createTile(id, ttext);
-                break;
-              case "unit":
-                //console.log("create unit", id);
-                let faction = currentFaction;
-
-                if (isUnitOfFaction(go, currentFaction)) {
-                  uis[id] = boardFactory.createUnit(id, currentFaction, go, ttext);
-                  boardFactory.updateCv(uis[id], go.cv);
-                } else {
-                  faction = go.visible.set[0];
-                }
-                //console.log("unit", uis[id],'id:::',id);
-                //create or update hidden unit
-                let idHidden = getHiddenId(faction, go.tile);
-                if (!(idHidden in uis)) {
-                  uis[idHidden] = boardFactory.createHiddenUnit(idHidden, go);
-                  //console.log("created hidden unit:", idHidden, id, uis[idHidden]);
-                } else {
-                  //increment counter of hidden unit by 1
-                  boardFactory.updateUnitCounter(go, uis[idHidden], 1);
-                }
-                break;
-              case "action_card":
-              case "investment_card":
-                let ui = cardFactory.createCard(id, go, ttext);
-                uis[id] = ui;
-                if (isHandCard(go, currentFaction)) {
-                  cardFactory.placeCard(ui, currentFaction);
-                }
-                break;
-            }
-          } else { //handle UPDATED
-            //check property changes
-            let ui = uis[id];
-
-            for (prop in go) {
-              //map values of property to ui
-              switch (prop) {
-                case "value":
-                  if (go.obj_type == "influence"){
-                    setInfluence(id,go.nation,go.faction,go[prop]);
-                  }
+          try {
+            //handle CREATED
+            if (!(id in uis)) {
+              //create object
+              switch (go.obj_type) {
+                case "influence":
+                  //console.log("updateUI: creating influence!", id, go, G, uis, serverData);
+                  setInfluence(id, go.nation, go.faction, go.value);
                   break;
                 case "tile":
-                  //make sure this is a cadre
-                  if (go.obj_type != "unit") {
-                    //console.log("trying to place a", go.obj_type);
+                  //console.log("create region", id);
+                  uis[id] = boardFactory.createTile(id, ttext);
+                  break;
+                case "unit":
+                  //console.log("create unit", id);
+                  let faction = currentFaction;
+
+                  if (isUnitOfFaction(go, currentFaction)) {
+                    uis[id] = boardFactory.createUnit(id, currentFaction, go, ttext);
+                    boardFactory.updateCv(uis[id], go.cv);
+                  } else {
+                    faction = go.visible.set[0];
                   }
-                  let tile = go.tile;
-                  let unitTile = ui.getTag("tile");
-                  if (unitTile != tile) {
-                    //console.log("PLACE! update tile from", unitTile, "to", tile);
-                    //remove unit from old tile
-                    boardFactory.removeUnitFrom(ui, tile);
-                    boardFactory.placeUnit(ui, tile);
+                  //console.log("unit", uis[id],'id:::',id);
+                  //create or update hidden unit
+                  let idHidden = getHiddenId(faction, go.tile);
+                  if (!(idHidden in uis)) {
+                    uis[idHidden] = boardFactory.createHiddenUnit(idHidden, go);
+                    //console.log("created hidden unit:", idHidden, id, uis[idHidden]);
+                  } else {
+                    //increment counter of hidden unit by 1
+                    boardFactory.updateUnitCounter(go, uis[idHidden], 1);
                   }
                   break;
-                case "cv":
-                  //make sure this is a cadre
-                  if (go.obj_type != "unit") {
-                    //console.log("trying to attach cv to ", go.obj_type);
-                  }
-                  let cv = go[prop];
-                  let unitCV = ui.getTag("cv");
-                  if (unitCV != cv) {
-                    //console.log("update cv from", unitCV, "to", cv);
-                    boardFactory.updateCv(ui, cv);
+                case "action_card":
+                case "investment_card":
+                  let ui = cardFactory.createCard(id, go, ttext);
+                  uis[id] = ui;
+                  if (isHandCard(go, currentFaction)) {
+                    cardFactory.placeCard(ui, currentFaction);
                   }
                   break;
-                case "top":
-                case "wildcard":
-                case "year":
-                //case "espionage":
-                case "intelligence":
-                  //default:
-                  //console.log('updating card:',ui.id)
-                  let title = ui.getTag("title");
-                  if (title != go[prop]) {
-                    //console.log(title,go,ui)
-                    cardFactory.updateCardContent(ui.id, ui, go, ttext);
-                  }
-                  break;
-                default:
-                  if (
-                    startsWith(ui.id, "invest_") &&
-                    ![
-                      "obj_type",
-                      "visible",
-                      "units",
-                      "visible",
-                      "type",
-                      "alligence",
-                      "muster",
-                      "pop",
-                      "res",
-                      "borders",
-                      "name",
-                      "season",
-                      "priority",
-                      "bottom",
-                      "name"
-                    ].includes(prop)
-                  ) {
-                    //console.log(prop,go[prop]);
-                  }
+              }
+            } else {
+              //handle UPDATED
+              //check property changes
+              let ui = uis[id];
+
+              for (prop in go) {
+                //map values of property to ui
+                switch (prop) {
+                  case "value":
+                    if (go.obj_type == "influence") {
+                      //console.log("prop: value mit obj_type influence", id, ui, go, G, uis, serverData);
+                      setInfluence(id, go.nation, go.faction, go[prop]);
+                    }
+                    break;
+                  case "tile":
+                    //make sure this is a cadre
+                    if (go.obj_type != "unit") {
+                      //console.log("trying to place a", go.obj_type);
+                    }
+                    let tile = go.tile;
+                    let unitTile = ui.getTag("tile");
+                    if (unitTile != tile) {
+                      //console.log("PLACE! update tile from", unitTile, "to", tile);
+                      //remove unit from old tile
+                      boardFactory.removeUnitFrom(ui, tile);
+                      boardFactory.placeUnit(ui, tile);
+                    }
+                    break;
+                  case "cv":
+                    //make sure this is a cadre
+                    if (go.obj_type != "unit") {
+                      //console.log("trying to attach cv to ", go.obj_type);
+                    }
+                    let cv = go[prop];
+                    let unitCV = ui.getTag("cv");
+                    if (unitCV != cv) {
+                      //console.log("update cv from", unitCV, "to", cv);
+                      boardFactory.updateCv(ui, cv);
+                    }
+                    break;
+                  case "top":
+                  case "wildcard":
+                  case "year":
+                  //case "espionage":
+                  case "intelligence":
+                    //default:
+                    //console.log('updating card:',ui.id)
+                    let title = ui.getTag("title");
+                    if (title != go[prop]) {
+                      //console.log(title,go,ui)
+                      cardFactory.updateCardContent(ui.id, ui, go, ttext);
+                    }
+                    break;
+                  default:
+                    if (
+                      startsWith(ui.id, "invest_") &&
+                      ![
+                        "obj_type",
+                        "visible",
+                        "units",
+                        "visible",
+                        "type",
+                        "alligence",
+                        "muster",
+                        "pop",
+                        "res",
+                        "borders",
+                        "name",
+                        "season",
+                        "priority",
+                        "bottom",
+                        "name"
+                      ].includes(prop)
+                    ) {
+                      //console.log(prop,go[prop]);
+                    }
+                }
               }
             }
-          }
 
-          //visibility
-          switch (go.obj_type) {
-            case "action_card":
-            case "investment_card":
-              //console.log('visibility update for ',go)
-              if (go.visible.set.length == 3) {
-                cardFactory.placeCardInOpenCards(uis[id], currentFaction);
-              } else if (go.visible.set.includes(currentFaction)) {
-                if (go.visible.set.length == 2) {
-                  //someone is showing this guy this card
-                  cardFactory.showForeignCard(uis[id], go.visible.set, currentFaction);
+            //visibility
+            switch (go.obj_type) {
+              case "action_card":
+              case "investment_card":
+                //console.log('visibility update for ',go)
+                if (go.visible.set.length == 3) {
+                  cardFactory.placeCardInOpenCards(uis[id], currentFaction);
+                } else if (go.visible.set.includes(currentFaction)) {
+                  if (go.visible.set.length == 2) {
+                    //someone is showing this guy this card
+                    cardFactory.showForeignCard(uis[id], go.visible.set, currentFaction);
+                  }
+                  cardFactory.placeCard(uis[id], currentFaction);
                 }
-                cardFactory.placeCard(uis[id], currentFaction);
-              }
-              break;
-            case "unit":
-              let faction = go.visible.set[0]; //ms.getTag("faction");
-              //console.log('visibility update for ',go,id,faction,currentFaction);
-              let tile = go.tile; //ms.getTag("tile");
-              let idHidden = getHiddenId(faction, tile);
-              //show unit if owner currentFaction, otherwise show hidden unit
-              if (faction == currentFaction) {
-                uis[id].show();
-                uis[idHidden].hide();
-              } else {
-                uis[idHidden].show();
-                if (id in uis) {
-                  uis[id].hide();
+                break;
+              case "unit":
+                let unit = uis[id];
+                let owner = unit.getTag("faction");
+                let faction = go.visible.set[0]; // owner; //ms.getTag("faction");
+                //console.log('visibility update for ',go,id,faction,currentFaction);
+                let tile = go.tile; //ms.getTag("tile");
+                let idHidden = getHiddenId(faction, tile);
+                //show unit if owner currentFaction, otherwise show hidden unit
+                if (faction == currentFaction) {
+                  //***console.log("if idHidden.hide", idHidden, id, uis[idHidden], uis[id]);
+                  uis[id].show();
+                  uis[idHidden].hide();
+                } else {
+                  //***console.log("else idHidden.show", idHidden, id, uis[idHidden], uis[id]);
+                  uis[idHidden].show();
+                  if (id in uis) {
+                    uis[id].hide();
+                  }
                 }
-              }
-              break;
+                break;
+            }
+          } catch (err) {
+            console.log(err);
+            console.log("serverData", serverData);
+            console.log("uis", uis);
+            console.log("G", G);
+            console.log("currentView", currentView);
+            console.log("currentFaction", currentFaction);
+            console.log("id=", id);
+            console.log("go", go);
+            throw "UPDATE ERROR";
           }
         }
       }
@@ -658,34 +694,65 @@
 
     <!-- #region helper functions -->
     <script>
-      function makeSelectable(ui, handler) {
-        if (isCommand(ui)) {
-          ui.show();
+      function addSelectableOrCommand(id) {
+        //add a simple selectable object to selectables area selDiv
+        let ms = undefined;
+        //console.log('addSelectableOrCommand',G.nationality,id)
+        if (G["nationality"].includes(id)) {
+          let d = document.getElementById("selDiv");
+          let g = document.getElementById("selG");
+          let sz = SZ.cadreDetail;
+          ms = new MS(id, g)
+            .roundedRect({w: sz, h: sz, fill: troopColors[id], rounding: sz * 0.1})
+            .text({txt: id, fz: 12})
+            .roundedRect({className: "overlay region hible selectable", w: sz, h: sz, rounding: sz * 0.1});
+          ms.tag("type", "nationality");
+          //console.log(id);
+          selectables[id] = ms;
+          return ms;
+        } else if (G["unit_type"].includes(id)) {
+          let d = document.getElementById("selDiv");
+          let g = document.getElementById("selG");
+          let sz = SZ.cadreDetail;
+          ms = new MS(id, g)
+            .roundedRect({w: sz, h: sz, fill: "black", rounding: sz * 0.1})
+            .image({w: sz, h: sz, path: "/_front/assets/images/" + id + ".svg", rounding: sz * 0.1})
+            .roundedRect({className: "overlay region hible selectable", w: sz, h: sz, rounding: sz * 0.1});
+
+          ms.tag("type", "unit_type");
+          //console.log(id);
+          selectables[id] = ms;
+          return ms;
+        } else {
+          return addCommand(id);
         }
-        ui.highlight();
-        ui.isEnabled = true;
-        ui.clickHandler = handler;
       }
-      function makeUnselectable(ui) {
-        ui.unselect();
-        ui.unhighlight();
-        ui.isEnabled = false;
-        ui.clickHandler = null;
-        if (isCommand(ui)) {
-          ui.hide();
+      function addCommand(id) {
+        //this is some kind of a command
+        if (id in uisCommand) {
+          //console.log("DUPLICATE command!!!!!!!!!", id);
+          return uisCommand[id];
         }
-        // //console.log(G.commands)
-        // if (ui in uisCommand){ // .id in G.commands) {
-        //   //console.log('hiding',ui.id,'!!!!!!!!!!!!')
-        //   hide(ui);
-        // } //for buttons
-        // else {
-        //   // it is an ms
-        //   ui.unselect();
-        //   ui.unhighlight();
-        //   ui.isEnabled = false;
-        //   ui.clickHandler = null;
-        // }
+        //console.log("addCommand: adding button!!!!!!!!!!!!!!!!!!!*******", id);
+
+        addIf(id, G.commands);
+        //console.log("added " + id + " to G.commands", G.commands.toString());
+        let d = document.getElementById("buttonDiv");
+        let b = new MS(id, d, false).button({txt: id, className: "msToggleButton"}).draw();
+        uisCommand[id] = b;
+        //console.log(b,d);
+        return b;
+      }
+      function closeSelection() {
+        //console.log("closeSelection");
+        hide(bSkipAction);
+        uisInAction.map(x => makeUnselectable(x));
+        uisPossible = [];
+        uisInAction = [];
+        uisSelected = [];
+        tuplePartSelected = [];
+        tuplesInAction = [];
+        tuplesPossible = [];
       }
       function firstCond(arr, func) {
         let res = arr.filter(x => func(x));
@@ -694,21 +761,76 @@
       function getActionCardFromTuple(tuple) {
         return firstCond(tuple, x => isActionCard(x));
       }
-      function getNationFromTuple(tuple) {
-        //assumes action card tuple!
-        return firstCond(tuple, x => !isActionCard(x));
+      function getCommandUI(id) {
+        //console.log('getCommandUI id=',id)
+        return id in uisCommand ? uisCommand[id] : addCommand(id);
       }
       function getFactionFromTuple(tuple) {
         return firstCond(tuple, x => G.factions.includes(x));
       }
-      function getTileOrMinorFromTuple(tuple) {
-        return firstCond(tuple, x => !G.factions.includes(x) && !isInvestmentCard(x));
+      function getHiddenId(faction, tile) {
+        return faction + "_" + tile;
       }
       function getInvestmentCardsFromTuple(tuple) {
         return tuple.filter(x => isInvestmentCard(x));
       }
+      function getNationFromTuple(tuple) {
+        //assumes action card tuple!
+        return firstCond(tuple, x => !isActionCard(x));
+      }
+      function getTileOrMinorFromTuple(tuple) {
+        return firstCond(tuple, x => !G.factions.includes(x) && !isInvestmentCard(x));
+      }
       function getTechnologyFromTuple(tuple) {
         return firstCond(tuple, x => !isInvestmentCard(x) && x != "open" && x != "secret");
+      }
+      function getUI(id) {
+        //returns command only if no other ui found!
+        //console.log('getUI id=',id)
+        if (isSelectable(id)){
+          return id in selectables? selectables[id]:addSelectableOrCommand(id);
+        }
+        return id in uis ? uis[id] : id in uisCommand ? uisCommand[id] : addSelectableOrCommand(id);
+      }
+      function hideCommands() {
+        G.commands.map(id => {
+          if (id in uisCommand) {
+            uisCommand[id].hide();
+          }
+        });
+      }
+      function hideSelectionPanel() {
+        closeSelection();
+        let d = document.getElementById("selDiv");
+        if (d.classList.contains("hidden")) return;
+        let dMain = document.getElementById("mainDiv");
+        let g = document.getElementById("selG");
+        NodeList.prototype.forEach = Array.prototype.forEach;
+        var children = g.childNodes;
+        children.forEach(ch => getUI(ch.id).hide());
+        d.classList.add("hidden");
+        dMain.classList.add("grid-hidefirst");
+        dMain.classList.remove("grid-container");
+      }
+      function isCommand(ui) {
+        return G["commands"].includes(ui.id);
+      }
+      function isHandCard(go, faction) {
+        let lst = go.visible.set;
+        return lst.includes(faction);
+      }
+      function isNationality(ui) {
+        return G.nationality.includes(ui.id);
+        //return ui.constructor.name == "MS" && ui.getTag('type')=='nationality';
+      }
+      function isUnit(ui) {
+        return G["unit_type"].includes(ui.id);
+      }
+      function isUnitOfFaction(go, faction) {
+        return go.visible.set.includes(faction);
+      }
+      function isSelectable(id){
+        return G.nationality.includes(id) || G.unit_type.includes(id);
       }
       function isSetupOrProductionPhase() {
         return phase.toLowerCase() == "setup" || phase.toLowerCase() == "production";
@@ -749,88 +871,6 @@
       function isSingletonCommand(id) {
         return findSameSet(tuplesInAction, [id]) != null;
       }
-      function saveGameState() {
-        //console.log(G);
-        //console.log("_____________");
-        //settings = {any_kind_of_object: true};
-        json_str = JSON.stringify(G);
-        saveFile("yourfilename.json", "data:application/json", new Blob([json_str], {type: ""}));
-      }
-      function hideCommands() {
-        G.commands.map(id => {
-          if (id in uisCommand) {
-            uisCommand[id].hide();
-          }
-        });
-      }
-      function addUI(id) {
-        //add a simple selectable object to selectables area selDiv
-        // <div id='selDiv' class="div" style="display:none"><svg id='selSvg' class='svg'><g id='selG'></g></svg></div>
-        let ms = undefined;
-        if (G["nationality"].includes(id)) {
-          let d = document.getElementById("selDiv");
-          let g = document.getElementById("selG");
-          let sz = SZ.cadreDetail;
-          ms = new MS(id, g)
-            .roundedRect({w: sz, h: sz, fill: troopColors[id], rounding: sz * 0.1})
-            .text({txt: id, fz: 12})
-            .roundedRect({className: "overlay region hible selectable", w: sz, h: sz, rounding: sz * 0.1});
-          ms.tag("type", "nationality");
-          //console.log(id);
-          uis[id] = ms;
-          return ms;
-        } else if (G["unit_type"].includes(id)) {
-          let d = document.getElementById("selDiv");
-          let g = document.getElementById("selG");
-          let sz = SZ.cadreDetail;
-          ms = new MS(id, g)
-            .roundedRect({w: sz, h: sz, fill: "black", rounding: sz * 0.1})
-            .image({w: sz, h: sz, path: "/_front/assets/images/" + id + ".svg", rounding: sz * 0.1})
-            .roundedRect({className: "overlay region hible selectable", w: sz, h: sz, rounding: sz * 0.1});
-
-          ms.tag("type", "unit_type");
-          //console.log(id);
-          uis[id] = ms;
-          return ms;
-        } else {
-          return addCommand(id);
-        }
-      }
-      function addCommand(id) {
-        //this is some kind of a command
-        if (id in uisCommand) {
-          //console.log("DUPLICATE command!!!!!!!!!", id);
-          return uisCommand[id];
-        }
-        //console.log("addCommand: adding button!!!!!!!!!!!!!!!!!!!*******", id);
-
-        addIf(id, G.commands);
-        //console.log("added " + id + " to G.commands", G.commands.toString());
-        let d = document.getElementById("buttonDiv");
-        let b = new MS(id, d, false).button({txt: id, className: "msToggleButton"}).draw();
-        uisCommand[id] = b;
-        //console.log(b,d);
-        return b;
-      }
-      function getUI(id) {
-        //returns command only if no other ui found!
-        //console.log('getUI id=',id)
-        return id in uis ? uis[id] : id in uisCommand ? uisCommand[id] : addUI(id);
-      }
-      function getCommandUI(id) {
-        //console.log('getCommandUI id=',id)
-        return id in uisCommand ? uisCommand[id] : addCommand(id);
-      }
-      function isHandCard(go, faction) {
-        let lst = go.visible.set;
-        return lst.includes(faction);
-      }
-      function getHiddenId(faction, tile) {
-        return faction + "_" + tile;
-      }
-      function isUnitOfFaction(go, faction) {
-        return go.visible.set.includes(faction);
-      }
       function lineupSelectables() {
         let gap = 10;
         let x = 30;
@@ -862,6 +902,23 @@
         }
         return res;
       }
+      function makeSelectable(ui, handler) {
+        if (isCommand(ui)) {
+          ui.show();
+        }
+        ui.highlight();
+        ui.isEnabled = true;
+        ui.clickHandler = handler;
+      }
+      function makeUnselectable(ui) {
+        ui.unselect();
+        ui.unhighlight();
+        ui.isEnabled = false;
+        ui.clickHandler = null;
+        if (isCommand(ui)) {
+          ui.hide();
+        }
+      }
       function openCadreSelectionIfPopulated() {
         let d = document.getElementById("selDiv");
         //console.log(d.classList)
@@ -877,40 +934,25 @@
           d.classList.remove("hidden");
         }
       }
-      function closeSelection() {
-        //console.log("closeSelection");
-        hide(bSkipAction);
-        uisInAction.map(x => makeUnselectable(x));
-        uisPossible = [];
-        uisInAction = [];
-        uisSelected = [];
-        tuplePartSelected = [];
-        tuplesInAction = [];
-        tuplesPossible = [];
+      function updateInfo(data) {
+        for (const faction of G.factions) {
+          //console.log("updating info for", faction);
+          boardFactory.setPopulation(faction, data.players[faction].tracks.POP);
+          boardFactory.setResource(faction, data.players[faction].tracks.RES);
+          boardFactory.setIndustry(faction, data.players[faction].tracks.IND);
+        }
       }
-      function hideSelectionPanel() {
-        closeSelection();
-        let d = document.getElementById("selDiv");
-        if (d.classList.contains("hidden")) return;
-        let dMain = document.getElementById("mainDiv");
-        let g = document.getElementById("selG");
-        NodeList.prototype.forEach = Array.prototype.forEach;
-        var children = g.childNodes;
-        children.forEach(ch => getUI(ch.id).hide());
-        d.classList.add("hidden");
-        dMain.classList.add("grid-hidefirst");
-        dMain.classList.remove("grid-container");
+      function setInfluence(id, nation, faction, level) {
+        //console.log('setInfluence',id,nation,faction,level)
+        //let id = getInfluenceId(nation);
+        if (!(id in uis)) {
+          let ms = boardFactory.createInfluence(id, nation, faction, level); //also places!
+          uis[id] = ms;
+        } else {
+          boardFactory.updateInfluence(id, nation, faction, level);
+        }
       }
-      function isNationality(ui) {
-        return G.nationality.includes(ui.id);
-        //return ui.constructor.name == "MS" && ui.getTag('type')=='nationality';
-      }
-      function isUnit(ui) {
-        return G["unit_type"].includes(ui.id);
-      }
-      function iCommand(ui) {
-        return G["commands"].includes(ui.id);
-      }
+
     </script>
     <!-- #endregion partialTuple -->
 
@@ -918,7 +960,6 @@
     <script>
       var fileCounter = 0;
 
-      var nextFaction;
       // var preparingForTurnChange = false;
       // var playerPressedPass = false;
       // var passTimer;
@@ -926,8 +967,11 @@
       var G = {Axis: {}, West: {}, USSR: {}, log: [], faction: "West"};
       G["factions"] = ["Axis", "West", "USSR"];
       var uis = {}; //by id
+      var selectables = {}; //by id, for unit types and nationalities
       var phase = "setup";
       var year = "1935";
+      var player = G.faction;
+      var nextFaction;
 
       var backendServerUrl = "http://localhost:5000/"; //local server
       var msgCounter = 0;
@@ -972,12 +1016,40 @@
         cardWidth: 100,
         cardHeight: 150,
         chip: 40,
-        influence: 60,
+        influence: 100
       };
     </script>
     <!-- #endregion setup -->
 
     <script>
+      function resetGame() {
+        boardFactory.reset();
+        cardFactory.reset();
+        let justNations = {};
+        for (const id in uis) {
+          let ms = uis[id];
+          if (ms.getTag('type')!='nation') {
+            ms.removeFromUI();
+          }else{
+            justNations[id]=ms;
+          }
+        }
+        uis = justNations;
+        let decks = boardFactory.createDecks();
+        uis.action_card = decks.action_card;
+        uis.investment_card = decks.investment_card;
+
+        G.Axis = {};
+        G.West = {};
+        G.USSR = {};
+
+        phase = "setup";
+        year = "1935";
+        player = nextFaction = G.faction;
+
+        console.log('full reset, there shouldnt be any units on the board or cards');
+
+      }
       //*** execution starts here ***
       loadYML("/common/assets/config/map_pos.yml", data => {
         boardFactory = new BoardFactory(board, data, SZ);
@@ -996,7 +1068,7 @@
           loadYML("/common/assets/config/nations.yml", data => {
             G["nations"] = Object.keys(data);
             let msNationList = boardFactory.addNationPositions(data);
-            msNationList.map(x=>uis[x.id]=x); //overritten bei tiles of same name
+            msNationList.map(x => (uis[x.id] = x)); //overritten bei tiles of same name
             // Albania, Malta, Gibraltar
             send("init/hotseat/" + G.faction);
           });
