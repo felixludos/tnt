@@ -185,7 +185,7 @@ def get_intel_options(G, card, *targets):
 	
 	elif card.intelligence == 'Agent':
 		for target in targets:
-			topts = xset(unit.tile for unit in G.players[target].units)
+			topts = xset(unit.tile for unit in G.players[target].units.values())
 			if len(topts):
 				opts.add((target, topts))
 	

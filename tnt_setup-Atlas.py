@@ -114,7 +114,7 @@ def load_players_and_minors(G):
 		faction.tracks.res = res
 		faction.tracks.ind = config.initial_ind
 		
-		faction.units = tset()
+		faction.units = tdict()
 		faction.hand = tset() # for cards
 		faction.influence = tdict()
 		

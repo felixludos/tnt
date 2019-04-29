@@ -56,7 +56,7 @@ def encode_production_actions(G):
 	# improve units
 	improvable = xset()
 	
-	for unit in faction.units:
+	for uid, unit in faction.units.items():
 		
 		# can't upgrade a cv of 4
 		if unit.cv == 4:

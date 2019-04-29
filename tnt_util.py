@@ -513,7 +513,7 @@ def travel_options(G, unit):
 	cls = G.units.rules[unit.type].type
 	
 	hidden_movement = cls == 'S' or cls == 'A'
-	disengaging = (,) if 'disputed' in tile else None
+	disengaging = () if 'disputed' in tile else None
 	
 	for defensive in range(2): # gen all steps once with strategic movement and once without
 		
