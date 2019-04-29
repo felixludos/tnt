@@ -52,7 +52,7 @@ def add_unit(G, unit): # tile, type, cv, nationality
 			raise OutOfReservesError('{} has no more {}'.format(unit.nationality, unit.type))
 		reserves[unit.type] -= 1
 		
-		G.players[player].units.add(unit)
+		G.players[player].units[unit._id] = unit
 	
 	tilename = unit.tile
 	
@@ -98,7 +98,7 @@ def remove_unit(G, unit):
 	reserves[unit.type] += 1
 	
 	G.tiles[tilename].units.remove(unit._id)
-	G.players[player].units.remove(unit)
+	del G.players[player].units[unit._id]
 	del G.objects.table[unit._id]
 	G.objects.removed[unit._id] = unit
 	

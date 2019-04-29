@@ -131,7 +131,7 @@ def load_players_and_minors(G):
 		faction.tracks.RES = res
 		faction.tracks.IND = config.initial_ind
 		
-		faction.units = tset()
+		faction.units = tdict()
 		faction.hand = tset() # for cards
 		faction.technologies = tset()
 		faction.secret_vault = tset()
