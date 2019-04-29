@@ -78,10 +78,9 @@
       function loadGameState() {
         resetGame();
 
-        console.log('game state:',G)
+        //console.log("game state:", G);
         send("load/scAgent.json");
         //send('reset/'+player);
-
       }
       function send(url) {
         url = backendServerUrl + url;
@@ -91,10 +90,10 @@
           if (this.readyState == 4 && this.status == 200) {
             try {
               serverData = JSON.parse(this.responseText);
-              console.log(serverData);
+              //console.log(serverData);
             } catch (err) {
-              console.log(this.responseText);
-              console.log("not a JSON");
+              //console.log(this.responseText);
+              //console.log("not a JSON");
               send("reset/" + G.faction);
               return;
             }
@@ -152,10 +151,20 @@
       function onClickNextPlayer() {
         hide(bNextPlayer);
         cardFactory.clearCards();
-        //TODO: hide board objects?
         G.previousFaction = G.faction;
-        G.faction = player = nextFaction;
-        send("status/" + G.faction);
+
+        if (nextFaction === undefined) {
+          send("action/" + G.faction + '/pass');
+        } else {
+          G.faction = player = nextFaction;
+          send("status/" + G.faction);
+        }
+
+        //   let iPlayer = G.factions.indexOf(G.faction);
+        // iPlayer = (iPlayer+1)%G.factions.length;
+        // G.faction = player = (nextFaction===undefined?G.factions[iPlayer]:nextFaction);
+        // send("status/" + G.faction);
+
         //outputData = true;
         //send("reset/" + G.faction); //TODO: try this next!!!
       }
@@ -163,15 +172,16 @@
         let data = JSON.parse(str);
         //console.log(data);
         if ("invest_55" in data) {
-          console.log("THESE ARE RESET DATA!!!",data);
+          //console.log("THESE ARE RESET DATA!!!", data);
           processReset(data);
           return;
         }
         if (data === undefined) {
           //console.log("!!!", str, "!!!");
         } else if ("error" in data) {
-          send("reset/" + G.faction);
-          abort = true;
+          console.log(data)
+          //send("reset/" + G.faction);
+          //abort = true;
         } else {
           processData(data);
         }
@@ -293,17 +303,24 @@
       }
 
       function processReset(data) {
-        let faction = G.faction; //G.previousFaction;
-        let g = G[faction];
-        for (k in data) {
+        for (const f of G.factions) {
+          let g = G[f];
+          for (k in data) {
           let sk = k.toString();
           g[sk] = data[k];
         }
+        }
+        let faction = G.faction; //G.previousFaction;
+        // let g = G[faction];
+        // for (k in data) {
+        //   let sk = k.toString();
+        //   g[sk] = data[k];
+        // }
         updateUI();
-        console.log('after reset:')
-        console.log("faction:", faction);
-        console.log("G:", g);
-        console.log("uis:", uis);
+        //console.log('after reset:')
+        //console.log("faction:", faction);
+        //console.log("G:", g);
+        //console.log("uis:", uis);
         send("info/" + G.faction);
         //send("status/" + faction);
       }
@@ -536,8 +553,8 @@
                   boardFactory.updateCv(uis[id], go.cv);
 
                   //if (owner == currentFaction) {
-                    // uis[id] = boardFactory.createUnit(id, currentFaction, go, ttext);
-                    // boardFactory.updateCv(uis[id], go.cv);
+                  // uis[id] = boardFactory.createUnit(id, currentFaction, go, ttext);
+                  // boardFactory.updateCv(uis[id], go.cv);
                   //} else {
                   //  faction = owner;
                   //}
@@ -658,7 +675,7 @@
                 break;
               case "unit":
                 let unit = uis[id];
-                console.log('...........unit is:',unit,id)
+                //console.log('...........unit is:',unit,id)
                 let owner = unit.getTag("faction");
                 let faction = owner; //go.visible.set[0]; // owner; //ms.getTag("faction");
                 //console.log('visibility update for ',go,id,faction,currentFaction);
@@ -789,20 +806,20 @@
       function getUI(id) {
         //returns command only if no other ui found!
         //console.log('getUI id=',id)
-        if (isSelectable(id)){
-          return id in selectables? selectables[id]:addSelectableOrCommand(id);
+        if (isSelectable(id)) {
+          return id in selectables ? selectables[id] : addSelectableOrCommand(id);
         }
         return id in uis ? uis[id] : id in uisCommand ? uisCommand[id] : addSelectableOrCommand(id);
       }
-      function getUnitOwner(nationality){
-        if (nationality == 'Germany' || nationality == 'Italy'){
-          return 'Axis';
-        }else if (nationality == 'USSR'){
-          return 'USSR';
-        }else if (nationality == 'Britain' || nationality == 'France'){
-          return 'West';
-        }else {
-          return 'Neutral';
+      function getUnitOwner(nationality) {
+        if (nationality == "Germany" || nationality == "Italy") {
+          return "Axis";
+        } else if (nationality == "USSR") {
+          return "USSR";
+        } else if (nationality == "Britain" || nationality == "France") {
+          return "West";
+        } else {
+          return "Neutral";
         }
       }
       function hideCommands() {
@@ -842,7 +859,7 @@
       function isUnitOfFaction(go, faction) {
         return go.visible.set.includes(faction);
       }
-      function isSelectable(id){
+      function isSelectable(id) {
         return G.nationality.includes(id) || G.unit_type.includes(id);
       }
       function isSetupOrProductionPhase() {
@@ -965,7 +982,6 @@
           boardFactory.updateInfluence(id, nation, faction, level);
         }
       }
-
     </script>
     <!-- #endregion partialTuple -->
 
@@ -977,7 +993,7 @@
       // var playerPressedPass = false;
       // var passTimer;
 
-      var G = {Axis: {}, West: {}, USSR: {}, log: [], faction: "West"};
+      var G = {Axis: {}, West: {}, USSR: {}, log: [], faction: "USSR"};
       G["factions"] = ["Axis", "West", "USSR"];
       var uis = {}; //by id
       var selectables = {}; //by id, for unit types and nationalities
@@ -1041,10 +1057,10 @@
         let justNations = {};
         for (const id in uis) {
           let ms = uis[id];
-          if (ms.getTag('type')!='nation') {
+          if (ms.getTag("type") != "nation") {
             ms.removeFromUI();
-          }else{
-            justNations[id]=ms;
+          } else {
+            justNations[id] = ms;
           }
         }
         uis = justNations;
@@ -1058,10 +1074,10 @@
 
         phase = "setup";
         year = "1935";
+        console.log("resetGame, player=nextFaction:", G.faction);
         player = nextFaction = G.faction;
 
-        console.log('full reset, there shouldnt be any units on the board or cards');
-
+        console.log("full reset, there shouldnt be any units on the board or cards");
       }
       //*** execution starts here ***
       loadYML("/common/assets/config/map_pos.yml", data => {

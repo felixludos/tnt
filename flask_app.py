@@ -154,7 +154,12 @@ def save(filename=None):
 
 @app.route('/load/<data>')
 def load(data):
-	return load_gamestate('./saves/'+data)
+	return load_gamestate(data)
+
+@app.route('/testload/<data>')
+def testload(data):
+	load_gamestate('./saves/'+data)
+	return './saves/'+data
 
 @app.route('/reset/<player>')
 def reset(player):
