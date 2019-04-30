@@ -3,7 +3,7 @@ from flask import Flask, render_template, send_from_directory
 from flask_cors import CORS
 from flask_util import ActionConverter
 import json
-app = Flask(__name__, static_folder='_front')
+app = Flask(__name__, static_folder='_front/front_0')
 CORS(app)
 
 app.url_map.converters['action'] = ActionConverter
@@ -117,37 +117,20 @@ def staticFilesAssetsConfigDir(fname):
 	filename = fname
 	return send_from_directory(app.static_folder, 'assets/config/'+fname)
 
-# @app.route('/lauren/')
-# def defaultRouteStaticFiles():
-#     return send_from_directory(app.static_folder, "front_lauren/index.html")
-
-# @app.route('/lauren/<fname>')
-# def staticFilesMainDirLauren(fname):
-#     filename = fname
-#     return send_from_directory(app.static_folder, "front_lauren/"+fname)
-
-# @app.route('/felix/')
-# def defaultRouteStaticFilesFelix():
-#     return send_from_directory(app.static_folder, "front_felix/index.html")
-
-# @app.route('/felix/<fname>')
-# def staticFilesMainDirFelix(fname):
-#     filename = fname
-#     return send_from_directory(app.static_folder, "front_felix/"+fname)
-
 @app.route('/0/')
 def defaultRouteStaticFilesTawzz():
-	return send_from_directory(app.static_folder, "front_0/index.html")
+	return send_from_directory(app.static_folder, "index.html")
 
 @app.route('/0/<fname>')
 def staticFilesMainDirTawzz(fname):
 	filename = fname
-	return send_from_directory(app.static_folder, "front_0/"+fname)
+	return send_from_directory(app.static_folder, fname)
 
 @app.route('/0/<path:path>')
-def staticFilesMainDirTawzz(fname):
+def staticFilesMain(path):
 	filename = path
-	return send_from_directory(app.static_folder, "front_0/"+path)
+	print(path,'!!!!!!!!!!!!!')
+	return send_from_directory(app.static_folder, path)
 
 @app.route("/")
 def ping():
