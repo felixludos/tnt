@@ -141,6 +141,7 @@ def load_players_and_minors(G):
 		faction.diplomacy.associates = tset()
 		faction.diplomacy.protectorates = tset()
 		faction.diplomacy.satellites = tset()
+		faction.diplomacy.violations = tset()
 		
 		players[name] = faction
 	G.players = players

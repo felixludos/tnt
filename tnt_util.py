@@ -189,6 +189,8 @@ def violation_of_neutrality(G, declarer, nation): # including world reaction and
 			
 		return
 	
+	G.players[declarer].diplomacy.violations.add(nation)
+	
 	if nation in G.diplomacy.influence:
 		
 		inf = G.diplomacy.influence[nation]
@@ -275,6 +277,8 @@ def USA_becomes_satellite(G, player='West'):
 	G.logger.write('{} factory cost decreases to {}'.format())
 	
 	
+def eval_control(G, tile):
+	pass
 
 ######################
 # Game Actions

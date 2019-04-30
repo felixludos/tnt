@@ -16,8 +16,11 @@ import traceback
 from new_year import new_year_phase
 from production import production_phase, production_pre_phase
 from government import governmnet_phase, government_pre_phase
-from command import command_phase, pre_command_phase
-
+from command import command_phase, pre_command_phase, movement_phase, planning_phase, combat_phase
+from blockades import supply_phase, blockade_phase
+from battles import land_battle_phase, naval_battle_phase
+from scoring import scoring_phase
+from diplomacy import satellite_phase
 
 import json
 
@@ -30,8 +33,6 @@ PRE_PHASES = adict({ # all action phases
 	'Fall': pre_command_phase,
 	'Winter': pre_command_phase,
 	
-	# 'Land_Combat': None,
-	# 'Naval_Combat': None,
 })
 PHASES = adict({
 	'Setup': setup_phase,
@@ -39,16 +40,23 @@ PHASES = adict({
     'New_Year': new_year_phase,
     'Production': production_phase,
     'Government': governmnet_phase,
-    'Spring': command_phase,
-    'Summer': command_phase,
-    'Blockade': None,
-    'Fall': command_phase,
-    'Winter': command_phase,
-
-    # 'Land_Combat': None,
-    # 'Naval_Combat': None,
+    'Spring': planning_phase,
+    'Summer': planning_phase,
+    'Blockade': blockade_phase,
+    'Fall': planning_phase,
+    'Winter': planning_phase,
 	
-	'Scoring': None,
+	'Satellite': satellite_phase,
+
+	'Movement': movement_phase,
+
+	'Combat': combat_phase,
+	'Supply': supply_phase,
+
+    'Land_Battle': land_battle_phase,
+    'Naval_Battle': naval_battle_phase,
+	
+	'Scoring': scoring_phase,
 })
 
 # ALL game information is in the gamestate "G"
