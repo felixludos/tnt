@@ -61,7 +61,9 @@ def continue_game(pass_after=None, player = 'Axis'):
 				action = ('pass',)
 				msg = ' (auto pass)'
 			else:
-				action = random.choice(actions)
+				action = ('remove',)
+				while action[0] == 'remove': # never remove
+					action = random.choice(actions)
 			print('-- from {} chose {}{}'.format(len(actions), action, msg))
 			
 			out = format_msg_to_python(take_action(player, action))
@@ -90,43 +92,43 @@ from flask_app import *
 
 print(ping())
 
-if False:
+# if False:
 
-	out = format_msg_to_python(init_game(debug=True, player='Axis'))
-	
-	
-	G = get_G()
-	fixed = adict()
-	
-	# Setup + New Year
-	try:
-		for player in G.game.turn_order:
-			fixed[player] = [('investment_card',)]*6# + [('action_card',)]
-		players = G.game.turn_order
-	except KeyError:
-		players = ['Axis', 'USSR', 'West']
-	print(players)
-	
-	complete_phase(players)
-	
-	path = save('setup_complete.json')
-	print('Saved Setup phase at {}'.format(path))
-	
-	take_action('Axis', None)
-	
-	# Production
-	try:
-		for player in G.game.turn_order:
-			fixed[player] = [('investment_card',)]*6# + [('action_card',)]
-		players = G.game.turn_order
-	except KeyError:
-		players = ['Axis', 'USSR', 'West']
-	print(players)
-	
-	complete_phase(players)
-	
-	path = save('prod_complete.json')
-	print('Saved Prod phase at {}'.format(path))
+out = format_msg_to_python(init_game(debug=True, player='Axis'))
+
+
+G = get_G()
+fixed = adict()
+
+# Setup + New Year
+try:
+	for player in G.game.turn_order:
+		fixed[player] = [('investment_card',)]*6# + [('action_card',)]
+	players = G.game.turn_order
+except KeyError:
+	players = ['Axis', 'USSR', 'West']
+print(players)
+
+complete_phase(players)
+
+path = save('setup_complete.json')
+print('Saved Setup phase at {}'.format(path))
+
+take_action('Axis', None)
+
+# Production
+try:
+	for player in G.game.turn_order:
+		fixed[player] = [('investment_card',)]*6# + [('action_card',)]
+	players = G.game.turn_order
+except KeyError:
+	players = ['Axis', 'USSR', 'West']
+print(players)
+
+complete_phase(players)
+
+path = save('prod_complete.json')
+print('Saved Prod phase at {}'.format(path))
 
 load('saves/prod_complete.json')
 

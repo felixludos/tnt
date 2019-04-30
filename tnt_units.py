@@ -25,11 +25,16 @@ def move_unit(G, unit, to_tilename):
 	# possibly convert to/from convoy
 	check_for_convoy(unit, G.tiles[to_tilename])
 	
-	G.tiles[unit.tile].units.remove(unit._id)
+	tile = G.tiles[unit.tile]
+	tile.units.remove(unit._id)
+	G.objects.updated[unit.tile] = tile
+	
 	unit.tile = to_tilename
-	G.tiles[unit.tile].units.add(unit._id)
+	tile = G.tiles[unit.tile]
+	tile.units.add(unit._id)
 	
 	G.objects.updated[unit._id] = unit
+	G.objects.updated[unit.tile] = tile
 	
 def add_unit(G, unit): # tile, type, cv, nationality
 	
@@ -71,6 +76,7 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	tile.units.add(unit._id)
 	G.objects.table[unit._id] = unit
 	G.objects.created[unit._id] = unit
+	G.objects.updated[tilename] = tile
 	
 	return unit
 

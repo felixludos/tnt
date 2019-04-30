@@ -2,7 +2,7 @@
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
 from tnt_cards import discard_cards
 from tnt_units import add_unit, move_unit
-from tnt_util import travel_options, declaration_of_war, violation_of_neutrality
+from tnt_util import travel_options, declaration_of_war, violation_of_neutrality, eval_control
 from government import check_revealable, reveal_tech
 import random
 
@@ -30,10 +30,13 @@ def check_declarations(G, player):
 	options.add((xset(name for name, war in G.players[player].stats.at_war_with.items() if not war),))
 	
 	# neutral
-	options.add((xset(G.diplomacy.neutrals.keys()),))
+	
+	nations = xset(G.diplomacy.neutrals.keys())
+	nations -= G.players[player].diplomacy.violations
+	
+	options.add((nations,))
 	
 	return options
-
 
 
 def pre_command_phase(G):
@@ -214,9 +217,14 @@ def movement_phase(G, player, action):
 				G.temp.borders[player][border] = 0
 			G.temp.borders[player][border] += 1
 		
-		move_unit(G, faction.units[head], destination)
+		unit = faction.units[head]
 		
 		# update disputed, add battles
+		eval_control(G, G.tiles[unit.tile])
+		eval_control(G, G.tiles[destination])
+		
+		move_unit(G, unit, destination)
+		
 		
 
 def combat_phase(G, player, action):
