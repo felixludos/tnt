@@ -1,10 +1,110 @@
 from passive_backend import *
 from flask import Flask, render_template, send_from_directory
 from flask_cors import CORS
+from flask import request
 from flask_util import ActionConverter
 import json
-app = Flask(__name__, static_folder='_front')
+app = Flask(__name__, static_folder='_front/front_1')
 CORS(app)
+
+#init
+@app.route('/initWest')
+def initWest():
+	out = FORMAT_MSG(start_new_game('West', debug=True), 'West')
+	return out
+@app.route('/initUSSR')
+def initUSSR():
+	out = FORMAT_MSG(start_new_game('USSR', debug=True), 'West')
+	return out
+@app.route('/initAxis')
+def initAxis():
+	out = FORMAT_MSG(start_new_game('Axis', debug=True), 'West')
+	return out
+#load
+@app.route('/load01')
+def load01():
+	load_gamestate('saves/_gs01.json')
+	return ('saves/_gs03.json')
+@app.route('/load02')
+def load02():
+	load_gamestate('saves/_gs02.json')
+	return ('saves/_gs03.json')
+@app.route('/load03')
+def load03():
+	load_gamestate('saves/_gs03.json')
+	return ('saves/_gs03.json')
+@app.route('/prod')
+def prod():
+	load_gamestate('saves/prodAgent.json')
+	action=('none',)
+	player='West'
+	take_action(player,action)
+	return FORMAT_MSG(get_object_table(), player)
+#save
+@app.route('/save01')
+def save01():
+	return save_gamestate('_gs01.json')
+@app.route('/save02')
+def save02():
+	return save_gamestate('_gs02.json')
+@app.route('/save03')
+def save03():
+	return save_gamestate('_gs03.json')
+#no action
+@app.route('/noWest')
+def noWest():
+	out = FORMAT_MSG(step('West', 'none'), 'West')
+	return out
+#change turn
+@app.route('/changeToWest')
+def changeToWest():
+	faction='West'
+	out = FORMAT_MSG(pull_msg(faction), faction)
+	return out
+@app.route('/changeToUSSR')
+def changeToUSSR():
+	faction='USSR'
+	out = FORMAT_MSG(pull_msg(faction), faction)
+	return out
+@app.route('/changeToAxis')
+def changeToAxis():
+	faction='Axis'
+	out = FORMAT_MSG(pull_msg(faction), faction)
+	return out
+
+@app.route('/postTest', methods=['POST'])
+def postTest():
+	data = request.json
+	with open("C:\\test.txt", 'w') as f:
+		f.write(json.dumps(data))
+
+
+@app.route('/1')
+def root():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/css/<filename>')
+def rootcss(filename):
+    return send_from_directory(app.static_folder, 'css/'+filename)
+
+@app.route('/js/<filename>')
+def rootjs(filename):
+    return send_from_directory(app.static_folder, 'js/'+filename)
+
+@app.route('/assets/<path:path>')
+def rootassets(path):
+    return send_from_directory(app.static_folder, 'assets/'+path)
+
+@app.route('/myload/<data>')
+def myload(data):
+	load_gamestate('saves/'+data)  
+	return('loaded: saves/'+data)  
+	#res=FORMAT_MSG(get_G(), 'Axis')
+	#print(res)
+	#return FORMAT_MSG(get_object_table(), 'Axis')
+
+
+
 
 app.url_map.converters['action'] = ActionConverter
 
@@ -21,27 +121,10 @@ def convert_jsonable(msg):
 	# 	return str(msg)
 	return msg
 
-# def deepcopy_message(msg):
-# 	if isinstance(msg, (tdict, adict)):
-# 		return adict({deepcopy_message(k):deepcopy_message(v) for k,v in msg.items()})
-# 	if isinstance(msg, idict):
-# 		copy = msg.copy()
-# 		copy._id = msg._id
-# 		return copy
-# 	if isinstance(msg, (list, tuple)):
-# 		return type(msg)(deepcopy_message(el) for el in msg)
-# 	if isinstance(msg, set):
-# 		return xset(deepcopy_message(el) for el in msg)
-# 	# if not isinstance(msg, str):
-# 	# 	return str(msg)
-# 	return msg
-
-
 _visible_attrs = {  # attributes seen by all players even if obj isn't visible to the player
 	'unit': {'nationality', 'tile', },
 	'card': {'owner'},
 }
-
 
 def hide_objects(objects, player=None, cond=None):
 	if cond is None:
@@ -93,67 +176,16 @@ def format_msg_to_python(msg):
 
 FORMAT_MSG = format_msg_for_frontend
 
-
-@app.route('/common/css/<fname>/')
-def staticFilesCSSCommon(fname):
-  return send_from_directory(app.static_folder, 'css/'+fname)
-
-@app.route('/common/js/<fname>/')
-def staticFilesJSCommon(fname):
-  return send_from_directory(app.static_folder, 'js/'+fname)
-
-@app.route('/common/assets/<fname>')
-def staticFilesAssetsDir(fname):
-	filename = fname
-	return send_from_directory(app.static_folder, 'assets/'+fname)
-
-@app.route('/common/assets/markers/<fname>')
-def staticFilesAssetsMarkersDir(fname):
-	filename = fname
-	return send_from_directory(app.static_folder, 'assets/markers/'+fname)
-
-@app.route('/common/assets/config/<fname>')
-def staticFilesAssetsConfigDir(fname):
-	filename = fname
-	return send_from_directory(app.static_folder, 'assets/config/'+fname)
-
-# @app.route('/lauren/')
-# def defaultRouteStaticFiles():
-#     return send_from_directory(app.static_folder, "front_lauren/index.html")
-
-# @app.route('/lauren/<fname>')
-# def staticFilesMainDirLauren(fname):
-#     filename = fname
-#     return send_from_directory(app.static_folder, "front_lauren/"+fname)
-
-# @app.route('/felix/')
-# def defaultRouteStaticFilesFelix():
-#     return send_from_directory(app.static_folder, "front_felix/index.html")
-
-# @app.route('/felix/<fname>')
-# def staticFilesMainDirFelix(fname):
-#     filename = fname
-#     return send_from_directory(app.static_folder, "front_felix/"+fname)
-
-@app.route('/0/')
-def defaultRouteStaticFilesTawzz():
-	return send_from_directory(app.static_folder, "front_0/index.html")
-
-@app.route('/0/<fname>')
-def staticFilesMainDirTawzz(fname):
-	filename = fname
-	return send_from_directory(app.static_folder, "front_0/"+fname)
-
 @app.route("/")
 def ping():
 	return 'Backend active: use "init" to init game'
 
 @app.route('/save/<filename>')
-def save(filename=None):
+def save1(filename=None):
 	return save_gamestate(filename)
 
 @app.route('/load/<data>')
-def load(data):
+def load1(data):
 	return load_gamestate(data)
 
 @app.route('/reset/<player>')
@@ -170,7 +202,7 @@ def init_game(game_type='hotseat', player='Axis', debug=False):
 
 @app.route('/info/<faction>')
 def get_info(faction):
-	return 'Error: NOT IMPLEMENTED: Will send info about {}'.format(faction)
+	return FORMAT_MSG(get_game_info(faction))
 
 @app.route('/status/<faction>')
 def get_status(faction):
