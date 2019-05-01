@@ -2,6 +2,8 @@
 from .arg_dict import adict
 from .common import condensed_str
 from weakref import WeakValueDictionary
+from .transactions import TransactionableObject
+from itertools import chain
 
 # idict - dicts with ID (copy creates new id)
 
@@ -31,7 +33,7 @@ def pull_ID():
 # 	_object_table[ID] = obj
 # 	return ID
 
-class idict(adict): # WARNING: These objects are not garbage collected
+class iddict(adict): # WARNING: These objects are not garbage collected
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		
@@ -72,4 +74,8 @@ class idict(adict): # WARNING: These objects are not garbage collected
 		return 'idict[{}]({})'.format(self._id, ', '.join(items))
 	def __repr__(self):
 		return '{ ' +', '.join('{}:{}'.format(repr(k) ,repr(v)) for k ,v in self.items() ) +'}'
+
+
+def idict(*args, **kwargs):
+	return TransactionableObject(iddict(*args, **kwargs), lambda x: iter(chain(x.keys(), x.values())))
 

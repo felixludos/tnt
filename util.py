@@ -3,7 +3,7 @@ import yaml
 import networkx as nx
 import uuid
 from IPython.display import display_javascript, display_html
-from structures import tdict, tlist, tset, adict, idict, xset, pull_ID, Transactionable
+from structures import tdict, tlist, tset, adict, idict, iddict, xset, pull_ID, Transactionable
 from itertools import product, chain
 from collections import deque
 import random
