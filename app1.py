@@ -72,17 +72,37 @@ def changeToAxis():
 	out = FORMAT_MSG(pull_msg(faction), faction)
 	return out
 
+@app.route('/postTest1', methods=['POST'])
+def postTest1():
+	data = request.json
+	with open("test.txt", 'w') as f:
+		f.write(json.dumps(data))
+	return 'done!'
+
 @app.route('/postTest', methods=['POST'])
 def postTest():
 	data = request.json
-	with open("C:\\test.txt", 'w') as f:
+	with open("saves/test.json", 'w') as f:
 		f.write(json.dumps(data))
+	return 'done!'
+@app.route('/loadTest')
+def loadTest():
+	load_gamestate('saves/setup_complete.json')
+	return ('loaded saves/setup_complete.json')
+@app.route('/myload/<data>')
+def myload(data):
+	load_gamestate('saves/'+data)  
+	return('loaded: saves/'+data)  
+	#res=FORMAT_MSG(get_G(), 'Axis')
+	#print(res)
+	#return FORMAT_MSG(get_object_table(), 'Axis')
 
 
 @app.route('/1')
+@app.route('/1/')
 def root():
-    return send_from_directory(app.static_folder, 'index.html')
-
+	return send_from_directory(app.static_folder, 'index.html')
+    
 @app.route('/css/<filename>')
 def rootcss(filename):
     return send_from_directory(app.static_folder, 'css/'+filename)
@@ -94,14 +114,6 @@ def rootjs(filename):
 @app.route('/assets/<path:path>')
 def rootassets(path):
     return send_from_directory(app.static_folder, 'assets/'+path)
-
-@app.route('/myload/<data>')
-def myload(data):
-	load_gamestate('saves/'+data)  
-	return('loaded: saves/'+data)  
-	#res=FORMAT_MSG(get_G(), 'Axis')
-	#print(res)
-	#return FORMAT_MSG(get_object_table(), 'Axis')
 
 
 

@@ -3,9 +3,206 @@
   <head>
     <title>test</title>
     <link rel="shortcut icon" href="#" />
-    <link rel="stylesheet" type="text/css" href="./css/commonStyles.css"  href="/css/commonStyles.css" />
+    <link rel="stylesheet" type="text/css" href="/css/commonStyles.css" />
+    <link rel="stylesheet" type="text/css" href="/css/msStyles.css" />
+    <link rel="stylesheet" type="text/css" href="/css/autocomp.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.2/js-yaml.js"></script>
+    <script src="https://www.w3schools.com/lib/w3.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script src="/js/autocomplete.js"></script>
+    <script src="/js/helpers.js"></script>
+    <script src="/js/panzoom.js"></script>
+    <script src="/js/MS.js"></script>
+    <script src="/js/BoardFactory.js"></script>
+    <script src="/js/CardFactory.js"></script>
+
+    <script src="/js/scenario0.js"></script>
+    <script src="/js/scenario1.js"></script>
   </head>
   <body>
-    haaaaaaaaaaaaaaaloooooooooooo
+    <!-- #region HTML -->
+    <!-- <div id="testDiv1" class="div" style="text-align:left">
+      <form autocomplete="off">
+        <div class="autocomplete" style="width:100%;">
+          <input id="myInput1" type="text" name="myCountry" placeholder="Country" />
+        </div>
+        <input type="submit" />
+      </form>
+    </div> -->
+    <div id="testDiv" class="div" style="text-align:left">
+      <div class="autocomplete" style="margin:10px;width:100%;">
+        <input id="myInput" type="text" name="myCountry" style="font-size:30px;" placeholder="command" />
+      </div>
+      <div class="autocomplete" style="margin:10px;width:100%;">
+        <input id="inparam" type="text" name="inparam" style="font-size:30px;" placeholder="param" />
+      </div>
+      <div style="margin:10px;width:100%;">
+        <button id="bSendMessage" onclick="onClickSendMessage()">send message</button>
+        <button id="bClear" onclick="onClickClearInputs()">clear inputs</button>
+        <button id="bLoadScenario">load scenario</button>
+      </div>
+    </div>
+    <!-- #endregion HTML -->
+
+    <!-- #region globals -->
+    <script>
+      var backendServerUrl = "http://localhost:5000/"; //local server
+      var msgCounter = 0;
+      var serverData; // last message from server as JSON object
+      var postData = scenario0;
+      var G;
+      var messages = [
+        "changeToWest",
+        "changeToUSSR",
+        "changeToAxis",
+        "initWest",
+        "initUSSR",
+        "initAxis",
+        "load01",
+        "load02",
+        "load03",
+        "loadTest",
+        "myload",
+        "noWest",
+        "postTest", // all post messages should start with 'post'
+        "prodAgent",
+        "save01",
+        "save02",
+        "save03"
+      ];
+      var filenames = [
+        "gov_complete.json",
+        "init_complete.json",
+        "prod_complete.json",
+        "scAgent.json",
+        "setup_complete.json",
+        "test.json",
+        "_gs01.json"
+      ];
+    </script>
+    <!-- #endregion globals -->
+
+    <!-- #region code execution  -->
+    <script>
+      //console.log(scenario0); //geht! obwohl in head geladen!
+      document.getElementById("myInput").placeholder = 'command '+uniqueFirstLetters(messages).toString();
+      document.getElementById("inparam").placeholder = 'file '+uniqueFirstLetters(filenames).toString();
+      $(document).ready(function() {
+        $("#bLoadScenario").click(loadScenario);
+        autocomplete(document.getElementById("myInput"), messages);
+        autocomplete(document.getElementById("inparam"), filenames);
+      });
+    </script>
+    <!-- #endregion  code execution -->
+
+    <!-- #region handlers using globals  -->
+    <script>
+      function onClickClearInputs() {
+        document.getElementById("myInput").value = "";
+        document.getElementById("inparam").value = "";
+      }
+      function onClickSendMessage() {
+        let inp = document.getElementById("myInput");
+        let msg = inp.value.toString();
+        inp.value = "";
+        let inparam = document.getElementById("inparam");
+        let msgParam = inparam.value.toString();
+        inparam.value = "";
+        sendOrPost(msg, msgParam, postData);
+      }
+    </script>
+    <!-- #endregion handlers using globals  -->
+
+    <!-- #region functions -->
+    <script>
+      function chainSend(data, msgChain, callback) {
+        try {
+          serverData = JSON.parse(data);
+          console.log(serverData);
+        } catch {
+          console.log(data);
+        }
+        if (msgChain.length > 0) {
+          send(msgChain[0], d => chainSend(d, msgChain.slice(1), callback));
+        } else {
+          callback(data);
+        }
+      }
+      function loadScenario() {
+        //before that, have to make scenario!!!
+        //which means: from scenario0 (global var) make modifications
+        //then call post('postTest',data,callback)
+        //this last step will save data to server: saves/test.json
+        // to be renamed later!
+        let msgChain1 = ["myload/test.json", "noWest"];
+        chainSend("start", msgChain1, data => {
+          //the last call was to noWest,
+          //it either has a waiting_for or an actions
+          //if it is waiting_for, look at waiting_for.set[0] as next players
+          // otherwise West is next player
+          let jData = JSON.parse(data);
+          nextPlayer = "West";
+          if ("waiting_for" in jData) {
+            nextPlayer = jData.waiting_for.set[0];
+          }
+          // have next player!
+          send("status/" + nextPlayer, receive);
+        });
+      }
+      function post(url, data, callback = null) {
+        url = backendServerUrl + url;
+        msgCounter += 1;
+        console.log(msgCounter, "POST request sent: ", url, data);
+        $.ajax({
+          url: url,
+          type: "POST",
+          data: JSON.stringify(data),
+          processData: false,
+          contentType: "application/json; charset=UTF-8",
+          success: function(response) {
+            console.log(response);
+            if (callback) {
+              callback(response);
+            }
+          },
+          error: function(error) {
+            console.log(error);
+          }
+        });
+      }
+      function sendOrPost(msg, msgParam, data) {
+        if (!empty(msgParam)) msg += "/" + msgParam;
+        console.log("sending", msg);
+        if (startsWith(msg, "post")) {
+          post(msg, data);
+        } else {
+          send(msg);
+        }
+      }
+      function send(url, callback = null) {
+        url = backendServerUrl + url;
+        msgCounter += 1;
+        console.log(msgCounter, "request sent: ", url);
+        w3.http(url, function() {
+          if (this.readyState == 4 && this.status == 200) {
+            if (callback) {
+              callback(this.responseText);
+            } else {
+              receive(this.responseText);
+            }
+          }
+        });
+      }
+      function receive(serverText) {
+        try {
+          serverData = JSON.parse(serverText);
+          console.log(serverData);
+        } catch {
+          console.log(serverText);
+        }
+      }
+    </script>
+    <!-- #endregion functions -->
   </body>
 </html>

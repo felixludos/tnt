@@ -83,30 +83,17 @@ function addAll(akku, other) {
 function addIf(el, arr) {
   if (!arr.includes(el)) arr.push(el);
 }
-function getListsContainingAll(ll, l) {
+function carteset(l1, l2) {
+  //l1,l2 are lists of list
   let res = [];
-  for (const l1 of ll) {
-    if (containsAll(l1, l)) res.push(l1);
+  for (var el1 of l1) {
+    for (var el2 of l2) {
+      //if (isll(el2)) el2=el2.flat();
+      if (isList(el1)) res.push(el1.concat(el2));
+      else res.push([el1].concat(el2));
+    }
   }
   return res;
-}
-function containedInAny(el, ll) {
-  // any list in ll contains element el
-  for (const lst of ll) {
-    if (lst.includes(el)) return true;
-  }
-  return false;
-}
-function orderFromTo(lst, fromOrder, toOrder) {
-  let res = [];
-  for (let i = 0; i < lst.length; i++) {
-    res.push(lst[fromOrder.indexOf(toOrder[i])]);
-  }
-  //console.log(res)
-  return res;
-}
-function someFunction() {
-  //console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhh");
 }
 function cartesian(s1, s2, sep = "_") {
   let res = [];
@@ -125,18 +112,6 @@ function cartesianOf(ll) {
   }
   return cart;
 }
-function contains(arr, el) {
-  return arr.includes(el);
-}
-function containsAll(arr, lst) {
-  for (const el of lst) {
-    if (!arr.includes(el)) return false;
-  }
-  return true;
-}
-function containsSet(arr, lst) {
-  return containsAll(arr, lst);
-}
 function choose(arr, n) {
   var result = new Array(n),
     len = arr.length,
@@ -149,25 +124,73 @@ function choose(arr, n) {
   }
   return result;
 }
+function contains(arr, el) {
+  return arr.includes(el);
+}
+function containsAll(arr, lst) {
+  for (const el of lst) {
+    if (!arr.includes(el)) return false;
+  }
+  return true;
+}
+function containsSet(arr, lst) {
+  return containsAll(arr, lst);
+}
+function containedInAny(el, ll) {
+  // any list in ll contains element el
+  for (const lst of ll) {
+    if (lst.includes(el)) return true;
+  }
+  return false;
+}
 function empty(arr) {
   let result = arr === undefined || !arr || (isString(arr) && arr == "") || (Array.isArray(arr) && arr.length == 0);
   //console.log(typeof(arr),result?'EMPTY':arr)
   return result;
+}
+function first(arr) {
+  return arr.length > 0 ? arr[0] : null;
+}
+function findSameSet(llst, lst) {
+  // returns element of llst that has same elements as lst, even if different order
+  for (const l of llst) {
+    if (sameList(l, lst)) return l;
+  }
+  return null;
+}
+function fj(x) {
+  return formatjson(x);
+}
+function formatll(ll) {
+  //return beautiful string for list of lists
+  //ensure this is a list of lists
+  if (!isll(ll)) return "NOT list of lists!";
+  let s = "[";
+  for (const l of ll) {
+    let content = isllPlus(l) ? formatll(l) : l.toString();
+    s += "[" + content + "]";
+  }
+  s += "]";
+  //console.log(s);
+}
+function formatjson(j) {
+  //return beautiful small json
+  let s = JSON.stringify(j);
+  s = s.replace(/\s/g, "");
+  return s;
+}
+function getListsContainingAll(ll, l) {
+  let res = [];
+  for (const l1 of ll) {
+    if (containsAll(l1, l)) res.push(l1);
+  }
+  return res;
 }
 function isEmpty(arr) {
   return empty(arr);
 }
 function isList(arr) {
   return Array.isArray(arr);
-}
-function first(arr) {
-  return arr.length > 0 ? arr[0] : null;
-}
-function keepOnlyElements(func, lst) {
-  return lst.filter(func);
-}
-function last(arr) {
-  return arr.length > 0 ? arr[arr.length - 1] : null;
 }
 function isll(ll) {
   //true if arr is a list of lists of strings
@@ -200,45 +223,25 @@ function isllPlus(ll) {
   }
   return true;
 }
-function formatll(ll) {
-  //return beautiful string for list of lists
-  //ensure this is a list of lists
-  if (!isll(ll)) return "NOT list of lists!";
-  let s = "[";
-  for (const l of ll) {
-    let content = isllPlus(l) ? formatll(l) : l.toString();
-    s += "[" + content + "]";
-  }
-  s += "]";
-  //console.log(s);
+function keepOnlyElements(func, lst) {
+  return lst.filter(func);
 }
-function carteset(l1, l2) {
-  //l1,l2 are lists of list
+function last(arr) {
+  return arr.length > 0 ? arr[arr.length - 1] : null;
+}
+function orderFromTo(lst, fromOrder, toOrder) {
   let res = [];
-  for (var el1 of l1) {
-    for (var el2 of l2) {
-      //if (isll(el2)) el2=el2.flat();
-      if (isList(el1)) res.push(el1.concat(el2));
-      else res.push([el1].concat(el2));
-    }
+  for (let i = 0; i < lst.length; i++) {
+    res.push(lst[fromOrder.indexOf(toOrder[i])]);
   }
+  //console.log(res)
   return res;
-}
-
-function formatjson(j) {
-  //return beautiful small json
-  let s = JSON.stringify(j);
-  s = s.replace(/\s/g, "");
-  return s;
 }
 function prjstart(j) {
   console.log("______", formatjson(j));
 }
 function prj(j) {
   console.log(formatjson(j));
-}
-function fj(x) {
-  return formatjson(x);
 }
 function pr(x) {
   console.log(prlist(x).replace(/,,/g, ","));
@@ -268,12 +271,8 @@ function prlist(arr) {
     else return "[" + prlist(arr[0]) + arr.slice(1).map(x => "," + prlist(x)) + "]";
   } else return arr;
 }
-function findSameSet(llst, lst) {
-  // returns element of llst that has same elements as lst, even if different order
-  for (const l of llst) {
-    if (sameList(l, lst)) return l;
-  }
-  return null;
+function someFunction() {
+  //console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhh");
 }
 function sameList(l1, l2) {
   // compares 2 lists of strings if have same strings in it
@@ -283,7 +282,15 @@ function sameList(l1, l2) {
   }
   return true;
 }
-
+function uniqueFirstLetters(arr){
+  let res=[];
+  for (const s of arr) {
+    if (s.length>0){
+      addIf(s[0],res);
+    }
+  }
+  return res;
+}
 function without(arr, elementToRemove) {
   return arr.filter(function(el) {
     return el !== elementToRemove;
@@ -797,6 +804,51 @@ function lighterColor(r, g, b) {
 }
 function transColor(r, g, b, a) {
   return "rgba(r,g,b,a)";
+}
+//#endregion
+
+//#region sending messages to flask server: uses jQuery ajax!
+// function loadTest(){
+//   $.ajax({
+//     url: "/loadTest",
+//     type: "GET",
+//     success: function(response) {
+//       console.log(response);
+//     },
+//     error: function(error) {
+//       console.log(error);
+//     }
+//   });
+// }
+// function loadScenario(){
+//   $.ajax({
+//     url: "/loadTest",
+//     type: "GET",
+//     success: function(response) {
+//       console.log(response);
+//     },
+//     error: function(error) {
+//       console.log(error);
+//     }
+//   });
+// }
+function saveJsonAtServer(jsonObject,filename) {
+  event.preventDefault();
+  var labels = ["hallo", "das", "ist"]; //checkboxes.toArray().map(checkbox => checkbox.value);
+
+  $.ajax({
+    url: "/postTest",
+    type: "POST",
+    data: JSON.stringify(jsonObject),
+    processData: false,
+    contentType: "application/json; charset=UTF-8",
+    success: function(response) {
+      console.log(response);
+    },
+    error: function(error) {
+      console.log(error);
+    }
+  });
 }
 //#endregion
 
@@ -1522,83 +1574,3 @@ function getZoomFactor(gElement) {
 
 
 
-//#region trash
-// function findRegularFit(n,minRows){
-//   var rows = minRows;
-//   var cols = Math.ceil(n / rows);
-// }
-
-// function calcTotalWidth(n,sz,gap,padding){
-//   return padding * 2 - gap + (sz + gap) * n;
-// }
-// function findExactMatch(n,rows){
-//   console.log('start findExactMatch with:',n,rows)
-//   for (var i = Math.max(2, rows); i < n / 2; i++) {
-//     if (n % i == 0) {
-//       console.log('found exact: rows=',i,'cols=',(n/i))
-//       return {rows:i,cols:n/i};
-//     }
-//   }
-//   rows+=1;let cols=Math.ceil(n/(rows));
-//   console.log('no match found: rows=',rows,'cols=',cols)
-//   return {rows:rows,cols:cols};
-// }
-// function layout(n,wItem=100,hItem=100,{wIdeal=0,gap=8,padding=16,minRows=1,maxRows=1}={}){
-//   if (wIdeal == 0){wIdeal = window.innerWidth;}
-//   let rows=minRows;
-//   let cols=Math.ceil(n / rows);
-//   let wTotal =calcTotalWidth(cols,wItem,gap,padding);
-//   console.log('starting with rows:',rows,', cols:',cols)
-//   let rOld=0;
-//   while (wTotal>wIdeal && cols>=rows && rOld != rows){
-//     rOld=rows;
-//     let diff = wTotal-wIdeal;
-//     if (diff < padding+(cols*(gap>>2))){
-//       //reducing padding and gap could alreay help
-//       padding>>=2;gap>>=2;break;
-//     }
-//     let res = findExactMatch(n,rows);
-//     rows=res.rows;cols=res.cols;
-//     // if (res.rows > maxRows){
-//     //   rows+=1;cols=Math.ceil(n / rows);
-//     // }else {
-//     //   rows=res.rows;cols=res.cols;
-//     // }
-//     console.log('rows:',rows,', cols:',cols)
-//     //wIdeal+=(window.innerWidth-wIdeal)/2;
-//     wTotal =calcTotalWidth(cols,wItem,gap,padding);
-//   }
-//   return {rows: rows, cols: cols, gap: gap, padding: padding, width: wTotal};
-// }
-
-// function calculateDims2(n, wItem = 60, hItem = 100, minRows = 1, maxRows = 10) {
-//   var rows = minRows;
-//   var cols = Math.ceil(n / rows);
-//   var gap = 10;
-//   var padding = 20;
-
-//   let w = 9999999;
-//   while (true) {
-//     if (maxRows > minRows) {
-//       for (var i = Math.max(Math.min(2, maxRows), minRows); i < Math.min(maxRows + 1, n / 2); i++) {
-//         if (n % i == 0) {
-//           rows = i;
-//           cols = n / i;
-//           break;
-//         }
-//       }
-//     }
-//     w = padding * 2 - gap + (wItem + gap) * cols;
-//     if (w > window.innerWidth) {
-//       if (gap > 1) gap -= 1;
-//       else if (padding > 1) padding -= 2;
-//       else {
-//         maxRows += 1;
-//         gap = 6;
-//         padding = 10;
-//       }
-//     } else break;
-//   }
-//   return {rows: rows, cols: cols, gap: gap, padding: padding, width: w};
-// }
-//#endregion
