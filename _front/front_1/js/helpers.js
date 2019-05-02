@@ -928,16 +928,6 @@ function findParentWithId(elem) {
   ////console.log("parent with id: ", elem);
   return elem;
 }
-function evToId(ev) {
-  let elem = findParentWithId(ev.target);
-  return elem.id;
-}
-function getParentOfScript() {
-  // finds script in which this function is called
-  var thisScript = document.scripts[document.scripts.length - 1];
-  var parent = thisScript.parentElement;
-  return parent;
-}
 function ellipsis(text, font, width, padding) {
   let textLength = getTextWidth(text, font);
   let ellipsisLength = 0;
@@ -948,6 +938,16 @@ function ellipsis(text, font, width, padding) {
   }
   return ellipsisLength > 0 ? text + "..." : text;
 }
+function evToId(ev) {
+  let elem = findParentWithId(ev.target);
+  return elem.id;
+}
+function getParentOfScript() {
+  // finds script in which this function is called
+  var thisScript = document.scripts[document.scripts.length - 1];
+  var parent = thisScript.parentElement;
+  return parent;
+}
 function getTextWidth(text, font) {
   // re-use canvas object for better performance
   var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
@@ -955,6 +955,9 @@ function getTextWidth(text, font) {
   context.font = font;
   var metrics = context.measureText(text);
   return metrics.width;
+}
+function hide(elem) {
+  elem.classList.add("hidden");
 }
 function insertHere() {
   var thisScript = document.scripts[document.scripts.length - 1];
@@ -973,9 +976,6 @@ function makeSvg(w, h) {
   svg1.setAttribute("width", w);
   svg1.setAttribute("height", h);
   return svg1;
-}
-function hide(elem) {
-  elem.classList.add("hidden");
 }
 function show(elem) {
   elem.classList.remove("hidden");

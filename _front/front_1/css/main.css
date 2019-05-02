@@ -1,0 +1,45 @@
+body,
+html {
+  padding: 0px;
+  margin: 0px;
+}
+body {
+  min-width: 1366px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.hidden {
+  display: none;
+}
+.svg {
+  display: svg;
+  min-width: 0px;
+  width: auto;
+}
+.cursorPointer {
+  cursor: pointer;
+}
+
+button {
+  display: inline-block;
+  margin: 2px 0px 0px 0px;
+  padding: 10px 20px;
+  font-size: 20px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #fff;
+  background-color: #2196f3;
+  border: none;
+  border-radius: 12px;
+}
+
+button:hover {
+  background-color: rgb(1, 48, 87);
+}
+
+button:active {
+  background-color: rgb(233, 138, 134);
+}
+

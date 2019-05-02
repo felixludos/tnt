@@ -3,7 +3,8 @@
   <head>
     <title>test</title>
     <link rel="shortcut icon" href="#" />
-    <link rel="stylesheet" type="text/css" href="/css/commonStyles.css" />
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="/css/layout.css" />
     <link rel="stylesheet" type="text/css" href="/css/msStyles.css" />
     <link rel="stylesheet" type="text/css" href="/css/autocomp.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.2/js-yaml.js"></script>
@@ -14,6 +15,10 @@
     <script src="/js/helpers.js"></script>
     <script src="/js/panzoom.js"></script>
     <script src="/js/MS.js"></script>
+    <script src="/js/NPage.js"></script>
+    <script src="/js/NArea.js"></script>
+    <script src="/js/NTab.js"></script>
+    <script src="/js/NObj.js"></script>
     <script src="/js/BoardFactory.js"></script>
     <script src="/js/CardFactory.js"></script>
 
@@ -22,25 +27,65 @@
   </head>
   <body>
     <!-- #region HTML -->
-    <!-- <div id="testDiv1" class="div" style="text-align:left">
-      <form autocomplete="off">
-        <div class="autocomplete" style="width:100%;">
-          <input id="myInput1" type="text" name="myCountry" placeholder="Country" />
+    <div id="mainDiv" class="grid_game">
+      <div id="status_area" class="grid_div" onclick="page.testView()">status</div>
+      <div id="test_area" class="grid_div" style="text-align:left">
+        <div class="autocomplete" style="width:1170px;">
+          <input id="myInput" type="text" name="myCountry" style="font-size:30px;" placeholder="command" />
         </div>
-        <input type="submit" />
-      </form>
-    </div> -->
-    <div id="testDiv" class="div" style="text-align:left">
-      <div class="autocomplete" style="margin:10px;width:100%;">
-        <input id="myInput" type="text" name="myCountry" style="font-size:30px;" placeholder="command" />
+        <div class="autocomplete" style="width:1170px;">
+          <input id="inparam" type="text" name="inparam" style="font-size:30px;" placeholder="param" />
+        </div>
+        <div style="margin:10px;width:100%;">
+          <button id="bSendMessage" onclick="onClickSendMessage()">send message</button>
+          <button id="bClear" onclick="onClickClearInputs()">clear inputs</button>
+          <button id="bLoadScenario" onclick="onClickLoadScenario()">load scenario</button>
+          <button id="bStartScenario" onclick="onClickStartScenario()">start scenario</button>
+          <button id="bSkipAction" onclick="skipAction()">skip</button>
+          view:
+          <button id="bViewGame" onclick="page.gameView()">game</button>
+          <button id="bViewNoReserve" onclick="page.gameView(false)">no reserve</button>
+          <button id="bViewEdit" onclick="page.editView()">edit</button>
+          <button id="bViewTest" onclick="page.testView()">test</button>
+
+        </div>
       </div>
-      <div class="autocomplete" style="margin:10px;width:100%;">
-        <input id="inparam" type="text" name="inparam" style="font-size:30px;" placeholder="param" />
+      <div id="reserve_area" class="grid_div">
+        <svg id="selSvg" width="60" height="760"><g id="selG"></g></svg>
       </div>
-      <div style="margin:10px;width:100%;">
-        <button id="bSendMessage" onclick="onClickSendMessage()">send message</button>
-        <button id="bClear" onclick="onClickClearInputs()">clear inputs</button>
-        <button id="bLoadScenario">load scenario</button>
+      <div id="map_area" class="grid_div" style="background-color:rgba(86, 182, 222);">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="boardG" viewBox="0 0 3400 2200">
+            <image id="imgMap" width="3400" height="2200" href="/assets/TTmap.jpg" />
+          </g>
+        </svg>
+      </div>
+      <div id="log_area" class="grid_div" style="overflow-y:scroll">Messages</div>
+      <div id="prop_area" class="grid_div hidden">properties</div>
+      <div id="command_area" class="grid_div">
+        Commands
+        <button id="bNextPlayer" class="hidden" onclick="onClickNextPlayer()">next player</button>
+      </div>
+      <div id="chat_area" class="grid_div hidden">chat</div>
+      <div id="hand_area" class="grid_div" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="cardsG"></g>
+        </svg>
+      </div>
+      <div id="openCard_area" class="grid_div" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="openCardsG"></g>
+        </svg>
+      </div>
+      <div id="actionDeck_area" class="grid_div hidden" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="actionDeckCardsG"></g>
+        </svg>
+      </div>
+      <div id="investmentDeck_area" class="grid_div hidden" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="investmentDeckCardsG"></g>
+        </svg>
       </div>
     </div>
     <!-- #endregion HTML -->
@@ -51,7 +96,7 @@
       var msgCounter = 0;
       var serverData; // last message from server as JSON object
       var postData = scenario0;
-      var G;
+      var G; //complete game state
       var messages = [
         "changeToWest",
         "changeToUSSR",
@@ -80,18 +125,21 @@
         "test.json",
         "_gs01.json"
       ];
+      var page;
     </script>
     <!-- #endregion globals -->
 
     <!-- #region code execution  -->
     <script>
-      //console.log(scenario0); //geht! obwohl in head geladen!
-      document.getElementById("myInput").placeholder = 'command '+uniqueFirstLetters(messages).toString();
-      document.getElementById("inparam").placeholder = 'file '+uniqueFirstLetters(filenames).toString();
       $(document).ready(function() {
-        $("#bLoadScenario").click(loadScenario);
+        console.log(scenario0); //geht! obwohl in head geladen!
+        document.getElementById("myInput").placeholder = "command " + uniqueFirstLetters(messages).toString();
+        document.getElementById("inparam").placeholder = "file " + uniqueFirstLetters(filenames).toString();
         autocomplete(document.getElementById("myInput"), messages);
         autocomplete(document.getElementById("inparam"), filenames);
+        page = createNPage();
+        page.editView();
+
       });
     </script>
     <!-- #endregion  code execution -->
@@ -102,6 +150,9 @@
         document.getElementById("myInput").value = "";
         document.getElementById("inparam").value = "";
       }
+      function onClickLoadScenario() {
+        loadScenario();
+      }
       function onClickSendMessage() {
         let inp = document.getElementById("myInput");
         let msg = inp.value.toString();
@@ -110,6 +161,75 @@
         let msgParam = inparam.value.toString();
         inparam.value = "";
         sendOrPost(msg, msgParam, postData);
+      }
+      function onClickStartScenario() {
+        page.editView();
+        page.gameView(false);
+        console.log('was ist da los?!?!')
+        //before that, have to make scenario!!!
+        //which means: from scenario0 (global var) make modifications
+        //then call post('postTest',data,callback)
+        //this last step will save data to server: saves/test.json
+        //TODO: to be parameterized later!
+        //1. select which phase to start from
+        //2. the goal of a scenario is to determine which game objects
+        //should exist
+        //each player should get specific:
+        // - units
+        // - cards
+        // - influence
+        // during scenario setup, should have
+        // - selectables open: all 6 nationalities, all 7 unit types
+        // - cards open: all action cards, all investmend cards
+        // (alternatively, could just have list of cards by title)
+        // - all tiles should be selectable for placement of units
+        // - all nation spots (influence) should be selectable
+        // example:
+        // select player for which to choose objects
+        // objects on the board or in hand can be selected and deleted!
+        // p0: only offer this first possibility!
+        //
+        // first function to set up objects from object table
+      }
+      function clearAllVisuals() {
+        for (const o of G.objects) {
+          o.visual.removeFromUI();
+        }
+      }
+      function newScenario() {
+        //if G.hasVisuals need to clear all visuals!!!
+        if (G.hasVisuals) {
+          clearAllVisuals();
+        }
+        G = {};
+        G.objects = scenario0.gamestate.objects.table;
+        //for each object produce a visual
+        //msContainers sind:
+        //selectables,map,hand,battlePlayer1,battlePlayer2,open cards,
+        //special commands,
+        //
+        /*jedes element ms muss haben:
+          pointer zu object
+          (dict mit properties die visual counterpart haben)
+
+          wenn das so easy ist, why not just have visual updated every time 
+            some property changes
+            when newly created
+          
+          so in every update:
+          remove all objects
+          create all objects
+
+          >>nur wenn das nicht schnell genug mach es anders!
+
+           
+          
+
+
+
+
+
+        */
       }
     </script>
     <!-- #endregion handlers using globals  -->
@@ -129,12 +249,27 @@
           callback(data);
         }
       }
+      function createNPage(){
+        return new NPage(document.getElementById('mainDiv'),
+        document.getElementById('actionDeck_area'),
+        document.getElementById('chat_area'),
+        document.getElementById('command_area'),
+        document.getElementById('hand_area'),
+        document.getElementById('investmentDeck_area'),
+        document.getElementById('log_area'),
+        document.getElementById('openCard_area'),
+        document.getElementById('prop_area'),
+        document.getElementById('reserve_area'),
+        document.getElementById('status_area'),
+        document.getElementById('test_area'),
+        );
+      }
       function loadScenario() {
         //before that, have to make scenario!!!
         //which means: from scenario0 (global var) make modifications
         //then call post('postTest',data,callback)
         //this last step will save data to server: saves/test.json
-        // to be renamed later!
+        //TODO: to be parameterized later!
         let msgChain1 = ["myload/test.json", "noWest"];
         chainSend("start", msgChain1, data => {
           //the last call was to noWest,
