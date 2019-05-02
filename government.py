@@ -157,7 +157,7 @@ def resolve_intel(G, player, response):
 					options.add((card.bottom, cid))
 		
 		if len(options):  # any tech can be achieved openly or in secret
-			options = xset((xset('open', 'secret'), options))
+			options = xset((xset(['open', 'secret']), options))
 		
 		options.add(('accept',))
 		

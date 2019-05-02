@@ -71,6 +71,8 @@ def continue_game(pass_after=None, player = 'Axis'):
 			
 			if 'error' in out:
 				print(out.error)
+				# from IPython import embed
+				# embed()
 				break
 			
 			if 'log' in out and len(out.log):
@@ -130,7 +132,10 @@ complete_phase(players)
 path = save('prod_complete.json')
 print('Saved Prod phase at {}'.format(path))
 
-load('saves/prod_complete.json')
+# from IPython import embed
+# embed()
+
+# load('saves/prod_complete.json')
 
 take_action('Axis', None)
 
@@ -138,7 +143,7 @@ take_action('Axis', None)
 G = get_G()
 players = G.game.turn_order * 6
 
-continue_game(5)
+continue_game(12)
 
 path = save('gov_complete.json')
 print('Saved Gov phase at {}'.format(path))

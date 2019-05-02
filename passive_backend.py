@@ -5,7 +5,7 @@ import numpy as np
 import pickle
 import networkx as nx
 import util
-from util import adict, idict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete
+from util import adict, idict, iddict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete
 from tnt_setup import init_gamestate, setup_phase, setup_pre_phase
 from tnt_util import count_victory_points
 import tnt_setup as setup
@@ -122,7 +122,6 @@ def format_out_message(player):
 	return out
 
 def process_actions(outtype, results, player):
-	# print(G.objects.created.keys())
 	
 	if outtype == 'error':
 		out = format_out_message(player)
@@ -152,11 +151,11 @@ def process_actions(outtype, results, player):
 		raise Exception('Unknown outtype {}'.format(outtype))
 
 
-def next_phase():  # keeps going through phases until actions are returned
+def next_phase(player=None, action=None):  # keeps going through phases until actions are returned
 	
 	out = None
 	
-	while out is None:
+	while out is None or len(out) == 0:
 		
 		G.game.index += 1
 		
@@ -167,12 +166,13 @@ def next_phase():  # keeps going through phases until actions are returned
 		# maybe save G to file
 		save_gamestate('temp.json')
 		
-		phase_fn = PRE_PHASES[phase] if phase in PRE_PHASES else PHASES[phase]
+		if phase in PRE_PHASES:
+			out = PRE_PHASES[phase](G)
+		else:
+			out = PHASES[phase](G, player=player, action=action)
 		
-		if phase_fn is None:
-			raise NotImplementedError
-		
-		out = phase_fn(G)
+		if out is not None and len(out) == 0:
+			player, action = None, None
 		
 	return out
 
@@ -214,6 +214,9 @@ def step(player, action):
 			
 	except Exception as e:
 		G.abort()
+		
+		if DEBUG:
+			raise e
 		
 		return process_actions('error', sys.exc_info(), player)
 		
@@ -275,7 +278,7 @@ def convert_to_saveable(data):
 		return None
 	if isinstance(data, (str, int, float)):
 		return data
-	if isinstance(data, idict):
+	if isinstance(data, iddict):
 		return {convert_to_saveable(k): convert_to_saveable(v) for k, v in data.to_dict().items()}
 	if isinstance(data, dict):
 		return {convert_to_saveable(k): convert_to_saveable(v) for k, v in data.items()}

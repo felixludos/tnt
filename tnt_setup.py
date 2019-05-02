@@ -244,7 +244,9 @@ def encode_setup_actions(G):
 		
 	return code
 
-def setup_pre_phase(G, player_setup_path='config/faction_setup.yml'):
+player_setup_path='config/faction_setup.yml'
+
+def setup_pre_phase(G):
 	
 	player_setup = load(player_setup_path)
 	
