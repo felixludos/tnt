@@ -122,7 +122,6 @@ def format_out_message(player):
 	return out
 
 def process_actions(outtype, results, player):
-	# print(G.objects.created.keys())
 	
 	if outtype == 'error':
 		out = format_out_message(player)
@@ -215,6 +214,9 @@ def step(player, action):
 			
 	except Exception as e:
 		G.abort()
+		
+		if DEBUG:
+			raise e
 		
 		return process_actions('error', sys.exc_info(), player)
 		

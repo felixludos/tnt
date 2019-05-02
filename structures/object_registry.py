@@ -44,6 +44,9 @@ class iddict(adict): # WARNING: These objects are not garbage collected
 			del self['_id']
 			
 		self.__dict__['_id'] = ID
+		
+		# print(self)
+		
 		#_object_table[self._id] = self # dont use object registry
 	def __getattr__(self, key):
 		if key == '_id':
@@ -60,7 +63,9 @@ class iddict(adict): # WARNING: These objects are not garbage collected
 	def __getstate__(self):
 		return super().__getstate__()
 	def copy(self):
-		return idict(self.items())
+		copy = idict(self.items())
+		copy.__dict__['_id'] = self.__dict__['_id']
+		return copy
 	def to_dict(self, with_id=True):
 		if with_id:
 			copy = dict(self.items())
