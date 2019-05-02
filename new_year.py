@@ -4,7 +4,7 @@ from util import adict, xset, tdict, tlist, tset
 import random
 from tnt_cards import shuffle
 
-def new_year_phase(G):
+def new_year_phase(G, player=None, action=None):
 	
 	# increment year
 	G.game.year += 1

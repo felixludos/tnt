@@ -2,9 +2,10 @@
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
 from tnt_cards import discard_cards
 from tnt_units import add_unit, move_unit
-from tnt_util import travel_options, declaration_of_war, violation_of_neutrality, eval_control
+from tnt_util import travel_options, eval_tile_control
 from government import check_revealable, reveal_tech
 import random
+from diplomacy import declaration_of_war, violation_of_neutrality
 
 
 def encode_command_card_phase(G):
@@ -123,8 +124,7 @@ def planning_phase(G, player, action):
 	# evaluate card choices
 	if len(G.temp.decision) == 0:
 		
-		return
-		#raise PhaseComplete
+		raise PhaseComplete
 	
 	G.temp.commands = tdict()
 	
@@ -220,8 +220,8 @@ def movement_phase(G, player, action):
 		unit = faction.units[head]
 		
 		# update disputed, add battles
-		eval_control(G, G.tiles[unit.tile])
-		eval_control(G, G.tiles[destination])
+		eval_tile_control(G, G.tiles[unit.tile])
+		eval_tile_control(G, G.tiles[destination])
 		
 		move_unit(G, unit, destination)
 		
