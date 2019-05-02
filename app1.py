@@ -200,6 +200,10 @@ def save1(filename=None):
 def load1(data):
 	return load_gamestate(data)
 
+@app.route('/refresh/<player>')
+def refresh(player):
+	return FORMAT_MSG(get_object_table(), player)
+
 @app.route('/reset/<player>')
 def reset(player):
 	return FORMAT_MSG(get_object_table(), player)
