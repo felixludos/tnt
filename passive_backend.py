@@ -167,6 +167,7 @@ def next_phase(player=None, action=None):  # keeps going through phases until ac
 		save_gamestate('temp.json')
 		
 		if phase in PRE_PHASES:
+			assert action is None, 'The action: {} by player {} was not handled, starting {} pre phase'.format(action, player, phase)
 			out = PRE_PHASES[phase](G)
 		else:
 			out = PHASES[phase](G, player=player, action=action)
@@ -204,6 +205,8 @@ def step(player, action):
 			
 			try:
 				all_actions = phase(G, player, action)
+				if all_actions is None:
+					all_actions = next_phase(player, action)
 			except PhaseComplete:
 				if DEBUG:
 					PHASE_DONE = True

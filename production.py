@@ -84,6 +84,8 @@ def encode_production_actions(G):
 
 def production_pre_phase(G):
 	
+	G.logger.write('Beginning Production Phase')
+	
 	if 'temp' in G:
 		del G.temp
 		

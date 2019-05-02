@@ -43,7 +43,8 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	
 	if 'cv' not in unit: # by default add a cadre
 		unit.cv = 1
-	
+	else:
+		assert 1 <= unit.cv <= 4, '{} is an invalid cv value: {}'.format(unit.cv, unit)
 	player = G.nations.designations[unit.nationality]
 	
 	if player is 'Minor':

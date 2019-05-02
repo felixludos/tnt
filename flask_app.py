@@ -94,28 +94,32 @@ def format_msg_to_python(msg):
 FORMAT_MSG = format_msg_for_frontend
 
 
-@app.route('/common/css/<fname>/')
-def staticFilesCSSCommon(fname):
-  return send_from_directory(app.static_folder, 'css/'+fname)
+# @app.route('/common/css/<fname>/')
+# def staticFilesCSSCommon(fname):
+#   return send_from_directory(app.static_folder, 'css/'+fname)
+#
+# @app.route('/common/js/<fname>/')
+# def staticFilesJSCommon(fname):
+#   return send_from_directory(app.static_folder, 'js/'+fname)
+#
+# @app.route('/common/assets/<fname>')
+# def staticFilesAssetsDir(fname):
+# 	filename = fname
+# 	return send_from_directory(app.static_folder, 'assets/'+fname)
+#
+# @app.route('/common/assets/markers/<fname>')
+# def staticFilesAssetsMarkersDir(fname):
+# 	filename = fname
+# 	return send_from_directory(app.static_folder, 'assets/markers/'+fname)
+#
+# @app.route('/common/assets/config/<fname>')
+# def staticFilesAssetsConfigDir(fname):
+# 	filename = fname
+# 	return send_from_directory(app.static_folder, 'assets/config/'+fname)
 
-@app.route('/common/js/<fname>/')
-def staticFilesJSCommon(fname):
-  return send_from_directory(app.static_folder, 'js/'+fname)
 
-@app.route('/common/assets/<fname>')
-def staticFilesAssetsDir(fname):
-	filename = fname
-	return send_from_directory(app.static_folder, 'assets/'+fname)
 
-@app.route('/common/assets/markers/<fname>')
-def staticFilesAssetsMarkersDir(fname):
-	filename = fname
-	return send_from_directory(app.static_folder, 'assets/markers/'+fname)
 
-@app.route('/common/assets/config/<fname>')
-def staticFilesAssetsConfigDir(fname):
-	filename = fname
-	return send_from_directory(app.static_folder, 'assets/config/'+fname)
 
 # @app.route('/lauren/')
 # def defaultRouteStaticFiles():
@@ -135,19 +139,23 @@ def staticFilesAssetsConfigDir(fname):
 #     filename = fname
 #     return send_from_directory(app.static_folder, "front_felix/"+fname)
 
-@app.route('/0/')
-def defaultRouteStaticFilesTawzz():
-	return send_from_directory(app.static_folder, "front_0/index.html")
 
-@app.route('/0/<fname>')
-def staticFilesMainDirTawzz(fname):
-	filename = fname
-	return send_from_directory(app.static_folder, "front_0/"+fname)
 
-@app.route('/0/<path:path>')
-def staticFilesMainDirTawzz(fname):
-	filename = path
-	return send_from_directory(app.static_folder, "front_0/"+path)
+
+
+# @app.route('/0/')
+# def defaultRouteStaticFilesTawzz():
+# 	return send_from_directory(app.static_folder, "front_0/index.html")
+#
+# @app.route('/0/<fname>')
+# def staticFilesMainDirTawzz(fname):
+# 	filename = fname
+# 	return send_from_directory(app.static_folder, "front_0/"+fname)
+#
+# @app.route('/0/<path:path>')
+# def staticFilesMainDirTawzz(fname):
+# 	filename = path
+# 	return send_from_directory(app.static_folder, "front_0/"+path)
 
 @app.route("/")
 def ping():
@@ -166,8 +174,8 @@ def testload(data):
 	load_gamestate('./saves/'+data)
 	return './saves/'+data
 
-@app.route('/reset/<player>')
-def reset(player):
+@app.route('/refresh/<player>')
+def refresh(player):
 	return FORMAT_MSG(get_object_table(), player)
 
 @app.route('/init/<game_type>/<player>')
