@@ -1,5 +1,6 @@
-'''import tnt_util as util
-from tnt_util import adict, idict, xset, collate, load, render_dict, save, Logger, seq_iterate
+import sys, os, time
+import tnt_util as util
+from tnt_util import adict, idict, xset #collate, load, render_dict, save, Logger, seq_iterate
 from tnt_setup import init_gamestate, setup_phase
 from tnt_cards import load_card_decks, draw_cards
 from collections import namedtuple
@@ -7,13 +8,12 @@ import random
 from itertools import chain, product
 from tnt_units import load_unit_rules
 
-
 import tnt_setup as setup
-'''
+
 from flask_app import *
 
 import pygame as pg
-from camera import *
+from _front.front_pygame.camera import Camera
 from _front.front_pygame.pygame_settings import *
 
 
@@ -39,7 +39,6 @@ class PGame:
     def new(self):
         # set background
         self.win.blit(self.map, self.map.get_rect())
-
 
         # set up camera
         self.camera = Camera(self.width, self.height)
@@ -87,7 +86,13 @@ class PGame:
 
 
 def main():
+    print(sys.executable)
     p = PGame()
+
+    print(ping())
+    player = 'Axis'
+    out = format_msg_to_python(init_game(debug=False, player=player))  # start Tnt from flask_app
+    print(out)
 
     while p.running:
         p.new()
