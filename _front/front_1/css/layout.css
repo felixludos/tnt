@@ -4,6 +4,9 @@
 #status_area {
   grid-area: status;
 }
+#menu_area {
+  grid-area: menu;
+}
 #map_area {
   grid-area: map;
 }
@@ -45,7 +48,7 @@
   grid-template-columns: 60px 1190px auto;
   grid-template-rows: auto 200px 500px 260px auto auto;
   grid-template-areas:
-    "status status status"
+    "menu menu menu"
     "test test test"
     "sel map  log"
     "sel map  buttons"
@@ -89,7 +92,7 @@
   grid-template-columns: 60px 1190px auto;
   grid-template-rows: auto 200px 760px auto auto auto;
   grid-template-areas:
-    "status status status"
+    "menu menu menu"
     "test test test"
     "sel map  props"
     "cards cards cards"

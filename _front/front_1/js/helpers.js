@@ -282,11 +282,11 @@ function sameList(l1, l2) {
   }
   return true;
 }
-function uniqueFirstLetters(arr){
-  let res=[];
+function uniqueFirstLetters(arr) {
+  let res = [];
   for (const s of arr) {
-    if (s.length>0){
-      addIf(s[0],res);
+    if (s.length > 0) {
+      addIf(s[0], res);
     }
   }
   return res;
@@ -355,7 +355,46 @@ function colorNameToHslaString(str) {
   hsla = hslToHslaString(hsl.h, hsl.s, hsl.l, 1);
   return hsla;
 }
-
+function colorNameToRgb(str) {
+  let hex = colorNameToHexString(str);
+  //hex string to rgb
+  let rgb = hexToRgb(hex);
+  return rgb;
+}
+function convertToRgba(cAny, alpha = 1) {
+  //alpha either value btween 0 and 1 or 0-255
+  let a = alpha >= 0 && alpha <= 1 ? alpha : alpha / 100; //alpha==0?0:alpha==1?255:alpha<1?Math.round(alpha*100):alpha;
+  //console.log("type is", typeof cAny);
+  if (isString(cAny)) {
+    //console.log("convertToRgba is a String", cAny);
+    if (cAny[0] == "#") {
+      let rgbObj = hexToRgb(cAny);
+      return `rgba(${rgbObj.r},${rgbObj.g},${rgbObj.b},${a})`;
+    } else if (startsWith(cAny, "hsl") || startsWith(cAny, "rgb")) {
+      //console.log("hsla or rgba color!", cAny);
+      return cAny;
+    } else if (cAny == "transparent") {
+      return cAny;
+    } else {
+      //assume colorname
+      //console.log("should be a color name!!!", cAny);
+      let rgbObj = colorNameToRgb(cAny);
+      return `rgba(${rgbObj.r},${rgbObj.g},${rgbObj.b},${a})`;
+    }
+  } else if (Array.isArray(cAny)) {
+    if (cAny.length == 3) {
+      //assume this is a rgb
+      let r = cAny[0];
+      let g = cAny[1];
+      let b = cAny[2];
+      return `rgba(${r},${g},${b},${a})`;
+    } else {
+      //return a random color
+      //console.log("convertToRgba: ERROR! NOT A COLOR:", cAny);
+      return randomColor(100, 70, a);
+    }
+  }
+}
 function getColorNames() {
   return [
     "AliceBlue",
@@ -813,10 +852,10 @@ function transColor(r, g, b, a) {
 //     url: "/loadTest",
 //     type: "GET",
 //     success: function(response) {
-//       console.log(response);
+//       //console.log(response);
 //     },
 //     error: function(error) {
-//       console.log(error);
+//       //console.log(error);
 //     }
 //   });
 // }
@@ -825,14 +864,14 @@ function transColor(r, g, b, a) {
 //     url: "/loadTest",
 //     type: "GET",
 //     success: function(response) {
-//       console.log(response);
+//       //console.log(response);
 //     },
 //     error: function(error) {
-//       console.log(error);
+//       //console.log(error);
 //     }
 //   });
 // }
-function saveJsonAtServer(jsonObject,filename) {
+function saveJsonAtServer(jsonObject, filename) {
   event.preventDefault();
   var labels = ["hallo", "das", "ist"]; //checkboxes.toArray().map(checkbox => checkbox.value);
 
@@ -843,10 +882,10 @@ function saveJsonAtServer(jsonObject,filename) {
     processData: false,
     contentType: "application/json; charset=UTF-8",
     success: function(response) {
-      console.log(response);
+      //console.log(response);
     },
     error: function(error) {
-      console.log(error);
+      //console.log(error);
     }
   });
 }
@@ -1047,7 +1086,10 @@ function eraseSpaces(s) {
   }
   return s;
 }
-
+function endsWith(s, sSub) {
+  let i = s.indexOf(sSub);
+  return i == s.length - sSub.length;
+}
 function getLines(s) {
   // returns array of lines in s
   var str = s;
@@ -1099,7 +1141,10 @@ function stringBefore(sFull, sSub) {
 function getTypeOf(param) {
   let type = typeof param;
   ////console.log("typeof says:" + type);
-  if (typeof param == "object") {
+  if (type == "string") {
+    return "string";
+  }
+  if (type == "object") {
     type = param.constructor.name;
   }
   let lType = type.toLowerCase();
@@ -1112,7 +1157,7 @@ function isEvent(param) {
   return getTypeOf(param) == "event";
 }
 function isString(param) {
-  return getTypeOf(param) == "string";
+  return typeof param == "string";
 }
 function isMS(param) {
   return getTypeOf(param) == "MS";
@@ -1287,238 +1332,238 @@ function calcSnailPositions(x, y, d, n) {
 
 //   let i=0;
 //   for (const o of objects) {
-//     console.log('p[i]',p[i],'object',o)
+//     //console.log('p[i]',p[i],'object',o)
 //     o.setPos(p[i][0],p[i][1]); i+=1;
 //   }
 // }
 //#endregion layout helpers
 
 //#region list of countries
-      /*An array containing all the country names in the world:*/
-      var countries = [
-        "Afghanistan",
-        "Albania",
-        "Algeria",
-        "Andorra",
-        "Angola",
-        "Anguilla",
-        "Antigua & Barbuda",
-        "Argentina",
-        "Armenia",
-        "Aruba",
-        "Australia",
-        "Austria",
-        "Azerbaijan",
-        "Bahamas",
-        "Bahrain",
-        "Bangladesh",
-        "Barbados",
-        "Belarus",
-        "Belgium",
-        "Belize",
-        "Benin",
-        "Bermuda",
-        "Bhutan",
-        "Bolivia",
-        "Bosnia & Herzegovina",
-        "Botswana",
-        "Brazil",
-        "British Virgin Islands",
-        "Brunei",
-        "Bulgaria",
-        "Burkina Faso",
-        "Burundi",
-        "Cambodia",
-        "Cameroon",
-        "Canada",
-        "Cape Verde",
-        "Cayman Islands",
-        "Central Arfrican Republic",
-        "Chad",
-        "Chile",
-        "China",
-        "Colombia",
-        "Congo",
-        "Cook Islands",
-        "Costa Rica",
-        "Cote D Ivoire",
-        "Croatia",
-        "Cuba",
-        "Curacao",
-        "Cyprus",
-        "Czech Republic",
-        "Denmark",
-        "Djibouti",
-        "Dominica",
-        "Dominican Republic",
-        "Ecuador",
-        "Egypt",
-        "El Salvador",
-        "Equatorial Guinea",
-        "Eritrea",
-        "Estonia",
-        "Ethiopia",
-        "Falkland Islands",
-        "Faroe Islands",
-        "Fiji",
-        "Finland",
-        "France",
-        "French Polynesia",
-        "French West Indies",
-        "Gabon",
-        "Gambia",
-        "Georgia",
-        "Germany",
-        "Ghana",
-        "Gibraltar",
-        "Greece",
-        "Greenland",
-        "Grenada",
-        "Guam",
-        "Guatemala",
-        "Guernsey",
-        "Guinea",
-        "Guinea Bissau",
-        "Guyana",
-        "Haiti",
-        "Honduras",
-        "Hong Kong",
-        "Hungary",
-        "Iceland",
-        "India",
-        "Indonesia",
-        "Iran",
-        "Iraq",
-        "Ireland",
-        "Isle of Man",
-        "Israel",
-        "Italy",
-        "Jamaica",
-        "Japan",
-        "Jersey",
-        "Jordan",
-        "Kazakhstan",
-        "Kenya",
-        "Kiribati",
-        "Kosovo",
-        "Kuwait",
-        "Kyrgyzstan",
-        "Laos",
-        "Latvia",
-        "Lebanon",
-        "Lesotho",
-        "Liberia",
-        "Libya",
-        "Liechtenstein",
-        "Lithuania",
-        "Luxembourg",
-        "Macau",
-        "Macedonia",
-        "Madagascar",
-        "Malawi",
-        "Malaysia",
-        "Maldives",
-        "Mali",
-        "Malta",
-        "Marshall Islands",
-        "Mauritania",
-        "Mauritius",
-        "Mexico",
-        "Micronesia",
-        "Moldova",
-        "Monaco",
-        "Mongolia",
-        "Montenegro",
-        "Montserrat",
-        "Morocco",
-        "Mozambique",
-        "Myanmar",
-        "Namibia",
-        "Nauro",
-        "Nepal",
-        "Netherlands",
-        "Netherlands Antilles",
-        "New Caledonia",
-        "New Zealand",
-        "Nicaragua",
-        "Niger",
-        "Nigeria",
-        "North Korea",
-        "Norway",
-        "Oman",
-        "Pakistan",
-        "Palau",
-        "Palestine",
-        "Panama",
-        "Papua New Guinea",
-        "Paraguay",
-        "Peru",
-        "Philippines",
-        "Poland",
-        "Portugal",
-        "Puerto Rico",
-        "Qatar",
-        "Reunion",
-        "Romania",
-        "Russia",
-        "Rwanda",
-        "Saint Pierre & Miquelon",
-        "Samoa",
-        "San Marino",
-        "Sao Tome and Principe",
-        "Saudi Arabia",
-        "Senegal",
-        "Serbia",
-        "Seychelles",
-        "Sierra Leone",
-        "Singapore",
-        "Slovakia",
-        "Slovenia",
-        "Solomon Islands",
-        "Somalia",
-        "South Africa",
-        "South Korea",
-        "South Sudan",
-        "Spain",
-        "Sri Lanka",
-        "St Kitts & Nevis",
-        "St Lucia",
-        "St Vincent",
-        "Sudan",
-        "Suriname",
-        "Swaziland",
-        "Sweden",
-        "Switzerland",
-        "Syria",
-        "Taiwan",
-        "Tajikistan",
-        "Tanzania",
-        "Thailand",
-        "Timor L'Este",
-        "Togo",
-        "Tonga",
-        "Trinidad & Tobago",
-        "Tunisia",
-        "Turkey",
-        "Turkmenistan",
-        "Turks & Caicos",
-        "Tuvalu",
-        "Uganda",
-        "Ukraine",
-        "United Arab Emirates",
-        "United Kingdom",
-        "United States of America",
-        "Uruguay",
-        "Uzbekistan",
-        "Vanuatu",
-        "Vatican City",
-        "Venezuela",
-        "Vietnam",
-        "Virgin Islands (US)",
-        "Yemen",
-        "Zambia",
-        "Zimbabwe"
-      ];
+/*An array containing all the country names in the world:*/
+var countries = [
+  "Afghanistan",
+  "Albania",
+  "Algeria",
+  "Andorra",
+  "Angola",
+  "Anguilla",
+  "Antigua & Barbuda",
+  "Argentina",
+  "Armenia",
+  "Aruba",
+  "Australia",
+  "Austria",
+  "Azerbaijan",
+  "Bahamas",
+  "Bahrain",
+  "Bangladesh",
+  "Barbados",
+  "Belarus",
+  "Belgium",
+  "Belize",
+  "Benin",
+  "Bermuda",
+  "Bhutan",
+  "Bolivia",
+  "Bosnia & Herzegovina",
+  "Botswana",
+  "Brazil",
+  "British Virgin Islands",
+  "Brunei",
+  "Bulgaria",
+  "Burkina Faso",
+  "Burundi",
+  "Cambodia",
+  "Cameroon",
+  "Canada",
+  "Cape Verde",
+  "Cayman Islands",
+  "Central Arfrican Republic",
+  "Chad",
+  "Chile",
+  "China",
+  "Colombia",
+  "Congo",
+  "Cook Islands",
+  "Costa Rica",
+  "Cote D Ivoire",
+  "Croatia",
+  "Cuba",
+  "Curacao",
+  "Cyprus",
+  "Czech Republic",
+  "Denmark",
+  "Djibouti",
+  "Dominica",
+  "Dominican Republic",
+  "Ecuador",
+  "Egypt",
+  "El Salvador",
+  "Equatorial Guinea",
+  "Eritrea",
+  "Estonia",
+  "Ethiopia",
+  "Falkland Islands",
+  "Faroe Islands",
+  "Fiji",
+  "Finland",
+  "France",
+  "French Polynesia",
+  "French West Indies",
+  "Gabon",
+  "Gambia",
+  "Georgia",
+  "Germany",
+  "Ghana",
+  "Gibraltar",
+  "Greece",
+  "Greenland",
+  "Grenada",
+  "Guam",
+  "Guatemala",
+  "Guernsey",
+  "Guinea",
+  "Guinea Bissau",
+  "Guyana",
+  "Haiti",
+  "Honduras",
+  "Hong Kong",
+  "Hungary",
+  "Iceland",
+  "India",
+  "Indonesia",
+  "Iran",
+  "Iraq",
+  "Ireland",
+  "Isle of Man",
+  "Israel",
+  "Italy",
+  "Jamaica",
+  "Japan",
+  "Jersey",
+  "Jordan",
+  "Kazakhstan",
+  "Kenya",
+  "Kiribati",
+  "Kosovo",
+  "Kuwait",
+  "Kyrgyzstan",
+  "Laos",
+  "Latvia",
+  "Lebanon",
+  "Lesotho",
+  "Liberia",
+  "Libya",
+  "Liechtenstein",
+  "Lithuania",
+  "Luxembourg",
+  "Macau",
+  "Macedonia",
+  "Madagascar",
+  "Malawi",
+  "Malaysia",
+  "Maldives",
+  "Mali",
+  "Malta",
+  "Marshall Islands",
+  "Mauritania",
+  "Mauritius",
+  "Mexico",
+  "Micronesia",
+  "Moldova",
+  "Monaco",
+  "Mongolia",
+  "Montenegro",
+  "Montserrat",
+  "Morocco",
+  "Mozambique",
+  "Myanmar",
+  "Namibia",
+  "Nauro",
+  "Nepal",
+  "Netherlands",
+  "Netherlands Antilles",
+  "New Caledonia",
+  "New Zealand",
+  "Nicaragua",
+  "Niger",
+  "Nigeria",
+  "North Korea",
+  "Norway",
+  "Oman",
+  "Pakistan",
+  "Palau",
+  "Palestine",
+  "Panama",
+  "Papua New Guinea",
+  "Paraguay",
+  "Peru",
+  "Philippines",
+  "Poland",
+  "Portugal",
+  "Puerto Rico",
+  "Qatar",
+  "Reunion",
+  "Romania",
+  "Russia",
+  "Rwanda",
+  "Saint Pierre & Miquelon",
+  "Samoa",
+  "San Marino",
+  "Sao Tome and Principe",
+  "Saudi Arabia",
+  "Senegal",
+  "Serbia",
+  "Seychelles",
+  "Sierra Leone",
+  "Singapore",
+  "Slovakia",
+  "Slovenia",
+  "Solomon Islands",
+  "Somalia",
+  "South Africa",
+  "South Korea",
+  "South Sudan",
+  "Spain",
+  "Sri Lanka",
+  "St Kitts & Nevis",
+  "St Lucia",
+  "St Vincent",
+  "Sudan",
+  "Suriname",
+  "Swaziland",
+  "Sweden",
+  "Switzerland",
+  "Syria",
+  "Taiwan",
+  "Tajikistan",
+  "Tanzania",
+  "Thailand",
+  "Timor L'Este",
+  "Togo",
+  "Tonga",
+  "Trinidad & Tobago",
+  "Tunisia",
+  "Turkey",
+  "Turkmenistan",
+  "Turks & Caicos",
+  "Tuvalu",
+  "Uganda",
+  "Ukraine",
+  "United Arab Emirates",
+  "United Kingdom",
+  "United States of America",
+  "Uruguay",
+  "Uzbekistan",
+  "Vanuatu",
+  "Vatican City",
+  "Venezuela",
+  "Vietnam",
+  "Virgin Islands (US)",
+  "Yemen",
+  "Zambia",
+  "Zimbabwe"
+];
 //#endregion
 
 // #region zooming
@@ -1561,16 +1606,7 @@ function getZoomFactor(gElement) {
   var matrix = gElement.getCTM();
   let info = decomposeMatrix(matrix);
   return info.scale;
-  // console.log(x.scale);
+  // //console.log(x.scale);
 }
 
 //#endregion zooming
-
-
-
-
-
-
-
-
-

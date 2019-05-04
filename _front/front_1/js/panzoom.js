@@ -73,7 +73,7 @@ function onmousedown(ev) {
 function onmousemove(ev, board) {
   //console.log(ev.target)
   let id = ev.target.id;
-  if (id != 'imgMap' && id !='boardG') {
+  if (id != 'imgMap' && id !='mapG') {
     couldBePanning=false;
     panning=false;
     return;

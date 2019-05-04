@@ -152,6 +152,9 @@ def testload(data):
 @app.route('/reset/<player>')
 def reset(player):
 	return FORMAT_MSG(get_object_table(), player)
+@app.route('/refresh/<player>')
+def reset(player):
+	return FORMAT_MSG(get_object_table(), player)
 
 @app.route('/init/<game_type>/<player>')
 def init_game(game_type='hotseat', player='Axis', debug=False):
