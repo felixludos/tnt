@@ -1,7 +1,7 @@
 
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
 from tnt_cards import discard_cards
-from tnt_util import travel_options, declaration_of_war, violation_of_neutrality, eval_tile_control
+from tnt_util import travel_options, eval_tile_control
 import random
 
 
