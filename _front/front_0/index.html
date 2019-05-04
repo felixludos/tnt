@@ -736,7 +736,7 @@
           let sz = SZ.cadreDetail;
           ms = new MS(id, g)
             .roundedRect({w: sz, h: sz, fill: "black", rounding: sz * 0.1})
-            .image({w: sz, h: sz, path: "assets/images/" + id + ".svg", rounding: sz * 0.1})
+            .image({w: sz, h: sz, path: "/assets/images/" + id + ".svg", rounding: sz * 0.1})
             .roundedRect({className: "overlay region hible selectable", w: sz, h: sz, rounding: sz * 0.1});
 
           ms.tag("type", "unit_type");
