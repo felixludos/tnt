@@ -115,6 +115,24 @@ def rootjs(filename):
 def rootassets(path):
     return send_from_directory(app.static_folder, 'assets/'+path)
 
+statfold1='_front/front_0'
+@app.route('/0')
+@app.route('/0/')
+def root0():
+	return send_from_directory(statfold1, 'index.html')
+    
+@app.route('/common/css/<filename>')
+def rootcss0(filename):
+    return send_from_directory(statfold1, 'css/'+filename)
+
+@app.route('/common/js/<filename>')
+def rootjs0(filename):
+    return send_from_directory(statfold1, 'js/'+filename)
+
+@app.route('/common/assets/<path:path>')
+def rootassets0(path):
+    return send_from_directory(statfold1, 'assets/'+path)
+
 
 
 

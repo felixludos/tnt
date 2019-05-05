@@ -20,9 +20,24 @@ body {
   cursor: pointer;
 }
 
+.flexdiv {
+  display: flex;
+  margin: 0;
+  width: 100%;
+}
+
+.flex >div {
+  flex: 0 1 auto;
+  margin: 10px;
+}
+.flex >button {
+  flex: 0 1 auto;
+  /* margin: 10px; */
+}
+
 button {
   display: inline-block;
-  margin: 2px 0px 0px 0px;
+  margin: 2px 0px 3px 0px;
   padding: 10px 20px;
   font-size: 20px;
   cursor: pointer;
@@ -42,4 +57,3 @@ button:hover {
 button:active {
   background-color: rgb(233, 138, 134);
 }
-

@@ -16,51 +16,63 @@
     <script src="/js/panzoom.js"></script>
     <script src="/js/MS.js"></script>
     <script src="/js/NPage.js"></script>
-    <script src="/js/NArea.js"></script>
-    <script src="/js/NTab.js"></script>
+    <script src="/js/NGrouping.js"></script>
     <script src="/js/NObj.js"></script>
-    <script src="/js/BoardFactory.js"></script>
-    <script src="/js/CardFactory.js"></script>
+    <!-- <script src="/js/BoardFactory.js"></script>
+    <script src="/js/CardFactory.js"></script> -->
 
     <script src="/js/scenario0.js"></script>
     <script src="/js/scenario1.js"></script>
+    <script src="/js/scenario2.js"></script>
   </head>
   <body>
     <!-- #region HTML -->
     <div id="mainDiv" class="grid_game">
-      <div id="status_area" class="grid_div" onclick="page.testView()">status</div>
-      <div id="test_area" class="grid_div" style="text-align:left">
-        <div class="autocomplete" style="width:1170px;">
-          <input id="myInput" type="text" name="myCountry" style="font-size:30px;" placeholder="command" />
-        </div>
-        <div class="autocomplete" style="width:1170px;">
-          <input id="inparam" type="text" name="inparam" style="font-size:30px;" placeholder="param" />
-        </div>
-        <div style="margin:10px;width:100%;">
-          <button id="bSendMessage" onclick="onClickSendMessage()">send message</button>
-          <button id="bClear" onclick="onClickClearInputs()">clear inputs</button>
+      <div id="menu_area" class="grid_div" style="text-align:left;">
+        <div style="float:left;margin-left:10px">
           <button id="bLoadScenario" onclick="onClickLoadScenario()">load scenario</button>
           <button id="bStartScenario" onclick="onClickStartScenario()">start scenario</button>
-          <button id="bSkipAction" onclick="skipAction()">skip</button>
+          <button id="bSkipAction" onclick="skipAction()">skip action</button>
+        </div>
+        <div style="float:right;margin-right:10px">
           view:
           <button id="bViewGame" onclick="page.gameView()">game</button>
           <button id="bViewNoReserve" onclick="page.gameView(false)">no reserve</button>
           <button id="bViewEdit" onclick="page.editView()">edit</button>
           <button id="bViewTest" onclick="page.testView()">test</button>
-
+        </div>
+      </div>
+      <div id="status_area" class="grid_div" onclick="page.testView()">status</div>
+      <div id="test_area" class="grid_div">
+        <div class="flexdiv">
+          <div class="autocomplete">
+            <input id="myInput" type="text" name="myCountry" style="font-size:30px;" placeholder="command" />
+          </div>
+          <div class="autocomplete">
+            <input id="inparam" type="text" name="inparam" style="font-size:30px;" placeholder="param" />
+          </div>
+          <button style="margin:10px" id="bSendMessage" onclick="onClickSendMessage()">send message</button>
+          <button style="margin:10px" id="bClear" onclick="onClickClearInputs()">clear inputs</button>
         </div>
       </div>
       <div id="reserve_area" class="grid_div">
-        <svg id="selSvg" width="60" height="760"><g id="selG"></g></svg>
+        <svg id="selSvg" width="60" height="760"><g id="reserveG"></g></svg>
       </div>
       <div id="map_area" class="grid_div" style="background-color:rgba(86, 182, 222);">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="boardG" viewBox="0 0 3400 2200">
+          <g id="mapG" viewBox="0 0 3400 2200">
             <image id="imgMap" width="3400" height="2200" href="/assets/TTmap.jpg" />
           </g>
         </svg>
       </div>
-      <div id="log_area" class="grid_div" style="overflow-y:scroll">Messages</div>
+      <div id="log_area" class="grid_div" style="overflow-y:scroll">
+        Messages
+        <div id="tempDisplay" class="hidden" style="width:100%;height:100%">
+          <svg width="100%" height="100%" style="box-sizing:border-box;">
+            <g id="tempG"></g>
+          </svg>
+        </div>
+      </div>
       <div id="prop_area" class="grid_div hidden">properties</div>
       <div id="command_area" class="grid_div">
         Commands
@@ -69,22 +81,22 @@
       <div id="chat_area" class="grid_div hidden">chat</div>
       <div id="hand_area" class="grid_div" style="height:200px">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="cardsG"></g>
+          <g id="handG"></g>
         </svg>
       </div>
       <div id="openCard_area" class="grid_div" style="height:200px">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="openCardsG"></g>
+          <g id="openCardG"></g>
         </svg>
       </div>
       <div id="actionDeck_area" class="grid_div hidden" style="height:200px">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="actionDeckCardsG"></g>
+          <g id="actionDeckG"></g>
         </svg>
       </div>
       <div id="investmentDeck_area" class="grid_div hidden" style="height:200px">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="investmentDeckCardsG"></g>
+          <g id="investmentDeckG"></g>
         </svg>
       </div>
     </div>
@@ -96,7 +108,22 @@
       var msgCounter = 0;
       var serverData; // last message from server as JSON object
       var postData = scenario0;
-      var G; //complete game state
+
+      var G = {hasVisuals: false, oServer: {}, oFront: {}, groupings: {}}; //complete game state
+      //oFront: objects made by front
+      // permanent for duration of session:
+      //   unit_types, unit_nationalities, influence_spots, chips, commands, decks
+      // destroy on reload/and re-create lazily:
+      //   unitSum, peace counter, influences
+      //oServer: objects made by server, new when load/refresh, incrementally renewed im normalfall
+      //   units: change multiple things including id
+      //   influences: -"- change id as well
+      //   tiles: dont ever change at all
+      //   cards: only change owner/parentG but not id
+      var player = "West";
+      var year = "1935";
+      var phase = "setup";
+
       var messages = [
         "changeToWest",
         "changeToUSSR",
@@ -126,23 +153,37 @@
         "_gs01.json"
       ];
       var page;
+
+      var tilePositions, nationPositions;
+      var tileNames, nationalityNames, unitTypeNames, nationNames, unitCountInfo;
+      const SZ = {
+        //various sizes used
+        region: 180,
+        pAxis: {x: 0, y: 20}, // this is where on the region placement of cadre is started
+        pWest: {x: -50, y: -30},
+        pUSSR: {x: +50, y: -30},
+        cadrePrototype: 60,
+        sumCadre: 60,
+        cadreDetail: 44,
+        cardWidth: 100,
+        cardHeight: 150,
+        gap: 10,
+        chip: 40,
+        influence: 100
+      };
+      const troopColors = {
+        Germany: [174, 174, 176],
+        Britain: [86, 182, 222],
+        France: [121, 200, 205],
+        USSR: [233, 138, 134],
+        USA: [145, 186, 130],
+        Italy: [174, 172, 131],
+        Neutral: [255, 255, 102],
+        Axis: [174, 174, 176],
+        West: [86, 182, 222]
+      };
     </script>
     <!-- #endregion globals -->
-
-    <!-- #region code execution  -->
-    <script>
-      $(document).ready(function() {
-        console.log(scenario0); //geht! obwohl in head geladen!
-        document.getElementById("myInput").placeholder = "command " + uniqueFirstLetters(messages).toString();
-        document.getElementById("inparam").placeholder = "file " + uniqueFirstLetters(filenames).toString();
-        autocomplete(document.getElementById("myInput"), messages);
-        autocomplete(document.getElementById("inparam"), filenames);
-        page = createNPage();
-        page.editView();
-
-      });
-    </script>
-    <!-- #endregion  code execution -->
 
     <!-- #region handlers using globals  -->
     <script>
@@ -164,8 +205,8 @@
       }
       function onClickStartScenario() {
         page.editView();
-        page.gameView(false);
-        console.log('was ist da los?!?!')
+        newScenario();
+
         //before that, have to make scenario!!!
         //which means: from scenario0 (global var) make modifications
         //then call post('postTest',data,callback)
@@ -191,57 +232,113 @@
         //
         // first function to set up objects from object table
       }
-      function clearAllVisuals() {
-        for (const o of G.objects) {
+      function clearG() {
+        if (!G.hasVisuals) {
+          return;
+        }
+        for (const o of G.oServer) {
           o.visual.removeFromUI();
         }
+        //G.oFront of obj_type='unit', G.groupings
+        for (const o of G.oFront) {
+          if (isUnit(o)) {
+            o.visual.removeFromUI();
+          }
+        }
+        G.hasVisuals = false;
       }
       function newScenario() {
-        //if G.hasVisuals need to clear all visuals!!!
-        if (G.hasVisuals) {
-          clearAllVisuals();
+        //clearG();
+        console.log("start:", G);
+        //G = {hasVisuals: false, oServer: {}, oFront: {}, groupings: {}}; //complete game state
+        G.oServer = scenario2.gamestate.objects.table;
+
+        //first create all the tiles!
+        for (const id in G.oServer) {
+          let o = G.oServer[id];
+          if (isTile(o)) {
+            let ms = createVisual(id, o);
+          }
         }
-        G = {};
-        G.objects = scenario0.gamestate.objects.table;
-        //for each object produce a visual
-        //msContainers sind:
-        //selectables,map,hand,battlePlayer1,battlePlayer2,open cards,
-        //special commands,
-        //
-        /*jedes element ms muss haben:
-          pointer zu object
-          (dict mit properties die visual counterpart haben)
-
-          wenn das so easy ist, why not just have visual updated every time 
-            some property changes
-            when newly created
-          
-          so in every update:
-          remove all objects
-          create all objects
-
-          >>nur wenn das nicht schnell genug mach es anders!
-
-           
-          
-
-
-
-
-
-        */
+        for (const id in G.oServer) {
+          let o = G.oServer[id];
+          if (!isTile(o)) {
+            let ms = createVisual(id, o);
+          }
+        }
+        console.log("end:", G);
       }
     </script>
     <!-- #endregion handlers using globals  -->
 
     <!-- #region functions -->
     <script>
+      function addNationPositions(nationsDict) {
+        nationPositions = nationsDict;
+        let res = [];
+        for (const nat in nationsDict) {
+          let pos = getNationPos(nat);
+          //let id = nat.replace(/\s/g,'_');
+          // if (nat.includes(' ')||nat.includes('_')){
+          //   //console.log('nation id',nat)
+          //   //console.log('nationNames',nationNames);
+          // }
+          let ms = new NObj(nat, "mapG", {obj_type: "nationUI"})
+            .circle({className: "overlay nation", sz: SZ.influence})
+            .setPos(pos.x, pos.y)
+            .draw();
+          ms.tag("type", "nation");
+          res.push(ms);
+        }
+        return res;
+      }
+      function calculateStatsPositions() {
+        let arr = [];
+        let x = 580;
+        let y = 2120;
+        for (let i = 0; i < 25; i++) {
+          arr.push({x: x, y: y});
+          x += 66;
+        }
+        this.vpts.Axis = arr;
+
+        arr = [];
+        x = 1310;
+        y = 76;
+        for (let i = 0; i < 20; i++) {
+          arr.push({x: x, y: y});
+          x -= 66;
+        }
+        for (let i = 20; i < 25; i++) {
+          arr.push({x: x, y: y});
+          y += 66;
+        }
+        this.vpts.West = arr;
+
+        arr = [];
+        x = 2210;
+        y = 76;
+        for (let i = 0; i < 18; i++) {
+          arr.push({x: x, y: y});
+          x += 66;
+        }
+        for (let i = 18; i < 25; i++) {
+          arr.push({x: x, y: y});
+          y += 66;
+        }
+        this.vpts.USSR = arr;
+      }
+      function calcUnitStartPos(tile, faction) {
+        let pFaction = SZ["p" + faction];
+        let pTile = getTilePos(tile);
+        return {x: pTile.x + pFaction.x, y: pTile.y + pFaction.y};
+      }
       function chainSend(data, msgChain, callback) {
         try {
           serverData = JSON.parse(data);
-          console.log(serverData);
+          //console.log(serverData);
         } catch {
-          console.log(data);
+          //console.log(data);
         }
         if (msgChain.length > 0) {
           send(msgChain[0], d => chainSend(d, msgChain.slice(1), callback));
@@ -249,20 +346,304 @@
           callback(data);
         }
       }
-      function createNPage(){
-        return new NPage(document.getElementById('mainDiv'),
-        document.getElementById('actionDeck_area'),
-        document.getElementById('chat_area'),
-        document.getElementById('command_area'),
-        document.getElementById('hand_area'),
-        document.getElementById('investmentDeck_area'),
-        document.getElementById('log_area'),
-        document.getElementById('openCard_area'),
-        document.getElementById('prop_area'),
-        document.getElementById('reserve_area'),
-        document.getElementById('status_area'),
-        document.getElementById('test_area'),
+      function createDecks() {
+        let wDeckArea = 251;
+        let hDeckArea = 354;
+        let pos = {x: 166, y: 998};
+        let centerActionDeck = {x: 166, y: 998}; // center of action deck
+        let centerInvestmentDeck = {x: 3233, y: 966}; // center of investment deck
+        let rounding = 6;
+        let actionDeckColor = "orange";
+        let idAction = "action_card";
+        let idInvestment = "investment_card";
+        let actionDeck = new NObj(idAction, "mapG", {objType: "deckUI"})
+          .roundedRect({w: 251, h: 354, fill: actionDeckColor, rounding: 6})
+          .textMultiline({txt: ["Action", "Deck"], fz: 28, fill: "white"})
+          .roundedRect({className: "cardDeck overlay", w: 251, h: 354, rounding: 6})
+          .setPos(centerActionDeck.x, centerActionDeck.y)
+          .draw();
+        let investmentDeck = new NObj(idInvestment, "mapG", {objType: "deckUI"})
+          .roundedRect({w: 253, h: 356, fill: "sienna", rounding: 6})
+          .textMultiline({txt: ["Investment", "Deck"], fz: 28, fill: "white"})
+          .roundedRect({className: "cardDeck overlay", w: 253, h: 356, fill: "transparent", rounding: 6})
+          .setPos(centerInvestmentDeck.x, centerInvestmentDeck.y)
+          .draw();
+        return {action_card: actionDeck, investment_card: investmentDeck};
+      }
+      function createVisual(id, o) {
+        //console.log(id, o);
+
+        if (isTile(o)) {
+          let pos = getTilePos(id);
+          //console.log(pos, id);
+          //console.log("createRegion id=", id, "pos=", pos, "ttext=", ttext, this.SZ.region);
+          let msRegion = new NObj(id, "mapG", o)
+            .circle({className: "overlay region", sz: SZ.region})
+            .setPos(pos.x, pos.y)
+            .draw();
+          o.visual = msRegion;
+          return msRegion;
+        } else if (isUnit(o)) {
+          o.owner = getUnitOwner(o.nationality);
+          let tile = o.tile;
+          let sz = SZ.cadreDetail;
+          let groupId = getUnitGroupId(o); // is at same time id of hiddenVisual
+          let startPos = calcUnitStartPos(tile, o.owner); // is at same time pos of hiddenVisual
+
+          // get group unit belongs to
+          if (!(groupId in G.groupings)) {
+            let snailPos = calcSnailPositions(0, 0, sz, 25);
+            let group = new NGrouping(groupId, "mapG", "snail", startPos, {snailPos: snailPos});
+            G.groupings[groupId] = group;
+          }
+          let grouping = G.groupings[groupId];
+
+          //create unit and add it to group
+          let imagePath = "/assets/images/" + o.type + ".svg";
+          let color = troopColors[o.nationality];
+          let darker = darkerColor(color[0], color[1], color[2]);
+          //console.log('colors:',color,darker);
+          let sz90 = sz * 0.96;
+          let sz80 = sz * 0.86;
+          let szImage = sz / 1.5;
+          let y = szImage / 6;
+          let ms = new NObj(id, "mapG", o)
+            .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
+            .roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
+            .image({path: imagePath, y: y, w: szImage, h: szImage})
+            .roundedRect({className: "overlay", w: sz, h: sz, fill: darker, rounding: sz * 0.1});
+          if ("cv" in o) {
+            updateCv(ms, o.cv);
+          }
+          grouping.add(ms);
+          o.group = grouping;
+          o.visual = ms;
+
+          // get or create hiddenVisual
+          if (!(groupId in G.oFront)) {
+            //create a hiddenVisual for this tile and faction
+            // if (o.owner == 'Axis'){
+            //   //console.log('size',sz)
+            // }
+            let sz = SZ.sumCadre;
+            let sz80 = sz * 0.86;
+            let msHidden = new NObj(groupId, "mapG", o)
+              .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
+              .roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
+              .text({className: "content", txt: 1, fz: sz / 2, fill: "white"})
+              .roundedRect({className: "overlay", w: sz, h: sz, fill: darker, rounding: sz * 0.1});
+            msHidden.tag("content", 1);
+            msHidden.setPos(startPos.x, startPos.y).draw();
+            G.oFront[groupId] = msHidden;
+          } else {
+            updateUnitCounter(o, G.oFront[groupId], 1);
+          }
+          let msHidden = G.oFront[groupId];
+
+          //attach hiddenVisual to o
+          o.hiddenVisual = G.oFront[groupId];
+
+          //o has been extended by: owner,group,visual,hiddenVisual
+
+          //NObj needs a way to modify content
+          //NGroup needs a way to show or hide entire group
+
+          //visibility of newly created unit: if visible to player,
+          if (o.visible.set.includes(player)) {
+            ms.show();
+            msHidden.hide();
+          } else {
+            ms.hide();
+            msHidden.show();
+          }
+
+          return ms;
+        } else if (isCard(o)) {
+          let parentName = null;
+          //console.log("card is", o);
+          if ('owner' in o && o.owner == player) {
+            parentName = "handG";
+          } else if (!('visible' in o)){
+            //console.log('no visible property:',o);
+          }else if (!('set' in o.visible)){
+            //console.log('no set property:',o);
+          } else if (o.visible.set.length == 3) {
+            parentName = "openCardG";
+          } else if (o.visible.set.includes(player)) {
+            //this card is temporarily shown to that player but does not belong to him!
+            // show it in >>tempDisplay
+            parentName = "tempG";
+          } else if (empty(o.visible.set)) {
+            if (isEditView()) {
+              // deck card, invisible or if in edit mode visible in one of the deckGs
+              if (isActionCard(o)) {
+                parentName = "actionDeckG";
+              } else {
+                parentName = "investmentDeckG";
+              }
+            } else {
+              // this card will not be added anywhere yet!
+            }
+          }
+          if (parentName) {
+            if (!(parentName in G.groupings)) {
+              let w = SZ.cardWidth;
+              let h = SZ.cardHeight;
+              let gap = SZ.gap;
+              let startPos = {x: gap + w / 2, y: gap + h / 2};
+              let divName = stringBefore(parentName, "G") + "_area";
+              //console.log("divname", divName);
+              let group = new NGrouping(parentName, parentName, "byRow", startPos, {
+                w: w,
+                h: h,
+                gap: gap,
+                div: document.getElementById(divName)
+              });
+              G.groupings[parentName] = group;
+            }
+            let grouping = G.groupings[parentName];
+            ms = new NObj(id, parentName, o);
+            setCardContent(ms, o);
+            grouping.add(ms);
+            o.visual = ms;
+            o.group = grouping;
+          }
+          return ms;
+        } else if (isInfluence(o)) {
+          ms = new NObj(id, "mapG", o);
+          drawInfluence(ms, o.nation, o.faction, o.value);
+          let pos = getNationPos(o.nation);
+          ms.setPos(pos.x, pos.y).draw();
+          o.visual = ms;
+          return ms;
+        }
+      }
+      function createNPage() {
+        return new NPage(
+          document.getElementById("mainDiv"),
+          document.getElementById("actionDeck_area"),
+          document.getElementById("chat_area"),
+          document.getElementById("command_area"),
+          document.getElementById("hand_area"),
+          document.getElementById("investmentDeck_area"),
+          document.getElementById("log_area"),
+          document.getElementById("menu_area"),
+          document.getElementById("openCard_area"),
+          document.getElementById("prop_area"),
+          document.getElementById("reserve_area"),
+          document.getElementById("status_area"),
+          document.getElementById("test_area")
         );
+      }
+      function drawInfluence(ms, nation, faction, level) {
+        let imagePath = "/assets/images/" + faction + ".svg";
+        let color = troopColors[faction];
+        //console.log('COLOR:',color)
+        let darker = darkerColor(color[0], color[1], color[2]);
+        let szBase = SZ.influence / 1.5;
+        let szRest = SZ.influence - szBase;
+        let sz = szBase + (szBase * (level - 1)) / 2; //influence grows with level!
+        let sz90 = sz * 0.96;
+        let sz80 = sz * 0.86;
+        let szImage = 30; //sz / 1.5;
+        let y = szImage / 6;
+        let text = level;
+        let fontColor = level == 1 ? "black" : level == 2 ? "red" : darker;
+        ms.circle({fill: "yellow", alpha: 1, sz: sz})
+          .circle({fill: darker, sz: szImage + 6})
+          .circle({fill: color, sz: szImage + 4})
+          .image({path: imagePath, w: szImage, h: szImage})
+          .text({txt: text, fill: fontColor, fz: szImage - 5, weight: "bold"})
+          .circle({className: "overlay", sz: sz});
+        //ms.tag("ttext", ttext); //for tooltip, not yet used
+        ms.tag("nation", nation);
+        ms.tag("faction", faction);
+        ms.tag("level", level);
+        ms.tag("type", "influence");
+        return ms;
+      }
+      function getMapPos(o) {
+        if (o.obj_type == "tile") return tilePositions[o.name];
+        else return nationPositions[o.nation];
+      }
+      function getNationPos(nation) {
+        return nationPositions[nation];
+      }
+      function getTilePos(tile) {
+        return tilePositions[tile];
+      }
+      function getUnitGroupId(o) {
+        return o.tile + "_" + o.owner;
+      }
+      function getUnitOwner(nationality) {
+        if (nationality == "Germany" || nationality == "Italy") {
+          return "Axis";
+        } else if (nationality == "USSR") {
+          return "USSR";
+        } else if (nationality == "Britain" || nationality == "France") {
+          return "West";
+        } else {
+          return "Neutral";
+        }
+      }
+      function isActionCard(o) {
+        return o.obj_type == "action_card";
+      }
+      function isCard(o) {
+        return endsWith(o.obj_type, "card");
+      }
+      function isEditView() {
+        //console.log("isEditView!!!!!");
+        let res = document.getElementById("mainDiv").classList.contains("grid_edit");
+        //console.log(document.getElementById("mainDiv").classList, res);
+        return res;
+      }
+      function isInfluence(o) {
+        return o.obj_type == 'influence';
+      }
+      function isTile(o) {
+        return o.obj_type == "tile";
+      }
+      function isUnit(o) {
+        return o.obj_type == "unit";
+      }
+      function loadAssets(callback) {
+        //console.log("loading...");
+        loadYML("/assets/config/map_pos.yml", data => {
+          tilePositions = {};
+          for (idTile in data) {
+            let id = replaceAll(idTile, " ", "_");
+            tilePositions[id] = data[idTile];
+          }
+          tileNames = Object.keys(tilePositions);
+          loadYML("/assets/config/nations.yml", data => {
+            nationPositions = {};
+            for (idNation in data) {
+              let id = replaceAll(idNation, " ", "_");
+              nationPositions[id] = data[idNation];
+            }
+            nationNames = Object.keys(nationPositions);
+            // nationPositions = data;
+            // nationNames = Object.keys(data);
+            loadYML("/assets/config/unit_count.yml", data => {
+              unitCountInfo = data;
+              nationalityNames = Object.keys(data);
+              unitTypeNames = Object.keys(data["Germany"]);
+
+              //create decks
+              let decks = createDecks();
+              G.oFront.action_card = decks.action_card;
+              G.oFront.investment_card = decks.investment_card;
+
+              //load influence spots
+              let msNationList = addNationPositions(nationPositions);
+              msNationList.map(x => (G.oFront[x.id] = x));
+
+              //console.log("...finished loading!");
+              callback();
+            });
+          });
+        });
       }
       function loadScenario() {
         //before that, have to make scenario!!!
@@ -288,7 +669,7 @@
       function post(url, data, callback = null) {
         url = backendServerUrl + url;
         msgCounter += 1;
-        console.log(msgCounter, "POST request sent: ", url, data);
+        //console.log(msgCounter, "POST request sent: ", url, data);
         $.ajax({
           url: url,
           type: "POST",
@@ -296,19 +677,27 @@
           processData: false,
           contentType: "application/json; charset=UTF-8",
           success: function(response) {
-            console.log(response);
+            //console.log(response);
             if (callback) {
               callback(response);
             }
           },
           error: function(error) {
-            console.log(error);
+            //console.log(error);
           }
         });
       }
+      function receive(serverText) {
+        try {
+          serverData = JSON.parse(serverText);
+          //console.log(serverData);
+        } catch {
+          //console.log(serverText);
+        }
+      }
       function sendOrPost(msg, msgParam, data) {
         if (!empty(msgParam)) msg += "/" + msgParam;
-        console.log("sending", msg);
+        //console.log("sending", msg);
         if (startsWith(msg, "post")) {
           post(msg, data);
         } else {
@@ -318,7 +707,7 @@
       function send(url, callback = null) {
         url = backendServerUrl + url;
         msgCounter += 1;
-        console.log(msgCounter, "request sent: ", url);
+        //console.log(msgCounter, "request sent: ", url);
         w3.http(url, function() {
           if (this.readyState == 4 && this.status == 200) {
             if (callback) {
@@ -329,15 +718,126 @@
           }
         });
       }
-      function receive(serverText) {
-        try {
-          serverData = JSON.parse(serverText);
-          console.log(serverData);
-        } catch {
-          console.log(serverText);
+      function setCardContent(ms, o) {
+        let txt = [];
+        let title = "";
+        if ("top" in o) {
+          if (o.obj_type == "action_card") {
+            txt = [o.top, " ", o.season, o.priority + o.value, " ", o.bottom];
+          } else {
+            txt = [o.top, " ", " ", o.value ? o.value.toString() : " ", " ", " ", o.bottom];
+          }
+          title = o.top;
+        } else if ("wildcard" in o) {
+          txt = [o.wildcard, " ", o.season, o.priority + o.value, " ", " "];
+          title = o.wildcard;
+        } else if ("intelligence" in o) {
+          txt = [o.intelligence, " ", " ", o.value ? o.value.toString() : " ", " ", " ", " "];
+          title = o.intelligence;
+        } else if ("science" in o) {
+          txt = [o.value + "   (" + o.year.toString() + ")"];
+          o.science.map(x => txt.push(x));
+          title = o.year;
         }
+        if (txt.length > 0) {
+          //console.log(txt)
+          txt = txt.map(x => x.replace(/_/g, " "));
+        }
+        let cardWidth = SZ.cardWidth;
+        let cardHeight = SZ.cardHeight;
+        //console.log(cardWidth, cardHeight);
+
+        let testText = ms.id;
+        if ("owner" in o) {
+          testText += " " + o.owner;
+        }
+
+        ms.roundedRect({w: cardWidth, h: cardHeight, fill: "white"})
+          .text({txt: testText, fill: "red", y: cardHeight / 2, fz: cardWidth / 7})
+          .textMultiline({txt: txt, maxWidth: cardWidth, fz: cardWidth / 7}) // / 6})
+          .roundedRect({className: "overlay", w: cardWidth, h: cardHeight});
+
+        ms.tag("content", txt);
+        ms.tag("type", o.obj_type);
+        ms.tag("title", title);
+        ms.tag("json", JSON.stringify(o));
+        return ms;
+      }
+      function updateUnitCounter(o, ms, inc) {
+        //console.log('updateUnitCounter')
+        let n = ms.getTag("count");
+        n += inc;
+        let color = troopColors[o.nationality];
+        let darker = darkerColor(color[0], color[1], color[2]);
+        let sz = SZ.sumCadre;
+        ms.removeFromChildIndex(3);
+        ms.text({txt: n, fz: sz / 2, fill: "white"}).roundedRect({
+          className: "overlay",
+          w: sz,
+          h: sz,
+          fill: darker,
+          rounding: sz * 0.1
+        });
+        ms.tag("count", n);
+      }
+      function updateCv(msUnit, cv) {
+        //console.log(cv,typeof(cv))
+        //plaziere 1 circle foreach  #
+        //muss alte punkte wegnehmen!!! falls welche hat!
+        msUnit.removeFromChildIndex(5);
+        //msUnit.circle({sz:20,fill:'white'});
+        let sz = SZ.cadreDetail;
+        let dx = sz / (cv + 1);
+        let xStart = -sz / 2;
+        let y = -sz / 3.2;
+        let diam = Math.min(dx / 1.5, sz / 5);
+        //console.log(dx,y)
+        let x = dx + xStart;
+        for (let i = 0; i < cv; i++) {
+          msUnit.circle({sz: diam, x: x, y: y, fill: "white"});
+          x += dx;
+        }
+
+        msUnit.tag("cv", cv);
       }
     </script>
     <!-- #endregion functions -->
+
+    <!-- #region code execution  -->
+    <script>
+      $(document).ready(function() {
+        //console.log(scenario0); //geht! obwohl in head geladen!
+        document.getElementById("myInput").placeholder = "command " + uniqueFirstLetters(messages).toString();
+        document.getElementById("inparam").placeholder = "file " + uniqueFirstLetters(filenames).toString();
+        autocomplete(document.getElementById("myInput"), messages);
+        autocomplete(document.getElementById("inparam"), filenames);
+        page = createNPage();
+        page.editView();
+
+        let map = document.getElementById("mapG");
+        map.setAttribute("transform", `translate(0,0) scale(${MIN_SCALE})`);
+        //board.setAttribute("transform", `translate(-400,-400) scale(${1})`);
+        map.addEventListener("wheel", ev => {
+          onwheel(ev, map);
+        });
+        map.addEventListener("pointerdown", ev => {
+          onmousedown(ev);
+        });
+        addEventListener("mouseup", ev => {
+          onmouseup(ev, map);
+        });
+        addEventListener("mousemove", ev => {
+          onmousemove(ev, map);
+        });
+        addEventListener("dblclick", ev => reset(ev, map));
+
+        loadAssets(() => startExecution());
+      });
+
+      function startExecution() {
+        onClickStartScenario();
+      }
+    </script>
+    <!-- #endregion  code execution -->
   </body>
 </html>

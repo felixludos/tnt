@@ -1,7 +1,7 @@
 class NPage{
   constructor(mainDiv,actionDeck_area,chat_area,
     command_area,hand_area,investmentDeck_area,
-    log_area,openCard_area,prop_area,reserve_area,
+    log_area,menu_area,openCard_area,prop_area,reserve_area,
     status_area,test_area){
     this.mainDiv=mainDiv;
     
@@ -11,6 +11,7 @@ class NPage{
     this.hand_area=hand_area;
     this.investmentDeck_area=investmentDeck_area;
     this.log_area=log_area;
+    this.menu_area=menu_area;
     this.openCard_area=openCard_area;
     this.prop_area=prop_area;
     this.reserve_area=reserve_area;
@@ -22,13 +23,14 @@ class NPage{
     hide(this.log_area)
     hide(this.openCard_area);
     hide(this.command_area);
+    hide(this.status_area);
 
     show(this.prop_area);
     show(this.reserve_area);
     show(this.hand_area)
     show(this.actionDeck_area);
     show(this.investmentDeck_area);
-    show(this.status_area);
+    show(this.menu_area);
     show(this.test_area);
 
     this.mainDiv.className = 'grid_edit';
@@ -40,9 +42,10 @@ class NPage{
     show(this.test_area);
     show(this.hand_area)
     show(this.openCard_area);
-    show(this.status_area);
+    show(this.menu_area);
     show(this.command_area);
 
+    hide(this.status_area);
     hide(this.chat_area);
     hide(this.prop_area);
     hide(this.actionDeck_area);
@@ -56,6 +59,7 @@ class NPage{
     show(this.openCard_area);
     show(this.status_area);
 
+    hide(this.menu_area);
     hide(this.test_area);
     hide(this.actionDeck_area);
     hide(this.investmentDeck_area);

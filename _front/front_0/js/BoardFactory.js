@@ -242,7 +242,7 @@ class BoardFactory {
     let nationality = go.nationality;
     let type = go.type;
     let tile = go.tile;
-    let imagePath = "assets/images/" + type + ".svg";
+    let imagePath = "/assets/images/" + type + ".svg";
     // imagePath = type+".svg";
     // imagePath = "js/"+type+".svg";
     // imagePath = "assets/images/"+type+".svg";

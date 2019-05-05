@@ -37,7 +37,7 @@ function autocomplete(inp, arr, callback) {
           let text = this.getElementsByTagName("input")[0].value;
           inp.value = text;
           if (callback){
-            console.log("callback", callback, "is called on", text);
+            //console.log("callback", callback, "is called on", text);
             callback(text);
           }
           /*close the list of autocompleted values,
@@ -75,9 +75,9 @@ function autocomplete(inp, arr, callback) {
 
         }
       } else {
-        console.log("ENTER IN INPUT:", currentFocus, inp.value);
+        //console.log("ENTER IN INPUT:", currentFocus, inp.value);
         if (callback) {
-          console.log("callback", callback, "is called on", inp.value);
+          //console.log("callback", callback, "is called on", inp.value);
           callback(inp.value);
         }
       }

@@ -951,10 +951,10 @@
   type:  Coast
 - tile1: Bay of Biscay
   tile2: Paris
-  type:  Coast
+  type:  coast
 - tile1: Gascony
   tile2: Bay of Biscay
-  type:  Coast
+  type:  coast
 - tile1: Paris
   tile2: Gascony
   type:  Plains
@@ -978,7 +978,7 @@
   type:  Plains
 - tile1: North Sea
   tile2: Paris
-  type:  Coast
+  type:  coast
 - tile1: Milan
   tile2: Marseille
   type:  Mountains
@@ -1023,10 +1023,10 @@
   type:  River
 - tile1: Bucharest
   tile2: Western Black Sea
-  type:  Coast
+  type:  coast
 - tile1: Sofia
   tile2: Western Black Sea
-  type:  Coast
+  type:  coast
 - tile1: Sofia
   tile2: Istanbul
   type:  Strait
@@ -1044,7 +1044,4 @@
   type:  Mountains
 - tile1: Athens
   tile2: Aegean Sea
-  type:  Coast
-- tile1: South Atlantic Ocean
-  tile2: West Indian Ocean
-  type: Ocean-Africa
+  type:  coast
