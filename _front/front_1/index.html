@@ -154,7 +154,7 @@
       ];
       var page;
 
-      var tilePositions, nationPositions;
+      var tilePositions, nationPositions, trackPositions;
       var tileNames, nationalityNames, unitTypeNames, nationNames, unitCountInfo;
       const SZ = {
         //various sizes used
@@ -205,7 +205,7 @@
       }
       function onClickStartScenario() {
         page.editView();
-        newScenario();
+        newScenario(scenario0);
 
         //before that, have to make scenario!!!
         //which means: from scenario0 (global var) make modifications
@@ -232,46 +232,10 @@
         //
         // first function to set up objects from object table
       }
-      function clearG() {
-        if (!G.hasVisuals) {
-          return;
-        }
-        for (const o of G.oServer) {
-          o.visual.removeFromUI();
-        }
-        //G.oFront of obj_type='unit', G.groupings
-        for (const o of G.oFront) {
-          if (isUnit(o)) {
-            o.visual.removeFromUI();
-          }
-        }
-        G.hasVisuals = false;
-      }
-      function newScenario() {
-        //clearG();
-        console.log("start:", G);
-        //G = {hasVisuals: false, oServer: {}, oFront: {}, groupings: {}}; //complete game state
-        G.oServer = scenario2.gamestate.objects.table;
-
-        //first create all the tiles!
-        for (const id in G.oServer) {
-          let o = G.oServer[id];
-          if (isTile(o)) {
-            let ms = createVisual(id, o);
-          }
-        }
-        for (const id in G.oServer) {
-          let o = G.oServer[id];
-          if (!isTile(o)) {
-            let ms = createVisual(id, o);
-          }
-        }
-        console.log("end:", G);
-      }
     </script>
     <!-- #endregion handlers using globals  -->
 
-    <!-- #region functions -->
+    <!-- #region function  -->
     <script>
       function addNationPositions(nationsDict) {
         nationPositions = nationsDict;
@@ -292,7 +256,8 @@
         }
         return res;
       }
-      function calculateStatsPositions() {
+      function calculateTrackPositions() {
+        trackPositions = {};
         let arr = [];
         let x = 580;
         let y = 2120;
@@ -300,7 +265,7 @@
           arr.push({x: x, y: y});
           x += 66;
         }
-        this.vpts.Axis = arr;
+        trackPositions.Axis = arr;
 
         arr = [];
         x = 1310;
@@ -313,7 +278,7 @@
           arr.push({x: x, y: y});
           y += 66;
         }
-        this.vpts.West = arr;
+        trackPositions.West = arr;
 
         arr = [];
         x = 2210;
@@ -326,12 +291,16 @@
           arr.push({x: x, y: y});
           y += 66;
         }
-        this.vpts.USSR = arr;
+        trackPositions.USSR = arr;
       }
       function calcUnitStartPos(tile, faction) {
         let pFaction = SZ["p" + faction];
         let pTile = getTilePos(tile);
         return {x: pTile.x + pFaction.x, y: pTile.y + pFaction.y};
+      }
+      function canCreateUnits() {
+        let ph = phase.toLowerCase();
+        return startsWith(ph, "set") || startWith(ph, "prod");
       }
       function chainSend(data, msgChain, callback) {
         try {
@@ -345,6 +314,45 @@
         } else {
           callback(data);
         }
+      }
+      function clearG() {
+        if (!G.hasVisuals) {
+          return;
+        }
+        for (const id in G.oServer) {
+          const o = G.oServer[id];
+          o.visual.removeFromUI();
+        }
+        G.oServer = {};
+        let ids = [];
+        //TODO: what else do I have to remove from oFront?!?
+        for (const id in G.oFront) {
+          //remove units,
+          const o = G.oFront[id];
+          if (isUnit(o)) {
+            o.visual.removeFromUI();
+            ids.push(id);
+          }
+        }
+        for (const id of ids) {
+          delete G.oFront[id];
+        }
+        for (const id in G.groupings) {
+          G.groupings[id].clear();
+        }
+        G.hasVisuals = false;
+      }
+      function createChip(id, {text = "", filename = "", prefix = "", faction = "", color = "beige"} = {}) {
+        //id is also the filename
+        let sz = SZ.chip;
+        let pts = trackPositions[faction];
+        let pos = pts[0];
+        let ms = new NObj(id, "mapG", {obj_type: "chip"})
+          .roundedRect({w: sz, h: sz, fill: color})
+          .text({txt: text, fill: "white", weight: "bold"})
+          .setPos(pos.x + sz / 2, pos.y + sz / 2)
+          .draw();
+        return ms;
       }
       function createDecks() {
         let wDeckArea = 251;
@@ -434,14 +442,16 @@
               .roundedRect({className: "overlay", w: sz, h: sz, fill: darker, rounding: sz * 0.1});
             msHidden.tag("content", 1);
             msHidden.setPos(startPos.x, startPos.y).draw();
-            G.oFront[groupId] = msHidden;
+            let oHidden = {faction: o.owner, tile: tile, obj_type: "unit_hidden", visual: msHidden};
+
+            G.oFront[groupId] = oHidden;
           } else {
-            updateUnitCounter(o, G.oFront[groupId], 1);
+            updateUnitCounter(o, G.oFront[groupId].visual, 1);
           }
-          let msHidden = G.oFront[groupId];
+          let msHidden = G.oFront[groupId].visual;
 
           //attach hiddenVisual to o
-          o.hiddenVisual = G.oFront[groupId];
+          o.hiddenVisual = msHidden;
 
           //o has been extended by: owner,group,visual,hiddenVisual
 
@@ -461,11 +471,11 @@
         } else if (isCard(o)) {
           let parentName = null;
           //console.log("card is", o);
-          if ('owner' in o && o.owner == player) {
+          if ("owner" in o && o.owner == player) {
             parentName = "handG";
-          } else if (!('visible' in o)){
+          } else if (!("visible" in o)) {
             //console.log('no visible property:',o);
-          }else if (!('set' in o.visible)){
+          } else if (!("set" in o.visible)) {
             //console.log('no set property:',o);
           } else if (o.visible.set.length == 3) {
             parentName = "openCardG";
@@ -535,6 +545,52 @@
           document.getElementById("test_area")
         );
       }
+      function createSelectable(id) {
+        //add a simple selectable object to reserve area reserveG
+        let ms = undefined;
+        //console.log('createSelectableOrCommand',nationalityNames,id)
+        if (nationalityNames.includes(id) || unitTypeNames.includes(id)) {
+          let d = document.getElementById("reserve_area");
+          let g = document.getElementById("reserveG");
+          let sz = SZ.cadreDetail;
+          let type = nationalityNames.includes(id) ? "nationality_type" : "unit_type";
+          let color = type == "nationality_type" ? troopColors[id] : "black";
+
+          //need reserve_group
+          let groupId = "reserve";
+          if (!(groupId in G.groupings)) {
+            let gap = 10;
+            let startPos = {x: gap + sz / 2, y: gap + sz / 2};
+            let group = new NGrouping(groupId, "reserveG", "byCol", startPos, {
+              div: document.getElementById("reserve_area"),
+              objType,
+              w: sz,
+              h: sz,
+              gap: gap
+            });
+            G.groupings[groupId] = group;
+          }
+          let grouping = G.groupings[groupId];
+
+          //create ms
+          let o = {obj_type: type, group: grouping};
+          ms = new NObj(id, "reserveG", o).roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1});
+          if (type == "nationality_type") {
+            ms.text({txt: id, fz: 12});
+          } else {
+            ms.image({w: sz, h: sz, path: "/assets/images/" + id + ".svg", rounding: sz * 0.1});
+          }
+          ms.roundedRect({className: "overlay", w: sz, h: sz, rounding: sz * 0.1});
+          ms.tag("type", type);
+          //console.log(id,ms);
+
+          grouping.add(ms);
+          o.group = grouping;
+          ensureSelectables();
+          G.oSelectables[id] = o;
+          return ms;
+        }
+      }
       function drawInfluence(ms, nation, faction, level) {
         let imagePath = "/assets/images/" + faction + ".svg";
         let color = troopColors[faction];
@@ -561,6 +617,16 @@
         ms.tag("level", level);
         ms.tag("type", "influence");
         return ms;
+      }
+      function ensureCommands() {
+        if (!("commands" in G)) {
+          G.oCommands = {};
+        }
+      }
+      function ensureSelectables() {
+        if (!("selectables" in G)) {
+          G.oSelectables = {};
+        }
       }
       function getMapPos(o) {
         if (o.obj_type == "tile") return tilePositions[o.name];
@@ -599,16 +665,17 @@
         return res;
       }
       function isInfluence(o) {
-        return o.obj_type == 'influence';
+        return o.obj_type == "influence";
       }
       function isTile(o) {
         return o.obj_type == "tile";
       }
       function isUnit(o) {
-        return o.obj_type == "unit";
+        return o.obj_type == "unit" || o.obj_type == "unit_hidden";
       }
       function loadAssets(callback) {
         //console.log("loading...");
+        calculateTrackPositions();
         loadYML("/assets/config/map_pos.yml", data => {
           tilePositions = {};
           for (idTile in data) {
@@ -632,12 +699,14 @@
 
               //create decks
               let decks = createDecks();
-              G.oFront.action_card = decks.action_card;
-              G.oFront.investment_card = decks.investment_card;
+              let o = {obj_type: 'deck', visual: decks.action_card};
+              G.oFront.action_card = o;
+              o = {obj_type: 'deck', visual: decks.investment_card};
+              G.oFront.investment_card = o;
 
               //load influence spots
               let msNationList = addNationPositions(nationPositions);
-              msNationList.map(x => (G.oFront[x.id] = x));
+              msNationList.map(x => (G.oFront[x.id] = {obj_type: 'nation', visual: x}));
 
               //console.log("...finished loading!");
               callback();
@@ -665,6 +734,34 @@
           // have next player!
           send("status/" + nextPlayer, receive);
         });
+      }
+      function newScenario(scenario) {
+        clearG();
+        console.log("start:", G);
+
+        G.oServer = scenario.gamestate.objects.table;
+
+        //first create all the tiles!
+        for (const id in G.oServer) {
+          let o = G.oServer[id];
+          if (isTile(o)) {
+            let ms = createVisual(id, o);
+          }
+        }
+        for (const id in G.oServer) {
+          let o = G.oServer[id];
+          if (!isTile(o)) {
+            let ms = createVisual(id, o);
+          }
+        }
+
+        //update tracks
+        for (const faction in scenario.gamestate.players) {
+          const tracks = scenario.gamestate.players[faction].tracks;
+          setPopulation(faction, tracks.POP);
+          setResource(faction, tracks.RES);
+          setIndustry(faction, tracks.IND);
+        }
       }
       function post(url, data, callback = null) {
         url = backendServerUrl + url;
@@ -763,6 +860,26 @@
         ms.tag("json", JSON.stringify(o));
         return ms;
       }
+      function setPopulation(faction, n) {
+        setChip("pop", "P", faction, n, "sienna");
+      }
+      function setIndustry(faction, n) {
+        setChip("ind", "I", faction, n, "red");
+      }
+      function setResource(faction, n) {
+        setChip("res", "R", faction, n, "green");
+      }
+      function setChip(prefix, text, faction, n, color) {
+        let pts = trackPositions[faction];
+        let pos = pts[n - 1];
+        let id = prefix + faction;
+        if (!(id in G.oFront)) {
+          let o = createChip(id, {text: text, prefix: prefix, faction: faction, color: color});
+          G.oFront[id] = {obj_type: 'chip', visual: o};
+        }
+        let ms = G.oFront[id].visual;
+        ms.setPos(pos.x, pos.y);
+      }
       function updateUnitCounter(o, ms, inc) {
         //console.log('updateUnitCounter')
         let n = ms.getTag("count");
@@ -801,7 +918,7 @@
         msUnit.tag("cv", cv);
       }
     </script>
-    <!-- #endregion functions -->
+    <!-- #endregion safe -->
 
     <!-- #region code execution  -->
     <script>
