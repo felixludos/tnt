@@ -4,7 +4,7 @@ from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
 from tnt_cards import discard_cards
 from tnt_units import add_unit
 from tnt_util import placeable_units, compute_tracks, add_next_phase
-from diplomacy import increment_influence, decrement_influence
+from diplomacy import increment_influence, decrement_influence, diplvl, dipname
 import random
 
 import operator

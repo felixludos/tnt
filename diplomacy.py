@@ -1,6 +1,6 @@
 
 
-from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
+from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete, PhaseInterrupt
 from tnt_cards import discard_cards
 from tnt_units import add_unit, move_unit
 from tnt_util import travel_options, eval_tile_control, placeable_units
@@ -67,21 +67,24 @@ def decrement_influence(G, nation, val=1):
 
 
 
-def becomes_satellite(G, nation):
+def becomes_satellite(G, player, nation):
 	del G.diplomacy.neutrals[nation]  # no longer neutral
 	
-	inf = G.diplomacy.influence[nation]
+	faction = G.players[player]
 	
-	G.nations.designations[nation] = inf.faction
-	faction = G.players[inf.faction]
+	if nation in G.diplomacy.influence:
 	
-	faction.influence.remove(inf._id)
-	G.objects.removed[inf._id] = inf
-	del G.objects.table[inf._id]
+		inf = G.diplomacy.influence[nation]
+		
+		faction.influence.remove(inf._id)
+		G.objects.removed[inf._id] = inf
+		del G.objects.table[inf._id]
+	
+	G.nations.designations[nation] = player
 	
 	faction.territory.update(G.nations.territories[nation])
 	
-	G.logger.write('{} takes control of {}'.format(inf.faction, nation))
+	G.logger.write('{} takes control of {}'.format(player, nation))
 
 def USA_becomes_satellite(G, player='West'):
 	assert player == 'West', 'The USA can only become a satellite of West'
@@ -186,7 +189,11 @@ def violation_of_neutrality(G, declarer, nation):  # including world reaction an
 			declaration_of_war(G, declarer, inf.faction)
 			
 			# nation should now become a satellite of inf.faction - including placing units
-			raise NotImplementedError
+			sats = tdict()
+			sats[nation] = inf.faction
+			G.temp.new_sats = sats
+			
+			raise PhaseInterrupt('Satellite')
 		
 		lvl = diplvl[inf.value]
 		
@@ -233,7 +240,7 @@ def satellite_phase(G, player=None, action=None):
 		
 		sat_units = tdict()
 		for nation, fname in new_sats.items():
-			becomes_satellite(G, nation)
+			becomes_satellite(G, fname, nation)
 			
 			for tilename in G.nations.territories[nation]:
 				tile = G.tiles[tilename]

@@ -2,7 +2,7 @@
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
 from tnt_cards import discard_cards
 from tnt_units import add_unit, move_unit
-from tnt_util import travel_options, eval_tile_control
+from tnt_util import travel_options, eval_tile_control, add_next_phase, switch_phase
 from government import check_revealable, reveal_tech
 import random
 from diplomacy import declaration_of_war, violation_of_neutrality
@@ -122,9 +122,6 @@ def planning_phase(G, player, action):
 		return encode_command_card_phase(G)
 	
 	# evaluate card choices
-	if len(G.temp.decision) == 0:
-		
-		raise PhaseComplete
 	
 	G.temp.commands = tdict()
 	
@@ -162,11 +159,18 @@ def planning_phase(G, player, action):
 		G.logger.write('Play order is: {}'.format(', '.join(G.temp.order)))
 		
 		G.temp.active_idx = 0
+		
+		add_next_phase(G, 'Movement')
 	
 	else:
 		
 		G.logger.write('No player played a command card during {}'.format(G.temp.season))
+		
+	
+	raise PhaseComplete
 
+#################
+# Movement phase
 
 def encode_movement(G):
 	player = G.temp.order[G.temp.active_idx]
@@ -193,7 +197,10 @@ def encode_movement(G):
 	code[player] = options
 	return code
 
-def movement_phase(G, player, action):
+def movement_phase(G, player=None, action=None):
+	
+	if player is None: # when returning from some interrupting phase
+		return encode_movement(G)
 	
 	faction = G.players[player]
 	
@@ -202,13 +209,13 @@ def movement_phase(G, player, action):
 	if head in faction.secret_vault:
 		reveal_tech(G, player, head)
 		
-	if head in faction.stats.rivals: # declaration of war
+	elif head in faction.stats.rivals: # declaration of war
 		declaration_of_war(G, player, head)
 		
-	if head in G.diplomacy.neutrals:
+	elif head in G.diplomacy.neutrals:
 		violation_of_neutrality(G, player, head)
 	
-	if head in faction.units:
+	elif head in faction.units:
 		
 		destination, *border = tail
 		
@@ -225,6 +232,9 @@ def movement_phase(G, player, action):
 		
 		move_unit(G, unit, destination)
 		
+		# decrement command points
+		
+	pass
 		
 
 def combat_phase(G, player, action):

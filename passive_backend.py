@@ -5,9 +5,9 @@ import numpy as np
 import pickle
 import networkx as nx
 import util
-from util import adict, idict, iddict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete
+from util import adict, idict, iddict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete, PhaseInterrupt
 from tnt_setup import init_gamestate, setup_phase, setup_pre_phase
-from tnt_util import count_victory_points
+from tnt_util import count_victory_points, switch_phase, add_next_phase
 import tnt_setup as setup
 from tnt_cards import load_card_decks, draw_cards
 from collections import namedtuple
@@ -207,6 +207,9 @@ def step(player, action):
 				all_actions = phase(G, player, action)
 				if all_actions is None:
 					all_actions = next_phase(player, action)
+			except PhaseInterrupt as e:
+				switch_phase(G, e.phase)
+				all_actions = next_phase(e.player, e.action)
 			except PhaseComplete:
 				if DEBUG:
 					PHASE_DONE = True

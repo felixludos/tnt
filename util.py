@@ -107,6 +107,13 @@ class Logger(Transactionable):
 class PhaseComplete(Exception):
 	pass
 
+class PhaseInterrupt(Exception): # possibly can include an action and player
+	def __init__(self, phase, player=None, action=None):
+		super().__init__()
+		self.phase = phase
+		self.player = player
+		self.action = action
+
 def seq_iterate(content, itrs, end=False): # None will return that value for each
 	if len(itrs) == 0: # base case - iterate over content
 		try:
