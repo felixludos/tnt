@@ -6,6 +6,8 @@ class adict(dict):
 	def __getattr__(self, key):
 		return self.__getitem__(key)
 	def __setattr__(self, key, value):
+		if key == "__qualname__":
+			super().__setattr__(key, value)
 		return self.__setitem__(key, value)
 	# def __missing__(self, key):
 	#     return None

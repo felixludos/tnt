@@ -221,7 +221,7 @@ def save(data, path):
 			  default_flow_style=False)
 
 def load(path):
-	return collate(yaml.load(open(path, 'r')))
+	return collate(yaml.load(open(path, 'r'))) #, Loader=yaml.FullLoader))
 
 
 

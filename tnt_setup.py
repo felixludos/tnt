@@ -124,6 +124,7 @@ def load_players_and_minors(G):
 				faction.homeland[tile.alligence].add(tile_name)
 			if tile.alligence in full_cast:
 				faction.territory.add(tile_name)
+				tile.owner = name
 		
 		faction.tracks = tdict()
 		pop, res = compute_tracks(faction.territory, G.tiles)
@@ -149,16 +150,21 @@ def load_players_and_minors(G):
 	# load minors/diplomacy
 	minors = tdict()
 	majors = tdict()
+	status = tdict()
 	for name, team in G.nations.designations.items():
 		if team not in G.nations.groups:
 			G.nations.groups[team] = tset()
 		G.nations.groups[team].add(name)
 		
+		if team in {minor_designation, 'Major'}:
+			status[name] = tdict()
+			
+			status[name].is_armed = False
+			status[name].units = tdict()
+		
 		if team == minor_designation: # only minors
 			minor = tdict()
 			
-			minor.units = tset()
-			minor.is_armed = False
 			minor.faction = None
 			minor.value = 0
 			
@@ -167,8 +173,6 @@ def load_players_and_minors(G):
 		if team == 'Major': # only includes neutral majors
 			major = tdict()
 			
-			major.units = tset()
-			major.is_armed = False
 			major.faction = None
 			major.value = 0
 			
@@ -180,11 +184,43 @@ def load_players_and_minors(G):
 	G.diplomacy.neutrals = minors.copy()
 	G.diplomacy.neutrals.update(majors)
 	G.diplomacy.influence = tdict()
+	G.nations.status = status
 
-def load_game_info(G, path='config/game_info.yml'):
+class TestRandom(random.Random):
+	
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args,**kwargs)
+		self.count = 0
+		self.log = []
+	
+	def __getattribute__(self, item):
+		print(item, super().__getattribute__('random')())
+		return super().__getattribute__(item)
+	
+	def shuffle(self, *args, **kwargs):
+		self.count += 1
+		self.log.append(self.random())
+		return super().shuffle(*args,**kwargs)
+
+	def choice(self, *args, **kwargs):
+		self.count += 1
+		x = self.random()
+		self.log.append(x)
+		
+		# if x == 0.4540783303488197:
+		# 	# raise Exception()
+		# 	print('Last reproducible random number')
+		
+		return super().choice(*args, **kwargs)
+
+def load_game_info(G, seed=None, path='config/game_info.yml'):
 	info = load(path)
 	
 	game = tdict()
+	
+	game.seed = seed
+	G.random = random.Random(seed)
+	# G.random = TestRandom(seed)
 	
 	game.year = info.first_year - 1 # zero based
 	game.last_year = info.last_year
@@ -197,7 +233,7 @@ def load_game_info(G, path='config/game_info.yml'):
 	#game.action_phases = tset(x for x in info.phases if info.phases[x]) # no need for action phases anymore (all action phases have a pre phase)
 	
 	game.peace_dividends = tlist(sum([[v]*n for v,n in info.peace_dividends.items()], []))
-	random.shuffle(game.peace_dividends)
+	G.random.shuffle(game.peace_dividends)
 	
 	game.victory = info.victory
 	
@@ -206,11 +242,14 @@ def load_game_info(G, path='config/game_info.yml'):
 	G.objects = tdict()
 	G.objects.table = tdict()
 
-def init_gamestate():
+def init_gamestate(seed=None):
+	
+	# if seed is None:
+	# 	seed = random.getrandbits(64)
 	
 	G = tdict()
 	
-	load_game_info(G)
+	load_game_info(G, seed=seed)
 	
 	load_map(G)
 	

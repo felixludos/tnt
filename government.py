@@ -109,7 +109,7 @@ def resolve_intel(G, player, response):
 		G.logger.write('{} may view all {}\'s units in {} for one turn'.format(player, target, tilename))
 	elif card.intelligence == 'Spy_Ring':
 		
-		cid = random.choice(list(G.players[target].hand))
+		cid = G.random.choice(list(G.players[target].hand))
 		
 		G.players[target].hand.remove(cid)
 		G.players[player].hand.add(cid)
@@ -590,8 +590,8 @@ def governmnet_phase(G, player, action): # play cards
 	
 	if player in G.temp.intel: # hide any temporarily visible objects from intel cards
 		for ID, obj in G.temp.intel[player].items():
-			print(ID, obj.visible)
-			obj.visible.remove(player)
+			# print(ID, obj.visible)
+			obj.visible.discard(player)
 			G.objects.updated[ID] = obj
 		del G.temp.intel[player]
 	
@@ -858,7 +858,13 @@ def government_post_phase(G, player=None, action=None):
 					tmsg += ' (lost by {})'.format(loser)
 			
 			dname = dipname[inf.value]
-			G.logger.write('{} becomes {} of {}{}'.format(nation, dname, inf.faction, tmsg))
+			
+			if nation == 'USA' and not faction.stats.enable_USA:
+				G.logger.write('{} has {} influence in the USA'.format(inf.faction, inf.value))
+			else:
+				G.logger.write('{} becomes {} of {}{}'.format(nation, dname, inf.faction, tmsg))
+			
+			
 	
 	G.temp.new_sats = new_sats
 			

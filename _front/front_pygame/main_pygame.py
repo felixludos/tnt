@@ -1,6 +1,6 @@
 import sys, os, time
 import tnt_util as util
-from tnt_util import adict, idict, xset #collate, load, render_dict, save, Logger, seq_iterate
+from tnt_util import adict, idict, tdict, xset #collate, load, render_dict, save, Logger, seq_iterate
 from tnt_setup import init_gamestate, setup_phase
 from tnt_cards import load_card_decks, draw_cards
 from collections import namedtuple
