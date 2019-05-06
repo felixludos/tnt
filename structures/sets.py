@@ -1,6 +1,17 @@
 from itertools import product
 # comparable set
 
+# class ord_set(list):
+# 	# def __init__(self, *args, **kwargs):
+# 	# 	self.data = []
+#
+# 	def add(self, item):
+# 		return super().append(item)
+# 	def discard(self, item):
+# 		return super().remove(item)
+# 	def update(self, items):
+# 		return super().extend(items)
+
 _set_ID = 0
 class xset(set):
 	def __init__(self, *args, **kwargs):
@@ -15,9 +26,10 @@ class xset(set):
 	def __hash__(self):
 		return self._id
 	def __repr__(self):
-		return '[{}]'.format(self._id)+'{'+', '.join(map(repr,iter(self)))+'}'
+		# return '[{}]'.format(self._id) + '{' + ', '.join(map(repr, iter(self))) + '}'
+		return '{'+', '.join(map(repr,iter(self)))+'}'
 	def __str__(self):
-		return '[{}]'.format(self._id)+'{'+', '.join(map(repr,iter(self)))+'}'
+		return '{'+', '.join(map(repr,iter(self)))+'}'
 	def intersection(self, *others):
 		new = self.copy()
 		for x, other in product(self, others):
