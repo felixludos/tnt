@@ -9,9 +9,11 @@ class NGrouping {
     this.mode = mode; //fixed (posDict),snail (snailOffsets),byRow(sortBy),byCol(sortBy)
     this.options = options; //as per mode
     this.children = [];
+    this.hidden = [];
   }
   add(ms) {
     let pos = {x: this.x, y: this.y};
+    //console.log(pos);
     if (this.mode == "fixed") {
       pos = this.options.posDict[ms.id];
     } else if (this.mode == "snail") {
@@ -67,21 +69,38 @@ class NGrouping {
     this.resetToStartPos();
     this.children = [];
   }
+  getCount(){return this.children.length+this.hiddenChildren.length;}
   hideChildren() {
     this.children.map(x => x.hide());
+    this.hiddenChildren = this.children;
+    this.children = [];
   }
   lineUp(ids) {
     //restart layout for all ids in param
     this.hideChildren();
-    let msList = this.children.filter(x => ids.includes(x.id));
+    let msList = this.hiddenChildren.filter(x => ids.includes(x.id));
     console.log(msList);
     if ("sortBy" in this.options) {
       let prop = this.options.sortBy;
-      arr.sort((a, b) => {
+      msList.sort((a, b) => {
         return a[prop] < b[prop] ? -1 : a[prop] > b[prop] ? 1 : 0;
       });
     }
+    this.resetToStartPos();
     msList.map(x => this.add(x));
+  }
+  redoLayout(){
+    this.resetToStartPos();
+    let arr = this.children;
+    this.children=[];
+    arr.map(ch=>this.add(ch));
+  }
+  removeChild(id){
+    // find child in children
+    //let ch = findFirst(this.children,'id',id);
+    removeByProp(this.children,'id',id);
+    console.log(this.children);
+    this.redoLayout();
   }
   resetToStartPos() {
     this.x = this.startPos.x;

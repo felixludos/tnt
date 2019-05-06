@@ -151,6 +151,10 @@ function empty(arr) {
 function first(arr) {
   return arr.length > 0 ? arr[0] : null;
 }
+function findFirst(arr, attr, val) {
+  let matches = arr.filter(x => attr in x && x[attr] == val);
+  return empty(matches) ? null : matches[0];
+}
 function findSameSet(llst, lst) {
   // returns element of llst that has same elements as lst, even if different order
   for (const l of llst) {
@@ -270,6 +274,24 @@ function prlist(arr) {
     if (isEmpty(arr)) return "";
     else return "[" + prlist(arr[0]) + arr.slice(1).map(x => "," + prlist(x)) + "]";
   } else return arr;
+}
+function removeByProp(arr, prop, val) {
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i][prop] === val) {
+      arr.splice(i, 1);
+      i--;
+      return;
+    }
+  }
+}
+function removeInPlace(arr, el) {
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i] === el) {
+      arr.splice(i, 1);
+      i--;
+      return;
+    }
+  }
 }
 function someFunction() {
   //console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhh");
@@ -1161,6 +1183,9 @@ function isString(param) {
 }
 function isMS(param) {
   return getTypeOf(param) == "MS";
+}
+function isNumber(param){
+  return !isNaN(Number(param));
 }
 function convertToMS(p) {
   let res = undefined;
