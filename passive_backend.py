@@ -1,9 +1,9 @@
 
 
 import sys, os, time
-import numpy as np
 import pickle
 import networkx as nx
+import random
 import util
 from util import adict, idict, iddict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete, PhaseInterrupt
 from tnt_setup import init_gamestate, setup_phase, setup_pre_phase
@@ -77,14 +77,17 @@ def get_object_table():
 		return None
 	return G.objects.table
 
-def start_new_game(player='Axis', debug=False):
+def start_new_game(player='Axis', debug=False, seed=None):
 	global G, DEBUG
 	
 	DEBUG = debug
 
-	G = setup.init_gamestate()
+	G = setup.init_gamestate(seed=seed)
 	
 	G.logger = Logger(*G.players.keys(), stdout=True)
+	
+	if seed is not None:
+		G.logger.write('Set seed {}'.format(seed))
 	
 	G.objects.created = G.objects.table.copy()
 	G.objects.updated = tdict()
@@ -175,6 +178,8 @@ def next_phase(player=None, action=None):  # keeps going through phases until ac
 		if out is not None and len(out) == 0:
 			player, action = None, None
 		
+	print(out)
+	
 	return out
 
 
@@ -338,13 +343,17 @@ def convert_from_saveable(data):
 		raise Exception('Cannot save data of type: {}'.format(type(data)))
 
 def save_gamestate(filename): # save file and send it
+	rng = G.random
+	del G.random
 	data = {
 		'gamestate': convert_to_saveable(G),
 		'waiting_objs': convert_to_saveable(WAITING_OBJS),
 		'waiting_actions': convert_to_saveable(WAITING_ACTIONS),
 		'repeats': convert_to_saveable(REPEATS),
 		'phase_done': PHASE_DONE,
+		'randstate': rng.getstate(),
 	}
+	G.random = rng
 	if G is not None:
 		G.logger.write('Game saved')
 	if filename is None:
@@ -361,6 +370,8 @@ def load_gamestate(path): # load from input file, or most recent checkpoint (mor
 	REPEATS = convert_from_saveable(data['repeats'])
 	G = convert_from_saveable(data['gamestate'])
 	PHASE_DONE = data['phase_done']
+	G.random = random.Random()
+	G.random.setstate(data['randstate'])
 	if G is not None:
 		G.logger.write('Game loaded')
 

@@ -15,9 +15,9 @@ class xset(set):
 	def __hash__(self):
 		return self._id
 	def __repr__(self):
-		return '{'+', '.join(map(repr,iter(self)))+'}'
+		return '[{}]'.format(self._id)+'{'+', '.join(map(repr,iter(self)))+'}'
 	def __str__(self):
-		return '{'+', '.join(map(repr,iter(self)))+'}'
+		return '[{}]'.format(self._id)+'{'+', '.join(map(repr,iter(self)))+'}'
 	def intersection(self, *others):
 		new = self.copy()
 		for x, other in product(self, others):

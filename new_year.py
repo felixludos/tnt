@@ -22,8 +22,8 @@ def new_year_phase(G, player=None, action=None):
 			raise NotImplementedError
 		
 	# shuffle discard piles
-	shuffle(G.cards.action)
-	shuffle(G.cards.investment)
+	shuffle(G.random, G.cards.action)
+	shuffle(G.random, G.cards.investment)
 	
 	# peace dividends
 	for player, faction in G.players.items():

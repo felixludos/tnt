@@ -109,7 +109,7 @@ def resolve_intel(G, player, response):
 		G.logger.write('{} may view all {}\'s units in {} for one turn'.format(player, target, tilename))
 	elif card.intelligence == 'Spy_Ring':
 		
-		cid = random.choice(list(G.players[target].hand))
+		cid = G.random.choice(list(G.players[target].hand))
 		
 		G.players[target].hand.remove(cid)
 		G.players[player].hand.add(cid)
