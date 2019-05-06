@@ -49,6 +49,9 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	
 	if player is 'Minor':
 		unit.visible = tset(G.players.keys())
+		
+		G.nations.status[unit.nationality][unit._id] = unit
+		
 	else:
 		unit.visible = tset({G.nations.designations[unit.nationality]})
 		
@@ -98,11 +101,16 @@ def remove_unit(G, unit):
 		unit.type = unit.carrying
 		del unit.carrying
 	
-	# update reserves
-	reserves = G.units.reserves[unit.nationality]
-	if unit.type not in reserves:
-		reserves[unit.type] = 0
-	reserves[unit.type] += 1
+	if player in {'Minor', 'Major'}:
+		status = G.nations.status[unit.nationality]
+		del status[unit._id]
+	else:
+	
+		# update reserves
+		reserves = G.units.reserves[unit.nationality]
+		if unit.type not in reserves:
+			reserves[unit.type] = 0
+		reserves[unit.type] += 1
 	
 	G.tiles[tilename].units.remove(unit._id)
 	del G.players[player].units[unit._id]

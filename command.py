@@ -2,7 +2,7 @@
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete, PhaseInterrupt
 from tnt_cards import discard_cards
 from tnt_units import add_unit, move_unit
-from tnt_util import travel_options, eval_tile_control, add_next_phase, switch_phase
+from tnt_util import travel_options, eval_tile_control, add_next_phase, switch_phase, eval_unit_entry
 from government import check_revealable, reveal_tech
 import random
 from diplomacy import declaration_of_war, violation_of_neutrality
@@ -128,7 +128,6 @@ def planning_phase(G, player, action):
 			cmd = tdict()
 			cmd.priority = card.priority
 			cmd.moved = tset()
-			cmd.declarations = tset()
 			
 			if card.season == G.temp.season:
 				val = card.value
@@ -239,7 +238,6 @@ def movement_phase(G, player=None, action=None):
 		
 		# update disputed, add battles
 		eval_tile_control(G, G.tiles[unit.tile])
-		eval_tile_control(G, G.tiles[destination])
 		
 		# decrement command points
 		cmd.value -= 1
@@ -248,6 +246,7 @@ def movement_phase(G, player=None, action=None):
 			player, unit.tile, destination, cmd.value))
 		
 		move_unit(G, unit, destination)
+		eval_unit_entry(G, G.tiles[destination], unit)
 	
 	elif head == 'pass':
 		cmd.value -= 1

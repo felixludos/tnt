@@ -121,7 +121,7 @@ take_action('Axis', None)
 # Production
 try:
 	for player in G.game.turn_order:
-		fixed[player] = [('investment_card',)]*6# + [('action_card',)]
+		fixed[player] = [('investment_card',)]*5 + [('action_card',)]*2
 	players = G.game.turn_order
 except KeyError:
 	players = ['Axis', 'USSR', 'West']
