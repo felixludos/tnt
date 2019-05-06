@@ -16,7 +16,7 @@ import traceback
 from new_year import new_year_phase
 from production import production_phase, production_pre_phase
 from government import governmnet_phase, government_pre_phase
-from command import command_phase, pre_command_phase, movement_phase, planning_phase, combat_phase
+from command import pre_command_phase, movement_phase, planning_phase, combat_phase
 from blockades import supply_phase, blockade_phase
 from battles import land_battle_phase, naval_battle_phase
 from scoring import scoring_phase
