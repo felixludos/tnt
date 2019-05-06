@@ -1,5 +1,5 @@
 
-from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
+from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete, PhaseInterrupt
 from tnt_cards import discard_cards
 from tnt_units import add_unit, move_unit
 from tnt_util import travel_options, eval_tile_control, add_next_phase, switch_phase
@@ -44,48 +44,46 @@ def pre_command_phase(G):
 
 	if 'temp' in G:
 		del G.temp
-	
+
 	G.temp = tdict()
 	G.temp.season = G.game.sequence[G.game.index]
-	
+
 	G.temp.active_idx = 0
 	G.temp.active_players = G.game.turn_order.copy()
 	if G.temp.season == 'Winter':
 		G.temp.active_players = tlist(p for p in G.game.turn_order if G.players[p].stats.enable_Winter)
-	
+
 	G.temp.decision = tdict()
 	G.temp.passes = 0
-	
+
 	G.temp.borders = tdict({p:tdict() for p in G.players})
-	
-	G.temp.battles = tdict()
-	
+
 	return encode_command_card_phase(G)
 
 
-def command_phase(G, player, action):
-	
-	if 'commands' not in G.temp: # choose command cards or pass
-		code = planning_phase(G, player, action)
-		
-		if code is not None:
-			return code
-	
-	if 'order' in G.temp: # use command cards for movement etc
-		code = movement_phase(G, player, action)
-		
-		if code is not None:
-			return code
-		
-	if len(G.temp.battles): # choose battles and resolve
-		code = combat_phase(G, player, action)
-	
-		if code is not None:
-			return code
-	
-	G.logger.write('{} is complete'.format(G.temp.season))
-	
-	end_phase(G)
+# def command_phase(G, player, action):
+#
+# 	if 'commands' not in G.temp: # choose command cards or pass
+# 		code = planning_phase(G, player, action)
+#
+# 		if code is not None:
+# 			return code
+#
+# 	if 'order' in G.temp: # use command cards for movement etc
+# 		code = movement_phase(G, player, action)
+#
+# 		if code is not None:
+# 			return code
+#
+# 	if len(G.temp.battles): # choose battles and resolve
+# 		code = combat_phase(G, player, action)
+#
+# 		if code is not None:
+# 			return code
+#
+# 	G.logger.write('{} is complete'.format(G.temp.season))
+#
+# 	end_phase(G)
 
 
 def planning_phase(G, player, action):
@@ -163,9 +161,7 @@ def planning_phase(G, player, action):
 		add_next_phase(G, 'Movement')
 	
 	else:
-		
 		G.logger.write('No player played a command card during {}'.format(G.temp.season))
-		
 	
 	raise PhaseComplete
 
@@ -186,6 +182,8 @@ def encode_movement(G):
 		options.update(check_declarations(G, player))
 	
 	for uid, unit in faction.units.items():
+		if uid in G.temp.has_moved:
+			continue
 		locs = travel_options(G, unit)
 		if len(locs):
 			options.add((unit._id, locs))
@@ -197,12 +195,23 @@ def encode_movement(G):
 	code[player] = options
 	return code
 
+def new_movement(G):
+	G.temp.battles = tset()  # track new battles due to engaging
+	G.temp.has_moved = tset()  # units can only move once per movement phase
+	
+	active = G.temp.order[G.temp.active_idx]
+	G.logger.write('{} has {} command points for movement'.format(active, G.temp.commands[active].value))
+
 def movement_phase(G, player=None, action=None):
 	
+	if 'battles' not in G.temp: # pseudo prephase
+		new_movement(G)
+		
 	if player is None: # when returning from some interrupting phase
 		return encode_movement(G)
 	
 	faction = G.players[player]
+	cmd = G.temp.commands[player]
 	
 	head, *tail = action
 	
@@ -226,16 +235,59 @@ def movement_phase(G, player=None, action=None):
 		
 		unit = faction.units[head]
 		
+		G.temp.has_moved.add(head)
+		
 		# update disputed, add battles
 		eval_tile_control(G, G.tiles[unit.tile])
 		eval_tile_control(G, G.tiles[destination])
 		
-		move_unit(G, unit, destination)
-		
 		# decrement command points
+		cmd.value -= 1
 		
-	pass
+		G.logger.write('{} moves a unit from {} to {} ({} comand points remaining)'.format(
+			player, unit.tile, destination, cmd.value))
 		
+		move_unit(G, unit, destination)
+	
+	elif head == 'pass':
+		cmd.value -= 1
+		G.logger.write('{} passes ({} command points remaining)'.format(player, cmd.value))
+		
+		
+	if cmd.value > 0: # continue movement
+		return encode_movement(G)
+		
+	# movement complete
+	del G.temp.commands[player]
+	G.logger.write('{} movement is complete'.format(player))
+	
+	conflicts = tset()
+	for uid, unit in faction.units.items():
+		tile = G.tiles[unit.tile]
+		if 'disputed' in tile:
+			conflicts.add(unit.tile)
+	
+	G.temp.active_idx += 1
+	
+	if len(G.temp.battles) or len(conflicts): # add combat phase
+		
+		G.temp.potential_battles = conflicts
+		G.temp.attacker = player
+		
+		# either interrupt or add next
+		if len(G.temp.commands): # theres another movement phase after this
+			raise PhaseInterrupt('Combat')
+		else:
+			add_next_phase(G, 'Combat')
+			raise PhaseComplete
+	else:
+		del G.temp.battles
+	
+	if not len(G.temp.commands): # this season is complete
+		raise PhaseComplete
+	
+	new_movement(G)
+	return encode_movement(G)
 
 def combat_phase(G, player, action):
 	

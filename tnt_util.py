@@ -151,7 +151,31 @@ def check_occupied(G, tile, player, wars, enemy=True): # meant to check if rival
 			return True
 		
 	return False
-	
+
+
+# def tile_hostile(G, player, tile, decl=None):
+# 	if decl is None:
+# 		decl = G.temp.commands[player].declarations
+#
+# 	wars = G.players[player].stats.at_war_with
+#
+# 	if 'alligence' in tile:
+# 		if check_occupied(G, tile, player, wars, enemy=False):  # cant occupy same land tile as rival
+# 			return False
+# 		owner = G.nations.designations[tile.alligence]
+# 		if owner == player:
+# 			if 'disputed' in tile:
+# 				return True
+# 			return None
+# 		elif owner in G.players:
+# 			if not wars[owner]:
+# 				return False
+# 		elif owner not in decl:  # Major or Minor
+# 			return False  # owner in decl # no access if occupied by nonenemy
+#
+# 	elif check_occupied(G, tile, player, wars, enemy=True):
+# 		return True
+# 	return False
 
 def tile_hostile(G, player, tile, decl=None):
 	

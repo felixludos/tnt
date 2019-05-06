@@ -3,7 +3,7 @@
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete, PhaseInterrupt
 from tnt_cards import discard_cards
 from tnt_units import add_unit, move_unit
-from tnt_util import travel_options, eval_tile_control, placeable_units
+from tnt_util import travel_options, eval_tile_control, placeable_units, compute_tracks
 from tnt_cards import draw_cards
 import random
 
@@ -182,17 +182,18 @@ def violation_of_neutrality(G, declarer, nation):  # including world reaction an
 		inf = G.diplomacy.influence[nation]
 		
 		if inf.faction != declarer and inf.value == 2 and not G.players[declarer].stats.at_war_with[inf.faction]:
-			G.logger.write(
-				'Since {} was a protectorate of {}, {} hereby declares war on {}'.format(nation, inf.faction, declarer,
-				                                                                         inf.faction))
+			# G.logger.write(
+			# 	'Since {} was a protectorate of {}, {} hereby declares war on {}'.format(nation, inf.faction, declarer,
+			# 	                                                                         inf.faction))
+			G.logger.write('Since {} was a protectorate of {}, {}\' protection takes effect'.format(nation, inf.faction, inf.faction))
 			
 			declaration_of_war(G, declarer, inf.faction)
 			
 			# nation should now become a satellite of inf.faction - including placing units
 			sats = tdict()
 			sats[nation] = inf.faction
-			G.temp.new_sats = sats
 			
+			G.temp.new_sats = sats
 			raise PhaseInterrupt('Satellite')
 		
 		lvl = diplvl[inf.value]
@@ -200,7 +201,12 @@ def violation_of_neutrality(G, declarer, nation):  # including world reaction an
 		G.players[inf.faction].diplomacy[lvl].remove(nation)
 		decrement_influence(G, nation, inf.value)
 		
-		G.logger.write('{} loses {} influence in {}'.format(inf.faction, inf.value, nation))
+		pop, res = compute_tracks(G.nations.territories[nation], G.tiles)
+		
+		G.players[inf.faction].tracks.POP -= pop
+		G.players[inf.faction].tracks.RES -= res
+		
+		G.logger.write('{} loses {} influence in {} (losing POP={}, RES={})'.format(inf.faction, inf.value, nation, pop, res))
 	
 	# arming the minor
 	for tilename in G.nations.territories[nation]:
