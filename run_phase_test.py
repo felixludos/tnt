@@ -122,10 +122,6 @@ complete_phase(players)
 path = save('setup_complete.json')
 print('Saved Setup phase at {}'.format(path))
 
-# print(RNG.log)
-# print(RNG.count)
-# quit()
-
 take_action('Axis', None)
 
 # Production
