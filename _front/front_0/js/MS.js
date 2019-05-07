@@ -1,3 +1,7 @@
+const elemToMs={};
+const msToElem={};
+const elemIds={};
+
 class MS {
   constructor(id, parent = null,isSvg=true) {
     // id must be unique (TODO: check for uniqueness, wahrscheinlich im MSManager)
@@ -17,7 +21,10 @@ class MS {
       
       this.elem.classList.add('msDiv');
     }
-    this.elem.id = id;
+    if (id in elemIds){
+      error('id',id,'has already been used!',elemIds);
+    }
+    this.elem.id = id;//check if this is is unique!
     this.x = 0;
     this.y = 0;
     this.bounds = {

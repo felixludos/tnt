@@ -1,12 +1,21 @@
+//#region HACKS
+function hackPhaseAndPlayerTest(msg){
+  console.log(msg)
+  let res = stringAfterLast(msg,'Beginning ');
+  let phase = stringBefore(res,' ');
+  console.log(res, 'phase='+phase);
+  let res1=stringAfter(res,'<br>');
+  let player = stringBefore(res1,' ');
+  console.log(res1,'player='+player);
+}
+
+//#endregion HACKS
+
 //#region set and tuple helpers
 function extractUniqueStrings(tupleList) {
   let idlist = [];
   tupleList.map(x => x.map(y => addIf(y, idlist)));
   return idlist;
-}
-function firstCond(arr, func) {
-  let res = arr.filter(x => func(x));
-  return res.length > 0 ? res[0] : null;
 }
 
 function isSet(x) {
@@ -87,30 +96,21 @@ function addAll(akku, other) {
 function addIf(el, arr) {
   if (!arr.includes(el)) arr.push(el);
 }
-function getListsContainingAll(ll, l) {
-  let res = [];
-  for (const l1 of ll) {
-    if (containsAll(l1, l)) res.push(l1);
-  }
+function arrMinus(a, b) {
+  let res = a.filter(x => !b.includes(x));
   return res;
 }
-function containedInAny(el, ll) {
-  // any list in ll contains element el
-  for (const lst of ll) {
-    if (lst.includes(el)) return true;
-  }
-  return false;
-}
-function orderFromTo(lst, fromOrder, toOrder) {
+function carteset(l1, l2) {
+  //l1,l2 are lists of list
   let res = [];
-  for (let i = 0; i < lst.length; i++) {
-    res.push(lst[fromOrder.indexOf(toOrder[i])]);
+  for (var el1 of l1) {
+    for (var el2 of l2) {
+      //if (isll(el2)) el2=el2.flat();
+      if (isList(el1)) res.push(el1.concat(el2));
+      else res.push([el1].concat(el2));
+    }
   }
-  //console.log(res)
   return res;
-}
-function someFunction() {
-  //console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhh");
 }
 function cartesian(s1, s2, sep = "_") {
   let res = [];
@@ -129,18 +129,6 @@ function cartesianOf(ll) {
   }
   return cart;
 }
-function contains(arr, el) {
-  return arr.includes(el);
-}
-function containsAll(arr, lst) {
-  for (const el of lst) {
-    if (!arr.includes(el)) return false;
-  }
-  return true;
-}
-function containsSet(arr, lst) {
-  return containsAll(arr, lst);
-}
 function choose(arr, n) {
   var result = new Array(n),
     len = arr.length,
@@ -153,25 +141,81 @@ function choose(arr, n) {
   }
   return result;
 }
+function contains(arr, el) {
+  return arr.includes(el);
+}
+function containsAll(arr, lst) {
+  for (const el of lst) {
+    if (!arr.includes(el)) return false;
+  }
+  return true;
+}
+function containsSet(arr, lst) {
+  return containsAll(arr, lst);
+}
+function containedInAny(el, ll) {
+  // any list in ll contains element el
+  for (const lst of ll) {
+    if (lst.includes(el)) return true;
+  }
+  return false;
+}
 function empty(arr) {
   let result = arr === undefined || !arr || (isString(arr) && arr == "") || (Array.isArray(arr) && arr.length == 0);
   //console.log(typeof(arr),result?'EMPTY':arr)
   return result;
+}
+function first(arr) {
+  return arr.length > 0 ? arr[0] : null;
+}
+function firstCond(arr, func) { //return first elem that fulfills condition
+  let res = arr.filter(x => func(x));
+  return res.length > 0 ? res[0] : null;
+}
+function findFirst(arr, attr, val) {
+  let matches = arr.filter(x => attr in x && x[attr] == val);
+  return empty(matches) ? null : matches[0];
+}
+function findSameSet(llst, lst) {
+  // returns element of llst that has same elements as lst, even if different order
+  for (const l of llst) {
+    if (sameList(l, lst)) return l;
+  }
+  return null;
+}
+function fj(x) {
+  return formatjson(x);
+}
+function formatll(ll) {
+  //return beautiful string for list of lists
+  //ensure this is a list of lists
+  if (!isll(ll)) return "NOT list of lists!";
+  let s = "[";
+  for (const l of ll) {
+    let content = isllPlus(l) ? formatll(l) : l.toString();
+    s += "[" + content + "]";
+  }
+  s += "]";
+  //console.log(s);
+}
+function formatjson(j) {
+  //return beautiful small json
+  let s = JSON.stringify(j);
+  s = s.replace(/\s/g, "");
+  return s;
+}
+function getListsContainingAll(ll, l) {
+  let res = [];
+  for (const l1 of ll) {
+    if (containsAll(l1, l)) res.push(l1);
+  }
+  return res;
 }
 function isEmpty(arr) {
   return empty(arr);
 }
 function isList(arr) {
   return Array.isArray(arr);
-}
-function first(arr) {
-  return arr.length > 0 ? arr[0] : null;
-}
-function keepOnlyElements(func, lst) {
-  return lst.filter(func);
-}
-function last(arr) {
-  return arr.length > 0 ? arr[arr.length - 1] : null;
 }
 function isll(ll) {
   //true if arr is a list of lists of strings
@@ -204,45 +248,25 @@ function isllPlus(ll) {
   }
   return true;
 }
-function formatll(ll) {
-  //return beautiful string for list of lists
-  //ensure this is a list of lists
-  if (!isll(ll)) return "NOT list of lists!";
-  let s = "[";
-  for (const l of ll) {
-    let content = isllPlus(l) ? formatll(l) : l.toString();
-    s += "[" + content + "]";
-  }
-  s += "]";
-  //console.log(s);
+function keepOnlyElements(func, lst) {
+  return lst.filter(func);
 }
-function carteset(l1, l2) {
-  //l1,l2 are lists of list
+function last(arr) {
+  return arr.length > 0 ? arr[arr.length - 1] : null;
+}
+function orderFromTo(lst, fromOrder, toOrder) {
   let res = [];
-  for (var el1 of l1) {
-    for (var el2 of l2) {
-      //if (isll(el2)) el2=el2.flat();
-      if (isList(el1)) res.push(el1.concat(el2));
-      else res.push([el1].concat(el2));
-    }
+  for (let i = 0; i < lst.length; i++) {
+    res.push(lst[fromOrder.indexOf(toOrder[i])]);
   }
+  //console.log(res)
   return res;
-}
-
-function formatjson(j) {
-  //return beautiful small json
-  let s = JSON.stringify(j);
-  s = s.replace(/\s/g, "");
-  return s;
 }
 function prjstart(j) {
   console.log("______", formatjson(j));
 }
 function prj(j) {
   console.log(formatjson(j));
-}
-function fj(x) {
-  return formatjson(x);
 }
 function pr(x) {
   console.log(prlist(x).replace(/,,/g, ","));
@@ -272,12 +296,26 @@ function prlist(arr) {
     else return "[" + prlist(arr[0]) + arr.slice(1).map(x => "," + prlist(x)) + "]";
   } else return arr;
 }
-function findSameSet(llst, lst) {
-  // returns element of llst that has same elements as lst, even if different order
-  for (const l of llst) {
-    if (sameList(l, lst)) return l;
+function removeByProp(arr, prop, val) {
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i][prop] === val) {
+      arr.splice(i, 1);
+      i--;
+      return;
+    }
   }
-  return null;
+}
+function removeInPlace(arr, el) {
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i] === el) {
+      arr.splice(i, 1);
+      i--;
+      return;
+    }
+  }
+}
+function someFunction() {
+  //console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhh");
 }
 function sameList(l1, l2) {
   // compares 2 lists of strings if have same strings in it
@@ -287,7 +325,15 @@ function sameList(l1, l2) {
   }
   return true;
 }
-
+function uniqueFirstLetters(arr) {
+  let res = [];
+  for (const s of arr) {
+    if (s.length > 0) {
+      addIf(s[0], res);
+    }
+  }
+  return res;
+}
 function without(arr, elementToRemove) {
   return arr.filter(function(el) {
     return el !== elementToRemove;
@@ -352,7 +398,46 @@ function colorNameToHslaString(str) {
   hsla = hslToHslaString(hsl.h, hsl.s, hsl.l, 1);
   return hsla;
 }
-
+function colorNameToRgb(str) {
+  let hex = colorNameToHexString(str);
+  //hex string to rgb
+  let rgb = hexToRgb(hex);
+  return rgb;
+}
+function convertToRgba(cAny, alpha = 1) {
+  //alpha either value btween 0 and 1 or 0-255
+  let a = alpha >= 0 && alpha <= 1 ? alpha : alpha / 100; //alpha==0?0:alpha==1?255:alpha<1?Math.round(alpha*100):alpha;
+  //console.log("type is", typeof cAny);
+  if (isString(cAny)) {
+    //console.log("convertToRgba is a String", cAny);
+    if (cAny[0] == "#") {
+      let rgbObj = hexToRgb(cAny);
+      return `rgba(${rgbObj.r},${rgbObj.g},${rgbObj.b},${a})`;
+    } else if (startsWith(cAny, "hsl") || startsWith(cAny, "rgb")) {
+      //console.log("hsla or rgba color!", cAny);
+      return cAny;
+    } else if (cAny == "transparent") {
+      return cAny;
+    } else {
+      //assume colorname
+      //console.log("should be a color name!!!", cAny);
+      let rgbObj = colorNameToRgb(cAny);
+      return `rgba(${rgbObj.r},${rgbObj.g},${rgbObj.b},${a})`;
+    }
+  } else if (Array.isArray(cAny)) {
+    if (cAny.length == 3) {
+      //assume this is a rgb
+      let r = cAny[0];
+      let g = cAny[1];
+      let b = cAny[2];
+      return `rgba(${r},${g},${b},${a})`;
+    } else {
+      //return a random color
+      //console.log("convertToRgba: ERROR! NOT A COLOR:", cAny);
+      return randomColor(100, 70, a);
+    }
+  }
+}
 function getColorNames() {
   return [
     "AliceBlue",
@@ -804,6 +889,51 @@ function transColor(r, g, b, a) {
 }
 //#endregion
 
+//#region sending messages to flask server: uses jQuery ajax!
+// function loadTest(){
+//   $.ajax({
+//     url: "/loadTest",
+//     type: "GET",
+//     success: function(response) {
+//       //console.log(response);
+//     },
+//     error: function(error) {
+//       //console.log(error);
+//     }
+//   });
+// }
+// function loadScenario(){
+//   $.ajax({
+//     url: "/loadTest",
+//     type: "GET",
+//     success: function(response) {
+//       //console.log(response);
+//     },
+//     error: function(error) {
+//       //console.log(error);
+//     }
+//   });
+// }
+function saveJsonAtServer(jsonObject, filename) {
+  event.preventDefault();
+  var labels = ["hallo", "das", "ist"]; //checkboxes.toArray().map(checkbox => checkbox.value);
+
+  $.ajax({
+    url: "/postTest",
+    type: "POST",
+    data: JSON.stringify(jsonObject),
+    processData: false,
+    contentType: "application/json; charset=UTF-8",
+    success: function(response) {
+      //console.log(response);
+    },
+    error: function(error) {
+      //console.log(error);
+    }
+  });
+}
+//#endregion
+
 //#region file helpers
 function loadJSON(path, callback) {
   //console.log(path);
@@ -872,6 +1002,7 @@ function closestParent(elem, selector) {
   }
   return null;
 }
+function error(msg){console.log('ERROR!!!!! '+msg)}
 function findParentWithId(elem) {
   ////console.log(elem);
   while (elem && !elem.id) {
@@ -879,16 +1010,6 @@ function findParentWithId(elem) {
   }
   ////console.log("parent with id: ", elem);
   return elem;
-}
-function evToId(ev) {
-  let elem = findParentWithId(ev.target);
-  return elem.id;
-}
-function getParentOfScript() {
-  // finds script in which this function is called
-  var thisScript = document.scripts[document.scripts.length - 1];
-  var parent = thisScript.parentElement;
-  return parent;
 }
 function ellipsis(text, font, width, padding) {
   let textLength = getTextWidth(text, font);
@@ -900,6 +1021,20 @@ function ellipsis(text, font, width, padding) {
   }
   return ellipsisLength > 0 ? text + "..." : text;
 }
+function evToId(ev) {
+  let elem = findParentWithId(ev.target);
+  return elem.id;
+}
+function evToIdParent(ev) {
+  let elem = findParentWithId(ev.target);
+  return elem;
+}
+function getParentOfScript() {
+  // finds script in which this function is called
+  var thisScript = document.scripts[document.scripts.length - 1];
+  var parent = thisScript.parentElement;
+  return parent;
+}
 function getTextWidth(text, font) {
   // re-use canvas object for better performance
   var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
@@ -907,6 +1042,9 @@ function getTextWidth(text, font) {
   context.font = font;
   var metrics = context.measureText(text);
   return metrics.width;
+}
+function hide(elem) {
+  elem.classList.add("hidden");
 }
 function insertHere() {
   var thisScript = document.scripts[document.scripts.length - 1];
@@ -925,9 +1063,6 @@ function makeSvg(w, h) {
   svg1.setAttribute("width", w);
   svg1.setAttribute("height", h);
   return svg1;
-}
-function hide(elem) {
-  elem.classList.add("hidden");
 }
 function show(elem) {
   elem.classList.remove("hidden");
@@ -999,7 +1134,10 @@ function eraseSpaces(s) {
   }
   return s;
 }
-
+function endsWith(s, sSub) {
+  let i = s.indexOf(sSub);
+  return i == s.length - sSub.length;
+}
 function getLines(s) {
   // returns array of lines in s
   var str = s;
@@ -1040,6 +1178,10 @@ function stringAfter(sFull, sSub) {
   if (idx < 0) return "";
   return sFull.substring(idx + sSub.length);
 }
+function stringAfterLast(sFull,sSub){
+  let parts = sFull.split(sSub);
+  return last(parts);
+}
 function stringBefore(sFull, sSub) {
   let idx = sFull.indexOf(sSub);
   if (idx < 0) return sFull;
@@ -1051,7 +1193,10 @@ function stringBefore(sFull, sSub) {
 function getTypeOf(param) {
   let type = typeof param;
   ////console.log("typeof says:" + type);
-  if (typeof param == "object") {
+  if (type == "string") {
+    return "string";
+  }
+  if (type == "object") {
     type = param.constructor.name;
   }
   let lType = type.toLowerCase();
@@ -1064,10 +1209,13 @@ function isEvent(param) {
   return getTypeOf(param) == "event";
 }
 function isString(param) {
-  return getTypeOf(param) == "string";
+  return typeof param == "string";
 }
 function isMS(param) {
   return getTypeOf(param) == "MS";
+}
+function isNumber(param) {
+  return !isNaN(Number(param));
 }
 function convertToMS(p) {
   let res = undefined;
@@ -1239,238 +1387,238 @@ function calcSnailPositions(x, y, d, n) {
 
 //   let i=0;
 //   for (const o of objects) {
-//     console.log('p[i]',p[i],'object',o)
+//     //console.log('p[i]',p[i],'object',o)
 //     o.setPos(p[i][0],p[i][1]); i+=1;
 //   }
 // }
 //#endregion layout helpers
 
 //#region list of countries
-      /*An array containing all the country names in the world:*/
-      var countries = [
-        "Afghanistan",
-        "Albania",
-        "Algeria",
-        "Andorra",
-        "Angola",
-        "Anguilla",
-        "Antigua & Barbuda",
-        "Argentina",
-        "Armenia",
-        "Aruba",
-        "Australia",
-        "Austria",
-        "Azerbaijan",
-        "Bahamas",
-        "Bahrain",
-        "Bangladesh",
-        "Barbados",
-        "Belarus",
-        "Belgium",
-        "Belize",
-        "Benin",
-        "Bermuda",
-        "Bhutan",
-        "Bolivia",
-        "Bosnia & Herzegovina",
-        "Botswana",
-        "Brazil",
-        "British Virgin Islands",
-        "Brunei",
-        "Bulgaria",
-        "Burkina Faso",
-        "Burundi",
-        "Cambodia",
-        "Cameroon",
-        "Canada",
-        "Cape Verde",
-        "Cayman Islands",
-        "Central Arfrican Republic",
-        "Chad",
-        "Chile",
-        "China",
-        "Colombia",
-        "Congo",
-        "Cook Islands",
-        "Costa Rica",
-        "Cote D Ivoire",
-        "Croatia",
-        "Cuba",
-        "Curacao",
-        "Cyprus",
-        "Czech Republic",
-        "Denmark",
-        "Djibouti",
-        "Dominica",
-        "Dominican Republic",
-        "Ecuador",
-        "Egypt",
-        "El Salvador",
-        "Equatorial Guinea",
-        "Eritrea",
-        "Estonia",
-        "Ethiopia",
-        "Falkland Islands",
-        "Faroe Islands",
-        "Fiji",
-        "Finland",
-        "France",
-        "French Polynesia",
-        "French West Indies",
-        "Gabon",
-        "Gambia",
-        "Georgia",
-        "Germany",
-        "Ghana",
-        "Gibraltar",
-        "Greece",
-        "Greenland",
-        "Grenada",
-        "Guam",
-        "Guatemala",
-        "Guernsey",
-        "Guinea",
-        "Guinea Bissau",
-        "Guyana",
-        "Haiti",
-        "Honduras",
-        "Hong Kong",
-        "Hungary",
-        "Iceland",
-        "India",
-        "Indonesia",
-        "Iran",
-        "Iraq",
-        "Ireland",
-        "Isle of Man",
-        "Israel",
-        "Italy",
-        "Jamaica",
-        "Japan",
-        "Jersey",
-        "Jordan",
-        "Kazakhstan",
-        "Kenya",
-        "Kiribati",
-        "Kosovo",
-        "Kuwait",
-        "Kyrgyzstan",
-        "Laos",
-        "Latvia",
-        "Lebanon",
-        "Lesotho",
-        "Liberia",
-        "Libya",
-        "Liechtenstein",
-        "Lithuania",
-        "Luxembourg",
-        "Macau",
-        "Macedonia",
-        "Madagascar",
-        "Malawi",
-        "Malaysia",
-        "Maldives",
-        "Mali",
-        "Malta",
-        "Marshall Islands",
-        "Mauritania",
-        "Mauritius",
-        "Mexico",
-        "Micronesia",
-        "Moldova",
-        "Monaco",
-        "Mongolia",
-        "Montenegro",
-        "Montserrat",
-        "Morocco",
-        "Mozambique",
-        "Myanmar",
-        "Namibia",
-        "Nauro",
-        "Nepal",
-        "Netherlands",
-        "Netherlands Antilles",
-        "New Caledonia",
-        "New Zealand",
-        "Nicaragua",
-        "Niger",
-        "Nigeria",
-        "North Korea",
-        "Norway",
-        "Oman",
-        "Pakistan",
-        "Palau",
-        "Palestine",
-        "Panama",
-        "Papua New Guinea",
-        "Paraguay",
-        "Peru",
-        "Philippines",
-        "Poland",
-        "Portugal",
-        "Puerto Rico",
-        "Qatar",
-        "Reunion",
-        "Romania",
-        "Russia",
-        "Rwanda",
-        "Saint Pierre & Miquelon",
-        "Samoa",
-        "San Marino",
-        "Sao Tome and Principe",
-        "Saudi Arabia",
-        "Senegal",
-        "Serbia",
-        "Seychelles",
-        "Sierra Leone",
-        "Singapore",
-        "Slovakia",
-        "Slovenia",
-        "Solomon Islands",
-        "Somalia",
-        "South Africa",
-        "South Korea",
-        "South Sudan",
-        "Spain",
-        "Sri Lanka",
-        "St Kitts & Nevis",
-        "St Lucia",
-        "St Vincent",
-        "Sudan",
-        "Suriname",
-        "Swaziland",
-        "Sweden",
-        "Switzerland",
-        "Syria",
-        "Taiwan",
-        "Tajikistan",
-        "Tanzania",
-        "Thailand",
-        "Timor L'Este",
-        "Togo",
-        "Tonga",
-        "Trinidad & Tobago",
-        "Tunisia",
-        "Turkey",
-        "Turkmenistan",
-        "Turks & Caicos",
-        "Tuvalu",
-        "Uganda",
-        "Ukraine",
-        "United Arab Emirates",
-        "United Kingdom",
-        "United States of America",
-        "Uruguay",
-        "Uzbekistan",
-        "Vanuatu",
-        "Vatican City",
-        "Venezuela",
-        "Vietnam",
-        "Virgin Islands (US)",
-        "Yemen",
-        "Zambia",
-        "Zimbabwe"
-      ];
+/*An array containing all the country names in the world:*/
+var countries = [
+  "Afghanistan",
+  "Albania",
+  "Algeria",
+  "Andorra",
+  "Angola",
+  "Anguilla",
+  "Antigua & Barbuda",
+  "Argentina",
+  "Armenia",
+  "Aruba",
+  "Australia",
+  "Austria",
+  "Azerbaijan",
+  "Bahamas",
+  "Bahrain",
+  "Bangladesh",
+  "Barbados",
+  "Belarus",
+  "Belgium",
+  "Belize",
+  "Benin",
+  "Bermuda",
+  "Bhutan",
+  "Bolivia",
+  "Bosnia & Herzegovina",
+  "Botswana",
+  "Brazil",
+  "British Virgin Islands",
+  "Brunei",
+  "Bulgaria",
+  "Burkina Faso",
+  "Burundi",
+  "Cambodia",
+  "Cameroon",
+  "Canada",
+  "Cape Verde",
+  "Cayman Islands",
+  "Central Arfrican Republic",
+  "Chad",
+  "Chile",
+  "China",
+  "Colombia",
+  "Congo",
+  "Cook Islands",
+  "Costa Rica",
+  "Cote D Ivoire",
+  "Croatia",
+  "Cuba",
+  "Curacao",
+  "Cyprus",
+  "Czech Republic",
+  "Denmark",
+  "Djibouti",
+  "Dominica",
+  "Dominican Republic",
+  "Ecuador",
+  "Egypt",
+  "El Salvador",
+  "Equatorial Guinea",
+  "Eritrea",
+  "Estonia",
+  "Ethiopia",
+  "Falkland Islands",
+  "Faroe Islands",
+  "Fiji",
+  "Finland",
+  "France",
+  "French Polynesia",
+  "French West Indies",
+  "Gabon",
+  "Gambia",
+  "Georgia",
+  "Germany",
+  "Ghana",
+  "Gibraltar",
+  "Greece",
+  "Greenland",
+  "Grenada",
+  "Guam",
+  "Guatemala",
+  "Guernsey",
+  "Guinea",
+  "Guinea Bissau",
+  "Guyana",
+  "Haiti",
+  "Honduras",
+  "Hong Kong",
+  "Hungary",
+  "Iceland",
+  "India",
+  "Indonesia",
+  "Iran",
+  "Iraq",
+  "Ireland",
+  "Isle of Man",
+  "Israel",
+  "Italy",
+  "Jamaica",
+  "Japan",
+  "Jersey",
+  "Jordan",
+  "Kazakhstan",
+  "Kenya",
+  "Kiribati",
+  "Kosovo",
+  "Kuwait",
+  "Kyrgyzstan",
+  "Laos",
+  "Latvia",
+  "Lebanon",
+  "Lesotho",
+  "Liberia",
+  "Libya",
+  "Liechtenstein",
+  "Lithuania",
+  "Luxembourg",
+  "Macau",
+  "Macedonia",
+  "Madagascar",
+  "Malawi",
+  "Malaysia",
+  "Maldives",
+  "Mali",
+  "Malta",
+  "Marshall Islands",
+  "Mauritania",
+  "Mauritius",
+  "Mexico",
+  "Micronesia",
+  "Moldova",
+  "Monaco",
+  "Mongolia",
+  "Montenegro",
+  "Montserrat",
+  "Morocco",
+  "Mozambique",
+  "Myanmar",
+  "Namibia",
+  "Nauro",
+  "Nepal",
+  "Netherlands",
+  "Netherlands Antilles",
+  "New Caledonia",
+  "New Zealand",
+  "Nicaragua",
+  "Niger",
+  "Nigeria",
+  "North Korea",
+  "Norway",
+  "Oman",
+  "Pakistan",
+  "Palau",
+  "Palestine",
+  "Panama",
+  "Papua New Guinea",
+  "Paraguay",
+  "Peru",
+  "Philippines",
+  "Poland",
+  "Portugal",
+  "Puerto Rico",
+  "Qatar",
+  "Reunion",
+  "Romania",
+  "Russia",
+  "Rwanda",
+  "Saint Pierre & Miquelon",
+  "Samoa",
+  "San Marino",
+  "Sao Tome and Principe",
+  "Saudi Arabia",
+  "Senegal",
+  "Serbia",
+  "Seychelles",
+  "Sierra Leone",
+  "Singapore",
+  "Slovakia",
+  "Slovenia",
+  "Solomon Islands",
+  "Somalia",
+  "South Africa",
+  "South Korea",
+  "South Sudan",
+  "Spain",
+  "Sri Lanka",
+  "St Kitts & Nevis",
+  "St Lucia",
+  "St Vincent",
+  "Sudan",
+  "Suriname",
+  "Swaziland",
+  "Sweden",
+  "Switzerland",
+  "Syria",
+  "Taiwan",
+  "Tajikistan",
+  "Tanzania",
+  "Thailand",
+  "Timor L'Este",
+  "Togo",
+  "Tonga",
+  "Trinidad & Tobago",
+  "Tunisia",
+  "Turkey",
+  "Turkmenistan",
+  "Turks & Caicos",
+  "Tuvalu",
+  "Uganda",
+  "Ukraine",
+  "United Arab Emirates",
+  "United Kingdom",
+  "United States of America",
+  "Uruguay",
+  "Uzbekistan",
+  "Vanuatu",
+  "Vatican City",
+  "Venezuela",
+  "Vietnam",
+  "Virgin Islands (US)",
+  "Yemen",
+  "Zambia",
+  "Zimbabwe"
+];
 //#endregion
 
 // #region zooming
@@ -1513,96 +1661,7 @@ function getZoomFactor(gElement) {
   var matrix = gElement.getCTM();
   let info = decomposeMatrix(matrix);
   return info.scale;
-  // console.log(x.scale);
+  // //console.log(x.scale);
 }
 
 //#endregion zooming
-
-
-
-
-
-
-
-
-
-//#region trash
-// function findRegularFit(n,minRows){
-//   var rows = minRows;
-//   var cols = Math.ceil(n / rows);
-// }
-
-// function calcTotalWidth(n,sz,gap,padding){
-//   return padding * 2 - gap + (sz + gap) * n;
-// }
-// function findExactMatch(n,rows){
-//   console.log('start findExactMatch with:',n,rows)
-//   for (var i = Math.max(2, rows); i < n / 2; i++) {
-//     if (n % i == 0) {
-//       console.log('found exact: rows=',i,'cols=',(n/i))
-//       return {rows:i,cols:n/i};
-//     }
-//   }
-//   rows+=1;let cols=Math.ceil(n/(rows));
-//   console.log('no match found: rows=',rows,'cols=',cols)
-//   return {rows:rows,cols:cols};
-// }
-// function layout(n,wItem=100,hItem=100,{wIdeal=0,gap=8,padding=16,minRows=1,maxRows=1}={}){
-//   if (wIdeal == 0){wIdeal = window.innerWidth;}
-//   let rows=minRows;
-//   let cols=Math.ceil(n / rows);
-//   let wTotal =calcTotalWidth(cols,wItem,gap,padding);
-//   console.log('starting with rows:',rows,', cols:',cols)
-//   let rOld=0;
-//   while (wTotal>wIdeal && cols>=rows && rOld != rows){
-//     rOld=rows;
-//     let diff = wTotal-wIdeal;
-//     if (diff < padding+(cols*(gap>>2))){
-//       //reducing padding and gap could alreay help
-//       padding>>=2;gap>>=2;break;
-//     }
-//     let res = findExactMatch(n,rows);
-//     rows=res.rows;cols=res.cols;
-//     // if (res.rows > maxRows){
-//     //   rows+=1;cols=Math.ceil(n / rows);
-//     // }else {
-//     //   rows=res.rows;cols=res.cols;
-//     // }
-//     console.log('rows:',rows,', cols:',cols)
-//     //wIdeal+=(window.innerWidth-wIdeal)/2;
-//     wTotal =calcTotalWidth(cols,wItem,gap,padding);
-//   }
-//   return {rows: rows, cols: cols, gap: gap, padding: padding, width: wTotal};
-// }
-
-// function calculateDims2(n, wItem = 60, hItem = 100, minRows = 1, maxRows = 10) {
-//   var rows = minRows;
-//   var cols = Math.ceil(n / rows);
-//   var gap = 10;
-//   var padding = 20;
-
-//   let w = 9999999;
-//   while (true) {
-//     if (maxRows > minRows) {
-//       for (var i = Math.max(Math.min(2, maxRows), minRows); i < Math.min(maxRows + 1, n / 2); i++) {
-//         if (n % i == 0) {
-//           rows = i;
-//           cols = n / i;
-//           break;
-//         }
-//       }
-//     }
-//     w = padding * 2 - gap + (wItem + gap) * cols;
-//     if (w > window.innerWidth) {
-//       if (gap > 1) gap -= 1;
-//       else if (padding > 1) padding -= 2;
-//       else {
-//         maxRows += 1;
-//         gap = 6;
-//         padding = 10;
-//       }
-//     } else break;
-//   }
-//   return {rows: rows, cols: cols, gap: gap, padding: padding, width: w};
-// }
-//#endregion

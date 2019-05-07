@@ -59,7 +59,7 @@
     <script>
       var abort = false;
       var serverData; // last message from server as JSON object
-      var skipActions = 0; //120; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
+      var skipActions = 46; //120; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
       var favorAction = "action_"; //"investment_card";
 
       function statusMessage(msgAdd = "") {
@@ -222,9 +222,10 @@
             d.appendChild(para);
             para.scrollIntoView();
             G.log.push(msg);
-            if (msg.includes("Government")) {
-              phase = "government";
-            }
+            //console.log('new='+msg);
+
+            let res=hackPhaseAndPlayerTest(msg);
+            //if (res.phase)
           }
         }
         //created
