@@ -23,3 +23,5 @@ print(ping())
 # if False:
 out = format_msg_to_python(init_game(debug=True, player='Axis', seed=seed))
 
+print(out.actions)
+

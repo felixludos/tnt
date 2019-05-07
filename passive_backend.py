@@ -177,8 +177,6 @@ def next_phase(player=None, action=None):  # keeps going through phases until ac
 		
 		if out is not None and len(out) == 0:
 			player, action = None, None
-		
-	print(out)
 	
 	return out
 

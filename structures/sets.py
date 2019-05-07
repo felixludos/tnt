@@ -1,17 +1,6 @@
 from itertools import product
 # comparable set
 
-# class ord_set(list):
-# 	# def __init__(self, *args, **kwargs):
-# 	# 	self.data = []
-#
-# 	def add(self, item):
-# 		return super().append(item)
-# 	def discard(self, item):
-# 		return super().remove(item)
-# 	def update(self, items):
-# 		return super().extend(items)
-
 _set_ID = 0
 class xset(set):
 	def __init__(self, *args, **kwargs):
