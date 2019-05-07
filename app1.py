@@ -100,6 +100,23 @@ def myload(data):
 def get_status_West():
 	out = FORMAT_MSG(pull_msg('West'), 'West')
 	return out
+@app.route('/statusAxis')
+def get_status_Axis():
+	out = FORMAT_MSG(pull_msg('Axis'), 'Axis')
+	return out
+@app.route('/statusUSSR')
+def get_status_USSR():
+	out = FORMAT_MSG(pull_msg('USSR'), 'USSR')
+	return out
+@app.route('/infoWest')
+def get_infoWest():
+	return FORMAT_MSG(get_game_info('West'))
+@app.route('/infoAxis')
+def get_infoAxis():
+	return FORMAT_MSG(get_game_info('Axis'))
+@app.route('/infoUSSR')
+def get_infoUSSR():
+	return FORMAT_MSG(get_game_info('USSR'))
 
 
 @app.route('/1')

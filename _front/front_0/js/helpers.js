@@ -4,6 +4,10 @@ function extractUniqueStrings(tupleList) {
   tupleList.map(x => x.map(y => addIf(y, idlist)));
   return idlist;
 }
+function firstCond(arr, func) {
+  let res = arr.filter(x => func(x));
+  return res.length > 0 ? res[0] : null;
+}
 
 function isSet(x) {
   return "set" in x;

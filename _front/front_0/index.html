@@ -154,7 +154,7 @@
         G.previousFaction = G.faction;
 
         if (nextFaction === undefined) {
-          send("action/" + G.faction + '/pass');
+          send("action/" + G.faction + "/pass");
         } else {
           G.faction = player = nextFaction;
           send("status/" + G.faction);
@@ -179,7 +179,7 @@
         if (data === undefined) {
           //console.log("!!!", str, "!!!");
         } else if ("error" in data) {
-          console.log(data)
+          console.log(data);
           //send("reset/" + G.faction);
           //abort = true;
         } else {
@@ -306,9 +306,9 @@
         for (const f of G.factions) {
           let g = G[f];
           for (k in data) {
-          let sk = k.toString();
-          g[sk] = data[k];
-        }
+            let sk = k.toString();
+            g[sk] = data[k];
+          }
         }
         let faction = G.faction; //G.previousFaction;
         // let g = G[faction];
@@ -426,6 +426,7 @@
 
             closeSelection();
             let url = "action/" + G.faction + "/" + tuple.join("+");
+            console.log("action message:", url);
             send(url);
           } else {
             // check if there is an id that is same in all tuplesPossible and not in
@@ -773,10 +774,6 @@
         tuplePartSelected = [];
         tuplesInAction = [];
         tuplesPossible = [];
-      }
-      function firstCond(arr, func) {
-        let res = arr.filter(x => func(x));
-        return res.length > 0 ? res[0] : null;
       }
       function getActionCardFromTuple(tuple) {
         return firstCond(tuple, x => isActionCard(x));

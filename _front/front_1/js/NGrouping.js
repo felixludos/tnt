@@ -106,4 +106,17 @@ class NGrouping {
     this.x = this.startPos.x;
     this.y = this.startPos.y;
   }
+  sortChildren(){
+    //console.log('sorting...',this.children.map(x=>x.id))
+
+    if ("sortBy" in this.options) {
+      //console.log('yes')
+      let prop = this.options.sortBy;
+      this.children.sort((a, b) => {
+        return a[prop] < b[prop] ? -1 : a[prop] > b[prop] ? 1 : 0;
+      });
+    }
+    //console.log('sorting...',this.children.map(x=>x.id))
+    this.redoLayout();
+  }
 }
