@@ -4,7 +4,7 @@ var uniqueIdCounter = 0;
 class NObj {
   constructor(id, parentName, o) {
     this.id = id; // id of NObj is same as id of game objects
-    this.o = o;
+    this.oid = o.id;
     this.parent = document.getElementById(parentName);
     this.elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
     this.elem.id = uniqueIdCounter + "_" + o.obj_type;

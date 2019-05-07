@@ -96,6 +96,10 @@ def myload(data):
 	#res=FORMAT_MSG(get_G(), 'Axis')
 	#print(res)
 	#return FORMAT_MSG(get_object_table(), 'Axis')
+@app.route('/statusWest')
+def get_status_West():
+	out = FORMAT_MSG(pull_msg('West'), 'West')
+	return out
 
 
 @app.route('/1')

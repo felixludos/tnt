@@ -54,6 +54,10 @@
           <button style="margin:10px" id="bSendMessage" onclick="onClickSendMessage()">send message</button>
           <button style="margin:10px" id="bClear" onclick="onClickClearInputs()">clear inputs</button>
         </div>
+        <div style="margin:10px;text-align:left;">
+          <!-- <input type="text" id="inAction" style="width:90%;font-size:30px;" placeholder="enter action"> -->
+          <button id="bAddUnit" onclick="onClickAddUnit()">add unit</button>
+        </div>
       </div>
       <div id="reserve_area" class="grid_div">
         <svg id="selSvg" width="60" height="760"><g id="reserveG"></g></svg>
@@ -106,8 +110,11 @@
     <script>
       var backendServerUrl = "http://localhost:5000/"; //local server
       var msgCounter = 0;
+      var skipActions = 0; //120; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
       var serverData; // last message from server as JSON object
       var postData = scenario0;
+      var currentScenario;
+      var maxIdNumber = 0;
 
       var G = {hasVisuals: false, oServer: {}, oFront: {}, groupings: {}}; //complete game state
       //oFront: objects made by front
@@ -141,7 +148,8 @@
         "prodAgent",
         "save01",
         "save02",
-        "save03"
+        "save03",
+        "statusWest",
       ];
       var filenames = [
         "gov_complete.json",
@@ -187,6 +195,9 @@
 
     <!-- #region handlers using globals  -->
     <script>
+      function onClickAddUnit() {
+        addUnit("Britain", "Budapest", "Fleet", 3);
+      }
       function onClickClearInputs() {
         document.getElementById("myInput").value = "";
         document.getElementById("inparam").value = "";
@@ -201,6 +212,12 @@
         let inparam = document.getElementById("inparam");
         let msgParam = inparam.value.toString();
         inparam.value = "";
+        //postData: from objects.table, remove all visuals and grouping and hiddenVisual
+
+        // make a copy of currentScenario but without 
+        
+
+
         sendOrPost(msg, msgParam, postData);
       }
       function onClickStartScenario() {
@@ -255,6 +272,28 @@
           res.push(ms);
         }
         return res;
+      }
+      function addUnit(nationality, tile, type, cv) {
+        //nur im edit mode
+        // need to generate a new unit ui that does not exist in G.oServer
+        // best is to determine maxNumberId of scenario when starting scenario
+        let o = {obj_type: "unit", nationality: nationality, tile: tile, type: type, cv: cv};
+        let owner = getUnitOwner(nationality);
+        o.visible = {set: [owner]};
+
+        //check if there is a reserve of that type available!
+        let nLeft = currentScenario.gamestate.units.reserves[nationality][type];
+        if (nLeft < 1) {
+          console.log("no more reserve of nationality", nationality, "and type", type);
+          return;
+        }
+        let id = (maxIdNumber + 1).toString();
+        maxIdNumber += 1;
+        currentScenario.gamestate.objects.table[id] = o;
+        currentScenario.gamestate.players[owner].units[id] = o;
+        G.oServer[id] = o;
+
+        createVisual(id, o);
       }
       function calculateTrackPositions() {
         trackPositions = {};
@@ -430,9 +469,6 @@
           // get or create hiddenVisual
           if (!(groupId in G.oFront)) {
             //create a hiddenVisual for this tile and faction
-            // if (o.owner == 'Axis'){
-            //   //console.log('size',sz)
-            // }
             let sz = SZ.sumCadre;
             let sz80 = sz * 0.86;
             let msHidden = new NObj(groupId, "mapG", o)
@@ -441,6 +477,7 @@
               .text({className: "content", txt: 1, fz: sz / 2, fill: "white"})
               .roundedRect({className: "overlay", w: sz, h: sz, fill: darker, rounding: sz * 0.1});
             msHidden.tag("content", 1);
+            msHidden.tag("count", 1);
             msHidden.setPos(startPos.x, startPos.y).draw();
             let oHidden = {faction: o.owner, tile: tile, obj_type: "unit_hidden", visual: msHidden};
 
@@ -459,13 +496,7 @@
           //NGroup needs a way to show or hide entire group
 
           //visibility of newly created unit: if visible to player,
-          if (o.visible.set.includes(player)) {
-            ms.show();
-            msHidden.hide();
-          } else {
-            ms.hide();
-            msHidden.show();
-          }
+          displayUnit(o);
 
           return ms;
         } else if (isCard(o)) {
@@ -591,6 +622,21 @@
           return ms;
         }
       }
+      function displayUnit(o) {
+        if (o.visible.set.includes(player)) {
+          o.visual.show();
+          o.hiddenVisual.hide();
+        } else {
+          o.visual.hide();
+          o.hiddenVisual.show();
+        }
+      }
+      function displayUnitGroups() {
+        for (const groupId in G.groupings) {
+          let group = G.groupings[groupId];
+          //if (group.getCount()==0)
+        }
+      }
       function drawInfluence(ms, nation, faction, level) {
         let imagePath = "/assets/images/" + faction + ".svg";
         let color = troopColors[faction];
@@ -699,14 +745,14 @@
 
               //create decks
               let decks = createDecks();
-              let o = {obj_type: 'deck', visual: decks.action_card};
+              let o = {obj_type: "deck", visual: decks.action_card};
               G.oFront.action_card = o;
-              o = {obj_type: 'deck', visual: decks.investment_card};
+              o = {obj_type: "deck", visual: decks.investment_card};
               G.oFront.investment_card = o;
 
               //load influence spots
               let msNationList = addNationPositions(nationPositions);
-              msNationList.map(x => (G.oFront[x.id] = {obj_type: 'nation', visual: x}));
+              msNationList.map(x => (G.oFront[x.id] = {obj_type: "nation", visual: x}));
 
               //console.log("...finished loading!");
               callback();
@@ -737,9 +783,19 @@
       }
       function newScenario(scenario) {
         clearG();
-        console.log("start:", G);
+        //console.log("start:", G);
 
+        postData = currentScenario = scenario;
         G.oServer = scenario.gamestate.objects.table;
+
+        //determine maxNumberId
+        maxIdNumber = 0;
+        for (const id in G.oServer) {
+          if (isNumber(id)) {
+            let n = Number(id);
+            if (n > maxIdNumber) maxIdNumber = n;
+          }
+        }
 
         //first create all the tiles!
         for (const id in G.oServer) {
@@ -754,6 +810,7 @@
             let ms = createVisual(id, o);
           }
         }
+        G.hasVisuals = true;
 
         //update tracks
         for (const faction in scenario.gamestate.players) {
@@ -762,6 +819,55 @@
           setResource(faction, tracks.RES);
           setIndustry(faction, tracks.IND);
         }
+
+        //next need to enter action loop to modify scenario
+        //to test just make small change and try to upload to server
+        console.log("current scenario:", scenario);
+        console.log("G:", G);
+        removeUnit("110");
+        //change 110 to Infantry instead of Fleet
+        //hier ist das problem: muss auch in
+        //scenario.gamestate.players.units[id].type='Infantry'
+        //aendern
+
+        //1. look ob reicht wenn G[id].type = 'Infantry' aendere
+
+        //first remove unit completely
+      }
+      function removeUnit(id) {
+        //existing unit is in G.oServer[id]
+        let o = G.oServer[id];
+
+        //remove visual from group
+        o.group.removeChild(id);
+
+        //remove visual from ui
+        o.visual.removeFromUI();
+
+        //decrement hiddenUnit count
+        updateUnitCounter(o, o.hiddenVisual, -1);
+
+        //increase reserve?!? if this is done in scenario == locally
+        if (isEditView()) {
+          currentScenario.gamestate.units.reserves[o.nationality][o.type] += 1;
+          delete currentScenario.gamestate.objects.table[id];
+          delete currentScenario.gamestate.players[o.owner].units[id];
+        }
+
+        //now,I have to remove this id form scenario and from G.oServer
+        delete G.oServer[id];
+
+        console.log("after remove:");
+        console.log(G);
+        console.log(currentScenario);
+
+        //look how many children are left in this same group
+        //if 0 children left,hide hiddenUnit
+        //in any case, decrement hiddenUnit count
+        // let n = o.group.getCount();
+        // console.log("this group still has", n, "units!!!");
+        // if (n < 1) {
+        // }
       }
       function post(url, data, callback = null) {
         url = backendServerUrl + url;
@@ -794,7 +900,7 @@
       }
       function sendOrPost(msg, msgParam, data) {
         if (!empty(msgParam)) msg += "/" + msgParam;
-        //console.log("sending", msg);
+        //console.log(msgCounter, "HTTP sent: ", msg);
         if (startsWith(msg, "post")) {
           post(msg, data);
         } else {
@@ -875,15 +981,28 @@
         let id = prefix + faction;
         if (!(id in G.oFront)) {
           let o = createChip(id, {text: text, prefix: prefix, faction: faction, color: color});
-          G.oFront[id] = {obj_type: 'chip', visual: o};
+          G.oFront[id] = {obj_type: "chip", visual: o};
         }
         let ms = G.oFront[id].visual;
         ms.setPos(pos.x, pos.y);
       }
       function updateUnitCounter(o, ms, inc) {
         //console.log('updateUnitCounter')
+
+        if (startsWith(ms.id, "Konigs")) {
+          console.log("updateUnitCounter", ms.id);
+        }
+
         let n = ms.getTag("count");
         n += inc;
+
+        if (startsWith(ms.id, "Konigs")) {
+          console.log("updateUnitCounter", ms.id, "from", n - inc, "to", n);
+        }
+        //question: should I delete hiddenUnit when n==0?
+        //unitCounter is related to o.group.getCount()
+        //should I move
+
         let color = troopColors[o.nationality];
         let darker = darkerColor(color[0], color[1], color[2]);
         let sz = SZ.sumCadre;
