@@ -1067,7 +1067,14 @@ function makeSvg(w, h) {
 function show(elem) {
   elem.classList.remove("hidden");
 }
-
+function toHTMLString(msg){
+  msg = JSON.stringify(msg);
+  msg = msg.replace(/(?:\r\n|\r|\n)/g, "<br>");
+  msg = msg.replace("\\n", "<br>");
+  msg = msg.replace(/\\n/g, "<br>");
+  msg = msg.replace(/"/g, "");
+  return msg.trim();
+}
 //tableCreate();
 function makeKeyValueTable(data) {
   let cols = 2;

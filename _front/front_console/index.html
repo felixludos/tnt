@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>test</title>
+    <link rel="shortcut icon" href="#" />
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="/css/layout.css" />
+    <link rel="stylesheet" type="text/css" href="/css/msStyles.css" />
+    <link rel="stylesheet" type="text/css" href="/css/autocomp.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.2/js-yaml.js"></script>
+    <script src="https://www.w3schools.com/lib/w3.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script src="/js/autocomplete.js"></script>
+    <script src="/js/helpers.js"></script>
+    <script src="/js/panzoom.js"></script>
+    <script src="/js/NPage.js"></script>
+    <script src="/js/NBackendCommunicator.js"></script>
+    <script src="/js/NDataProcessor.js"></script>
+  </head>
+  <body>
+    <!-- #region HTML -->
+    <div id="mainDiv" class="grid_game">
+      <div id="menu_area" class="grid_div" style="text-align:left;">
+        <div style="float:left;margin-left:10px">
+          <button class="hidden" id="bLoadScenario" onclick="onClickLoadScenario()">load scenario</button>
+          <button class="hidden" id="bStartScenario" onclick="onClickStartScenario()">start scenario</button>
+          <button class="hidden" id="bSkipAction" onclick="onClickSkipAction()">skip action</button>
+          <button class="hidden" id="bNextPlayer" onclick="onClickNextPlayer()">next player</button>
+        </div>
+        <div style="float:right;margin-right:10px">
+          view:
+          <button id="bViewGame" onclick="page.gameView()">game</button>
+          <button class="hidden" id="bViewNoReserve" onclick="page.gameView(false)">no reserve</button>
+          <button id="bViewEdit" onclick="page.editView()">edit</button>
+          <button id="bViewTest" onclick="page.testView()">test</button>
+        </div>
+      </div>
+      <div id="status_area" class="grid_div" onclick="page.testView()">status</div>
+      <div id="test_area" class="grid_div">
+        <div class="flexdiv">
+          <div class="autocomplete">
+            <input id="myInput" type="text" name="myCountry" style="font-size:30px;" placeholder="command" />
+          </div>
+          <div class="autocomplete">
+            <input id="inparam" type="text" name="inparam" style="font-size:30px;" placeholder="param" />
+          </div>
+          <button style="margin:10px" id="bSendMessage" onclick="onClickSendMessage()">send message</button>
+          <button style="margin:10px" id="bClear" onclick="onClickClearInputs()">clear inputs</button>
+        </div>
+        <div style="margin:10px;text-align:left;">
+          <!-- <input type="text" id="inAction" style="width:90%;font-size:30px;" placeholder="enter action"> -->
+          <button id="bAddUnit" onclick="onClickAddUnit()">add unit</button>
+        </div>
+      </div>
+      <div id="reserve_area" class="grid_div">
+        <svg id="selSvg" width="60" height="760"><g id="reserveG"></g></svg>
+      </div>
+      <div id="map_area" class="grid_div" style="background-color:rgba(86, 182, 222);">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="mapG" viewBox="0 0 3400 2200">
+            <image id="imgMap" width="3400" height="2200" href="/assets/TTmap.jpg" />
+          </g>
+        </svg>
+      </div>
+      <div id="log_area" class="grid_div" style="overflow-y:scroll">
+        Messages
+        <div id="tempDisplay" class="hidden" style="width:100%;height:100%">
+          <svg width="100%" height="100%" style="box-sizing:border-box;">
+            <g id="tempG"></g>
+          </svg>
+        </div>
+      </div>
+      <div id="prop_area" class="grid_div hidden">
+        actions
+        <button id="bEditPlaceUnits" onclick="onClickEditPlaceUnits(this)">place unit</button>
+        <button id="bEditDrawCards" onclick="onClickEditDrawCards(this)">draw card</button>
+        <button id="bEditDeleteUnits" onclick="onClickEditDeleteUnits(this)">delete unit</button>
+        <button id="bEditDeleteCards" onclick="onClickEditDeleteCards(this)">delete card</button>
+        <button id="bEditDeleteAll" onclick="onClickEditDeleteAll(this)">delete all</button>
+        <button id="bEditNextPlayer" onclick="onClickEditNextPlayer(this)">next player</button>
+        <button id="bEditDone" onclick="onClickEditDone(this)">done</button>
+      </div>
+      <div id="command_area" class="grid_div">
+        Commands
+        <button id="bStep" onclick='onClickStep()'>step</button>
+      </div>
+      <div id="chat_area" class="grid_div hidden">chat</div>
+      <div id="hand_area" class="grid_div" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="handG"></g>
+        </svg>
+      </div>
+      <div id="openCard_area" class="grid_div" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="openCardG"></g>
+        </svg>
+      </div>
+      <div id="actionDeck_area" class="grid_div hidden" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="actionDeckG"></g>
+        </svg>
+      </div>
+      <div id="investmentDeck_area" class="grid_div hidden" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="investmentDeckG"></g>
+        </svg>
+      </div>
+    </div>
+    <!-- #endregion HTML -->
+
+     <!-- #region globals -->
+     <script>
+     var player='West';
+     var gameData;
+     var gameObjects;
+     var indices;
+     var serverData;
+     var actionTuples;
+     var dp = new NDataProcessor("http://localhost:5000/");
+     var page;
+     </script>
+     <!-- #endregion globals -->
+ 
+    <!-- #region view -->
+    <script>
+      function initView() {
+        //initialize panzoom on map
+        let map = document.getElementById("mapG");
+        map.setAttribute("transform", `translate(0,0) scale(${MIN_SCALE})`); //MIN_SCALE definedin in panzoom.js
+        //board.setAttribute("transform", `translate(-400,-400) scale(${1})`);
+        map.addEventListener("wheel", ev => {
+          onwheel(ev, map);
+        });
+        map.addEventListener("pointerdown", ev => {
+          onmousedown(ev);
+        });
+        addEventListener("mouseup", ev => {
+          onmouseup(ev, map);
+        });
+        addEventListener("mousemove", ev => {
+          onmousemove(ev, map);
+        });
+        addEventListener("dblclick", ev => reset(ev, map));
+
+        return new NPage(
+          document.getElementById("mainDiv"),
+          document.getElementById("actionDeck_area"),
+          document.getElementById("chat_area"),
+          document.getElementById("command_area"),
+          document.getElementById("hand_area"),
+          document.getElementById("investmentDeck_area"),
+          document.getElementById("log_area"),
+          document.getElementById("menu_area"),
+          document.getElementById("openCard_area"),
+          document.getElementById("prop_area"),
+          document.getElementById("reserve_area"),
+          document.getElementById("status_area"),
+          document.getElementById("test_area")
+        );
+      }
+      function onClickStep(){
+        dp.action(actionTuples[0],nextMove);
+      }
+      function onClickNextPlayer(){
+        player = gameData.playerChangedTo;
+      }
+
+      page = initView();
+      page.gameView();
+    </script>
+    <!-- #endregion view -->
+
+    <!-- #region backend communication -->
+    <script>
+      function justOutput(actionTuples, gameObjects, indices, gameData, serverData){
+        console.log("nextMove", actionTuples, gameObjects, indices, gameData);
+        console.log("serverData:", serverData);
+      }
+      function nextMove(a_Tuples, g_Objects, i_ces, g_Data, s_Data) {
+        actionTuples = a_Tuples;
+        updateGameObjects(g_Objects);
+        indices = i_ces;
+        gameData = g_Data;
+        serverData = s_Data;
+
+        console.log("nextMove", a_Tuples, g_Objects, i_ces, g_Data);
+        console.log("serverData:", s_Data);
+      }
+
+      function endlessMove(a_Tuples, g_Objects, i_ces, g_Data, s_Data) {
+        console.log("endlessMove", a_Tuples, g_Objects, i_ces, g_Data);
+        console.log("serverData:", s_Data);
+
+        if ('error' in s_Data){
+          error('endlessMove');
+        }else if ('playerChangedTo' in g_Data){
+          player = g_Data.playerChangedTo;
+          dp.action(player,a_Tuples[0],endlessMove);
+        }else{
+          dp.action(player,a_Tuples[0],endlessMove);
+        }
+      }
+      //sender generates server data and passes them to processMessage
+      dp.initGame(player,endlessMove);
+    </script>
+    <!-- #endregion backend communication -->
+
+    <!-- #region  -->
+    <script></script>
+    <!-- #endregion  -->
+  </body>
+</html>

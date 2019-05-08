@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask import request
 from flask_util import ActionConverter
 import json
-app = Flask(__name__, static_folder='_front/front_1')
+app = Flask(__name__, static_folder='_front/front_console')
 CORS(app)
 
 #init
@@ -119,8 +119,8 @@ def get_infoUSSR():
 	return FORMAT_MSG(get_game_info('USSR'))
 
 
-@app.route('/1')
-@app.route('/1/')
+@app.route('/c')
+@app.route('/c/')
 def root():
 	return send_from_directory(app.static_folder, 'index.html')
     

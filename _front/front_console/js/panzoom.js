@@ -1,5 +1,11 @@
 const MIN_SCALE = 0.35;
-
+var txStart;
+var tyStart;
+var xStart;
+var yStart;
+var panning = false;
+var couldBePanning = false;
+var totalMaxDelta;
 function onwheel(ev, board) {
   //let map = ev.target;if (ev.target.id!='imgMap')return;
   //console.log(map);
@@ -45,13 +51,6 @@ function reset(ev, board) {
   let transNew = `translate(0,0) scale(${MIN_SCALE})`;
   board.setAttribute("transform", transNew);
 }
-var txStart;
-var tyStart;
-var xStart;
-var yStart;
-var panning = false;
-var couldBePanning = false;
-var totalMaxDelta;
 function onmousedown(ev) {
   let map = ev.target;
   let board = ev.path[1];
@@ -69,11 +68,10 @@ function onmousedown(ev) {
   totalMaxDelta = 0;
   couldBePanning = true;
 }
-
 function onmousemove(ev, board) {
   //console.log(ev.target)
   let id = ev.target.id;
-  if (id != 'imgMap' && id !='boardG') {
+  if (id != 'imgMap' && id !='mapG') {
     couldBePanning=false;
     panning=false;
     return;
