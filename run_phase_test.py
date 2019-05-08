@@ -5,9 +5,6 @@ import random
 import numpy as np
 seed = 10
 RNG = None
-# RNG = random.Random(seed)
-# random.seed(seed)
-# np.random.seed(seed)
 
 import util as util
 from util import adict, idict, xset, collate, load, render_dict, save, Logger, seq_iterate
