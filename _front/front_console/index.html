@@ -13,11 +13,13 @@
 
     <script src="/js/autocomplete.js"></script>
     <script src="/js/helpers.js"></script>
+    <script src="/js/MS.js"></script>
     <script src="/js/panzoom.js"></script>
     <script src="/js/NPage.js"></script>
     <script src="/js/NBackendCommunicator.js"></script>
     <script src="/js/NDataProcessor.js"></script>
     <script src="/js/NU.js"></script>
+    <script src="/js/NAssets.js"></script>
   </head>
   <body>
     <!-- #region HTML -->
@@ -64,7 +66,10 @@
         </svg>
       </div>
       <div id="log_area" class="grid_div" style="overflow-y:scroll">
-        Messages
+        <div id="log_all" class="hidden">all messages</div>
+        <div id="log_Axis" class="hidden">Axis messages</div>
+        <div id="log_USSR" class="hidden">USSR messages</div>
+        <div id="log_West" class="hidden">West messages</div>
         <div id="tempDisplay" class="hidden" style="width:100%;height:100%">
           <svg width="100%" height="100%" style="box-sizing:border-box;">
             <g id="tempG"></g>
@@ -88,7 +93,9 @@
       <div id="chat_area" class="grid_div hidden">chat</div>
       <div id="hand_area" class="grid_div" style="height:200px">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="handG"></g>
+          <g id="handG_Axis"><text x="10" y="25" fill="grey">Axis Hand</text></g>
+          <g id="handG_USSR"><text x="10" y="25" fill="red">USSR Hand</text></g>
+          <g id="handG_West"><text x="10" y="25" fill="blue">West Hand</text></g>
         </svg>
       </div>
       <div id="openCard_area" class="grid_div" style="height:200px">
@@ -111,13 +118,24 @@
 
     <!-- #region globals -->
     <script>
-      var player, phase, year;
-      var page;
-      var dp;
+      var player = "Axis";
+      var execOptions = {
+        playerChange: "auto", // | 'manual'
+        log: "general" // | 'individual'
+        //automove: "playerChange" // | 'error' | 'skip' | 0
+      };
+      var phase = "testing";
+      var year = "2000";
+      var dp = new NDataProcessor("http://localhost:5000/"); //handles messaging
+      var assetMan = new NAssets(); // manage frontend assets
+      initPanZoom("mapG"); //handles pan zoom on map
+      var page = new NPage()
+        .initView()
+        .gameView()
+        .updateGameView(player, execOptions); //handles layout
       var actionTuples;
       var G = {objects: {}}; //object update
-      var U = new NU(); //handles ui update prep
-
+      var UIMan = new NU(assetMan); //handles ui update prep
       var gameData;
       var gameObjects;
       var serverData;
@@ -130,6 +148,7 @@
         hide(bNextPlayer);
         player = gameData.playerChangedTo;
         statusMessage();
+        page.updateGameView(player, execOptions);
         processActions(actionTuples);
       }
       function onClickStep() {
@@ -171,41 +190,17 @@
 
     <!-- #region helpers -->
     <script>
-      function initView() {
-        //initialize panzoom on map
-        let map = document.getElementById("mapG");
-        map.setAttribute("transform", `translate(0,0) scale(${MIN_SCALE})`); //MIN_SCALE definedin in panzoom.js
-        //board.setAttribute("transform", `translate(-400,-400) scale(${1})`);
-        map.addEventListener("wheel", ev => {
-          onwheel(ev, map);
-        });
-        map.addEventListener("pointerdown", ev => {
-          onmousedown(ev);
-        });
-        addEventListener("mouseup", ev => {
-          onmouseup(ev, map);
-        });
-        addEventListener("mousemove", ev => {
-          onmousemove(ev, map);
-        });
-        addEventListener("dblclick", ev => reset(ev, map));
-
-        return new NPage(
-          document.getElementById("mainDiv"),
-          document.getElementById("actionDeck_area"),
-          document.getElementById("chat_area"),
-          document.getElementById("command_area"),
-          document.getElementById("hand_area"),
-          document.getElementById("investmentDeck_area"),
-          document.getElementById("log_area"),
-          document.getElementById("menu_area"),
-          document.getElementById("openCard_area"),
-          document.getElementById("prop_area"),
-          document.getElementById("reserve_area"),
-          document.getElementById("status_area"),
-          document.getElementById("test_area")
-        );
+      function addLogToPlayerLog(data) {
+        if ("log" in data && !empty(data.log)) {
+          let id = execOptions.log == "individual" ? "log_" + player : "log_all";
+          let d = document.getElementById(id);
+          let para = document.createElement("p");
+          para.innerHTML = data.log;
+          d.appendChild(para);
+          para.scrollIntoView();
+        }
       }
+
       function statusMessage(msgAdd = "") {
         let s = "Phase:" + phase + ", Year:" + year + ", Player:" + player;
         s += " " + msgAdd;
@@ -216,15 +211,12 @@
 
     <!-- #region _work -->
     <script>
-      var execOptions = {
-        playerChange: "auto" // or 0
-        //automove: "playerChange" // | 'error' | 'skip' | 0
-      };
       function gameloop(a_Tuples, g_Objects, g_Data, s_Data) {
         if ("error" in s_Data) {
           error("________________________gameloop");
           dump("player", player, a_Tuples, g_Objects, g_Data, "serverData:", s_Data);
           error("gameloop");
+          dump(s_Data.error);
           return;
         }
 
@@ -247,25 +239,25 @@
       function update(g_Objects, g_Data, s_Data) {
         console.log("*** update ***");
         //augment G
-        U.clear();
+        UIMan.clearTemp();
         for (const id in g_Objects) {
           let o = g_Objects[id];
           let otype = o.obj_type;
           if (!(id in G.objects)) {
             G.objects[id] = o;
-            U.prepCreate(id, o, otype);
+            UIMan.prepCreate(id, o, otype);
           } else {
             for (const prop in o) {
               G.objects[id][prop] = o[prop];
             }
-            U.prepRemove(id, o, otype);
-            U.prepCreate(id, o, otype, player);
+            UIMan.prepRemove(id, otype);
+            UIMan.prepCreate(id, o, otype, player);
           }
         }
         //reduce G
         if ("removed" in s_Data) {
           for (const id in s_Data.removed) {
-            U.prepRemove(id, G[id].slice(), o.obj_type); //have added copy of o here!
+            UIMan.prepRemove(id, G[id].slice(), o.obj_type); //have added copy of o here!
             delete G[id];
           }
         }
@@ -274,12 +266,20 @@
         year = g_Data.year;
         player = g_Data.player;
 
+        //update player log
+        //do this directly without storing log
+        addLogToPlayerLog(s_Data);
+
         console.log(G);
       }
       function draw() {
         console.log("*** draw ***");
-        statusMessage();
         //represent all objects in G in player's view
+        //use UIMan.create and UIMan.remove
+        //first remove uis that have to be redrawn
+        UIMan.removeUis();
+        
+        UIMan.drawTiles(); // first create tiles
       }
       function processActions(tuples) {
         console.log("*** processActions ***");
@@ -290,13 +290,9 @@
 
     <!-- #region execution starts here! -->
     <script>
-      player = "West";
-      phase = "testing";
-      year = "2000";
-      dp = new NDataProcessor("http://localhost:5000/");
-      page = initView();
-      page.gameView();
-      dp.initGame(player, gameloop);
+      assetMan.initAssets(() => {
+        dp.initGame(player, gameloop);
+      });
     </script>
     <!-- #endregion execution starts here! -->
   </body>

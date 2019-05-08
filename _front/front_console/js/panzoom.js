@@ -6,6 +6,25 @@ var yStart;
 var panning = false;
 var couldBePanning = false;
 var totalMaxDelta;
+function initPanZoom(id) {
+  //initialize panzoom on map
+  let map = document.getElementById(id);
+  map.setAttribute("transform", `translate(0,0) scale(${MIN_SCALE})`); //MIN_SCALE definedin in panzoom.js
+  //board.setAttribute("transform", `translate(-400,-400) scale(${1})`);
+  map.addEventListener("wheel", ev => {
+    onwheel(ev, map);
+  });
+  map.addEventListener("pointerdown", ev => {
+    onmousedown(ev);
+  });
+  addEventListener("mouseup", ev => {
+    onmouseup(ev, map);
+  });
+  addEventListener("mousemove", ev => {
+    onmousemove(ev, map);
+  });
+  addEventListener("dblclick", ev => reset(ev, map));
+}
 function onwheel(ev, board) {
   //let map = ev.target;if (ev.target.id!='imgMap')return;
   //console.log(map);
@@ -71,16 +90,16 @@ function onmousedown(ev) {
 function onmousemove(ev, board) {
   //console.log(ev.target)
   let id = ev.target.id;
-  if (id != 'imgMap' && id !='mapG') {
-    couldBePanning=false;
-    panning=false;
+  if (id != "imgMap" && id != "mapG") {
+    couldBePanning = false;
+    panning = false;
     return;
   }
   //console.log(ev);
   if (couldBePanning) {
-    let x = Math.abs(ev.screenX-xStart); //offsetX;
-    let y = Math.abs(ev.screenY-yStart); //offsetY;
-    totalMaxDelta += Math.max(x,y);
+    let x = Math.abs(ev.screenX - xStart); //offsetX;
+    let y = Math.abs(ev.screenY - yStart); //offsetY;
+    totalMaxDelta += Math.max(x, y);
     if (totalMaxDelta > 10) {
       panning = true;
       couldBePanning = false;
@@ -135,5 +154,5 @@ function onmouseup(ev, board) {
     //console.log(transOld, transNew);
     board.releasePointerCapture(true);
     panning = false;
-  }else couldBePanning = false;
+  } else couldBePanning = false;
 }

@@ -1,16 +1,10 @@
-var oids = {}; //map unique id to object underlying ui and its id
-var uniqueIdCounter = 0;
 
-class NObj {
-  constructor(id, parentName, o) {
-    this.id = id; // id of NObj is same as id of game objects
-    //this.oid = o.id ==;
+class MS {
+  constructor(id, uid, parentName) {
+    this.id = id; 
     this.parent = document.getElementById(parentName);
     this.elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    this.elem.id = uniqueIdCounter + "_" + o.obj_type;
-    this.obj_type = o.obj_type;
-    uniqueIdCounter += 1;
-    oids[this.elem.id] = {id: id, o: o, ms: this};
+    this.elem.id = uid;
     this.isDrawn = false;
     this.isHighlighted = false;
     this.isSelected = false;
@@ -22,6 +16,7 @@ class NObj {
     this.bounds = {l: 0, t: 0, r: 0, b: 0};
     this.overlay = null; //this is the overlay element for highlighting and selecting
     this.data = {};
+    this.elem.addEventListener("click", this.onClick.bind(this));
   }
   addClass(clName) {
     let el = this.overlay;
@@ -57,7 +52,6 @@ class NObj {
       this.isDrawn = true;
       this.parent.appendChild(this.elem);
       this.show();
-      this.elem.addEventListener("click", this.onClick.bind(this));
     }
     return this;
   }
@@ -107,7 +101,7 @@ class NObj {
     //<image xlink:href="firefox.jpg" x="0" y="0" height="50px" width="50px"/>
     let r = document.createElementNS("http://www.w3.org/2000/svg", "image");
     r.setAttribute("href", path);
-
+    
     r.setAttribute("width", w);
     r.setAttribute("height", h);
     r.setAttribute("x", -w / 2 + x);
@@ -164,12 +158,17 @@ class NObj {
 
     let cl = el.getAttribute("class");
     if (cl && cl.includes(clName)) {
-      let newClass = cl.replace(clName, "").trim();
+      let newClass = cl.replace(clName,'').trim();
       //console.log("remove result:", newClass);
       el.setAttribute("class", newClass);
     }
     //console.log("am ende:", this.overlay, cl, this.overlay.getAttribute("class"));
     return this;
+  }
+  removeForever(){
+    this.removeFromUI();
+    this.clickHandler = null; //no need probably
+    this.elem.removeEventListener("click", this.onClick.bind(this));
   }
   removeFromChildIndex(idx) {
     //if (idx == 0){$(this.elem).empty();console.log('hallo!!!',this.elem,this);return;}
@@ -183,7 +182,6 @@ class NObj {
     if (this.isDrawn && this.parent) {
       this.parent.removeChild(this.elem);
       this.isDrawn = false;
-      this.elem.removeEventListener("click", this.onClick.bind(this));
     }
   }
   roundedRect({className = "", w = 150, h = 125, fill = "darkviolet", rounding = 10, alpha = 1, x = 0, y = 0} = {}) {
