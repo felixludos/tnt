@@ -1,6 +1,7 @@
 # tdict - dicts allowing transactions (including nested tdicts)
 from .arg_dict import adict
 from .common import condensed_str
+from .sets import xset
 from wrapt import ObjectProxy
 from itertools import chain
 
@@ -115,7 +116,7 @@ def tlist(*args, **kwargs):
 	return TransactionableObject(list(*args, **kwargs), lambda x: iter(x))
 
 def tset(*args, **kwargs):
-	return TransactionableObject(set(*args, **kwargs), lambda x: iter(x))
+	return TransactionableObject(xset(*args, **kwargs), lambda x: iter(x))
 
 
 

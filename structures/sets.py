@@ -24,6 +24,12 @@ class xset(set):
 		del self.data[item]
 	def __iter__(self):
 		return iter(self.data)
+	def __len__(self):
+		return len(self.data)
+	def __contains__(self, item):
+		return item in self.data
+	def pop(self):
+		return self.data.popitem()[0]
 		
 	def copy(self): # Copies have new IDs (can't be compared to originals)
 		return xset(iter(self))

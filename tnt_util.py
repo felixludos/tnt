@@ -115,8 +115,6 @@ def placeable_units(G, player, nationality, tile_options):
 	                if ut in G.units.reserves[nationality]
 	                and G.units.reserves[nationality][ut ] >0)
 	
-	print(reserves)
-	
 	base = adict({
 		'unsupplied': xset('Fortress'),
 		(False, False): reserves,
@@ -148,8 +146,6 @@ def placeable_units(G, player, nationality, tile_options):
 		
 		if unsupplied and has_fortress:
 			continue
-			
-		print(len(options))
 		
 		# add new options based on cond
 		if cond not in options:

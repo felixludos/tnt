@@ -41,11 +41,11 @@ def load_card_decks(G, action_path='config/cards/action_cards.yml',
 	
 	G.cards.info = cinfo
 	
-	shuffle(G.random,G.cards.investment)
-	shuffle(G.random,G.cards.action)
+	shuffle(G.random, G.cards.investment)
+	shuffle(G.random, G.cards.action)
 
 
-def shuffle(rng,stack):
+def shuffle(rng, stack):
 	
 	stack.deck.extend(stack.discard_pile)
 	rng.shuffle(stack.deck)

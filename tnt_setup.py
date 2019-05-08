@@ -186,33 +186,6 @@ def load_players_and_minors(G):
 	G.diplomacy.influence = tdict()
 	G.nations.status = status
 
-class TestRandom(random.Random):
-	
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args,**kwargs)
-		self.count = 0
-		self.log = []
-	
-	def __getattribute__(self, item):
-		print(item, super().__getattribute__('random')())
-		return super().__getattribute__(item)
-	
-	def shuffle(self, *args, **kwargs):
-		self.count += 1
-		self.log.append(self.random())
-		return super().shuffle(*args,**kwargs)
-
-	def choice(self, *args, **kwargs):
-		self.count += 1
-		x = self.random()
-		self.log.append(x)
-		
-		# if x == 0.4540783303488197:
-		# 	# raise Exception()
-		# 	print('Last reproducible random number')
-		
-		return super().choice(*args, **kwargs)
-
 def load_game_info(G, seed=None, path='config/game_info.yml'):
 	info = load(path)
 	
@@ -221,7 +194,7 @@ def load_game_info(G, seed=None, path='config/game_info.yml'):
 	game.seed = seed
 	G.random = random.Random(seed)
 	# G.random = TestRandom(seed)
-	
+
 	game.year = info.first_year - 1 # zero based
 	game.last_year = info.last_year
 	num_rounds = game.last_year - game.year
