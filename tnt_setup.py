@@ -22,10 +22,11 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 			tiles[n2].borders = tdict()
 		tiles[n2].borders[n1] = t
 	
-	G.tiles = tiles
+	G.tiles = tdict({name:idict(tile) for name, tile in tiles.items()})
 	
 	for name, tile in G.tiles.items():
-		tile.name = name
+		tile.__dict__['_id'] = name
+		# tile.name = name
 		tile.units = tset()
 		if tile.type != 'Sea' and tile.type != 'Ocean':
 			for neighbor in tile.borders.keys():
@@ -55,7 +56,7 @@ def load_players_and_minors(G):
 			designations[tile.alligence] = minor_designation
 			if tile.alligence not in territories:
 				territories[tile.alligence] = tset()
-			territories[tile.alligence].add(tile.name)
+			territories[tile.alligence].add(tile._id)
 	designations['USA'] = 'Major'
 	G.nations.designations = designations
 	G.nations.territories = territories

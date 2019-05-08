@@ -134,7 +134,6 @@ def resolve_intel(G, player, response):
 			card.visible.add(player)
 			
 			G.temp.intel[player][cid] = card
-			print(cid, card.visible)
 			G.objects.updated[cid] = card
 		
 		G.logger.write('{} may view {}\'s hand for one turn'.format(player, target))
