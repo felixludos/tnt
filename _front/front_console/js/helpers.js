@@ -889,7 +889,7 @@ function transColor(r, g, b, a) {
 }
 //#endregion
 
-//#region sending messages to flask server: uses jQuery ajax!
+//#region flask server: uses jQuery ajax!
 // function loadTest(){
 //   $.ajax({
 //     url: "/loadTest",
@@ -1002,7 +1002,6 @@ function closestParent(elem, selector) {
   }
   return null;
 }
-function error(msg){console.log('ERROR!!!!! '+msg)}
 function findParentWithId(elem) {
   ////console.log(elem);
   while (elem && !elem.id) {
@@ -1119,6 +1118,15 @@ function addTableTo(table) {
 }
 
 //#endregion
+
+//#region io helpers
+function dump(...arr){
+  for (const a of arr) {
+    console.log(a);
+  }
+}
+function error(msg){console.log('ERROR!!!!! '+msg)}
+//#endregion io helpers
 
 //#region string helpers:
 function allNumbers(s) {

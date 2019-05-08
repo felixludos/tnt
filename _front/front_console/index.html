@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>test</title>
+    <title>a94</title>
     <link rel="shortcut icon" href="#" />
     <link rel="stylesheet" type="text/css" href="/css/main.css" />
     <link rel="stylesheet" type="text/css" href="/css/layout.css" />
@@ -17,6 +17,7 @@
     <script src="/js/NPage.js"></script>
     <script src="/js/NBackendCommunicator.js"></script>
     <script src="/js/NDataProcessor.js"></script>
+    <script src="/js/NU.js"></script>
   </head>
   <body>
     <!-- #region HTML -->
@@ -26,7 +27,6 @@
           <button class="hidden" id="bLoadScenario" onclick="onClickLoadScenario()">load scenario</button>
           <button class="hidden" id="bStartScenario" onclick="onClickStartScenario()">start scenario</button>
           <button class="hidden" id="bSkipAction" onclick="onClickSkipAction()">skip action</button>
-          <button class="hidden" id="bNextPlayer" onclick="onClickNextPlayer()">next player</button>
         </div>
         <div style="float:right;margin-right:10px">
           view:
@@ -82,7 +82,8 @@
         <button id="bEditDone" onclick="onClickEditDone(this)">done</button>
       </div>
       <div id="command_area" class="grid_div">
-        <button id="bStep" style='width:90%;' onclick='onClickStep()'>step</button>
+        <button id="bNextPlayer" style="width:90%;" onclick="onClickNextPlayer()">next player</button>
+        <button id="bStep" style="width:90%;" onclick="onClickStep()">step</button>
       </div>
       <div id="chat_area" class="grid_div hidden">chat</div>
       <div id="hand_area" class="grid_div" style="height:200px">
@@ -108,20 +109,67 @@
     </div>
     <!-- #endregion HTML -->
 
-     <!-- #region globals -->
-     <script>
-     var player='West';
-     var gameData; 
-     var gameObjects;
-     var indices;
-     var serverData;
-     var actionTuples;
-     var dp = new NDataProcessor("http://localhost:5000/");
-     var page;
-     </script>
-     <!-- #endregion globals -->
- 
-    <!-- #region view -->
+    <!-- #region globals -->
+    <script>
+      var player, phase, year;
+      var page;
+      var dp;
+      var actionTuples;
+      var G = {objects: {}}; //object update
+      var U = new NU(); //handles ui update prep
+
+      var gameData;
+      var gameObjects;
+      var serverData;
+    </script>
+    <!-- #endregion globals -->
+
+    <!-- #region handlers -->
+    <script>
+      function onClickNextPlayer() {
+        hide(bNextPlayer);
+        player = gameData.playerChangedTo;
+        statusMessage();
+        processActions(actionTuples);
+      }
+      function onClickStep() {
+        console.log("tuple chosen:", actionTuples[0]);
+        dp.action(player, actionTuples[0], nextMove);
+      }
+    </script>
+    <!-- #endregion handlers -->
+
+    <!-- #region testing -->
+    <script>
+      function justOutput(actionTuples, gameObjects, gameData, serverData) {
+        console.log("nextMove", actionTuples, gameObjects, gameData);
+        console.log("serverData:", serverData);
+      }
+      function endlessMove(a_Tuples, g_Objects, g_Data, s_Data) {
+        console.log("endlessMove", a_Tuples, g_Objects, g_Data);
+        console.log("serverData:", s_Data);
+
+        if ("error" in s_Data) {
+          error("endlessMove");
+        } else if ("playerChangedTo" in g_Data) {
+          player = g_Data.playerChangedTo;
+          dp.action(player, a_Tuples[0], endlessMove);
+        } else {
+          dp.action(player, a_Tuples[0], endlessMove);
+        }
+      }
+      function nextMove(a_Tuples, g_Objects, g_Data, s_Data) {
+        console.log("nextMove", a_Tuples, g_Objects, g_Data);
+        console.log("serverData:", s_Data);
+        actionTuples = a_Tuples;
+        gameData = g_Data;
+        serverData = s_Data;
+        //updateGameObjects(g_Objects,indices);
+      }
+    </script>
+    <!-- #endregion testing -->
+
+    <!-- #region helpers -->
     <script>
       function initView() {
         //initialize panzoom on map
@@ -158,54 +206,98 @@
           document.getElementById("test_area")
         );
       }
-      function onClickStep(){
-        console.log('tuple chosen:',actionTuples[0])
-        dp.action(player,actionTuples[0],nextMove);
+      function statusMessage(msgAdd = "") {
+        let s = "Phase:" + phase + ", Year:" + year + ", Player:" + player;
+        s += " " + msgAdd;
+        document.getElementById("status_area").innerHTML = s;
       }
-      function onClickNextPlayer(){
-        player = gameData.playerChangedTo;
-      }
-
-      page = initView();
-      page.gameView();
     </script>
-    <!-- #endregion view -->
+    <!-- #endregion helpers -->
 
-    <!-- #region backend communication -->
+    <!-- #region _work -->
     <script>
-      function justOutput(actionTuples, gameObjects, indices, gameData, serverData){
-        console.log("nextMove", actionTuples, gameObjects, indices, gameData);
-        console.log("serverData:", serverData);
-      }
-      function nextMove(a_Tuples, g_Objects, i_ces, g_Data, s_Data) {
-        console.log("nextMove", a_Tuples, g_Objects, i_ces, g_Data);
-        console.log("serverData:", s_Data);
-        actionTuples = a_Tuples;
-        indices = i_ces;
-        gameData = g_Data;
-        serverData = s_Data;
-        //updateGameObjects(g_Objects,indices);
-      }
-      function endlessMove(a_Tuples, g_Objects, i_ces, g_Data, s_Data) {
-        console.log("endlessMove", a_Tuples, g_Objects, i_ces, g_Data);
-        console.log("serverData:", s_Data);
+      var execOptions = {
+        playerChange: "auto" // or 0
+        //automove: "playerChange" // | 'error' | 'skip' | 0
+      };
+      function gameloop(a_Tuples, g_Objects, g_Data, s_Data) {
+        if ("error" in s_Data) {
+          error("________________________gameloop");
+          dump("player", player, a_Tuples, g_Objects, g_Data, "serverData:", s_Data);
+          error("gameloop");
+          return;
+        }
 
-        if ('error' in s_Data){
-          error('endlessMove');
-        }else if ('playerChangedTo' in g_Data){
-          player = g_Data.playerChangedTo;
-          dp.action(player,a_Tuples[0],endlessMove);
-        }else{
-          dp.action(player,a_Tuples[0],endlessMove);
+        update(g_Objects, g_Data, s_Data);
+
+        draw();
+
+        if ("playerChangedTo" in g_Data) {
+          gameData = g_Data;
+          actionTuples = a_Tuples;
+          if (execOptions.playerChange == "auto") {
+            onClickNextPlayer();
+          } else {
+            show(bNextPlayer);
+          }
+        } else {
+          processActions(a_Tuples);
         }
       }
-      //sender generates server data and passes them to processMessage
-      dp.initGame(player,nextMove);
-    </script>
-    <!-- #endregion backend communication -->
+      function update(g_Objects, g_Data, s_Data) {
+        console.log("*** update ***");
+        //augment G
+        U.clear();
+        for (const id in g_Objects) {
+          let o = g_Objects[id];
+          let otype = o.obj_type;
+          if (!(id in G.objects)) {
+            G.objects[id] = o;
+            U.prepCreate(id, o, otype);
+          } else {
+            for (const prop in o) {
+              G.objects[id][prop] = o[prop];
+            }
+            U.prepRemove(id, o, otype);
+            U.prepCreate(id, o, otype, player);
+          }
+        }
+        //reduce G
+        if ("removed" in s_Data) {
+          for (const id in s_Data.removed) {
+            U.prepRemove(id, G[id].slice(), o.obj_type); //have added copy of o here!
+            delete G[id];
+          }
+        }
+        //update stats
+        phase = g_Data.phase;
+        year = g_Data.year;
+        player = g_Data.player;
 
-    <!-- #region  -->
-    <script></script>
-    <!-- #endregion  -->
+        console.log(G);
+      }
+      function draw() {
+        console.log("*** draw ***");
+        statusMessage();
+        //represent all objects in G in player's view
+      }
+      function processActions(tuples) {
+        console.log("*** processActions ***");
+        dp.action(player, tuples[0], gameloop);
+      }
+    </script>
+    <!-- #endregion _work -->
+
+    <!-- #region execution starts here! -->
+    <script>
+      player = "West";
+      phase = "testing";
+      year = "2000";
+      dp = new NDataProcessor("http://localhost:5000/");
+      page = initView();
+      page.gameView();
+      dp.initGame(player, gameloop);
+    </script>
+    <!-- #endregion execution starts here! -->
   </body>
 </html>

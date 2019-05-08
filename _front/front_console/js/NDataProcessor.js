@@ -5,7 +5,6 @@ class NDataProcessor {
     this.player = "";
     this.tuplesInAction = [];
     this.gameObjects = {};
-    this.indices = [];
     this.backendUrl = backendUrl;
     this.msgCounter = 0; //not used
     this.sender = new NBackendCommunicator("http://localhost:5000/");
@@ -26,22 +25,6 @@ class NDataProcessor {
     this.player = player;
     this.sender.send("init/hotseat/" + player, this.actionStep1.bind(this)); //send init message
   }
-  initStep1(data) {
-    this.serverData = JSON.parse(data); //save in this.serverdata
-    this.sender.send("info/" + this.player, this.initStep2.bind(this)); //send info message
-  }
-  initStep2(data) {
-    data = JSON.parse(data);
-    for (const key in data) {
-      this.serverData[key] = data[key]; //add data to serverdata
-    }
-    //console.log(this.serverData);
-    this.processLog();
-    this.processActions();
-    this.processGameObjects();
-    this.serverData.game.player = this.player;
-    this.callback(this.tuplesInAction, this.gameObjects, this.indices, this.serverData.game, this.serverData);
-  }
 
   //from action to action or playerChange+action
   action(player, tuple, callback) {
@@ -49,6 +32,7 @@ class NDataProcessor {
     this.callback = callback;
     this.sender.send("action/" + this.player + "/" + tuple.join("+"), this.actionStep1.bind(this));
   }
+
   actionStep1(data) {
     this.serverData = JSON.parse(data); //save in this.serverdata
     //console.log('step1',this.serverData)
@@ -71,7 +55,7 @@ class NDataProcessor {
       this.sender.send("status/" + plNext, this.actionStep3.bind(this)); //send info message
     } else {
       this.processActions(this.serverData);
-      this.callback(this.tuplesInAction, this.gameObjects, this.indices, this.serverData.game, this.serverData);
+      this.callback(this.tuplesInAction, this.gameObjects, this.serverData.game, this.serverData);
     }
   }
   actionStep3(data) {
@@ -82,7 +66,7 @@ class NDataProcessor {
     //console.log('data NEW PLAYER',data);
     //console.log('serverData',this.serverData);
     this.processActions(data); //these are the new actions!
-    this.callback(this.tuplesInAction, this.gameObjects, this.indices, this.serverData.game, this.serverData);
+    this.callback(this.tuplesInAction, this.gameObjects, this.serverData.game, this.serverData);
   }
 
   processLog() {
@@ -102,10 +86,10 @@ class NDataProcessor {
       //problem: wenn a_Tuples nur 1 option hat, dann ist es manchmal (oder immer?)
       //nur eine liste
       //muss daraus list of list machen
-      if (!empty(tuples) && !Array.isArray(tuples[0])){
-        console.log(tuples,'vorher');
+      if (!empty(tuples) && !Array.isArray(tuples[0])) {
+        console.log(tuples, "vorher");
         tuples = [tuples];
-        console.log(tuples,'nachher');
+        console.log(tuples, "nachher");
       }
 
       this.tuplesInAction = tuples;
@@ -114,29 +98,13 @@ class NDataProcessor {
   processGameObjects() {
     let data = this.serverData;
     let g = {};
-    this.indices = [];
 
     if ("created" in data) {
-      //sort so that tiles come first
       for (const id in data.created) {
-        if (data.created[id].obj_type == "tile") {
-          g[id] = data.created[id]; //overwride object of have already
-          this.indices.push(id);
-        }
-      }
-      for (const id in data.created) {
-        if (data.created[id].obj_type != "tile") {
-          let sid = id.toString();
-          g[sid] = data.created[id]; //overwride object of have already
-          this.indices.push(sid);
-        }
+        let sid = id.toString();
+        g[sid] = data.created[id]; //overwride object of have already
       }
     }
-
-    //test ob das ueberhaupt geht!
-    let justKeys = Object.keys(g);
-    //console.log('KEY SORTING:',justKeys[0]);
-    //console.log('KEY SORTING:',this.indices[0]);
 
     //updated
     if ("updated" in data) {
