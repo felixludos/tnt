@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>a96</title>
+    <link rel="shortcut icon" href="#" />
+    <link rel="stylesheet" type="text/css" href="/css/commonStyles.css" />
+    <link rel="stylesheet" type="text/css" href="/css/msStyles.css" />
+    <link rel="stylesheet" type="text/css" href="/css/autocomp.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.2/js-yaml.js"></script>
+    <script src="https://www.w3schools.com/lib/w3.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script src="/js/helpers.js"></script>
+    <script src="/js/autocomplete.js"></script>
+    <script href="/js/panzoom.js"></script>
+    <script href="/js/MS.js"></script>
+    <script href="/js/BoardFactory.js"></script>
+    <script href="/js/CardFactory.js"></script>
+  </head>
+  <body>
+    <!-- #region HTML -->
+    <div id="mainDiv" class="grid-hidefirst">
+      <div id="testDiv" class="div" style="text-align:left">
+        <!-- <form autocomplete="off" > -->
+        <div class="autocomplete" style="width:100%;">
+          <input id="myInput" type="text" name="myCountry" placeholder="Country" />
+        </div>
+        <!-- <input type="submit" />
+        </form> -->
+        <!-- <input type="text" id="inMessage" style="font-size:20px" />
+        <button id="bSendMessage" onclick="sendMessage()" style="font-size:20px">send</button> -->
+      </div>
+      <div id="statusDiv" class="div">status</div>
+      <div id="selDiv" class="div hidden">
+        <svg id="selSvg" width="60" height="760"><g id="selG"></g></svg>
+      </div>
+      <div id="rootDiv" class="div" style="background-color:rgba(86, 182, 222);">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="boardG" viewBox="0 0 3400 2200">
+            <image id="imgMap" width="3400" height="2200" href="/assets/TTmap.jpg" />
+          </g>
+        </svg>
+      </div>
+      <div id="logDiv" class="div" style="overflow-y:scroll">Messages</div>
+      <div id="buttonDiv" class="div">
+        <button id="bNextPlayer" class="hidden" onclick="onClickNextPlayer()">next player</button>
+        <button id="bSave" onclick="saveGameState()">save</button>
+        <button id="bLoad" onclick="loadGameState()">load</button>
+        <button id="bTestServer" onclick="testServer()">test server</button>
+        <!-- <button id="bPass" class="hidden" onclick="onClickPass()">pass</button> -->
+      </div>
+      <div id="cardDisplay" class="div" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="cardsG"></g>
+        </svg>
+      </div>
+      <div id="openCardDisplay" class="div" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="openCardsG"></g>
+        </svg>
+      </div>
+      <div id="chatWindow" class="div">
+        <button id="bSkipAction" onclick="skipAction()">skip</button>
+        <input type="text" id="inSkipAction" />
+      </div>
+    </div>
+    <!-- #endregion HTML -->
+
+    <script>
+      // $(document).ready(function() {
+      //   $("#bTestServer").click(getChecked);
+      // });
+      // function getChecked() {
+      //   event.preventDefault();
+      //   //var checkboxes = $(".form-check input[type=checkbox]:checked");
+      //   //toArray: convert checkboxes object to javascript array
+      //   var labels = ['hallo','das','ist'];//checkboxes.toArray().map(checkbox => checkbox.value);
+
+      //   $.ajax({
+      //     url: "/postTest",
+      //     type: "POST",
+      //     data: JSON.stringify(labels),
+      //     processData: false,
+      //     contentType: "application/json; charset=UTF-8",
+      //     success: function(response) {
+      //       console.log(response);
+      //     },
+      //     error: function(error) {
+      //       console.log(error);
+      //     }
+      //   });
+      // }
+      var messages = [
+        "initWest",
+        "initUSSR",
+        "initAxis",
+        "load01",
+        "load02",
+        "load03",
+        "save01",
+        "save02",
+        "save03",
+        "prodAgent",
+        "noWest",
+        "changeToWest",
+        "changeToUSSR",
+        "changeToAxis",
+        "postTest",
+        "loadTest"
+      ];
+
+      //load a game from file and find out whose turn it is, and changeTurn to
+      //that person
+    </script>
+
+    <!-- #region globals -->
+    <script>
+      var version = 0;
+      var backendServerUrl = "http://localhost:5000/"; //local server
+      var msgCounter = 0;
+      var serverData; // last message from server as JSON object
+      var skipActions = 0; //120; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
+
+      var player = "Axis";
+      var phase = "Not yet started";
+      var year = "1930";
+
+      var G = {};
+    </script>
+    <!-- #endregion globals -->
+
+    <!-- #region load and save -->
+    <script>
+      function getFilenameGameState(n = version) {
+        return "_gs_" + n + ".json";
+      }
+      function loadGameState() {
+        send("myload/" + getFilenameGameState());
+      }
+      function saveGameState(n = version, download = false) {
+        if (download) {
+          json_str = JSON.stringify(G);
+          saveFile("_gsFront" + n + ".json", "data:application/json", new Blob([json_str], {type: ""}));
+        }
+        send("save/" + getFilenameGameState(n));
+      }
+    </script>
+    <!-- #endregion load and save -->
+
+    <!-- #region send and receive -->
+    <script>
+      var msgChain = [
+        "myinit",
+        //"save/" + getFilenameGameState(),
+        "myload/" + getFilenameGameState(1),
+        "status/West",
+        "action/West/pass"
+      ];
+      iChain = 0;
+      //var ichain;
+      // document.getElementById("inMessage").addEventListener("keyup", function(event) {
+      //   event.preventDefault();
+      //   if (event.keyCode === 13) {
+      //     document.getElementById("bSendMessage").click();
+      //   }
+      // });
+      function sendMessage() {
+        let inp = document.getElementById("inMessage");
+        let msg = inp.value.toString();
+        inp.value = "";
+        console.log("sending", msg);
+        send(msg);
+      }
+      function chainSend(data) {
+        try {
+          serverData = JSON.parse(data);
+          console.log(serverData);
+        } catch {
+          console.log(data);
+        }
+        if (iChain < msgChain.length) {
+          send(msgChain[iChain], chainSend);
+          iChain += 1;
+        }
+      }
+      function send(url, callback = null) {
+        url = backendServerUrl + url;
+        msgCounter += 1;
+        console.log(msgCounter, "request sent: ", url);
+        w3.http(url, function() {
+          if (this.readyState == 4 && this.status == 200) {
+            if (callback) {
+              callback(this.responseText);
+            } else {
+              receive(this.responseText);
+            }
+          }
+        });
+      }
+      function receive(serverText) {
+        try {
+          serverData = JSON.parse(serverText);
+          console.log(serverData);
+        } catch {
+          console.log(serverText);
+        }
+      }
+      function afterInit(text) {
+        msgCounter += 1;
+        console.log(msgCounter, "afterInit received:", text);
+        send("save/" + getFilenameDefaultGameState(), afterSave);
+      }
+      function afterSave(text) {
+        msgCounter += 1;
+        console.log(msgCounter, "afterSave received:", text);
+        send("myload/" + getFilenameDefaultGameState(), afterLoad);
+      }
+      function afterLoad(text) {
+        msgCounter += 1;
+        console.log(msgCounter, "afterLoad received:", text);
+        send("status/Axis", afterStatus);
+        //send('action/Axis/pass');
+      }
+      function afterStatus(text) {
+        msgCounter += 1;
+        console.log(msgCounter, "afterStatus received:", text);
+        send("action/Axis/pass");
+      }
+
+      autocomplete(document.getElementById("myInput"), messages, send);
+    </script>
+    <!-- #endregion send and receive -->
+
+    <!-- #region ? -->
+    <script></script>
+    <!-- #endregion  -->
+  </body>
+</html>

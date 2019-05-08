@@ -1,0 +1,112 @@
+#test_area {
+  grid-area: test;
+}
+#status_area {
+  grid-area: status;
+}
+#menu_area {
+  grid-area: menu;
+}
+#map_area {
+  grid-area: map;
+}
+#log_area {
+  grid-area: log;
+}
+#command_area {
+  grid-area: buttons;
+}
+#hand_area {
+  grid-area: cards;
+  height: 200px;
+}
+#openCard_area {
+  grid-area: openCards;
+  height: 200px;
+}
+#chat_area {
+  grid-area: chat;
+}
+#reserve_area {
+  grid-area: sel;
+  width: 60px;
+}
+#prop_area {
+  grid-area: props;
+}
+#actionDeck_area {
+  grid-area: actionCards;
+  height: 200px;
+}
+#investmentDeck_area {
+  grid-area: investmentCards;
+  height: 200px;
+}
+
+.grid_test {
+  display: grid;
+  grid-template-columns: 60px 1190px auto;
+  grid-template-rows: auto auto 200px 500px 260px auto auto;
+  grid-template-areas:
+    "menu menu menu"
+    "status status status"
+    "test test test"
+    "sel map  log"
+    "sel map  buttons"
+    "cards cards buttons"
+    "openCards openCards buttons";
+  grid-gap: 8px;
+  background-color: red;
+  padding: 8px;
+}
+
+.grid_game {
+  display: grid;
+  grid-template-columns: 60px 1190px auto;
+  grid-template-rows: auto 500px 260px auto auto;
+  grid-template-areas:
+    "status status status"
+    "sel map  log"
+    "sel map  buttons"
+    "cards cards buttons"
+    "openCards openCards buttons";
+  grid-gap: 8px;
+  background-color: #2196f3;
+  padding: 8px;
+}
+.grid_game_no_reserve {
+  display: grid;
+  grid-template-columns: 1190px auto;
+  grid-template-rows: auto 400px 360px auto auto; 
+  grid-template-areas:
+    "status status"
+    "map  log"
+    "map  buttons"
+    "cards  buttons"
+    "openCards buttons";
+  grid-gap: 8px;
+  background-color: #2196f3;
+  padding: 8px;
+}
+.grid_edit {
+  display: grid;
+  grid-template-columns: 60px 1190px auto;
+  grid-template-rows: auto auto 200px 760px auto auto auto;
+  grid-template-areas:
+    "menu menu menu"
+    "status status status"
+    "test test test"
+    "sel map  props"
+    "cards cards cards"
+    "actionCards actionCards actionCards"
+    "investmentCards investmentCards investmentCards";
+  grid-gap: 8px;
+  background-color: #22dd5a;
+  padding: 8px;
+}
+.grid_div {
+  background-color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  padding: 0;
+  font-size: 20pt;
+}

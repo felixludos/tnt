@@ -82,8 +82,7 @@
         <button id="bEditDone" onclick="onClickEditDone(this)">done</button>
       </div>
       <div id="command_area" class="grid_div">
-        Commands
-        <button id="bStep" onclick='onClickStep()'>step</button>
+        <button id="bStep" style='width:90%;' onclick='onClickStep()'>step</button>
       </div>
       <div id="chat_area" class="grid_div hidden">chat</div>
       <div id="hand_area" class="grid_div" style="height:200px">
@@ -112,7 +111,7 @@
      <!-- #region globals -->
      <script>
      var player='West';
-     var gameData;
+     var gameData; 
      var gameObjects;
      var indices;
      var serverData;
@@ -160,7 +159,8 @@
         );
       }
       function onClickStep(){
-        dp.action(actionTuples[0],nextMove);
+        console.log('tuple chosen:',actionTuples[0])
+        dp.action(player,actionTuples[0],nextMove);
       }
       function onClickNextPlayer(){
         player = gameData.playerChangedTo;
@@ -178,16 +178,14 @@
         console.log("serverData:", serverData);
       }
       function nextMove(a_Tuples, g_Objects, i_ces, g_Data, s_Data) {
+        console.log("nextMove", a_Tuples, g_Objects, i_ces, g_Data);
+        console.log("serverData:", s_Data);
         actionTuples = a_Tuples;
-        updateGameObjects(g_Objects);
         indices = i_ces;
         gameData = g_Data;
         serverData = s_Data;
-
-        console.log("nextMove", a_Tuples, g_Objects, i_ces, g_Data);
-        console.log("serverData:", s_Data);
+        //updateGameObjects(g_Objects,indices);
       }
-
       function endlessMove(a_Tuples, g_Objects, i_ces, g_Data, s_Data) {
         console.log("endlessMove", a_Tuples, g_Objects, i_ces, g_Data);
         console.log("serverData:", s_Data);
@@ -202,7 +200,7 @@
         }
       }
       //sender generates server data and passes them to processMessage
-      dp.initGame(player,endlessMove);
+      dp.initGame(player,nextMove);
     </script>
     <!-- #endregion backend communication -->
 

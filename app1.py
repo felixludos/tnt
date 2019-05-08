@@ -118,41 +118,60 @@ def get_infoAxis():
 def get_infoUSSR():
 	return FORMAT_MSG(get_game_info('USSR'))
 
-
+statfold_con='_front/front_console'
 @app.route('/c')
 @app.route('/c/')
+def rootC():
+	return send_from_directory(statfold_con, 'index.html')
+    
+@app.route('/css/<filename>')
+def rootcssC(filename):
+    return send_from_directory(statfold_con, 'css/'+filename)
+
+@app.route('/js/<filename>')
+def rootjsC(filename):
+    return send_from_directory(statfold_con, 'js/'+filename)
+
+@app.route('/assets/<path:path>')
+def rootassetsC(path):
+    return send_from_directory(statfold_con, 'assets/'+path)
+
+
+statfold1='_front/front_0'
+@app.route('/1')
+@app.route('/1/')
 def root():
-	return send_from_directory(app.static_folder, 'index.html')
+	return send_from_directory(statfold1, 'index.html')
     
 @app.route('/css/<filename>')
 def rootcss(filename):
-    return send_from_directory(app.static_folder, 'css/'+filename)
+    return send_from_directory(statfold1, 'css/'+filename)
 
 @app.route('/js/<filename>')
 def rootjs(filename):
-    return send_from_directory(app.static_folder, 'js/'+filename)
+    return send_from_directory(statfold1, 'js/'+filename)
 
 @app.route('/assets/<path:path>')
 def rootassets(path):
-    return send_from_directory(app.static_folder, 'assets/'+path)
+    return send_from_directory(statfold1, 'assets/'+path)
 
-statfold1='_front/front_0'
+statfold0='_front/front_0'
 @app.route('/0')
 @app.route('/0/')
 def root0():
-	return send_from_directory(statfold1, 'index.html')
+	return send_from_directory(statfold0, 'index.html')
     
 @app.route('/common/css/<filename>')
 def rootcss0(filename):
-    return send_from_directory(statfold1, 'css/'+filename)
+    return send_from_directory(statfold0, 'css/'+filename)
 
 @app.route('/common/js/<filename>')
 def rootjs0(filename):
-    return send_from_directory(statfold1, 'js/'+filename)
+    return send_from_directory(statfold0, 'js/'+filename)
 
 @app.route('/common/assets/<path:path>')
 def rootassets0(path):
-    return send_from_directory(statfold1, 'assets/'+path)
+    return send_from_directory(statfold0, 'assets/'+path)
 
 
 

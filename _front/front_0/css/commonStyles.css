@@ -1,0 +1,110 @@
+body,
+html {
+  padding: 0px;
+  margin: 0px;
+}
+body {
+  min-width: 1366px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.hidden {
+  display: none;
+}
+.svg {
+  display: svg;
+  min-width: 0px;
+  width: auto;
+}
+.cursorPointer {
+  cursor: pointer;
+}
+#statusDiv {
+  grid-area: status;
+}
+#rootDiv {
+  grid-area: map;
+}
+#logDiv {
+  grid-area: log;
+}
+#buttonDiv {
+  grid-area: buttons;
+}
+#cardDisplay {
+  grid-area: cards;
+  height: 200px;
+}
+#openCardDisplay {
+  grid-area: openCards;
+  height: 200px;
+}
+#chatWindow {
+  grid-area: chat;
+}
+#selDiv {
+  grid-area: sel;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 60px 1190px auto;
+  grid-template-rows: auto 400px 360px auto auto;
+  grid-template-areas:
+    "status status status"
+    "sel map  log"
+    "sel map  buttons"
+    "cards cards buttons"
+    "openCards openCards chat";
+  grid-gap: 8px;
+  background-color: #2196f3;
+  padding: 8px;
+}
+.grid-hidefirst {
+  display: grid;
+  grid-template-columns: 1190px auto;
+  grid-template-rows: auto 400px 360px auto auto;
+  grid-template-areas:
+    "status status"
+    "map  log"
+    "map  buttons"
+    "cards  buttons"
+    "openCards chat";
+  grid-gap: 8px;
+  background-color: #2196f3;
+  padding: 8px;
+}
+
+.div {
+  background-color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  padding: 0;
+  font-size: 20px;
+}
+
+button {
+  display: inline-block;
+  margin: 2px 0px 0px 0px;
+  padding: 10px 20px;
+  font-size: 20px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #fff;
+  background-color: #2196f3;
+  border: none;
+  border-radius: 12px;
+  /* box-shadow: 1px 3px #999; */
+}
+
+button:hover {
+  background-color: rgb(1, 48, 87);
+}
+
+button:active {
+  background-color: rgb(233, 138, 134);
+  /* box-shadow: 1px 2px #666;
+  transform: translate(1px,4px); */
+}
+

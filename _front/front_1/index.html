@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>test</title>
+    <link rel="shortcut icon" href="#" />
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="/css/layout.css" />
+    <link rel="stylesheet" type="text/css" href="/css/msStyles.css" />
+    <link rel="stylesheet" type="text/css" href="/css/autocomp.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.2/js-yaml.js"></script>
+    <script src="https://www.w3schools.com/lib/w3.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script src="/js/autocomplete.js"></script>
+    <script src="/js/helpers.js"></script>
+    <script src="/js/panzoom.js"></script>
+    <script src="/js/MS.js"></script>
+    <script src="/js/NPage.js"></script>
+    <script src="/js/NGrouping.js"></script>
+    <script src="/js/NObj.js"></script>
+    <!-- <script src="/js/BoardFactory.js"></script>
+    <script src="/js/CardFactory.js"></script> -->
+
+    <script src="/js/scenario0.js"></script>
+    <script src="/js/scenario1.js"></script>
+    <script src="/js/scenario2.js"></script>
+  </head>
+  <body>
+    <!-- #region HTML -->
+    <div id="mainDiv" class="grid_game">
+      <div id="menu_area" class="grid_div" style="text-align:left;">
+        <div style="float:left;margin-left:10px">
+          <button id="bLoadScenario" onclick="onClickLoadScenario()">load scenario</button>
+          <button id="bStartScenario" onclick="onClickStartScenario()">start scenario</button>
+          <button id="bSkipAction" onclick="onClickSkipAction()" class="hidden">skip action</button>
+          <button id="bNextPlayer" class="hidden" onclick="onClickNextPlayer()">next player</button>
+        </div>
+        <div style="float:right;margin-right:10px">
+          view:
+          <button id="bViewGame" onclick="page.gameView()">game</button>
+          <button id="bViewNoReserve" onclick="page.gameView(false)">no reserve</button>
+          <button id="bViewEdit" onclick="page.editView()">edit</button>
+          <button id="bViewTest" onclick="page.testView()">test</button>
+        </div>
+      </div>
+      <div id="status_area" class="grid_div" onclick="page.testView()">status</div>
+      <div id="test_area" class="grid_div">
+        <div class="flexdiv">
+          <div class="autocomplete">
+            <input id="myInput" type="text" name="myCountry" style="font-size:30px;" placeholder="command" />
+          </div>
+          <div class="autocomplete">
+            <input id="inparam" type="text" name="inparam" style="font-size:30px;" placeholder="param" />
+          </div>
+          <button style="margin:10px" id="bSendMessage" onclick="onClickSendMessage()">send message</button>
+          <button style="margin:10px" id="bClear" onclick="onClickClearInputs()">clear inputs</button>
+        </div>
+        <div style="margin:10px;text-align:left;">
+          <!-- <input type="text" id="inAction" style="width:90%;font-size:30px;" placeholder="enter action"> -->
+          <button id="bAddUnit" onclick="onClickAddUnit()">add unit</button>
+        </div>
+      </div>
+      <div id="reserve_area" class="grid_div">
+        <svg id="selSvg" width="60" height="760"><g id="reserveG"></g></svg>
+      </div>
+      <div id="map_area" class="grid_div" style="background-color:rgba(86, 182, 222);">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="mapG" viewBox="0 0 3400 2200">
+            <image id="imgMap" width="3400" height="2200" href="/assets/TTmap.jpg" />
+          </g>
+        </svg>
+      </div>
+      <div id="log_area" class="grid_div" style="overflow-y:scroll">
+        Messages
+        <div id="tempDisplay" class="hidden" style="width:100%;height:100%">
+          <svg width="100%" height="100%" style="box-sizing:border-box;">
+            <g id="tempG"></g>
+          </svg>
+        </div>
+      </div>
+      <div id="prop_area" class="grid_div hidden">
+        actions
+        <button id="bEditPlaceUnits" onclick="onClickEditPlaceUnits(this)">place unit</button>
+        <button id="bEditDrawCards" onclick="onClickEditDrawCards(this)">draw card</button>
+        <button id="bEditDeleteUnits" onclick="onClickEditDeleteUnits(this)">delete unit</button>
+        <button id="bEditDeleteCards" onclick="onClickEditDeleteCards(this)">delete card</button>
+        <button id="bEditDeleteAll" onclick="onClickEditDeleteAll(this)">delete all</button>
+        <button id="bEditNextPlayer" onclick="onClickEditNextPlayer(this)">next player</button>
+        <button id="bEditDone" onclick="onClickEditDone(this)">done</button>
+      </div>
+      <div id="command_area" class="grid_div">
+        Commands
+      </div>
+      <div id="chat_area" class="grid_div hidden">chat</div>
+      <div id="hand_area" class="grid_div" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="handG"></g>
+        </svg>
+      </div>
+      <div id="openCard_area" class="grid_div" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="openCardG"></g>
+        </svg>
+      </div>
+      <div id="actionDeck_area" class="grid_div hidden" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="actionDeckG"></g>
+        </svg>
+      </div>
+      <div id="investmentDeck_area" class="grid_div hidden" style="height:200px">
+        <svg width="100%" height="100%" style="box-sizing:border-box;">
+          <g id="investmentDeckG"></g>
+        </svg>
+      </div>
+    </div>
+    <!-- #endregion HTML -->
+
+    <!-- #region comments to design -->
+    <script>
+      //oFront: objects made by front
+      // permanent for duration of session:
+      //   unit_types, unit_nationalities, influence_spots, chips, commands, decks
+      // destroy on reload/and re-create lazily:
+      //   unitSum, peace counter, influences
+      //oServer: objects made by server, new when load/refresh, incrementally renewed im normalfall
+      //   units: change multiple things including id
+      //   influences: -"- change id as well
+      //   tiles: dont ever change at all
+      //   cards: only change owner/parentG but not id
+    </script>
+    <!-- #endregion comments to design -->
+
+    <!-- #region globals -->
+    <script>
+      var backendServerUrl = "http://localhost:5000/"; //local server
+      var msgCounter = 0;
+      var skipActions = 46; //22; //120; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
+      var serverData; // last message from server as JSON object
+      var postData = scenario0; //default data to be posted when making new scenrio
+      var currentScenario;
+      var currentEditAction;
+      var maxIdNumber = 0;
+
+      var G = {hasVisuals: false, oServer: {}, oFront: {}, groupings: {}}; //complete game state
+      var player = "Axis";
+      var nextPlayer = player;
+      var year = "1935";
+      var phase = "Setup";
+
+      var messages = [
+        "changeToWest",
+        "changeToUSSR",
+        "changeToAxis",
+        "initWest",
+        "initUSSR",
+        "initAxis",
+        "load01",
+        "load02",
+        "load03",
+        "loadTest",
+        "myload",
+        "noWest",
+        "postTest", // all post messages should start with 'post'
+        "prodAgent",
+        "save01",
+        "save02",
+        "save03",
+        "statusWest"
+      ];
+      var filenames = [
+        "gov_complete.json",
+        "init_complete.json",
+        "prod_complete.json",
+        "scAgent.json",
+        "setup_complete.json",
+        "test.json",
+        "_gs01.json"
+      ];
+      var page;
+
+      var factionSetup;
+      var tilePositions, nationPositions, trackPositions;
+      var factionNames, tileNames, nationalityNames, unitTypeNames, nationNames, unitCountInfo;
+      const SZ = {
+        //various sizes used
+        region: 180,
+        pAxis: {x: 0, y: 20}, // this is where on the region placement of cadre is started
+        pWest: {x: -50, y: -30},
+        pUSSR: {x: +50, y: -30},
+        cadrePrototype: 60,
+        sumCadre: 60,
+        cadreDetail: 44,
+        cardWidth: 100,
+        cardHeight: 150,
+        commandWidth: 80,
+        commandHeight: 25,
+        gap: 10,
+        chip: 40,
+        influence: 100
+      };
+      const troopColors = {
+        Germany: [174, 174, 176],
+        Britain: [86, 182, 222],
+        France: [121, 200, 205],
+        USSR: [233, 138, 134],
+        USA: [145, 186, 130],
+        Italy: [174, 172, 131],
+        Neutral: [255, 255, 102],
+        Axis: [174, 174, 176],
+        West: [86, 182, 222]
+      };
+
+      var tuplesInAction = [];
+      var tuplesPossible = [];
+      var tuplePartSelected = [];
+      var msInAction = [];
+      var msPossible = [];
+      var msSelected = [];
+      var uisCommand = {};
+      var outputActions = false;
+      var outputData = false;
+    </script>
+    <!-- #endregion globals -->
+
+    <!-- #region handlers using globals  -->
+    <script>
+      function onClickAddUnit() {
+        addUnit("Britain", "Budapest", "Fleet", 3);
+      }
+      function onClickClearInputs() {
+        document.getElementById("myInput").value = "";
+        document.getElementById("inparam").value = "";
+      }
+      function onClickEditPlaceUnits(b) {
+        currentEditAction = stringAfter(b.id, "Edit").toLowerCase();
+        //console.log("currentEditAction clicked:", currentEditAction);
+        computeTuplesInAction(currentEditAction);
+        startSelectionProcess();
+      }
+      function onClickEditDrawCards() {}
+      function onClickEditDone() {
+        //
+      }
+      function onClickLoadScenario() {
+        loadScenario();
+      }
+      function onClickNextPlayer() {
+        hide(bNextPlayer);
+        // cardFactory.clearCards();
+
+        if (nextPlayer === undefined) {
+          send("action/" + G.faction + "/pass");
+        } else {
+          player = nextPlayer;
+          send("status/" + player);
+        }
+      }
+      function onClickSendMessage() {
+        let inp = document.getElementById("myInput");
+        let msg = inp.value.toString();
+        inp.value = "";
+        let inparam = document.getElementById("inparam");
+        let msgParam = inparam.value.toString();
+        inparam.value = "";
+        //postData: from objects.table, remove all visuals and grouping and hiddenVisual
+
+        // make a copy of currentScenario but without
+
+        sendOrPost(msg, msgParam, postData);
+      }
+      function onClickStartScenario() {
+        page.editView();
+        newScenario(scenario0);
+
+        //before that, have to make scenario!!!
+        //which means: from scenario0 (global var) make modifications
+        //then call post('postTest',data,callback)
+        //this last step will save data to server: saves/test.json
+        //TODO: to be parameterized later!
+        //1. select which phase to start from
+        //2. the goal of a scenario is to determine which game objects
+        //should exist
+        //each player should get specific:
+        // - units
+        // - cards
+        // - influence
+        // during scenario setup, should have
+        // - selectables open: all 6 nationalities, all 7 unit types
+        // - cards open: all action cards, all investmend cards
+        // (alternatively, could just have list of cards by title)
+        // - all tiles should be selectable for placement of units
+        // - all nation spots (influence) should be selectable
+        // example:
+        // select player for which to choose objects
+        // objects on the board or in hand can be selected and deleted!
+        // p0: only offer this first possibility!
+        //
+        // first function to set up objects from object table
+      }
+      function onClickSkipAction() {
+        let tuple = tuplesInAction[0];
+        let url = "action/" + player + "/" + tuple.join("+");
+        closeSelection();
+        send(url);
+      }
+    </script>
+    <!-- #endregion handlers using globals  -->
+
+    <script>
+      function processServer() {
+        //console.log("*** process server ***");
+        //console.log(serverData);
+        if (processInfo()) {
+          if (nextPlayer != player) {
+            console.log("change player");
+            if (skipActions > 0) {
+              onClickNextPlayer();
+            } else {
+              show(bNextPlayer);
+            }
+          } else {
+            send("status" + player);
+          }
+
+          return;
+        }
+
+        processCreated();
+        processRemoved();
+        processUpdated();
+        processLog();
+
+        if (processActions()) {
+        } else if ("waiting_for" in serverData) {
+          console.log("waiting", serverData);
+          // hideCommands();
+          // hideSelectionPanel();
+          nextPlayer = serverData.waiting_for.set[0];
+          send("info/" + player);
+        }
+      }
+      function processInfo() {
+        //console.log("game" in serverData);
+        if (!("game" in serverData)) return false;
+        //console.log("*** process info ***");
+
+        //player has been set!
+        phase = serverData.game.phase;
+        year = serverData.game.year;
+        statusMessage();
+        //update tracks!
+        let players = Object.keys(serverData.players);
+        //console.log("WAS IST DAS");
+        //factionNames = players;
+        //console.log(factionNames, players);
+        for (const faction of players) {
+          //console.log("updating info for", faction);
+          setPopulation(faction, serverData.players[faction].tracks.POP);
+          setResource(faction, serverData.players[faction].tracks.RES);
+          setIndustry(faction, serverData.players[faction].tracks.IND);
+        }
+
+        return true;
+      }
+      function processCreated() {
+        if (!("created" in serverData)) {
+          return;
+        }
+        //console.log("*** process created ***");
+        //dasslbe wie bei newScenario
+        //sort objects tile first!
+
+        //first create all the tiles!
+        for (const id in serverData.created) {
+          if (id in G.oServer) continue;
+          let o = serverData.created[id];
+          if (isTile(o)) {
+            G.oServer[id] = o;
+            let ms = createVisual(id, o);
+          }
+        }
+        for (const id in serverData.created) {
+          if (id in G.oServer) continue;
+          let o = serverData.created[id];
+          if (!isTile(o)) {
+            G.oServer[id] = o;
+            //console.log(id)
+            let ms = createVisual(id, o);
+            //console.log(o,ms);
+          }
+        }
+        G.hasVisuals = true;
+      }
+      function processRemoved() {
+        if (!("removed" in serverData)) {
+          return;
+        }
+        //console.log("*** process removed ***");
+      }
+      function processUpdated() {
+        if (!("updated" in serverData)) {
+          return;
+        }
+        //console.log("*** process updated ***");
+        for (const id in serverData.updated) {
+          //console.log('updating',id)
+          let oNew = serverData.created[id];
+          if (!(id in G.oServer)) {
+            error("updating non-existent objects" + id);
+          }
+          let oOld = G.oServer[id];
+          for (const prop in oNew) {
+            let val = oNew[prop];
+            if (!(prop in oOld) || oOld[prop] != val) {
+              //console.log('property',prop,'of',id,'has changed from',oOld[prop],'to',val);
+              //console.log('what now?!?!?!?!?')
+            }
+          }
+        }
+        //console.log('finished updating')
+      }
+      function processLog() {
+        if (!("log" in serverData)) {
+          return;
+        }
+        //console.log("*** process log ***");
+        let msg = JSON.stringify(serverData.log);
+        msg = msg.replace(/(?:\r\n|\r|\n)/g, "<br>");
+        msg = msg.replace("\\n", "<br>");
+        msg = msg.replace(/\\n/g, "<br>");
+        msg = msg.replace(/"/g, "");
+        if (msg.trim().length > 0) {
+          let d = document.getElementById("log_area");
+          let para = document.createElement("p");
+          para.innerHTML = msg;
+          d.appendChild(para);
+          para.scrollIntoView();
+          ensureLog();
+          G.log.push(msg);
+        }
+      }
+      function processActions() {
+        if (!("actions" in serverData)) {
+          return false;
+        }
+        //console.log("*** process actions ***");
+        computeTuplesInAction();
+        console.log(tuplesInAction[0]);
+
+
+        if (skipActions > 0 && !tuplesInAction[0].includes('pass')) {
+          skipActions -= 1;
+          onClickSkipAction();
+        } else {
+          startSelectionProcess();
+        }
+        return true;
+      }
+    </script>
+    <!-- #region *** SELECTION selection *** -->
+    <script>
+      function computeTuplesInAction(editAction) {
+        if (isEditView()) {
+          tuplesInAction = [];
+          switch (editAction) {
+            case "placeunits":
+              //include selectable ids:
+              //triples of the form: nationality/tile/unit_type
+              //find nationalities for this player
+              let nationalities = getNationalitiesForFaction(player);
+              let tiles = tileNames; //just take all existing tiles
+              let unit_types = unitTypeNames;
+              //build cartesian of these three sets
+              let allCreateUnitActions = carteset(nationalities, carteset(tiles, unit_types));
+              //console.log(allCreateUnitActions);
+              //for moment, just allow any unit on any tile
+              tuplesInAction = allCreateUnitActions;
+              break;
+          }
+        } else {
+          tuplesInAction = expand(serverData.actions);
+          //console.log(tuplesInAction)
+        }
+      }
+      function startSelectionProcess() {
+        tuplesPossible = tuplesInAction.slice();
+        tuplePartSelected = [];
+
+        //clear everything
+        msInAction = [];
+        msPossible = [];
+        msSelected = [];
+        //hideCommands();//old code
+
+        highlightObjects();
+        //console.log('after highlight')
+        if (isSelectableInAction()) {
+          //console.log('redo layout')
+          G.groupings.reserve.sortChildren();
+        }
+
+        if (!isEditView()) {
+          show(bSkipAction);
+        }
+      }
+      function isSelectableInAction() {
+        for (const ms of msInAction) {
+          if (isSelectable(ms.id)) {
+            //console.log(ms.id,isSelectable(ms.id),ms)
+            return true;
+          }
+        }
+        return false;
+      }
+      function highlightObjects() {
+        if (empty(msInAction)) {
+          computeUisInAction();
+          //console.log(msInAction)
+        }
+        //console.log('computeUisPossible')
+        computeUisPossible();
+        //console.log('msPossible:',msPossible)
+        msSelected = msPossible.filter(x => tuplePartSelected.includes(x.id));
+        //hideCommands(); old code
+        for (const ui of msInAction) {
+          if (msSelected.includes(ui)) {
+            //console.log("should be selected:", ui.id);
+            ui.select();
+          } else if (msPossible.includes(ui)) {
+            //console.log("should highlight", ui.id);
+            makeSelectable(ui, onSelected);
+          } else {
+            //console.log("should hide or unhighlight", ui.id);
+            makeUnselectable(ui);
+          }
+        }
+        show(bSkipAction);
+      }
+      function getCommandUI(id) {
+        //console.log('getCOmmandUI',id)
+        ensureCommands();
+        if (!(id in G.oCommands)) {
+          createCommand(id);
+        }
+        return G.oCommands[id].visual;
+      }
+      function getSelectableUI(id) {
+        //console.log('getSelectableUI',id)
+        ensureSelectables();
+        if (!(id in G.oSelectables)) {
+          createSelectable(id);
+        }
+        return G.oSelectables[id].visual;
+      }
+      function computeUisInAction() {
+        //console.log("computeUisInAction");
+        if (isEditView()) {
+          let idsInAction = extractUniqueStrings(tuplesInAction);
+          //console.log("ids:", idsInAction);
+          if (currentEditAction == "placeunits") {
+            for (const id of idsInAction) {
+              if (isTileName(id)) {
+                msInAction.push(G.oServer[id].visual);
+              } else {
+                let ui = getSelectableUI(id);
+                //console.log("selectable ui:", ui);
+                msInAction.push(ui);
+              }
+            }
+          }
+        } else if (isSetupOrProductionPhase()) {
+          //console.log("isSetupOrProductionPhase");
+
+          let idsInAction = extractUniqueStrings(tuplesInAction);
+          //console.log("ids:", idsInAction);
+          //console.log(G.oServer)
+          for (const id of idsInAction) {
+            //console.log('.........'+id)
+            // in setup phase place units,pass,
+            // in production phse place units,pass,upgrade units,draw cards
+            if (isSelectable(id)) {
+              let ui = getSelectableUI(id);
+              //console.log("selectable ui:", ui);
+              msInAction.push(ui);
+            } else if (id in G.oServer) {
+              //console.log(G.oServer[id],id,'.............')
+              msInAction.push(G.oServer[id].visual);
+            } else {
+              //console.log('command',id)
+              let ui = getCommandUI(id);
+              msInAction.push(ui);
+            }
+          }
+          //console.log('danach_________________')
+          //setup and production: got it
+          //msInAction are simply all uis[id] for ids in tuplesInAction
+          // msInAction = extractUniqueStrings(tuplesInAction).map(x => getUI(x));
+        } else if (isGovPhase()) {
+          for (const tuple of tuplesInAction) {
+            //if this tuples contains an action cards, need to enter card and
+            //produce command ui for each nation: addIfCommand to G.commands
+            //OK: command uis should not be treated as normal uis!
+            //OK: therefore, need a getCommandUI(id)
+            //because there could be overlapping ids!!!!!!
+            //TODO: should I still check for overlapping ids!!!!!?????
+            //console.log("looping through tuplesInAction", tuple);
+            if (tuple.length == 1) {
+              let id = tuple[0];
+              if (isCard(id)) {
+                addIf(uis[id], msInAction);
+              } else {
+                addIf(getCommandUI(tuple[0]), msInAction);
+              }
+            } else if (isDiplomacyTuple(tuple)) {
+              //[actionCard,nation]
+              let actionCard = getActionCardFromTuple(tuple);
+              let nation = getNationFromTuple(tuple);
+              addIf(uis[actionCard], msInAction);
+              addIf(getCommandUI(nation), msInAction);
+            } else if (isIntelTuple(tuple)) {
+              //[investcard,faction,tile]
+              let investCard = getInvestmentCardsFromTuple(tuple)[0];
+              let faction = getFactionFromTuple(tuple);
+              addIf(uis[investCard], msInAction);
+              //console.log("intel", uis[investCard].getTag("json"));
+              if (tuple.length > 2) {
+                let area = getTileOrMinorFromTuple(tuple);
+                addIf(getCommandUI(faction), msInAction);
+                addIf(getCommandUI(area), msInAction);
+              } else {
+                addIf(getCommandUI(faction), msInAction);
+              }
+            } else if (isTechnologyTuple(tuple)) {
+              let invCards = getInvestmentCardsFromTuple(tuple);
+              invCards.map(x => addIf(uis[x], msInAction));
+              let tech = getTechnologyFromTuple(tuple);
+              //console.log('technology:',tech)
+              addIf(getCommandUI(tech), msInAction);
+              addIf(getCommandUI("open"), msInAction);
+              addIf(getCommandUI("secret"), msInAction);
+            }
+          }
+        }
+      }
+      function closeSelection() {
+        //console.log("closeSelection");
+        hide(bSkipAction);
+        msInAction.map(x => makeUnselectable(x));
+        msPossible = [];
+        msInAction = [];
+        msSelected = [];
+        tuplePartSelected = [];
+        tuplesInAction = [];
+        tuplesPossible = [];
+      }
+      function computeUisPossible() {
+        if (isEditView()) {
+          idsPossible = extractUniqueStrings(tuplesPossible);
+          msPossible = msInAction.filter(x => idsPossible.includes(x.id));
+        } else if (isSetupOrProductionPhase()) {
+          //setup and production: got it
+          idsPossible = extractUniqueStrings(tuplesPossible);
+          msPossible = msInAction.filter(x => idsPossible.includes(x.id));
+        } else if (isGovPhase()) {
+          if (empty(tuplePartSelected)) {
+            // if nothing is selected only highlight cards
+            msPossible = [];
+            for (const ui of msInAction) {
+              if (isCard(ui.id)) {
+                //console.log(ui.id, " is a CARD!");
+                msPossible.push(ui);
+              } else if (isSingletonCommand(ui.id)) {
+                msPossible.push(ui);
+              }
+            }
+            //console.log("starting msPossible:", msPossible);
+            //msPossible = msInAction.filter(x => isCard(x.id));//.map(x => getUI(x));
+          } else {
+            let ids = extractUniqueStrings(tuplesPossible);
+            msPossible = msInAction.filter(x => ids.includes(x.id));
+            //console.log("msPossible:", msPossible.map(x => x.id).toString());
+          }
+        }
+      }
+      function onSelected(ev) {
+        let uiId = evToId(ev);
+        let info = oids[uiId];
+        let id = info.id;
+        //console.log("onSelected:", ev, info);
+
+        try {
+          //console.log(msPossible);
+          //console.log(msPossible.map(x=>x.id));
+          //console.log(uiId,id,info.id);
+          let ms = firstCond(msPossible, x => x.id == id);
+
+          //console.log("selected:", id, ms);
+
+          // if it is in msSelected, need to unselect it and go from there
+          if (msSelected.includes(ms)) {
+            // same as tuplePartSelected.includes(id)) {
+            //remove this id from tuplePartSelected
+            tuplePartSelected = without(tuplePartSelected, info.id);
+            ms.unselect();
+            msSelected = without(msSelected, ms);
+            //filter tuplesInAction to all containing tuplePartSelect
+            tuplesPossible = getListsContainingAll(tuplesInAction, tuplePartSelected);
+          } else {
+            // add it to tuplePartSelected
+            tuplePartSelected.push(info.id);
+            ms.select();
+            msSelected.push(ms);
+            //filter possible tuples to just the ones containing this id
+            tuplesPossible = tuplesPossible.filter(x => x.includes(info.id));
+            //console.log('possible tuples after new selection:',tuplesPossible)
+          }
+
+          //console.log(tuplesPossible);
+
+          //check if only one tuple matches, in which case finished!
+          if (tuplesPossible.length == 1) {
+            let tuple = tuplesPossible[0];
+            //console.log("onSelected: found tuple", tuple);
+
+            //test
+            //if (tuple.includes("factory_upgrade") || tuple.includes("pass")) {
+            //outputActions = true;
+            //outputData = true;
+            //}
+
+            closeSelection();
+
+            if (isEditView()) {
+              let cv = prompt("enter cv for new unit:");
+              addUnit(tuple[0], tuple[1], tuple[2], Number(cv));
+            } else {
+              let url = "action/" + player + "/" + tuple.join("+");
+              send(url);
+            }
+          } else {
+            // check if there is an id that is same in all tuplesPossible and not in
+            // tuplePartSelected >> that should also go in tuplePartSelected!!!
+
+            // now that tuples are updated, highlight again
+            highlightObjects();
+          }
+        } catch (err) {
+          //console.log(err);
+          //console.log(id);
+          throw "onSelect ERROR!!!!!";
+        }
+      }
+
+      function isCommand(ui) {
+        //console.log('isCommand',ui)
+        if (ui.id in uisCommand != (ui.getTag("isCommand") != null)) {
+          //console.log("isCommand DOES NOT work!!!!");
+        }
+        return ui.id in uisCommand;
+      }
+    </script>
+    <!-- #endregion selection -->
+
+    <!-- #region function  -->
+    <script>
+      function addNationPositions(nationsDict) {
+        nationPositions = nationsDict;
+        let res = [];
+        for (const nat in nationsDict) {
+          let pos = getNationPos(nat);
+          //let id = nat.replace(/\s/g,'_');
+          // if (nat.includes(' ')||nat.includes('_')){
+          //   //console.log('nation id',nat)
+          //   //console.log('nationNames',nationNames);
+          // }
+          let ms = new NObj(nat, "mapG", {obj_type: "nationUI"})
+            .circle({className: "overlay nation", sz: SZ.influence})
+            .setPos(pos.x, pos.y)
+            .draw();
+          ms.tag("type", "nation");
+          res.push(ms);
+        }
+        return res;
+      }
+      function addUnit(nationality, tile, type, cv) {
+        //console.log("adding unit", nationality, tile, type, cv);
+        //nur im edit mode
+        // need to generate a new unit ui that does not exist in G.oServer
+        // best is to determine maxNumberId of scenario when starting scenario
+        let o = {obj_type: "unit", nationality: nationality, tile: tile, type: type, cv: cv};
+        let owner = getUnitOwner(nationality);
+        o.visible = {set: [owner]};
+
+        //console.log('!!!!!!!!!!!!owner:',owner, o);
+        //check if there is a reserve of that type available!
+
+        let reserves = currentScenario.gamestate.units.reserves;
+        //console.log("reserves:", reserves);
+        if (!(nationality in reserves)) {
+          //console.log(nationality, "does NOT have reserves!!!!!");
+        } else if (!(type in reserves[nationality])) {
+          //console.log(nationality, "does NOT have ", type);
+        } else if (reserves[nationality][type] < 1) {
+          //console.log("reserve of", nationality, type, "exhausted!!!");
+        } else {
+          reserves[nationality][type] -= 1;
+        }
+
+        let id = (maxIdNumber + 1).toString();
+        maxIdNumber += 1;
+        //console.log('id',id)
+
+        let oCopy = JSON.parse(JSON.stringify(o));
+        currentScenario.gamestate.objects.table[id] = oCopy;
+        //console.log('dann',currentScenario.gamestate.objects.table[id],o,owner)
+        currentScenario.gamestate.players[owner].units[id] = oCopy;
+        //console.log('dann',currentScenario.gamestate.players[owner].units[id])
+        G.oServer[id] = o;
+
+        //console.log('vor createVisual')
+        createVisual(id, o);
+      }
+      function calculateTrackPositions() {
+        trackPositions = {};
+        let arr = [];
+        let x = 580;
+        let y = 2120;
+        for (let i = 0; i < 25; i++) {
+          arr.push({x: x, y: y});
+          x += 66;
+        }
+        trackPositions.Axis = arr;
+
+        arr = [];
+        x = 1310;
+        y = 76;
+        for (let i = 0; i < 20; i++) {
+          arr.push({x: x, y: y});
+          x -= 66;
+        }
+        for (let i = 20; i < 25; i++) {
+          arr.push({x: x, y: y});
+          y += 66;
+        }
+        trackPositions.West = arr;
+
+        arr = [];
+        x = 2210;
+        y = 76;
+        for (let i = 0; i < 18; i++) {
+          arr.push({x: x, y: y});
+          x += 66;
+        }
+        for (let i = 18; i < 25; i++) {
+          arr.push({x: x, y: y});
+          y += 66;
+        }
+        trackPositions.USSR = arr;
+      }
+      function calcUnitStartPos(tile, faction) {
+        let pFaction = SZ["p" + faction];
+        let pTile = getTilePos(tile);
+        return {x: pTile.x + pFaction.x, y: pTile.y + pFaction.y};
+      }
+      function canCreateUnits() {
+        let ph = phase.toLowerCase();
+        return startsWith(ph, "set") || startWith(ph, "prod");
+      }
+      function chainSend(data, msgChain, callback) {
+        try {
+          serverData = JSON.parse(data);
+          //console.log(serverData);
+        } catch {
+          //console.log(data);
+        }
+        if (msgChain.length > 0) {
+          send(msgChain[0], d => chainSend(d, msgChain.slice(1), callback));
+        } else {
+          callback(data);
+          //console.log('done chainSend')
+        }
+      }
+      function changeCardOwner(o, newOwner) {
+        //new owner can be a faction, a deck, popup, or null
+        // faction:
+        //if this card is in a group, remove it from there
+        //if
+      }
+      function clearG() {
+        if (!G.hasVisuals) {
+          return;
+        }
+        for (const id in G.oServer) {
+          const o = G.oServer[id];
+          o.visual.removeFromUI();
+        }
+        G.oServer = {};
+        let ids = [];
+        //TODO: what else do I have to remove from oFront?!?
+        for (const id in G.oFront) {
+          //remove units,
+          const o = G.oFront[id];
+          if (isUnit(o)) {
+            o.visual.removeFromUI();
+            ids.push(id);
+          }
+        }
+        for (const id of ids) {
+          delete G.oFront[id];
+        }
+        for (const id in G.groupings) {
+          G.groupings[id].clear();
+        }
+        G.hasVisuals = false;
+      }
+      function createChip(id, {text = "", filename = "", prefix = "", faction = "", color = "beige"} = {}) {
+        //id is also the filename
+        let sz = SZ.chip;
+        let pts = trackPositions[faction];
+        let pos = pts[0];
+        let ms = new NObj(id, "mapG", {obj_type: "chip"})
+          .roundedRect({w: sz, h: sz, fill: color})
+          .text({txt: text, fill: "white", weight: "bold"})
+          .setPos(pos.x + sz / 2, pos.y + sz / 2)
+          .draw();
+        return ms;
+      }
+      function createDecks() {
+        let wDeckArea = 251;
+        let hDeckArea = 354;
+        let pos = {x: 166, y: 998};
+        let centerActionDeck = {x: 166, y: 998}; // center of action deck
+        let centerInvestmentDeck = {x: 3233, y: 966}; // center of investment deck
+        let rounding = 6;
+        let actionDeckColor = "orange";
+        let idAction = "action_card";
+        let idInvestment = "investment_card";
+        let actionDeck = new NObj(idAction, "mapG", {objType: "deckUI"})
+          .roundedRect({w: 251, h: 354, fill: actionDeckColor, rounding: 6})
+          .textMultiline({txt: ["Action", "Deck"], fz: 28, fill: "white"})
+          .roundedRect({className: "cardDeck overlay", w: 251, h: 354, rounding: 6})
+          .setPos(centerActionDeck.x, centerActionDeck.y)
+          .draw();
+        let investmentDeck = new NObj(idInvestment, "mapG", {objType: "deckUI"})
+          .roundedRect({w: 253, h: 356, fill: "sienna", rounding: 6})
+          .textMultiline({txt: ["Investment", "Deck"], fz: 28, fill: "white"})
+          .roundedRect({className: "cardDeck overlay", w: 253, h: 356, fill: "transparent", rounding: 6})
+          .setPos(centerInvestmentDeck.x, centerInvestmentDeck.y)
+          .draw();
+        return {action_card: actionDeck, investment_card: investmentDeck};
+      }
+      function createVisual(id, o) {
+        //console.log(id, o);
+
+        if (isTile(o)) {
+          let pos = getTilePos(id);
+          //console.log(pos, id);
+          //console.log("createRegion id=", id, "pos=", pos, "ttext=", ttext, this.SZ.region);
+          let msRegion = new NObj(id, "mapG", o)
+            .circle({className: "overlay region", sz: SZ.region})
+            .setPos(pos.x, pos.y)
+            .draw();
+          o.visual = msRegion;
+          return msRegion;
+        } else if (isUnit(o)) {
+          o.owner = getUnitOwner(o.nationality);
+          let tile = o.tile;
+          let sz = SZ.cadreDetail;
+          let groupId = getUnitGroupId(o); // is at same time id of hiddenVisual
+          let startPos = calcUnitStartPos(tile, o.owner); // is at same time pos of hiddenVisual
+
+          // get group unit belongs to
+          if (!(groupId in G.groupings)) {
+            let snailPos = calcSnailPositions(0, 0, sz, 25);
+            let group = new NGrouping(groupId, "mapG", "snail", startPos, {snailPos: snailPos});
+            G.groupings[groupId] = group;
+          }
+          let grouping = G.groupings[groupId];
+
+          //create unit and add it to group
+
+          // if no type is known, cannot create visual!!!
+          if (!("type" in o)) {
+            o.type = o.owner;
+          }
+
+          let imagePath = "/assets/images/" + o.type + ".svg";
+          let color = troopColors[o.nationality];
+          let darker = darkerColor(color[0], color[1], color[2]);
+          //console.log('colors:',color,darker);
+          let sz90 = sz * 0.96;
+          let sz80 = sz * 0.86;
+          let szImage = sz / 1.5;
+          let y = szImage / 6;
+          //console.log('createVisual',id,o)
+          let ms = new NObj(id, "mapG", o)
+            .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
+            .roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
+            .image({path: imagePath, y: y, w: szImage, h: szImage})
+            .roundedRect({className: "overlay", w: sz, h: sz, fill: darker, rounding: sz * 0.1});
+          if ("cv" in o) {
+            updateCv(ms, o.cv);
+          }
+          grouping.add(ms);
+          o.group = grouping;
+          o.visual = ms;
+
+          // get or create hiddenVisual
+          if (!(groupId in G.oFront)) {
+            //create a hiddenVisual for this tile and faction
+            let sz = SZ.sumCadre;
+            let sz80 = sz * 0.86;
+            let msHidden = new NObj(groupId, "mapG", o)
+              .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
+              .roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
+              .text({className: "content", txt: 1, fz: sz / 2, fill: "white"})
+              .roundedRect({className: "overlay", w: sz, h: sz, fill: darker, rounding: sz * 0.1});
+            msHidden.tag("content", 1);
+            msHidden.tag("count", 1);
+            msHidden.setPos(startPos.x, startPos.y).draw();
+            let oHidden = {faction: o.owner, tile: tile, obj_type: "unit_hidden", visual: msHidden};
+
+            G.oFront[groupId] = oHidden;
+          } else {
+            updateUnitCounter(o, G.oFront[groupId].visual, 1);
+          }
+          let msHidden = G.oFront[groupId].visual;
+
+          //attach hiddenVisual to o
+          o.hiddenVisual = msHidden;
+
+          //o has been extended by: owner,group,visual,hiddenVisual
+
+          //NObj needs a way to modify content
+          //NGroup needs a way to show or hide entire group
+
+          //visibility of newly created unit: if visible to player,
+          displayUnit(o);
+
+          return ms;
+        } else if (isCard(o)) {
+          let ms = null;
+          let parentName = null;
+
+          //console.log("card is", o);
+          if ("owner" in o && o.owner == player) {
+            parentName = "handG";
+          } else if (!("visible" in o)) {
+            //console.log('no visible property:',o);
+          } else if (!("set" in o.visible)) {
+            //console.log('no set property:',o);
+          } else if (o.visible.set.length == 3) {
+            parentName = "openCardG";
+          } else if (o.visible.set.includes(player)) {
+            //this card is temporarily shown to that player but does not belong to him!
+            // show it in >>tempDisplay
+            parentName = "tempG";
+          } else if (empty(o.visible.set)) {
+            if (isEditView()) {
+              // deck card, invisible or if in edit mode visible in one of the deckGs
+              if (isActionCard(o)) {
+                parentName = "actionDeckG";
+              } else {
+                parentName = "investmentDeckG";
+              }
+            } else {
+              // this card will not be added anywhere yet!
+              //console.log('cannot create card',id,'yet!');
+              return null;
+            }
+          }
+          //console.log('parentName',parentName);
+          if (parentName) {
+            if (!(parentName in G.groupings)) {
+              let w = SZ.cardWidth;
+              let h = SZ.cardHeight;
+              let gap = SZ.gap;
+              let startPos = {x: gap + w / 2, y: gap + h / 2};
+              let divName = stringBefore(parentName, "G") + "_area";
+              //console.log("divname", divName);
+              let group = new NGrouping(parentName, parentName, "byRow", startPos, {
+                w: w,
+                h: h,
+                gap: gap,
+                div: document.getElementById(divName)
+              });
+              G.groupings[parentName] = group;
+            }
+            let grouping = G.groupings[parentName];
+            ms = new NObj(id, parentName, o);
+            setCardContent(ms, o);
+            grouping.add(ms);
+            o.visual = ms;
+            o.group = grouping;
+          }
+          //console.log('returning',ms)
+          return ms;
+        } else if (isInfluence(o)) {
+          ms = new NObj(id, "mapG", o);
+          drawInfluence(ms, o.nation, o.faction, o.value);
+          let pos = getNationPos(o.nation);
+          ms.setPos(pos.x, pos.y).draw();
+          o.visual = ms;
+          return ms;
+        }
+      }
+      function createNPage() {
+        return new NPage(
+          document.getElementById("mainDiv"),
+          document.getElementById("actionDeck_area"),
+          document.getElementById("chat_area"),
+          document.getElementById("command_area"),
+          document.getElementById("hand_area"),
+          document.getElementById("investmentDeck_area"),
+          document.getElementById("log_area"),
+          document.getElementById("menu_area"),
+          document.getElementById("openCard_area"),
+          document.getElementById("prop_area"),
+          document.getElementById("reserve_area"),
+          document.getElementById("status_area"),
+          document.getElementById("test_area")
+        );
+      }
+      function createCommand(id) {
+        //add a simple selectable object to reserve area reserveG
+        let ms = undefined;
+        //console.log('createSelectableOrCommand',nationalityNames,id)
+        //console.log("id found:", id);
+        let d = document.getElementById("command_area");
+        let g = document.getElementById("commandG");
+        let w = SZ.commandWidth;
+        let h = SZ.commandHeight;
+        let type = "command";
+        let color = "green";
+
+        //need command_group
+        let groupId = "commands";
+        if (!(groupId in G.groupings)) {
+          let gap = 10;
+          let startPos = {x: gap + sz / 2, y: gap + sz / 2};
+          let group = new NGrouping(groupId, "commandG", "byCol", startPos, {
+            div: document.getElementById("command_area"),
+            w: w,
+            h: h,
+            gap: gap
+          });
+          G.groupings[groupId] = group;
+        }
+        let grouping = G.groupings[groupId];
+
+        //console.log("grouping", grouping);
+
+        //create ms
+        let o = {obj_type: type, group: grouping};
+        ms = new NObj(id, "commandG", o)
+          .roundedRect({w: w, h: h, fill: color, rounding: sz * 0.1})
+          .text({txt: id, fz: 12})
+          .roundedRect({className: "overlay", w: w, h: h, rounding: sz * 0.1});
+        ms.tag("type", type);
+        //console.log("object:", o);
+        //console.log("id:", id, "ms:", ms);
+
+        grouping.add(ms);
+        o.group = grouping;
+        o.visual = ms;
+        ensureCommands();
+        G.oCommands[id] = o;
+        return ms;
+      }
+      function createSelectable(id) {
+        //add a simple selectable object to reserve area reserveG
+        let ms = undefined;
+        //console.log('createSelectableOrCommand',nationalityNames,id)
+        if (isSelectable(id)) {
+          //console.log("id found:", id);
+          let d = document.getElementById("reserve_area");
+          let g = document.getElementById("reserveG");
+          let sz = SZ.cadreDetail;
+          let type = nationalityNames.includes(id) ? "nationality_type" : "unit_type";
+          let color = type == "nationality_type" ? troopColors[id] : "black";
+
+          //console.log("type:", type);
+
+          //need reserve_group
+          let groupId = "reserve";
+          if (!(groupId in G.groupings)) {
+            let gap = 10;
+            let startPos = {x: gap + sz / 2, y: gap + sz / 2};
+            let group = new NGrouping(groupId, "reserveG", "byCol", startPos, {
+              div: document.getElementById("reserve_area"),
+              sortBy: "obj_type",
+              w: sz,
+              h: sz,
+              gap: gap
+            });
+            G.groupings[groupId] = group;
+          }
+          let grouping = G.groupings[groupId];
+
+          //console.log("grouping", grouping);
+
+          //create ms
+          let o = {obj_type: type, group: grouping};
+          ms = new NObj(id, "reserveG", o).roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1});
+          if (type == "nationality_type") {
+            ms.text({txt: id, fz: 12});
+          } else {
+            ms.image({w: sz, h: sz, path: "/assets/images/" + id + ".svg", rounding: sz * 0.1});
+          }
+          ms.roundedRect({className: "overlay", w: sz, h: sz, rounding: sz * 0.1});
+          ms.tag("type", type);
+          //console.log("object:", o);
+          //console.log("id:", id, "ms:", ms);
+
+          grouping.add(ms);
+          o.group = grouping;
+          o.visual = ms;
+          ensureSelectables();
+          G.oSelectables[id] = o;
+          return ms;
+        }
+        return null;
+      }
+      function displayUnit(o) {
+        if (o.visible.set.includes(player)) {
+          o.visual.show();
+          o.hiddenVisual.hide();
+        } else {
+          o.visual.hide();
+          o.hiddenVisual.show();
+        }
+      }
+      function displayUnitGroups() {
+        for (const groupId in G.groupings) {
+          let group = G.groupings[groupId];
+          //if (group.getCount()==0)
+        }
+      }
+      function drawInfluence(ms, nation, faction, level) {
+        let imagePath = "/assets/images/" + faction + ".svg";
+        let color = troopColors[faction];
+        //console.log('COLOR:',color)
+        let darker = darkerColor(color[0], color[1], color[2]);
+        let szBase = SZ.influence / 1.5;
+        let szRest = SZ.influence - szBase;
+        let sz = szBase + (szBase * (level - 1)) / 2; //influence grows with level!
+        let sz90 = sz * 0.96;
+        let sz80 = sz * 0.86;
+        let szImage = 30; //sz / 1.5;
+        let y = szImage / 6;
+        let text = level;
+        let fontColor = level == 1 ? "black" : level == 2 ? "red" : darker;
+        ms.circle({fill: "yellow", alpha: 1, sz: sz})
+          .circle({fill: darker, sz: szImage + 6})
+          .circle({fill: color, sz: szImage + 4})
+          .image({path: imagePath, w: szImage, h: szImage})
+          .text({txt: text, fill: fontColor, fz: szImage - 5, weight: "bold"})
+          .circle({className: "overlay", sz: sz});
+        //ms.tag("ttext", ttext); //for tooltip, not yet used
+        ms.tag("nation", nation);
+        ms.tag("faction", faction);
+        ms.tag("level", level);
+        ms.tag("type", "influence");
+        return ms;
+      }
+      function ensureCommands() {
+        if (!("commands" in G)) {
+          G.oCommands = {};
+        }
+      }
+      function ensureLog() {
+        if (!("log" in G)) {
+          G.log = [];
+        }
+      }
+      function ensureSelectables() {
+        if (!("oSelectables" in G)) {
+          G.oSelectables = {};
+        }
+      }
+      function getInvestmentCardsFromTuple(tuple) {
+        return tuple.filter(x => isInvestmentCard(x));
+      }
+      function getNationFromTuple(tuple) {
+        //assumes action card tuple!
+        return firstCond(tuple, x => !isActionCard(x));
+      }
+      function getTileOrMinorFromTuple(tuple) {
+        return firstCond(tuple, x => !G.factions.includes(x) && !isInvestmentCard(x));
+      }
+      function getTechnologyFromTuple(tuple) {
+        return firstCond(tuple, x => !isInvestmentCard(x) && x != "open" && x != "secret");
+      }
+      function getMapPos(o) {
+        if (o.obj_type == "tile") return tilePositions[o.name];
+        else return nationPositions[o.nation];
+      }
+      function getNationalitiesForFaction(faction) {
+        if (faction == "West") {
+          return ["Britain", "France", "USA"];
+        } else if (faction == "Axis") {
+          return ["Germany", "Italy"];
+        } else if (faction == "USSR") {
+          return ["USSR"];
+        } else {
+          return ["Neutral"];
+        }
+      }
+      function getNationPos(nation) {
+        return nationPositions[nation];
+      }
+      function getTilePos(tile) {
+        return tilePositions[tile];
+      }
+      function getUnitGroupId(o) {
+        return o.tile + "_" + o.owner;
+      }
+      function getUnitOwner(nationality) {
+        if (nationality == "Germany" || nationality == "Italy") {
+          return "Axis";
+        } else if (nationality == "USSR") {
+          return "USSR";
+        } else if (nationality == "Britain" || nationality == "France" || nationality == "USA") {
+          return "West";
+        } else {
+          return "Neutral";
+        }
+      }
+      function isActionCard(o) {
+        return o.obj_type == "action_card";
+      }
+      function isCard(o) {
+        return endsWith(o.obj_type, "card");
+      }
+      function isCommand(ui) {
+        //just a stub!!!
+        return false;
+        // //console.log('isCommand',ui)
+        // if (ui.id in uisCommand != (ui.getTag("isCommand") != null)) {
+        //   //console.log("isCommand DOES NOT work!!!!");
+        // }
+        // return ui.id in uisCommand;
+      }
+      function isEditView() {
+        //console.log("isEditView!!!!!");
+        let res = document.getElementById("mainDiv").classList.contains("grid_edit");
+        //console.log(document.getElementById("mainDiv").classList, res);
+        return res;
+      }
+      function isSetupOrProductionPhase() {
+        return phase.toLowerCase() == "setup" || phase.toLowerCase() == "production";
+      }
+      function isGovPhase() {
+        return startsWith(phase.toLowerCase(), "gov");
+      }
+      function isDiplomacyTuple(tuple) {
+        return getActionCardFromTuple(tuple) != null;
+      }
+      function isIntelTuple(tuple) {
+        let invCards = getInvestmentCardsFromTuple(tuple);
+        return invCards.length == 1;
+      }
+      function isIntelCardsTuple(tuple) {
+        let invCards = getInvestmentCardsFromTuple(tuple);
+        return invCards.length == 1 && tuple.length == 2;
+      }
+      function isIntelCadreTuple(tuple) {
+        let invCards = getInvestmentCardsFromTuple(tuple);
+        return invCards.length == 1 && tuple.length == 3;
+      }
+      function isTechnologyTuple(tuple) {
+        let invCards = getInvestmentCardsFromTuple(tuple);
+        return invCards.length == 2;
+      }
+      function isInvestmentCard(id) {
+        return startsWith(id, "invest_");
+      }
+      function isSingletonCommand(id) {
+        return findSameSet(tuplesInAction, [id]) != null;
+      }
+      function isInfluence(o) {
+        return o.obj_type == "influence";
+      }
+      function isTile(o) {
+        return o.obj_type == "tile";
+      }
+      function isTileName(id) {
+        //inefficient!
+        return tileNames.includes(id);
+      }
+      function isSelectable(id) {
+        return nationalityNames.includes(id) || unitTypeNames.includes(id);
+      }
+      function isNationalityName(id) {
+        //inefficient!
+        return nationalityNames.includes(id);
+      }
+      function isUnitTypeName(id) {
+        //inefficient!
+        return unitTypeNames.includes(id);
+      }
+      function isUnit(o) {
+        return o.obj_type == "unit" || o.obj_type == "unit_hidden";
+      }
+      function loadAssets(callback) {
+        //console.log("loading...");
+        calculateTrackPositions();
+        loadYML("/assets/config/map_pos.yml", data => {
+          tilePositions = {};
+          for (idTile in data) {
+            let id = replaceAll(idTile, " ", "_");
+            tilePositions[id] = data[idTile];
+          }
+          tileNames = Object.keys(tilePositions);
+          loadYML("/assets/config/nations.yml", data => {
+            nationPositions = {};
+            for (idNation in data) {
+              let id = replaceAll(idNation, " ", "_");
+              nationPositions[id] = data[idNation];
+            }
+            nationNames = Object.keys(nationPositions);
+            // nationPositions = data;
+            // nationNames = Object.keys(data);
+            loadYML("/assets/config/unit_count.yml", data => {
+              unitCountInfo = data;
+              nationalityNames = Object.keys(data);
+              unitTypeNames = Object.keys(data["Germany"]);
+
+              //create decks
+              let decks = createDecks();
+              let o = {obj_type: "deck", visual: decks.action_card};
+              G.oFront.action_card = o;
+              o = {obj_type: "deck", visual: decks.investment_card};
+              G.oFront.investment_card = o;
+
+              //load influence spots
+              let msNationList = addNationPositions(nationPositions);
+              msNationList.map(x => (G.oFront[x.id] = {obj_type: "nation", visual: x}));
+
+              loadYML("/assets/config/faction_setup.yml", data => {
+                //console.log("...finished loading!");
+                factionSetup = data;
+                //console.log(factionSetup);
+                factionNames = Object.keys(data);
+                callback();
+              });
+            });
+          });
+        });
+      }
+      function loadScenario() {
+        //before that, have to make scenario!!!
+        //which means: from scenario0 (global var) make modifications
+        //then call post('postTest',data,callback)
+        //this last step will save data to server: saves/test.json
+        //TODO: to be parameterized later!
+        let msgChain1 = ["myload/test.json", "noWest"];
+        chainSend("start", msgChain1, data => {
+          //the last call was to noWest,
+          //it either has a waiting_for or an actions
+          //if it is waiting_for, look at waiting_for.set[0] as next players
+          // otherwise West is next player
+          let jData = JSON.parse(data);
+          nextPlayer = "West";
+          if ("waiting_for" in jData) {
+            nextPlayer = jData.waiting_for.set[0];
+          }
+          // have next player!
+          send("status/" + nextPlayer, receive);
+        });
+      }
+      function makeSelectable(ui, handler) {
+        if (isCommand(ui)) {
+          ui.show();
+        }
+        ui.highlight();
+        ui.isEnabled = true;
+        ui.clickHandler = handler;
+      }
+      function makeUnselectable(ui) {
+        ui.unselect();
+        ui.unhighlight();
+        ui.isEnabled = false;
+        ui.clickHandler = null;
+        if (isCommand(ui)) {
+          ui.hide();
+        }
+      }
+      function newScenario(scenario) {
+        clearG(); //clear all units, cards, temp objects
+        //console.log("start:", G);
+
+        currentScenario = scenario;
+        let obj = scenario.gamestate.objects.table;
+        G.oServer = JSON.parse(JSON.stringify(obj));
+
+        //set player, year and phase to status
+        let idx = scenario.gamestate.game.index;
+        phase = scenario.gamestate.game.sequence[idx];
+        year = scenario.gamestate.game.year;
+        //player ist der der nicht in waiting_objs ist
+        let waiting = Object.keys(scenario.waiting_objs);
+        let factionNames = Object.keys(scenario.gamestate.players);
+        let not_waiting = arrMinus(factionNames, waiting);
+        if (empty(not_waiting)) {
+          //console.log("NOT_WAITING EMPTY!!!!!");
+        } else {
+          player = not_waiting[0];
+        }
+
+        //console.log(phase, year, player);
+        statusMessage();
+
+        //determine maxNumberId
+        maxIdNumber = 0;
+        for (const id in G.oServer) {
+          if (isNumber(id)) {
+            let n = Number(id);
+            if (n > maxIdNumber) maxIdNumber = n;
+          }
+        }
+
+        //first create all the tiles!
+        for (const id in G.oServer) {
+          let o = G.oServer[id];
+          if (isTile(o)) {
+            let ms = createVisual(id, o);
+          }
+        }
+        for (const id in G.oServer) {
+          let o = G.oServer[id];
+          if (!isTile(o)) {
+            let ms = createVisual(id, o);
+          }
+        }
+        G.hasVisuals = true;
+
+        //update tracks
+        for (const faction in scenario.gamestate.players) {
+          const tracks = scenario.gamestate.players[faction].tracks;
+          setPopulation(faction, tracks.POP);
+          setResource(faction, tracks.RES);
+          setIndustry(faction, tracks.IND);
+        }
+
+        //next need to enter action loop to modify scenario
+        //to test just make small change and try to upload to server
+        //console.log("current scenario:", scenario);
+        //console.log("G:", G);
+
+        return;
+
+        //test modifications!
+        removeUnit("110");
+        //change 110 to Infantry instead of Fleet
+        //hier ist das problem: muss auch in
+        //scenario.gamestate.players.units[id].type='Infantry'
+        //aendern
+
+        //1. look ob reicht wenn G[id].type = 'Infantry' aendere
+
+        //first remove unit completely
+      }
+      function removeUnit(id) {
+        //existing unit is in G.oServer[id]
+        let o = G.oServer[id];
+
+        //remove visual from group
+        o.group.removeChild(id);
+
+        //remove visual from ui
+        o.visual.removeFromUI();
+
+        //decrement hiddenUnit count
+        updateUnitCounter(o, o.hiddenVisual, -1);
+
+        //increase reserve?!? if this is done in scenario == locally
+        if (isEditView()) {
+          currentScenario.gamestate.units.reserves[o.nationality][o.type] += 1;
+          delete currentScenario.gamestate.objects.table[id];
+          delete currentScenario.gamestate.players[o.owner].units[id];
+        }
+
+        //now,I have to remove this id form scenario and from G.oServer
+        delete G.oServer[id];
+
+        //console.log("after remove:");
+        //console.log(G);
+        //console.log(currentScenario);
+
+        //look how many children are left in this same group
+        //if 0 children left,hide hiddenUnit
+        //in any case, decrement hiddenUnit count
+        // let n = o.group.getCount();
+        // //console.log("this group still has", n, "units!!!");
+        // if (n < 1) {
+        // }
+      }
+      function post(url, data, callback = null) {
+        url = backendServerUrl + url;
+        msgCounter += 1;
+        //console.log(msgCounter, "POST request sent: ", url, data);
+        $.ajax({
+          url: url,
+          type: "POST",
+          data: JSON.stringify(data),
+          processData: false,
+          contentType: "application/json; charset=UTF-8",
+          success: function(response) {
+            //console.log(response);
+            if (callback) {
+              callback(response);
+            }
+          },
+          error: function(error) {
+            //console.log(error);
+          }
+        });
+      }
+      function receive(serverText) {
+        try {
+          serverData = JSON.parse(serverText);
+          //console.log(serverData);
+          processServer();
+        } catch {
+          error("ERROR processServer!!!!!"); //serverText);
+        }
+      }
+      function sendOrPost(msg, msgParam, data) {
+        if (!empty(msgParam)) msg += "/" + msgParam;
+        //console.log(msgCounter, "HTTP sent: ", msg);
+        if (startsWith(msg, "post")) {
+          post(msg, data);
+        } else {
+          send(msg);
+        }
+      }
+      function send(url, callback = null) {
+        url = backendServerUrl + url;
+        msgCounter += 1;
+        //console.log(msgCounter, "request sent: ", url);
+        w3.http(url, function() {
+          if (this.readyState == 4 && this.status == 200) {
+            if (callback) {
+              callback(this.responseText);
+            } else {
+              receive(this.responseText);
+            }
+          }
+        });
+      }
+      function setCardContent(ms, o) {
+        let txt = [];
+        let title = "";
+        if ("top" in o) {
+          if (o.obj_type == "action_card") {
+            txt = [o.top, " ", o.season, o.priority + o.value, " ", o.bottom];
+          } else {
+            txt = [o.top, " ", " ", o.value ? o.value.toString() : " ", " ", " ", o.bottom];
+          }
+          title = o.top;
+        } else if ("wildcard" in o) {
+          txt = [o.wildcard, " ", o.season, o.priority + o.value, " ", " "];
+          title = o.wildcard;
+        } else if ("intelligence" in o) {
+          txt = [o.intelligence, " ", " ", o.value ? o.value.toString() : " ", " ", " ", " "];
+          title = o.intelligence;
+        } else if ("science" in o) {
+          txt = [o.value + "   (" + o.year.toString() + ")"];
+          o.science.map(x => txt.push(x));
+          title = o.year;
+        }
+        if (txt.length > 0) {
+          //console.log(txt)
+          txt = txt.map(x => x.replace(/_/g, " "));
+        }
+        let cardWidth = SZ.cardWidth;
+        let cardHeight = SZ.cardHeight;
+        //console.log(cardWidth, cardHeight);
+
+        let testText = ms.id;
+        if ("owner" in o) {
+          testText += " " + o.owner;
+        }
+
+        ms.roundedRect({w: cardWidth, h: cardHeight, fill: "white"})
+          .text({txt: testText, fill: "red", y: cardHeight / 2, fz: cardWidth / 7})
+          .textMultiline({txt: txt, maxWidth: cardWidth, fz: cardWidth / 7}) // / 6})
+          .roundedRect({className: "overlay", w: cardWidth, h: cardHeight});
+
+        ms.tag("content", txt);
+        ms.tag("type", o.obj_type);
+        ms.tag("title", title);
+        ms.tag("json", JSON.stringify(o));
+        return ms;
+      }
+      function setPopulation(faction, n) {
+        //console.log("setPop");
+        setChip("pop", "P", faction, n, "sienna");
+      }
+      function setIndustry(faction, n) {
+        setChip("ind", "I", faction, n, "red");
+      }
+      function setResource(faction, n) {
+        setChip("res", "R", faction, n, "green");
+      }
+      function setChip(prefix, text, faction, n, color) {
+        let pts = trackPositions[faction];
+        let pos = pts[n - 1];
+        let id = prefix + faction;
+        if (!(id in G.oFront)) {
+          let o = createChip(id, {text: text, prefix: prefix, faction: faction, color: color});
+          G.oFront[id] = {obj_type: "chip", visual: o};
+        }
+        let ms = G.oFront[id].visual;
+        ms.setPos(pos.x, pos.y);
+      }
+      function statusMessage(msgAdd = "") {
+        let s = "Phase:" + phase + ", Year:" + year + ", Player:" + player;
+        s += " " + msgAdd;
+        document.getElementById("status_area").innerHTML = s;
+      }
+      function updateUnitCounter(o, ms, inc) {
+        //console.log('updateUnitCounter')
+
+        if (startsWith(ms.id, "Konigs")) {
+          //console.log("updateUnitCounter", ms.id);
+        }
+
+        let n = ms.getTag("count");
+        n += inc;
+
+        if (startsWith(ms.id, "Konigs")) {
+          //console.log("updateUnitCounter", ms.id, "from", n - inc, "to", n);
+        }
+        //question: should I delete hiddenUnit when n==0?
+        //unitCounter is related to o.group.getCount()
+        //should I move
+
+        let color = troopColors[o.nationality];
+        let darker = darkerColor(color[0], color[1], color[2]);
+        let sz = SZ.sumCadre;
+        ms.removeFromChildIndex(3);
+        ms.text({txt: n, fz: sz / 2, fill: "white"}).roundedRect({
+          className: "overlay",
+          w: sz,
+          h: sz,
+          fill: darker,
+          rounding: sz * 0.1
+        });
+        ms.tag("count", n);
+      }
+      function updateCv(msUnit, cv) {
+        //console.log(cv,typeof(cv))
+        //plaziere 1 circle foreach  #
+        //muss alte punkte wegnehmen!!! falls welche hat!
+        msUnit.removeFromChildIndex(5);
+        //msUnit.circle({sz:20,fill:'white'});
+        let sz = SZ.cadreDetail;
+        let dx = sz / (cv + 1);
+        let xStart = -sz / 2;
+        let y = -sz / 3.2;
+        let diam = Math.min(dx / 1.5, sz / 5);
+        //console.log(dx,y)
+        let x = dx + xStart;
+        for (let i = 0; i < cv; i++) {
+          msUnit.circle({sz: diam, x: x, y: y, fill: "white"});
+          x += dx;
+        }
+
+        msUnit.tag("cv", cv);
+      }
+    </script>
+    <!-- #endregion safe -->
+
+    <!-- #region code execution  -->
+    <script>
+      $(document).ready(function() {
+        //console.log(scenario0); //geht! obwohl in head geladen!
+        document.getElementById("myInput").placeholder = "command " + uniqueFirstLetters(messages).toString();
+        document.getElementById("inparam").placeholder = "file " + uniqueFirstLetters(filenames).toString();
+        autocomplete(document.getElementById("myInput"), messages);
+        autocomplete(document.getElementById("inparam"), filenames);
+        page = createNPage();
+        page.testView();
+
+        let map = document.getElementById("mapG");
+        map.setAttribute("transform", `translate(0,0) scale(${MIN_SCALE})`);
+        //board.setAttribute("transform", `translate(-400,-400) scale(${1})`);
+        map.addEventListener("wheel", ev => {
+          onwheel(ev, map);
+        });
+        map.addEventListener("pointerdown", ev => {
+          onmousedown(ev);
+        });
+        addEventListener("mouseup", ev => {
+          onmouseup(ev, map);
+        });
+        addEventListener("mousemove", ev => {
+          onmousemove(ev, map);
+        });
+        addEventListener("dblclick", ev => reset(ev, map));
+
+        loadAssets(() => startExecution());
+      });
+
+      function startExecution() {
+        //sendOrPost('infoAxis');geht nicht!
+        //sendOrPost('statusAxis');geht nicht!
+        player = "Axis";
+        //sendOrPost('initAxis'); //geht!
+        //onClickStartScenario();
+        let msgChain1 = ["initAxis", "infoAxis"];
+        chainSend("start", msgChain1, receive);
+        // chainSend("start", msgChain1,  data => {
+        //   //the last call was to noWest,
+        //   //it either has a waiting_for or an actions
+        //   //if it is waiting_for, look at waiting_for.set[0] as next players
+        //   // otherwise West is next player
+        //   let infoData = JSON.parse(data);
+        //   //console.log(infoData);
+        //   //update chips,year,phase,player
+
+        //   // have next player!
+        //   send("statusAxis");
+        // });
+        //console.log('WEISS NICHT WIESO')
+      }
+    </script>
+    <!-- #endregion  code execution -->
+  </body>
+</html>
