@@ -25,3 +25,9 @@ out = format_msg_to_python(init_game(debug=True, player='Axis', seed=seed))
 
 print(out.actions)
 
+G = get_G()
+print(G.cards.action.deck)
+print(G.cards.investment.deck)
+# print(G.random.count)
+# print(G.random.log)
+

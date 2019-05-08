@@ -22,10 +22,11 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 			tiles[n2].borders = tdict()
 		tiles[n2].borders[n1] = t
 	
-	G.tiles = tiles
+	G.tiles = tdict({name:idict(tile) for name, tile in tiles.items()})
 	
 	for name, tile in G.tiles.items():
-		tile.name = name
+		tile.__dict__['_id'] = name
+		# tile.name = name
 		tile.units = tset()
 		if tile.type != 'Sea' and tile.type != 'Ocean':
 			for neighbor in tile.borders.keys():
@@ -55,7 +56,7 @@ def load_players_and_minors(G):
 			designations[tile.alligence] = minor_designation
 			if tile.alligence not in territories:
 				territories[tile.alligence] = tset()
-			territories[tile.alligence].add(tile.name)
+			territories[tile.alligence].add(tile._id)
 	designations['USA'] = 'Major'
 	G.nations.designations = designations
 	G.nations.territories = territories
@@ -186,33 +187,6 @@ def load_players_and_minors(G):
 	G.diplomacy.influence = tdict()
 	G.nations.status = status
 
-class TestRandom(random.Random):
-	
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args,**kwargs)
-		self.count = 0
-		self.log = []
-	
-	def __getattribute__(self, item):
-		print(item, super().__getattribute__('random')())
-		return super().__getattribute__(item)
-	
-	def shuffle(self, *args, **kwargs):
-		self.count += 1
-		self.log.append(self.random())
-		return super().shuffle(*args,**kwargs)
-
-	def choice(self, *args, **kwargs):
-		self.count += 1
-		x = self.random()
-		self.log.append(x)
-		
-		# if x == 0.4540783303488197:
-		# 	# raise Exception()
-		# 	print('Last reproducible random number')
-		
-		return super().choice(*args, **kwargs)
-
 def load_game_info(G, seed=None, path='config/game_info.yml'):
 	info = load(path)
 	
@@ -221,7 +195,7 @@ def load_game_info(G, seed=None, path='config/game_info.yml'):
 	game.seed = seed
 	G.random = random.Random(seed)
 	# G.random = TestRandom(seed)
-	
+
 	game.year = info.first_year - 1 # zero based
 	game.last_year = info.last_year
 	num_rounds = game.last_year - game.year
@@ -269,6 +243,8 @@ def encode_setup_actions(G):
 		# 	continue
 		
 		options = placeable_units(G, faction, nationality, tilenames)
+		
+		# print(nationality, tilenames)
 		
 		if len(options) == 0:
 			continue

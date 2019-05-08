@@ -1,8 +1,8 @@
-
+from collections import OrderedDict
 from .common import condensed_str
 
 # adict - dicts allowing access through attributes
-class adict(dict):
+class adict(OrderedDict):
 	def __getattr__(self, key):
 		return self.__getitem__(key)
 	def __setattr__(self, key, value):

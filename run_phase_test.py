@@ -3,11 +3,8 @@
 import sys, os, time
 import random
 import numpy as np
-seed = 10
+seed = 0
 RNG = None
-# RNG = random.Random(seed)
-# random.seed(seed)
-# np.random.seed(seed)
 
 import util as util
 from util import adict, idict, xset, collate, load, render_dict, save, Logger, seq_iterate
@@ -102,9 +99,13 @@ print(ping())
 # if False:
 out = format_msg_to_python(init_game(debug=True, player='Axis', seed=seed))
 
-
 G = get_G()
 fixed = adict()
+
+# hands = [len(p.hand) for p in G.players.values()]
+# act = len(G.cards.action.deck) + len(G.cards.action.discard_pile)
+# inv = len(G.cards.investment.deck) + len(G.cards.investment.discard_pile)
+# print(sum(hands) + act + inv)
 
 RNG = G.random
 
