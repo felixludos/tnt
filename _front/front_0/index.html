@@ -59,7 +59,7 @@
     <script>
       var abort = false;
       var serverData; // last message from server as JSON object
-      var skipActions = 0; //120; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
+      var skipActions = 46; //120; //72; //46; //skip to gov: 73; //skip to prod: 46; //0;
       var favorAction = "action_"; //"investment_card";
 
       function statusMessage(msgAdd = "") {
@@ -154,7 +154,7 @@
         G.previousFaction = G.faction;
 
         if (nextFaction === undefined) {
-          send("action/" + G.faction + '/pass');
+          send("action/" + G.faction + "/pass");
         } else {
           G.faction = player = nextFaction;
           send("status/" + G.faction);
@@ -179,7 +179,7 @@
         if (data === undefined) {
           //console.log("!!!", str, "!!!");
         } else if ("error" in data) {
-          console.log(data)
+          console.log(data);
           //send("reset/" + G.faction);
           //abort = true;
         } else {
@@ -222,9 +222,10 @@
             d.appendChild(para);
             para.scrollIntoView();
             G.log.push(msg);
-            if (msg.includes("Government")) {
-              phase = "government";
-            }
+            //console.log('new='+msg);
+
+            let res=hackPhaseAndPlayerTest(msg);
+            //if (res.phase)
           }
         }
         //created
@@ -306,9 +307,9 @@
         for (const f of G.factions) {
           let g = G[f];
           for (k in data) {
-          let sk = k.toString();
-          g[sk] = data[k];
-        }
+            let sk = k.toString();
+            g[sk] = data[k];
+          }
         }
         let faction = G.faction; //G.previousFaction;
         // let g = G[faction];
@@ -426,6 +427,7 @@
 
             closeSelection();
             let url = "action/" + G.faction + "/" + tuple.join("+");
+            console.log("action message:", url);
             send(url);
           } else {
             // check if there is an id that is same in all tuplesPossible and not in
@@ -773,10 +775,6 @@
         tuplePartSelected = [];
         tuplesInAction = [];
         tuplesPossible = [];
-      }
-      function firstCond(arr, func) {
-        let res = arr.filter(x => func(x));
-        return res.length > 0 ? res[0] : null;
       }
       function getActionCardFromTuple(tuple) {
         return firstCond(tuple, x => isActionCard(x));

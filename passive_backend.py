@@ -1,9 +1,9 @@
 
 
 import sys, os, time
-import numpy as np
 import pickle
 import networkx as nx
+import random
 import util
 from util import adict, idict, iddict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete, PhaseInterrupt
 from tnt_setup import init_gamestate, setup_phase, setup_pre_phase
@@ -16,7 +16,8 @@ import traceback
 from new_year import new_year_phase
 from production import production_phase, production_pre_phase
 from government import governmnet_phase, government_pre_phase
-from command import command_phase, pre_command_phase, movement_phase, planning_phase, combat_phase
+from command import pre_command_phase, movement_phase, planning_phase
+from combat import combat_phase, retreat_phase
 from blockades import supply_phase, blockade_phase
 from battles import land_battle_phase, naval_battle_phase
 from scoring import scoring_phase
@@ -52,6 +53,7 @@ PHASES = adict({
 
 	'Combat': combat_phase,
 	'Supply': supply_phase,
+	'Retreat': retreat_phase,
 
     'Land_Battle': land_battle_phase,
     'Naval_Battle': naval_battle_phase,
@@ -77,14 +79,17 @@ def get_object_table():
 		return None
 	return G.objects.table
 
-def start_new_game(player='Axis', debug=False):
+def start_new_game(player='Axis', debug=False, seed=None):
 	global G, DEBUG
 	
 	DEBUG = debug
 
-	G = setup.init_gamestate()
+	G = setup.init_gamestate(seed=seed)
 	
 	G.logger = Logger(*G.players.keys(), stdout=True)
+	
+	if G.game.seed is not None:
+		G.logger.write('Set seed {}'.format(G.game.seed))
 	
 	G.objects.created = G.objects.table.copy()
 	G.objects.updated = tdict()
@@ -174,7 +179,7 @@ def next_phase(player=None, action=None):  # keeps going through phases until ac
 		
 		if out is not None and len(out) == 0:
 			player, action = None, None
-		
+	
 	return out
 
 
@@ -338,13 +343,18 @@ def convert_from_saveable(data):
 		raise Exception('Cannot save data of type: {}'.format(type(data)))
 
 def save_gamestate(filename): # save file and send it
+	rng = G.random
+	del G.random
 	data = {
 		'gamestate': convert_to_saveable(G),
 		'waiting_objs': convert_to_saveable(WAITING_OBJS),
 		'waiting_actions': convert_to_saveable(WAITING_ACTIONS),
 		'repeats': convert_to_saveable(REPEATS),
+		'debug': DEBUG,
 		'phase_done': PHASE_DONE,
+		'randstate': rng.getstate(),
 	}
+	G.random = rng
 	if G is not None:
 		G.logger.write('Game saved')
 	if filename is None:
@@ -355,12 +365,17 @@ def save_gamestate(filename): # save file and send it
 
 def load_gamestate(path): # load from input file, or most recent checkpoint (more safe)
 	data = json.load(open(path, 'r'))
-	global WAITING_OBJS, WAITING_ACTIONS, REPEATS, G, PHASE_DONE
+	global WAITING_OBJS, WAITING_ACTIONS, REPEATS, G, PHASE_DONE, DEBUG
 	WAITING_OBJS = convert_from_saveable(data['waiting_objs'])
 	WAITING_ACTIONS = convert_from_saveable(data['waiting_actions'])
 	REPEATS = convert_from_saveable(data['repeats'])
 	G = convert_from_saveable(data['gamestate'])
 	PHASE_DONE = data['phase_done']
+	DEBUG = data['debug']
+	G.random = random.Random()
+	x, y, z = data['randstate']
+	rs = (x, tuple(y), z)
+	G.random.setstate(rs)
 	if G is not None:
 		G.logger.write('Game loaded')
 

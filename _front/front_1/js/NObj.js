@@ -4,10 +4,12 @@ var uniqueIdCounter = 0;
 class NObj {
   constructor(id, parentName, o) {
     this.id = id; // id of NObj is same as id of game objects
-    this.o = o;
+    //this.oid = o.id ==;
     this.parent = document.getElementById(parentName);
     this.elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
     this.elem.id = uniqueIdCounter + "_" + o.obj_type;
+    this.obj_type = o.obj_type;
+    uniqueIdCounter += 1;
     oids[this.elem.id] = {id: id, o: o, ms: this};
     this.isDrawn = false;
     this.isHighlighted = false;
@@ -20,6 +22,21 @@ class NObj {
     this.bounds = {l: 0, t: 0, r: 0, b: 0};
     this.overlay = null; //this is the overlay element for highlighting and selecting
     this.data = {};
+  }
+  addClass(clName) {
+    let el = this.overlay;
+    if (!el) return this;
+
+    let cl = el.getAttribute("class");
+    if (cl && cl.includes(clName)) {
+      return this;
+    } else {
+      let newClass = cl ? (cl + " " + clName).trim() : clName;
+      //console.log("add result:", newClass);
+      el.setAttribute("class", newClass);
+    }
+    //console.log("am ende:", this.overlay, cl, this.overlay.getAttribute("class"));
+    return this;
   }
   circle({className = "", sz = 50, fill = "yellow", alpha = 1, x = 0, y = 0} = {}) {
     return this.ellipse({
@@ -82,13 +99,15 @@ class NObj {
     this.isVisible = false;
   }
   highlight() {
-    setClass("highlight");
+    //console.log('highlighting',this.id)
+    this.addClass("highlighted");
     this.isHighlighted = true;
   }
   image({className = "", path = "", w = 50, h = 50, x = 0, y = 0} = {}) {
     //<image xlink:href="firefox.jpg" x="0" y="0" height="50px" width="50px"/>
     let r = document.createElementNS("http://www.w3.org/2000/svg", "image");
     r.setAttribute("href", path);
+
     r.setAttribute("width", w);
     r.setAttribute("height", h);
     r.setAttribute("x", -w / 2 + x);
@@ -139,6 +158,19 @@ class NObj {
     this.elem.appendChild(r);
     return this;
   }
+  removeClass(clName) {
+    let el = this.overlay;
+    if (!el) return this;
+
+    let cl = el.getAttribute("class");
+    if (cl && cl.includes(clName)) {
+      let newClass = cl.replace(clName, "").trim();
+      //console.log("remove result:", newClass);
+      el.setAttribute("class", newClass);
+    }
+    //console.log("am ende:", this.overlay, cl, this.overlay.getAttribute("class"));
+    return this;
+  }
   removeFromChildIndex(idx) {
     //if (idx == 0){$(this.elem).empty();console.log('hallo!!!',this.elem,this);return;}
     let el = this.elem;
@@ -170,15 +202,10 @@ class NObj {
     return this;
   }
   select() {
-    setClass("selected");
-    this.isHighlighted = false;
+    //console.log('selecting',this.id)
+    this.addClass("selected");
+    //this.isHighlighted = false;
     this.isSelected = true;
-  }
-  setClass(className) {
-    if (this.overlay) {
-      el.setAttribute("class", cl);
-    }
-    return this;
   }
   setPos(x, y) {
     this.elem.setAttribute("transform", `translate(${x},${y})`);
@@ -301,11 +328,11 @@ class NObj {
     return this;
   }
   unhighlight() {
-    setClass("");
+    this.removeClass("highlighted");
     this.isHighlighted = false;
   }
   unselect() {
-    setClass("");
+    this.removeClass("selected");
     this.isSelected = false;
   }
 }

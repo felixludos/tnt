@@ -22,10 +22,11 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 			tiles[n2].borders = tdict()
 		tiles[n2].borders[n1] = t
 	
-	G.tiles = tiles
+	G.tiles = tdict({name:idict(tile) for name, tile in tiles.items()})
 	
 	for name, tile in G.tiles.items():
-		tile.name = name
+		tile.__dict__['_id'] = name
+		# tile.name = name
 		tile.units = tset()
 		if tile.type != 'Sea' and tile.type != 'Ocean':
 			for neighbor in tile.borders.keys():
@@ -55,7 +56,7 @@ def load_players_and_minors(G):
 			designations[tile.alligence] = minor_designation
 			if tile.alligence not in territories:
 				territories[tile.alligence] = tset()
-			territories[tile.alligence].add(tile.name)
+			territories[tile.alligence].add(tile._id)
 	designations['USA'] = 'Major'
 	G.nations.designations = designations
 	G.nations.territories = territories
@@ -124,6 +125,7 @@ def load_players_and_minors(G):
 				faction.homeland[tile.alligence].add(tile_name)
 			if tile.alligence in full_cast:
 				faction.territory.add(tile_name)
+				tile.owner = name
 		
 		faction.tracks = tdict()
 		pop, res = compute_tracks(faction.territory, G.tiles)
@@ -149,16 +151,21 @@ def load_players_and_minors(G):
 	# load minors/diplomacy
 	minors = tdict()
 	majors = tdict()
+	status = tdict()
 	for name, team in G.nations.designations.items():
 		if team not in G.nations.groups:
 			G.nations.groups[team] = tset()
 		G.nations.groups[team].add(name)
 		
+		if team in {minor_designation, 'Major'}:
+			status[name] = tdict()
+			
+			status[name].is_armed = False
+			status[name].units = tdict()
+		
 		if team == minor_designation: # only minors
 			minor = tdict()
 			
-			minor.units = tset()
-			minor.is_armed = False
 			minor.faction = None
 			minor.value = 0
 			
@@ -167,8 +174,6 @@ def load_players_and_minors(G):
 		if team == 'Major': # only includes neutral majors
 			major = tdict()
 			
-			major.units = tset()
-			major.is_armed = False
 			major.faction = None
 			major.value = 0
 			
@@ -180,12 +185,17 @@ def load_players_and_minors(G):
 	G.diplomacy.neutrals = minors.copy()
 	G.diplomacy.neutrals.update(majors)
 	G.diplomacy.influence = tdict()
+	G.nations.status = status
 
-def load_game_info(G, path='config/game_info.yml'):
+def load_game_info(G, seed=None, path='config/game_info.yml'):
 	info = load(path)
 	
 	game = tdict()
 	
+	game.seed = seed
+	G.random = random.Random(seed)
+	# G.random = TestRandom(seed)
+
 	game.year = info.first_year - 1 # zero based
 	game.last_year = info.last_year
 	num_rounds = game.last_year - game.year
@@ -197,7 +207,7 @@ def load_game_info(G, path='config/game_info.yml'):
 	#game.action_phases = tset(x for x in info.phases if info.phases[x]) # no need for action phases anymore (all action phases have a pre phase)
 	
 	game.peace_dividends = tlist(sum([[v]*n for v,n in info.peace_dividends.items()], []))
-	random.shuffle(game.peace_dividends)
+	G.random.shuffle(game.peace_dividends)
 	
 	game.victory = info.victory
 	
@@ -206,11 +216,14 @@ def load_game_info(G, path='config/game_info.yml'):
 	G.objects = tdict()
 	G.objects.table = tdict()
 
-def init_gamestate():
+def init_gamestate(seed=None):
+	
+	if seed is None:
+		seed = random.getrandbits(64)
 	
 	G = tdict()
 	
-	load_game_info(G)
+	load_game_info(G, seed=seed)
 	
 	load_map(G)
 	
@@ -230,6 +243,8 @@ def encode_setup_actions(G):
 		# 	continue
 		
 		options = placeable_units(G, faction, nationality, tilenames)
+		
+		# print(nationality, tilenames)
 		
 		if len(options) == 0:
 			continue

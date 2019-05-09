@@ -20,6 +20,21 @@ def load_unit_rules(G, unit_rules_path='config/units.yml',
 	
 	G.units.reserves = unit_count
 	
+def check_unsupplied(G, player, tile):
+	if 'unsupplied' not in tile or player not in tile.unsupplied:
+		return
+	
+	for uid in tile.units:
+		unit = G.objects.table[uid]
+		if unit.type != 'Fortress' and G.units.rules[unit.type].type:
+			
+			
+			pass
+			if G.nations.designations[unit.nationality] == player:
+				pass
+		
+	
+	
 def move_unit(G, unit, to_tilename):
 	
 	# possibly convert to/from convoy
@@ -28,6 +43,8 @@ def move_unit(G, unit, to_tilename):
 	tile = G.tiles[unit.tile]
 	tile.units.remove(unit._id)
 	G.objects.updated[unit.tile] = tile
+	
+	check_unsupplied(G, G.nations.designations[unit.nationality], tile)
 	
 	unit.tile = to_tilename
 	tile = G.tiles[unit.tile]
@@ -49,6 +66,9 @@ def add_unit(G, unit): # tile, type, cv, nationality
 	
 	if player is 'Minor':
 		unit.visible = tset(G.players.keys())
+		
+		G.nations.status[unit.nationality][unit._id] = unit
+		
 	else:
 		unit.visible = tset({G.nations.designations[unit.nationality]})
 		
@@ -98,11 +118,16 @@ def remove_unit(G, unit):
 		unit.type = unit.carrying
 		del unit.carrying
 	
-	# update reserves
-	reserves = G.units.reserves[unit.nationality]
-	if unit.type not in reserves:
-		reserves[unit.type] = 0
-	reserves[unit.type] += 1
+	if player in {'Minor', 'Major'}:
+		status = G.nations.status[unit.nationality]
+		del status[unit._id]
+	else:
+	
+		# update reserves
+		reserves = G.units.reserves[unit.nationality]
+		if unit.type not in reserves:
+			reserves[unit.type] = 0
+		reserves[unit.type] += 1
 	
 	G.tiles[tilename].units.remove(unit._id)
 	del G.players[player].units[unit._id]

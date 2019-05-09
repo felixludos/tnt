@@ -41,14 +41,14 @@ def load_card_decks(G, action_path='config/cards/action_cards.yml',
 	
 	G.cards.info = cinfo
 	
-	shuffle(G.cards.investment)
-	shuffle(G.cards.action)
+	shuffle(G.random, G.cards.investment)
+	shuffle(G.random, G.cards.action)
 
 
-def shuffle(stack):
+def shuffle(rng, stack):
 	
 	stack.deck.extend(stack.discard_pile)
-	random.shuffle(stack.deck)
+	rng.shuffle(stack.deck)
 	
 	stack.discard_pile.clear()
 	
@@ -97,18 +97,18 @@ def get_cards(stack, N=1):
 
 
 def split_choices(options, num, dim):
-	random.shuffle(options)
+	G.random.shuffle(options)
 	
 	picks = [[] for _ in range(num)]
 	indices = list(range(num))
 	for name, count in options:
 		
-		idx = random.choice(indices, count, replace=False)
+		idx = G.random.choice(indices, count, replace=False)
 		for i in idx:
 			picks[i].append(name)
 			if len(picks[i]) == dim:
 				indices = indices[i != indices]
-	random.shuffle(picks)
+	G.random.shuffle(picks)
 	return picks
 
 def load_gen_card_decks(G, card_config_path='config/card_stats.yml',):
@@ -139,15 +139,15 @@ def load_gen_card_decks(G, card_config_path='config/card_stats.yml',):
 			card.name = name
 			
 			wildcards.append(card)
-	random.shuffle(wildcards)
+	G.random.shuffle(wildcards)
 	
 	for season, info in config.seasons.items():
 		
 		commands = sum([[k] * v for k, v in info.commands.items()], [])
-		random.shuffle(commands)
+		G.random.shuffle(commands)
 		
 		if len(info.priorities) > info.count:
-			priorities = random.choice(info.priorities, info.count, replace=False).tolist()
+			priorities = G.random.choice(info.priorities, info.count, replace=False).tolist()
 		else:
 			priorities = info.priorities
 		assert len(priorities) == info.count
@@ -215,7 +215,7 @@ def load_gen_card_decks(G, card_config_path='config/card_stats.yml',):
 			break
 	
 	factories = sum([[k] * v for k, v in config.factory_levels.items()], [])
-	np.random.shuffle(factories)
+	G.random.shuffle(factories)
 	
 	for pick in picks:
 		tech1, tech2 = pick
@@ -231,5 +231,5 @@ def load_gen_card_decks(G, card_config_path='config/card_stats.yml',):
 	G.action_cards.discard_pile = []
 	G.investment_cards.discard_pile = []
 	
-	np.random.shuffle(G.investment_cards.deck)
-	np.random.shuffle(G.action_cards.deck)
+	G.random.shuffle(G.investment_cards.deck)
+	G.random.shuffle(G.action_cards.deck)

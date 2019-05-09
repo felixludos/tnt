@@ -1,0 +1,114 @@
+
+
+action:
+  Ties that Bind:
+    message: Add 1 Friendly (or remove 1 Rival) Influence marker from one of the Neutral nations listed after your Faction.
+    add: True
+    remove: True
+    from_self: True
+    options:
+      Axis: [Austria, Hungary, Bulgaria]
+      West: [USA, Low Countries, Czechoslovakia]
+      USSR: [Spain, Yugoslavia]
+  Ethnic Ties:
+    message: Add 1 Friendly (or remove 1 Rival) Influence marker to one of the Neutral Nations listed after your Faction.
+    add: True
+    remove: True
+    from_self: True
+    options:
+      Axis: [Austria, Sweden, Norway]
+      West: [USA, Norway, Low Countries, Rumania]
+      USSR: [Yugoslavia, Poland, Bulgaria]
+  Birds of a Feather 1:
+    message: Add 1 Friendly (or remove 1 Rival) Influence marker in one of the Neutral Nations listed after your Faction.
+    add: True
+    remove: True
+    from_self: True
+    options:
+      Axis: [Poland, Spain, Bulgaria, Baltic States]
+      West: [USA, Low Countries, Denmark, Czechoslovakia]
+      USSR: [Spain]
+  Foreign Aid:
+    message: Reduce Friendly IND by 1 to add 1 Friendly (or remove 1 Rival) Influence marker in any Neutral Nation
+    add: True
+    remove: True
+  Brothers in Arms:
+    message: Add 1 Friendly (or remove 1 Rival) Influence marker to one of the Neutral Nations listed after your Faction.
+    add: True
+    remove: True
+    from_self: True
+    options:
+      Axis: [Austria, Hungary, Bulgaria]
+      West: [USA, Low Countries, Rumania]
+      USSR: [Spain, Czechoslovakia]
+  Birds of a Feather 2:
+    message: Add 1 Friendly (or remove 1 Rival) Influence marker in one of the Neutral Nations listed after your Faction.
+    add: True
+    remove: True
+    from_self: True
+    options:
+      Axis: [Portugal, Spain, Yugoslavia, Latin America]
+      West: [USA, Norway, Denmark, Sweden]
+      USSR: [Spain]
+  Isolationism:
+    message: Remove 1 Rival Influence marker from the USA, Spain, Low Countries, Poland, Sweden, or Turkey
+    remove: True
+    options: [USA, Spain, Low Countries, Poland, Sweden, Turkey]
+  Fear & Loathing:
+    message: Remove a Rival Influence marker from one of the Neutral Nations listed after that Rival.
+    remove: True
+    from_self: False
+    options:
+      Axis: [Low Countries, Czechoslovakia, Poland, Yugoslavia, Norway, Rumania, USA]
+      West: [Austria, Hungary, Bulgaria, Latin America, Turkey, Persia]
+      USSR: [Poland, Rumania, Turkey, Finland, Sweden, Baltic States, USA]
+  Guarantee:
+    message: Add 1 Friendly (or remove 1 Rival) Influence marker in any Neutral Nation adjacent to Rival-controlled Territory.
+    add: True
+    remove: True
+    adjacent: True
+    from_self: False
+  Versailles:
+    message: Add 1 Friendly (or remove 1 Rival) Influence marker from one of the Neural Nations listed after your Faction.
+    add: True
+    remove: True
+    from_self: True
+    options:
+      Axis: [Austria, Hungary, Turkey]
+      West: [Poland, Czechoslovakia, Yugoslavia]
+      USSR: [Yugoslavia]
+  Intimidation:
+    message: Add 1 Friendly (or remove 1 Rival) Influence marker in any Neutral Nation adjacent to Friendly-controlled Territory.
+    add: True
+    remove: True
+    adjacent: True
+    from_self: True
+
+investment:
+  technologies:
+    Atomic Research 4: Implosion trigger - wins game*
+    Atomic Research 3: Plutonium - allows step 4
+    Atomic Research 2: Breeder Reactor - allows step 3
+    Atomic Research 1: Atomic Pile - allows step 2
+    Jets: AFs FirstFire
+    Rocket Artillery: Infantry FirstFire
+    LSTs: 2 invaders per border
+    Heavy Bombers: AFs move 3
+    Motorized Infantry: Infantry moves 3
+    Heavy Tanks: Tanks FirstFire
+    Precision Bombsight: AF can bomb IND
+    Air Defense Radar: AFs 2A3 in friendly territory
+    Naval Radar: Fleets FirstFire
+    Sonar: Fleet S3
+    Industrial Espionage: pair with revealed tech to achieve tech
+
+  intelligence:
+    Spy Ring: Blindly steal one card from a Rival
+    Code Break: Inspect rival hand
+    Agent: Inspect rival units on one tile
+    Sabotage: Reduce rival industry by 1
+    Coup: Remove all rival influence from 1 neutral minor
+    Double Agent: Reverse Intel card effect
+    Mole: Inspect secret vault, and steal tech (achieve a tech in the vault by pairing with one of your cards)
+
+

@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask import request
 from flask_util import ActionConverter
 import json
-app = Flask(__name__, static_folder='_front/front_1')
+app = Flask(__name__, static_folder='_front/front_console')
 CORS(app)
 
 #init
@@ -96,42 +96,82 @@ def myload(data):
 	#res=FORMAT_MSG(get_G(), 'Axis')
 	#print(res)
 	#return FORMAT_MSG(get_object_table(), 'Axis')
+@app.route('/statusWest')
+def get_status_West():
+	out = FORMAT_MSG(pull_msg('West'), 'West')
+	return out
+@app.route('/statusAxis')
+def get_status_Axis():
+	out = FORMAT_MSG(pull_msg('Axis'), 'Axis')
+	return out
+@app.route('/statusUSSR')
+def get_status_USSR():
+	out = FORMAT_MSG(pull_msg('USSR'), 'USSR')
+	return out
+@app.route('/infoWest')
+def get_infoWest():
+	return FORMAT_MSG(get_game_info('West'))
+@app.route('/infoAxis')
+def get_infoAxis():
+	return FORMAT_MSG(get_game_info('Axis'))
+@app.route('/infoUSSR')
+def get_infoUSSR():
+	return FORMAT_MSG(get_game_info('USSR'))
+
+statfold_con='_front/front_console'
+@app.route('/c')
+@app.route('/c/')
+def rootC():
+	return send_from_directory(statfold_con, 'index.html')
+    
+@app.route('/css/<filename>')
+def rootcssC(filename):
+    return send_from_directory(statfold_con, 'css/'+filename)
+
+@app.route('/js/<filename>')
+def rootjsC(filename):
+    return send_from_directory(statfold_con, 'js/'+filename)
+
+@app.route('/assets/<path:path>')
+def rootassetsC(path):
+    return send_from_directory(statfold_con, 'assets/'+path)
 
 
+statfold1='_front/front_0'
 @app.route('/1')
 @app.route('/1/')
 def root():
-	return send_from_directory(app.static_folder, 'index.html')
+	return send_from_directory(statfold1, 'index.html')
     
 @app.route('/css/<filename>')
 def rootcss(filename):
-    return send_from_directory(app.static_folder, 'css/'+filename)
+    return send_from_directory(statfold1, 'css/'+filename)
 
 @app.route('/js/<filename>')
 def rootjs(filename):
-    return send_from_directory(app.static_folder, 'js/'+filename)
+    return send_from_directory(statfold1, 'js/'+filename)
 
 @app.route('/assets/<path:path>')
 def rootassets(path):
-    return send_from_directory(app.static_folder, 'assets/'+path)
+    return send_from_directory(statfold1, 'assets/'+path)
 
-statfold1='_front/front_0'
+statfold0='_front/front_0'
 @app.route('/0')
 @app.route('/0/')
 def root0():
-	return send_from_directory(statfold1, 'index.html')
+	return send_from_directory(statfold0, 'index.html')
     
 @app.route('/common/css/<filename>')
 def rootcss0(filename):
-    return send_from_directory(statfold1, 'css/'+filename)
+    return send_from_directory(statfold0, 'css/'+filename)
 
 @app.route('/common/js/<filename>')
 def rootjs0(filename):
-    return send_from_directory(statfold1, 'js/'+filename)
+    return send_from_directory(statfold0, 'js/'+filename)
 
 @app.route('/common/assets/<path:path>')
 def rootassets0(path):
-    return send_from_directory(statfold1, 'assets/'+path)
+    return send_from_directory(statfold0, 'assets/'+path)
 
 
 
@@ -231,7 +271,7 @@ def init_game(game_type='hotseat', player='Axis', debug=False):
 	
 	if not game_type == 'hotseat':
 		return 'Error: Game type must be hotseat'
-	out = FORMAT_MSG(start_new_game(player, debug=debug), player)
+	out = FORMAT_MSG(start_new_game(player, debug=debug, seed=0), player)
 	return out
 
 @app.route('/info/<faction>')

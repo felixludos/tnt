@@ -173,6 +173,32 @@ def decode_actions(code):
 	return xset(map(flatten, code))
 
 
+class TestRandom(random.Random):
+	
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.count = 0
+		self.log = []
+	
+	# def __getattribute__(self, item):
+	# 	print(item, super().__getattribute__('random')())
+	# 	return super().__getattribute__(item)
+	
+	def shuffle(self, *args, **kwargs):
+		self.count += 1
+		self.log.append(self.random())
+		return super().shuffle(*args, **kwargs)
+	
+	def choice(self, *args, **kwargs):
+		self.count += 1
+		x = self.random()
+		self.log.append(x)
+		
+		# if x == 0.4540783303488197:
+		# 	# raise Exception()
+		# 	print('Last reproducible random number')
+		
+		return super().choice(*args, **kwargs)
 
 
 def collate(raw, remove_space=True, transactionable=True):
@@ -221,7 +247,7 @@ def save(data, path):
 			  default_flow_style=False)
 
 def load(path):
-	return collate(yaml.load(open(path, 'r'), Loader=yaml.FullLoader))
+	return collate(yaml.load(open(path, 'r'))) #, Loader=yaml.FullLoader))
 
 
 

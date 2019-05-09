@@ -83,6 +83,10 @@ function addAll(akku, other) {
 function addIf(el, arr) {
   if (!arr.includes(el)) arr.push(el);
 }
+function arrMinus(a, b) {
+  let res = a.filter(x => !b.includes(x));
+  return res;
+}
 function carteset(l1, l2) {
   //l1,l2 are lists of list
   let res = [];
@@ -150,6 +154,14 @@ function empty(arr) {
 }
 function first(arr) {
   return arr.length > 0 ? arr[0] : null;
+}
+function firstCond(arr, func) { //return first elem that fulfills condition
+  let res = arr.filter(x => func(x));
+  return res.length > 0 ? res[0] : null;
+}
+function findFirst(arr, attr, val) {
+  let matches = arr.filter(x => attr in x && x[attr] == val);
+  return empty(matches) ? null : matches[0];
 }
 function findSameSet(llst, lst) {
   // returns element of llst that has same elements as lst, even if different order
@@ -270,6 +282,24 @@ function prlist(arr) {
     if (isEmpty(arr)) return "";
     else return "[" + prlist(arr[0]) + arr.slice(1).map(x => "," + prlist(x)) + "]";
   } else return arr;
+}
+function removeByProp(arr, prop, val) {
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i][prop] === val) {
+      arr.splice(i, 1);
+      i--;
+      return;
+    }
+  }
+}
+function removeInPlace(arr, el) {
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i] === el) {
+      arr.splice(i, 1);
+      i--;
+      return;
+    }
+  }
 }
 function someFunction() {
   //console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhh");
@@ -959,6 +989,7 @@ function closestParent(elem, selector) {
   }
   return null;
 }
+function error(msg){console.log('ERROR!!!!! '+msg)}
 function findParentWithId(elem) {
   ////console.log(elem);
   while (elem && !elem.id) {
@@ -980,6 +1011,10 @@ function ellipsis(text, font, width, padding) {
 function evToId(ev) {
   let elem = findParentWithId(ev.target);
   return elem.id;
+}
+function evToIdParent(ev) {
+  let elem = findParentWithId(ev.target);
+  return elem;
 }
 function getParentOfScript() {
   // finds script in which this function is called
@@ -1161,6 +1196,9 @@ function isString(param) {
 }
 function isMS(param) {
   return getTypeOf(param) == "MS";
+}
+function isNumber(param) {
+  return !isNaN(Number(param));
 }
 function convertToMS(p) {
   let res = undefined;

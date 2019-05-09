@@ -23,7 +23,8 @@ class NPage{
     hide(this.log_area)
     hide(this.openCard_area);
     hide(this.command_area);
-    hide(this.status_area);
+    
+    show(this.status_area);
 
     show(this.prop_area);
     show(this.reserve_area);
@@ -45,7 +46,7 @@ class NPage{
     show(this.menu_area);
     show(this.command_area);
 
-    hide(this.status_area);
+    show(this.status_area);
     hide(this.chat_area);
     hide(this.prop_area);
     hide(this.actionDeck_area);

@@ -46,9 +46,10 @@
 .grid_test {
   display: grid;
   grid-template-columns: 60px 1190px auto;
-  grid-template-rows: auto 200px 500px 260px auto auto;
+  grid-template-rows: auto auto 200px 500px 260px auto auto;
   grid-template-areas:
     "menu menu menu"
+    "status status status"
     "test test test"
     "sel map  log"
     "sel map  buttons"
@@ -90,9 +91,10 @@
 .grid_edit {
   display: grid;
   grid-template-columns: 60px 1190px auto;
-  grid-template-rows: auto 200px 760px auto auto auto;
+  grid-template-rows: auto auto 200px 760px auto auto auto;
   grid-template-areas:
     "menu menu menu"
+    "status status status"
     "test test test"
     "sel map  props"
     "cards cards cards"

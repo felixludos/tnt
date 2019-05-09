@@ -80,11 +80,74 @@ def contains_fortress(G, tile):
 # Diplomacy
 ######################
 
-
-
-
+def eval_unit_entry(G, player, tile):
 	
-def eval_tile_control(G, tile):
+	# TODO: Axis entering Canada -> USA becomes West satellite
+	# TODO: Interventions
+	
+	# player = G.nations.designations[unit.nationality]
+	
+	pass
+
+
+def present_powers(G, tile):
+	powers = xset()
+	for uid in tile.units:
+		unit = G.objects.table[uid]
+		powers.add(G.nations.designations[unit.nationality])
+	return powers
+
+# check for new battle
+def eval_tile_control(G, player, tile, unit=None): # usually done when a unit leaves a tile
+	
+	owner = None
+	if 'alligence' in tile:
+		owner = tile.owner if 'owner' in tile else G.nations.designations[tile.alligence]
+	
+	# if no unit, just update disputed
+	if unit is None:
+		pass
+	else:
+		assert player == G.nations.designations[unit.nationality], 'Unit doesnt match player: {} {}'.format(player, unit.nationality)
+	
+	if 'alligence' in tile:  # land tile
+		
+		
+		if player == owner: # or player inside
+			return False
+	
+		powers = present_powers(G, tile)
+		
+		if len(powers) == 1: # only a single power on the island
+			
+			new = powers.pop()
+			
+			if new != owner:
+				if new in G.players:
+					tile.owner = new
+					G.objects.updated[tile._id] = tile
+					G.players[new].territory.add(tile._id)
+					G.logger.write('{} takes control of {}'.format(new, tile._id))
+				elif 'owner' in tile:
+					
+					del tile.owner
+					G.objects.updated[tile._id] = tile
+					
+				return False
+			else:
+				
+				return True
+			pass
+		
+		elif unit is not None:
+			if len(powers) == 0:
+				pass # unit enters an empty tile
+			else:
+				pass # unit enters non empty tile - may cause battle
+		else:
+			pass # multiple powers present
+		
+	
 	pass
 
 ######################
@@ -151,17 +214,16 @@ def check_occupied(G, tile, player, wars, enemy=True): # meant to check if rival
 			return True
 		
 	return False
-	
+
 
 def tile_hostile(G, player, tile, decl=None):
-	
 	if decl is None:
-		decl = G.temp.commands[player].declarations
-	
+		decl = G.players[player].diplomacy.violations
+
 	wars = G.players[player].stats.at_war_with
-	
+
 	if 'alligence' in tile:
-		if check_occupied(G, tile, player, wars, enemy=False): # cant occupy same land tile as rival
+		if check_occupied(G, tile, player, wars, enemy=False):  # cant occupy same land tile as rival
 			return False
 		owner = G.nations.designations[tile.alligence]
 		if owner == player:
@@ -169,13 +231,39 @@ def tile_hostile(G, player, tile, decl=None):
 				return True
 			return None
 		elif owner in G.players:
-			return wars[owner]
-		else: # Major or Minor
-			return owner in decl # no access if occupied by nonenemy
-			
+			if not wars[owner]:
+				return False
+		elif not G.nations.status[owner].is_armed:  # Major or Minor
+			return False  # owner in decl # no access if occupied by nonenemy
+
 	elif check_occupied(G, tile, player, wars, enemy=True):
 		return True
 	return False
+
+
+# def tile_hostile(G, player, tile, decl=None):
+#
+# 	if decl is None:
+# 		decl = G.players[player].diplomacy.violations
+#
+# 	wars = G.players[player].stats.at_war_with
+#
+# 	if 'alligence' in tile:
+# 		if check_occupied(G, tile, player, wars, enemy=False): # cant occupy same land tile as rival
+# 			return False
+# 		owner = G.nations.designations[tile.alligence]
+# 		if owner == player:
+# 			if 'disputed' in tile:
+# 				return True
+# 			return None
+# 		elif owner in G.players:
+# 			return wars[owner]
+# 		else: # Major or Minor
+# 			return owner in decl # no access if occupied by nonenemy
+#
+# 	elif check_occupied(G, tile, player, wars, enemy=True):
+# 		return True
+# 	return False
 	
 movement_restrictions = {
 	'land': {'Land', 'Coast', 'Strait'},
@@ -220,7 +308,7 @@ def fill_movement(G, player, tile, destinations, crossings=None, borders=None,
 		neighbor = G.tiles[name]
 		remaining = fuel
 		
-		brd = (tile.name, neighbor.name) if tile.name < neighbor.name else (neighbor.name, tile.name)
+		brd = (tile._id, neighbor.name) if tile._id < neighbor.name else (neighbor.name, tile._id)
 		
 		# is access physically possible
 		
@@ -261,6 +349,8 @@ def fill_movement(G, player, tile, destinations, crossings=None, borders=None,
 		
 		# is access politically possible
 		
+		# TODO: make sure passing through straits is possible - recurse without adding
+		
 		engaging = tile_hostile(G, player, neighbor)
 		
 		if engaging is None: # can enter - no hostile troops
@@ -289,7 +379,7 @@ def fill_movement(G, player, tile, destinations, crossings=None, borders=None,
 				if crossings is not None: # crossings matter => ground unit
 					if neighbor.name not in crossings:
 						crossings[neighbor.name] = xset()
-					crossings[neighbor.name].add(tile.name)  # make note of each possible entry point for engaging
+					crossings[neighbor.name].add(tile._id)  # make note of each possible entry point for engaging
 				
 			if hidden_movement: # unit_type in {A, S}
 				

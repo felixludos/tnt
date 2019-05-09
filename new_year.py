@@ -22,8 +22,8 @@ def new_year_phase(G, player=None, action=None):
 			raise NotImplementedError
 		
 	# shuffle discard piles
-	shuffle(G.cards.action)
-	shuffle(G.cards.investment)
+	shuffle(G.random, G.cards.action)
+	shuffle(G.random, G.cards.investment)
 	
 	# peace dividends
 	for player, faction in G.players.items():
@@ -34,7 +34,7 @@ def new_year_phase(G, player=None, action=None):
 			G.logger.write('- you receive {} victory points'.format(val), player=player)
 			
 	# choose turn order
-	G.game.turn_order = G.game.turn_order_options[random.randint(1,6)]
+	G.game.turn_order = G.game.turn_order_options[G.random.randint(1,6)]
 	G.logger.write('Turn order: {}'.format(', '.join(G.game.turn_order)))
 	
 	

@@ -115,11 +115,12 @@ def refresh(player):
 	return FORMAT_MSG(get_object_table(), player)
 
 @app.route('/init/<game_type>/<player>')
-def init_game(game_type='hotseat', player='Axis', debug=False):
+@app.route('/init/<game_type>/<player>/<seed>')
+def init_game(game_type='hotseat', player='Axis', debug=False, seed=None):
 	
 	if not game_type == 'hotseat':
 		return 'Error: Game type must be hotseat'
-	out = FORMAT_MSG(start_new_game(player, debug=debug), player)
+	out = FORMAT_MSG(start_new_game(player, debug=debug, seed=seed), player)
 	return out
 
 @app.route('/info/<faction>')
