@@ -2,21 +2,78 @@
 
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
 from tnt_cards import discard_cards
-from tnt_units import add_unit, move_unit
-from tnt_util import travel_options, eval_tile_control
+from tnt_units import add_unit, move_unit, remove_unit
+from tnt_util import travel_options, eval_tile_control, present_powers
 from government import check_revealable, reveal_tech
 import random
 
-# def evaluate_supplies(G, player):
-# 	pass
-#
-# def evaluate_blockades(G, player):
-# 	pass
-
+def find_path(G, loc, goals, player,
+              neutrals=False, peaceful=False, observed=None):
+	if loc in goals:
+		return True
+	
+	if observed is None:
+		observed = xset()
+		
+	tile = G.tiles[loc]
+	observed.add(loc)
+	
+	if peaceful and 'disputed' in tile:
+		return False
+	
+	if 'alligence' in tile:
+		owner = tile.owner if 'owner' in tile else G.nations.designations[tile.alligence]
+		
+		if owner != player and (not neutrals or owner in G.players):
+			return False
+	else: # sea/ocean
+		wars = G.players[player].stats.at_war_with
+		powers = present_powers(G, tile)
+		
+		for power in powers:
+			if power in wars and wars[power]:
+				return False
+	
+	# recurse
+	for neighbor in tile.borders:
+		if neighbor not in observed and find_path(G, loc, goals, player,
+              neutrals=neutrals, peaceful=peaceful, observed=observed):
+			return True
+	return False
 
 def blockade_phase(G):
 	raise NotImplementedError
 
 def supply_phase(G):
-	raise NotImplementedError
-
+	
+	for player, faction in G.players:
+		
+		goals = xset(faction.stats.cities.SubCapitals)
+		goals.add(faction.stats.cities.MainCapital)
+		
+		if not faction.stats.at_war:
+			continue
+			
+		for uid, unit in faction.units:
+			if unit.type == 'Fortress' or G.units.rules[unit.type].type != 'G':
+				continue
+				
+			supplied = find_path(G, unit.tile, goals=goals, player=player)
+			tile = G.tiles[unit.tile]
+			
+			if not supplied:
+				unit.cv -= 1
+				if unit.cv == 0:
+					msg = 'was eliminated'
+					remove_unit(G, unit)
+				else:
+					msg = 'lost 1 cv'
+					G.objects.updated[uid] = unit
+				
+				G.logger.write('{} unit in {} {} due to lack of supplies'.format(player, unit.tile, msg))
+				
+			elif 'unsupplied' in tile and player in tile.unsupplied:
+				tile.unsupplied.remove(player)
+				if len(tile.unsupplied) == 0:
+					del tile.unsupplied
+				G.objects.updated[tile._id] = tile

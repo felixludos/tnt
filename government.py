@@ -587,9 +587,9 @@ def governmnet_phase(G, player, action): # play cards
 	if 'move_to_post' in G.temp: # after phase has ended and only clean up is necessary
 		return government_post_phase(G, player, action)
 	
+	# TODO: make sure cards that should now be visible stay visible
 	if player in G.temp.intel: # hide any temporarily visible objects from intel cards
 		for ID, obj in G.temp.intel[player].items():
-			# print(ID, obj.visible)
 			obj.visible.discard(player)
 			G.objects.updated[ID] = obj
 		del G.temp.intel[player]
@@ -819,8 +819,6 @@ def government_post_phase(G, player=None, action=None):
 						
 			else:
 				
-				val = min(inf.value, 3) # cap influence at 3
-				
 				if dipl.faction is None:
 					gainer = inf.faction
 				elif dipl.faction != inf.faction:
@@ -833,12 +831,12 @@ def government_post_phase(G, player=None, action=None):
 					G.players[inf.faction].diplomacy[diplvl[dipl.value]].remove(dipl.faction)
 			
 			faction = G.players[inf.faction]
-			faction.diplomacy[diplvl[inf.value]].add(dipl.faction)
+			faction.diplomacy[diplvl[val]].add(dipl.faction)
 			
 			dipl.faction = inf.faction
-			dipl.value = inf.value
+			dipl.value = val
 			
-			if inf.value == 3:
+			if val >= 3:
 				new_sats[nation] = inf.faction
 			
 			# update tracks
@@ -856,11 +854,10 @@ def government_post_phase(G, player=None, action=None):
 					G.players[loser].tracks.RES -= res
 					tmsg += ' (lost by {})'.format(loser)
 			
-			dname = dipname[inf.value]
-			
 			if nation == 'USA' and not faction.stats.enable_USA:
 				G.logger.write('{} has {} influence in the USA'.format(inf.faction, inf.value))
 			else:
+				dname = dipname[val]
 				G.logger.write('{} becomes {} of {}{}'.format(nation, dname, inf.faction, tmsg))
 			
 			

@@ -30,6 +30,8 @@ class xset(set):
 		return item in self.data
 	def pop(self):
 		return self.data.popitem()[0]
+	def clear(self):
+		return self.data.clear()
 		
 	def copy(self): # Copies have new IDs (can't be compared to originals)
 		return xset(iter(self))
