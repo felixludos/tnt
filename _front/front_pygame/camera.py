@@ -8,8 +8,9 @@ around their view of the map.
 
 
 class Camera:
-    def __init__(self, width, height):
+    def __init__(self, game, width, height):
         self.camera = pg.Rect(0, 0, width, height)
+        self.game = game
         self.width = width
         self.height = height
 
@@ -38,3 +39,15 @@ class Camera:
         y = max(-(self.height - WIN_HEIGHT), y) # Bottom
 
         self.camera = pg.Rect(x, y, self.width, self.height)
+
+    def zoom_out(self, target):
+        """ Zooming functionality - scales down the target. """
+        target.width = target.width - ZOOM_SPEED
+        target.height = target.height - ZOOM_SPEED
+        return target
+
+    def zoom_in(self, target):
+        """ Zooming functionality - scales up the target. """
+        target.width = target.width + ZOOM_SPEED
+        target.height = target.height + ZOOM_SPEED
+        return target
