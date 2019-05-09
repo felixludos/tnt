@@ -3,6 +3,7 @@ class MS {
   constructor(id, uid, parentName) {
     this.id = id; 
     this.parent = document.getElementById(parentName);
+    console.log('MS: parent',parent)
     this.elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
     this.elem.id = uid;
     this.isDrawn = false;

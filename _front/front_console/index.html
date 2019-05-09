@@ -24,98 +24,95 @@
   <body>
     <!-- #region HTML -->
     <div id="mainDiv" class="grid_game">
-      <div id="menu_area" class="grid_div" style="text-align:left;">
-        <div style="float:left;margin-left:10px">
-          <button class="hidden" id="bLoadScenario" onclick="onClickLoadScenario()">load scenario</button>
-          <button class="hidden" id="bStartScenario" onclick="onClickStartScenario()">start scenario</button>
-          <button class="hidden" id="bSkipAction" onclick="onClickSkipAction()">skip action</button>
-        </div>
-        <div style="float:right;margin-right:10px">
-          view:
-          <button id="bViewGame" onclick="page.gameView()">game</button>
-          <button class="hidden" id="bViewNoReserve" onclick="page.gameView(false)">no reserve</button>
-          <button id="bViewEdit" onclick="page.editView()">edit</button>
-          <button id="bViewTest" onclick="page.testView()">test</button>
-        </div>
-      </div>
-      <div id="status_area" class="grid_div" onclick="page.testView()">status</div>
-      <div id="test_area" class="grid_div">
-        <div class="flexdiv">
-          <div class="autocomplete">
-            <input id="myInput" type="text" name="myCountry" style="font-size:30px;" placeholder="command" />
+        <div id="menu_area" class="grid_div" style="text-align:left;">
+          <div style="float:left;margin-left:10px">
+            <button class="hidden" id="bLoadScenario" onclick="onClickLoadScenario()">load scenario</button>
+            <button class="hidden" id="bStartScenario" onclick="onClickStartScenario()">start scenario</button>
+            <button class="hidden" id="bSkipAction" onclick="onClickSkipAction()">skip action</button>
           </div>
-          <div class="autocomplete">
-            <input id="inparam" type="text" name="inparam" style="font-size:30px;" placeholder="param" />
+          <div style="float:right;margin-right:10px">
+            view:
+            <button id="bViewGame" onclick="page.gameView()">game</button>
+            <button class="hidden" id="bViewNoReserve" onclick="page.gameView(false)">no reserve</button>
+            <button id="bViewEdit" onclick="page.editView()">edit</button>
+            <button id="bViewTest" onclick="page.testView()">test</button>
           </div>
-          <button style="margin:10px" id="bSendMessage" onclick="onClickSendMessage()">send message</button>
-          <button style="margin:10px" id="bClear" onclick="onClickClearInputs()">clear inputs</button>
         </div>
-        <div style="margin:10px;text-align:left;">
-          <!-- <input type="text" id="inAction" style="width:90%;font-size:30px;" placeholder="enter action"> -->
-          <button id="bAddUnit" onclick="onClickAddUnit()">add unit</button>
+        <div id="status_area" class="grid_div" onclick="page.testView()">status</div>
+        <div id="test_area" class="grid_div">
+          <div class="flexdiv">
+            <div class="autocomplete">
+              <input id="myInput" type="text" name="myCountry" style="font-size:30px;" placeholder="command" />
+            </div>
+            <div class="autocomplete">
+              <input id="inparam" type="text" name="inparam" style="font-size:30px;" placeholder="param" />
+            </div>
+            <button style="margin:10px" id="bSendMessage" onclick="onClickSendMessage()">send message</button>
+            <button style="margin:10px" id="bClear" onclick="onClickClearInputs()">clear inputs</button>
+          </div>
+          <div style="margin:10px;text-align:left;">
+            <!-- <input type="text" id="inAction" style="width:90%;font-size:30px;" placeholder="enter action"> -->
+            <button id="bAddUnit" onclick="onClickAddUnit()">add unit</button>
+          </div>
         </div>
-      </div>
-      <div id="reserve_area" class="grid_div">
-        <svg id="selSvg" width="60" height="760"><g id="reserveG"></g></svg>
-      </div>
-      <div id="map_area" class="grid_div" style="background-color:rgba(86, 182, 222);">
-        <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="mapG" viewBox="0 0 3400 2200">
-            <image id="imgMap" width="3400" height="2200" href="/assets/TTmap.jpg" />
-          </g>
-        </svg>
-      </div>
-      <div id="log_area" class="grid_div" style="overflow-y:scroll">
-        <div id="log_all" class="hidden">all messages</div>
-        <div id="log_Axis" class="hidden">Axis messages</div>
-        <div id="log_USSR" class="hidden">USSR messages</div>
-        <div id="log_West" class="hidden">West messages</div>
-        <div id="tempDisplay" class="hidden" style="width:100%;height:100%">
+        <div id="reserve_area" class="grid_div">
+          <svg id="selSvg" width="60" height="760"><g id="reserveG"></g></svg>
+        </div>
+        <div id="map_area" class="grid_div" style="background-color:rgba(86, 182, 222);">
           <svg width="100%" height="100%" style="box-sizing:border-box;">
-            <g id="tempG"></g>
+            <g id="mapG" viewBox="0 0 3400 2200">
+              <image id="imgMap" width="3400" height="2200" href="/assets/TTmap.jpg" />
+            </g>
+          </svg>
+        </div>
+        <div id="log_area" class="grid_div" style="overflow-y:scroll">
+          <div id="log_all" class="hidden">all messages</div>
+          <div id="log_Axis" class="hidden">Axis messages</div>
+          <div id="log_USSR" class="hidden">USSR messages</div>
+          <div id="log_West" class="hidden">West messages</div>
+          <div id="tempDisplay" class="hidden" style="width:100%;height:100%">
+            <svg width="100%" height="100%" style="box-sizing:border-box;">
+              <g id="tempG"></g>
+            </svg>
+          </div>
+        </div>
+        <div id="prop_area" class="grid_div hidden">
+          actions
+          <button id="bEditPlaceUnits" onclick="onClickEditPlaceUnits(this)">place unit</button>
+          <button id="bEditDrawCards" onclick="onClickEditDrawCards(this)">draw card</button>
+          <button id="bEditDeleteUnits" onclick="onClickEditDeleteUnits(this)">delete unit</button>
+          <button id="bEditDeleteCards" onclick="onClickEditDeleteCards(this)">delete card</button>
+          <button id="bEditDeleteAll" onclick="onClickEditDeleteAll(this)">delete all</button>
+          <button id="bEditNextPlayer" onclick="onClickEditNextPlayer(this)">next player</button>
+          <button id="bEditDone" onclick="onClickEditDone(this)">done</button>
+        </div>
+        <div id="command_area" class="grid_div">
+          <button id="bNextPlayer" style="width:90%;" onclick="onClickNextPlayer()">next player</button>
+          <button id="bStep" style="width:90%;" onclick="onClickStep()">step</button>
+        </div>
+        <div id="chat_area" class="grid_div hidden">chat</div>
+        <div id="hand_area" class="grid_div" style="height:200px">
+          <svg width="100%" height="100%" style="box-sizing:border-box;">
+            <g id="handG_Axis"><text x="10" y="25" fill="grey">Axis</text></g>
+            <g id="handG_USSR"><text x="10" y="25" fill="red">USSR</text></g>
+            <g id="handG_West"><text x="10" y="25" fill="blue">West</text></g>
+          </svg>
+        </div>
+        <div id="cards2_area" class="grid_div" style="height:200px">
+          <svg width="100%" height="100%" style="box-sizing:border-box;">
+            <g id="openCardG"><text x="10" y="25" fill="grey">open</text></g>
+            <g id="actionDeckG"><text x="10" y="25" fill="grey">action</text></g>
+          </svg>
+        </div>
+        <div id="cards3_area" class="grid_div" style="height:200px">
+          <svg width="100%" height="100%" style="box-sizing:border-box;">
+            <g id="discardedG"><text x="10" y="25" fill="grey">discarded</text></g>
+            <g id="investmentDeckG"><text x="10" y="25" fill="grey">investment</text></g>
           </svg>
         </div>
       </div>
-      <div id="prop_area" class="grid_div hidden">
-        actions
-        <button id="bEditPlaceUnits" onclick="onClickEditPlaceUnits(this)">place unit</button>
-        <button id="bEditDrawCards" onclick="onClickEditDrawCards(this)">draw card</button>
-        <button id="bEditDeleteUnits" onclick="onClickEditDeleteUnits(this)">delete unit</button>
-        <button id="bEditDeleteCards" onclick="onClickEditDeleteCards(this)">delete card</button>
-        <button id="bEditDeleteAll" onclick="onClickEditDeleteAll(this)">delete all</button>
-        <button id="bEditNextPlayer" onclick="onClickEditNextPlayer(this)">next player</button>
-        <button id="bEditDone" onclick="onClickEditDone(this)">done</button>
-      </div>
-      <div id="command_area" class="grid_div">
-        <button id="bNextPlayer" style="width:90%;" onclick="onClickNextPlayer()">next player</button>
-        <button id="bStep" style="width:90%;" onclick="onClickStep()">step</button>
-      </div>
-      <div id="chat_area" class="grid_div hidden">chat</div>
-      <div id="hand_area" class="grid_div" style="height:200px">
-        <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="handG_Axis"><text x="10" y="25" fill="grey">Axis Hand</text></g>
-          <g id="handG_USSR"><text x="10" y="25" fill="red">USSR Hand</text></g>
-          <g id="handG_West"><text x="10" y="25" fill="blue">West Hand</text></g>
-        </svg>
-      </div>
-      <div id="openCard_area" class="grid_div" style="height:200px">
-        <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="openCardG"></g>
-        </svg>
-      </div>
-      <div id="actionDeck_area" class="grid_div hidden" style="height:200px">
-        <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="actionDeckG"></g>
-        </svg>
-      </div>
-      <div id="investmentDeck_area" class="grid_div hidden" style="height:200px">
-        <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="investmentDeckG"></g>
-        </svg>
-      </div>
-    </div>
-    <!-- #endregion HTML -->
-
+      <!-- #endregion HTML -->
+  
     <!-- #region globals -->
     <script>
       var player = "Axis";
@@ -152,7 +149,7 @@
         processActions(actionTuples);
       }
       function onClickStep() {
-        console.log("tuple chosen:", actionTuples[0]);
+        //console.log("tuple chosen:", actionTuples[0]);
         dp.action(player, actionTuples[0], nextMove);
       }
     </script>
@@ -161,12 +158,12 @@
     <!-- #region testing -->
     <script>
       function justOutput(actionTuples, gameObjects, gameData, serverData) {
-        console.log("nextMove", actionTuples, gameObjects, gameData);
-        console.log("serverData:", serverData);
+        //console.log("nextMove", actionTuples, gameObjects, gameData);
+        //console.log("serverData:", serverData);
       }
       function endlessMove(a_Tuples, g_Objects, g_Data, s_Data) {
-        console.log("endlessMove", a_Tuples, g_Objects, g_Data);
-        console.log("serverData:", s_Data);
+        //console.log("endlessMove", a_Tuples, g_Objects, g_Data);
+        //console.log("serverData:", s_Data);
 
         if ("error" in s_Data) {
           error("endlessMove");
@@ -178,12 +175,30 @@
         }
       }
       function nextMove(a_Tuples, g_Objects, g_Data, s_Data) {
-        console.log("nextMove", a_Tuples, g_Objects, g_Data);
-        console.log("serverData:", s_Data);
+        //console.log("nextMove", a_Tuples, g_Objects, g_Data);
+        //console.log("serverData:", s_Data);
         actionTuples = a_Tuples;
         gameData = g_Data;
         serverData = s_Data;
         //updateGameObjects(g_Objects,indices);
+      }
+      function testDrawCard() {
+        let card = JSON.parse(`{
+          "wildcard": "Isolationism",
+          "season": "Fall",
+          "priority": "H",
+          "value": 8,
+          "obj_type": "action_card",
+          "visible": {
+            "set": [
+              "Axis"
+            ]
+          },
+          "owner": "Axis",
+          "_id": "action_48"
+        }`);
+        console.log(card);
+        UIMan.drawCard(card);
       }
     </script>
     <!-- #endregion testing -->
@@ -233,23 +248,28 @@
             show(bNextPlayer);
           }
         } else {
-          processActions(a_Tuples);
+          if (!STOP) processActions(a_Tuples);
         }
       }
+      var STOP = false;
+      function isPhase(s) {
+        return startsWith(phase.toLowerCase(), s);
+      }
       function update(g_Objects, g_Data, s_Data) {
-        console.log("*** update ***");
+        //console.log("*** update ***");
         //augment G
         UIMan.clearTemp();
         for (const id in g_Objects) {
           let o = g_Objects[id];
           let otype = o.obj_type;
+          G.objects[id] = o;
           if (!(id in G.objects)) {
-            G.objects[id] = o;
+            // G.objects[id] = o;
             UIMan.prepCreate(id, o, otype);
           } else {
-            for (const prop in o) {
-              G.objects[id][prop] = o[prop];
-            }
+            // for (const prop in o) {
+            //   G.objects[id][prop] = o[prop];
+            // }
             UIMan.prepRemove(id, otype);
             UIMan.prepCreate(id, o, otype, player);
           }
@@ -257,7 +277,7 @@
         //reduce G
         if ("removed" in s_Data) {
           for (const id in s_Data.removed) {
-            UIMan.prepRemove(id, G[id].slice(), o.obj_type); //have added copy of o here!
+            UIMan.prepRemove(id, o.obj_type); //have added copy of o here!
             delete G[id];
           }
         }
@@ -270,19 +290,21 @@
         //do this directly without storing log
         addLogToPlayerLog(s_Data);
 
-        console.log(G);
+        //console.log(G);
       }
       function draw() {
-        console.log("*** draw ***");
+        //console.log("*** draw ***");
         //represent all objects in G in player's view
         //use UIMan.create and UIMan.remove
         //first remove uis that have to be redrawn
         UIMan.removeUis();
-        
+
         UIMan.drawTiles(); // first create tiles
+        UIMan.drawActionCards(); //
+        UIMan.drawInvestmentCards(); //
       }
       function processActions(tuples) {
-        console.log("*** processActions ***");
+        //console.log("*** processActions ***");
         dp.action(player, tuples[0], gameloop);
       }
     </script>
@@ -291,6 +313,8 @@
     <!-- #region execution starts here! -->
     <script>
       assetMan.initAssets(() => {
+        UIMan.initUI();
+
         dp.initGame(player, gameloop);
       });
     </script>

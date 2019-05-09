@@ -10,29 +10,12 @@ class NDataProcessor {
     this.sender = new NBackendCommunicator("http://localhost:5000/");
     //this.sender.sendOrPost('initWest'); //test
   }
-
-  processMessage(jsonData, callback = null) {
-    //for testing
-    //console.log("NDataProcessor:processMessage", jsonData);
-    this.serverData = jsonData;
-    processLog();
-    if (callback) callback(this.serverData);
-  }
-
-  //from init to actiontuples etc...
-  initGame(player = "West", callback) {
-    this.callback = callback;
-    this.player = player;
-    this.sender.send("init/hotseat/" + player, this.actionStep1.bind(this)); //send init message
-  }
-
   //from action to action or playerChange+action
   action(player, tuple, callback) {
     this.player = player;
     this.callback = callback;
     this.sender.send("action/" + this.player + "/" + tuple.join("+"), this.actionStep1.bind(this));
   }
-
   actionStep1(data) {
     this.serverData = JSON.parse(data); //save in this.serverdata
     //console.log('step1',this.serverData)
@@ -68,11 +51,11 @@ class NDataProcessor {
     this.processActions(data); //these are the new actions!
     this.callback(this.tuplesInAction, this.gameObjects, this.serverData.game, this.serverData);
   }
-
-  processLog() {
-    if ("log" in this.serverData) {
-      this.serverData.log = toHTMLString(this.serverData.log);
-    }
+  //from init to actiontuples etc...
+  initGame(player = "West", callback) {
+    this.callback = callback;
+    this.player = player;
+    this.sender.send("init/hotseat/" + player, this.actionStep1.bind(this)); //send init message
   }
   processActions(data) {
     //convert serverData to structures needed by frontend:
@@ -95,8 +78,14 @@ class NDataProcessor {
       this.tuplesInAction = tuples;
     }
   }
+  processLog() {
+    if ("log" in this.serverData) {
+      this.serverData.log = toHTMLString(this.serverData.log);
+    }
+  }
   processGameObjects() {
     let data = this.serverData;
+    console.log(this.serverData);
     let g = {};
 
     if ("created" in data) {
@@ -105,29 +94,53 @@ class NDataProcessor {
         g[sid] = data.created[id]; //overwride object of have already
       }
     }
-
-    //updated
     if ("updated" in data) {
       for (const id in data.updated) {
         let sid = id.toString();
-        //not sure if have to do this really, since possibly no need
-        // actually, the object might NOT exist,
-        // therefore, just create it if it does not exist!!!
-
-        if (!(sid in g)) {
-          //console.log("NON EXISTING:", sid);
-          g[sid] = data.updated[id];
-        } else {
-          let o = g[sid]; //this object should exist since it is being updated!
-          //each property of this object should be changed as in data.updated
-          let orig = data.updated[id];
-          for (const prop in orig) {
-            o[prop] = orig[prop];
-          }
-        }
+        g[sid]=data.updated[id];
       }
     }
-
     this.gameObjects = g;
+    return;
+  }
+
+  //   //updated
+  //   if ("updated" in data) {
+  //     for (const id in data.updated) {
+  //       let sid = id.toString();
+  //       g[sid]=data.updated[id];
+
+  //       //not sure if have to do this really, since possibly no need
+  //       // actually, the object might NOT exist,
+  //       // therefore, just create it if it does not exist!!!
+
+  //       if (!(sid in g)) {
+  //         //console.log("NON EXISTING:", sid);
+  //         g[sid] = data.updated[id];
+  //       } else {
+  //         let o = g[sid]; //this object should exist since it is being updated!
+  //         //each property of this object should be changed as in data.updated
+  //         let orig = data.updated[id];
+  //         for (const prop in orig) {
+  //           o[prop] = orig[prop];
+  //         }
+  //         // for (const prop in o) {
+  //         //   if (!(prop in orig)) {
+  //         //     console.log("deleting", o[prop], "of", prop);
+  //         //     delete o[prop];
+  //         //   }
+  //         // }
+  //       }
+  //     }
+  //   }
+
+  //   this.gameObjects = g;
+  // }
+  processMessage(jsonData, callback = null) {
+    //for testing
+    //console.log("NDataProcessor:processMessage", jsonData);
+    this.serverData = jsonData;
+    processLog();
+    if (callback) callback(this.serverData);
   }
 }

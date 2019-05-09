@@ -1,4 +1,4 @@
-//#region HACKS
+//#region _HACKS
 function hackPhaseAndPlayerTest(msg){
   console.log(msg)
   let res = stringAfterLast(msg,'Beginning ');
@@ -10,81 +10,6 @@ function hackPhaseAndPlayerTest(msg){
 }
 
 //#endregion HACKS
-
-//#region set and tuple helpers
-function extractUniqueStrings(tupleList) {
-  let idlist = [];
-  tupleList.map(x => x.map(y => addIf(y, idlist)));
-  return idlist;
-}
-
-function isSet(x) {
-  return "set" in x;
-}
-function isNumeric(x) {
-  return !isNaN(+x);
-}
-function isLiteral(x) {
-  return isString(x) || $.isNumeric(x);
-}
-function isTuple(x) {
-  return Array.isArray(x);
-}
-function isSingleton(x) {
-  return (isSet(x) && x.set.length == 1) || (isTuple(x) && x.length == 1);
-}
-function firstElement(x) {
-  if (isSet(x)) return x.set[0];
-  else if (isTuple(x)) return x[0];
-  else return null;
-}
-function expand1(x) {
-  if (isEmpty(x)) return [];
-  if (isLiteral(x)) return [x.toString()];
-  if (isSingleton(x)) return expand1(firstElement(x));
-  if (isSet(x)) return x.set.map(el => expand1(el));
-  if (isTuple(x)) {
-    let a = expand1(firstElement(x));
-    let b = x.slice(1);
-    let c = expand1(x.slice(1));
-    let d = extractStringLists(c);
-    //console.log('a=',fj(a),'b=',fj(b),'c=',fj(c))
-    //console.log('d=',fj(d))
-    return carteset(a, d);
-  }
-}
-function isListOfLiterals(lst) {
-  if (!isList(lst)) return false;
-  for (const el of lst) {
-    if (isList(el)) return false;
-  }
-  return true;
-}
-function extractStringLists(lst) {
-  let res = [];
-  for (const l of lst) {
-    if (isListOfLiterals(l)) res.push(l);
-    else if (isLiteral(l)) res.push([l]);
-    else {
-      let r2 = extractStringLists(l);
-      r2.map(x => res.push(x));
-    }
-  }
-  return res;
-}
-function expand(e) {
-  let res = [];
-  e = expand1(e);
-  for (const el of e) {
-    if (isll(el)) el.map(x => res.push(x));
-    else res.push(el);
-  }
-  return res;
-}
-function prex(x) {
-  prll(expand(x));
-}
-//#endregion
 
 //#region array helpers
 function addAll(akku, other) {
@@ -341,32 +266,6 @@ function without(arr, elementToRemove) {
 }
 
 //#endregion array helpers
-
-//#region dictionary helpers
-function isType(sType, val) {
-  // uses existing (global) config data to infer type from val
-  ////console.log("isType called!",sType, val, regions, units);
-  switch (sType) {
-    case "region":
-      return val in regions;
-    case "power":
-      return val in unitsPerPower;
-    case "unit":
-      return val in units;
-    case "faction":
-      return val in ["Axis", "West", "USSR"];
-  }
-  return false;
-}
-function inferType(val) {
-  for (const t of ["region", "power", "unit", "faction"]) {
-    if (isType(t, val)) {
-      return t;
-    }
-  }
-  return "unknown";
-}
-//#endregion dictionary helpers
 
 //#region color helpers
 function blackOrWhite(cssHSLA, maxLumForWhite = 88) {
@@ -889,6 +788,172 @@ function transColor(r, g, b, a) {
 }
 //#endregion
 
+//#region dictionary helpers
+function isType(sType, val) {
+  // uses existing (global) config data to infer type from val
+  ////console.log("isType called!",sType, val, regions, units);
+  switch (sType) {
+    case "region":
+      return val in regions;
+    case "power":
+      return val in unitsPerPower;
+    case "unit":
+      return val in units;
+    case "faction":
+      return val in ["Axis", "West", "USSR"];
+  }
+  return false;
+}
+function inferType(val) {
+  for (const t of ["region", "power", "unit", "faction"]) {
+    if (isType(t, val)) {
+      return t;
+    }
+  }
+  return "unknown";
+}
+//#endregion dictionary helpers
+
+//#region DOM helpers:
+function clearElement(elem, eventHandlerDictByEvent = {}) {
+  while (elem.firstChild) {
+    for (key in eventHandlerDictByEvent) {
+      elem.removeEventListener(key, eventHandlerDictByEvent[key]);
+    }
+    let el = elem.firstChild;
+    elem.removeChild(el);
+    //console.log('removed',el)
+  }
+}
+function closestParent(elem, selector) {
+  for (; elem && elem !== document; elem = elem.parentNode) {
+    if (elem.matches(selector)) return elem;
+  }
+  return null;
+}
+function findParentWithId(elem) {
+  ////console.log(elem);
+  while (elem && !elem.id) {
+    elem = elem.parentNode;
+  }
+  ////console.log("parent with id: ", elem);
+  return elem;
+}
+function ellipsis(text, font, width, padding) {
+  let textLength = getTextWidth(text, font);
+  let ellipsisLength = 0;
+  while (textLength + ellipsisLength > width - 2 * padding && text.length > 0) {
+    text = text.slice(0, -1).trim();
+    ellipsisLength = getTextWidth("...", font);
+    textLength = getTextWidth(text, font); //self.node().getComputedTextLength();
+  }
+  return ellipsisLength > 0 ? text + "..." : text;
+}
+function evToId(ev) {
+  let elem = findParentWithId(ev.target);
+  return elem.id;
+}
+function evToIdParent(ev) {
+  let elem = findParentWithId(ev.target);
+  return elem;
+}
+function getParentOfScript() {
+  // finds script in which this function is called
+  var thisScript = document.scripts[document.scripts.length - 1];
+  var parent = thisScript.parentElement;
+  return parent;
+}
+function getTextWidth(text, font) {
+  // re-use canvas object for better performance
+  var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
+  var context = canvas.getContext("2d");
+  context.font = font;
+  var metrics = context.measureText(text);
+  return metrics.width;
+}
+function hide(elem) {
+  elem.classList.add("hidden");
+}
+function hideSvg(elem) {
+  elem.setAttribute("style", "visibility:hidden;display:none");
+}
+function insertHere() {
+  var thisScript = document.scripts[document.scripts.length - 1];
+  var parent = thisScript.parentElement;
+  for (let i = 0; i < arguments.length; i++) {
+    const el = arguments[i];
+    if (typeof el == "string") {
+      thisScript.nextSibling.insertAdjacentHTML("beforebegin", el);
+    } else {
+      parent.insertBefore(el, thisScript.nextSibling);
+    }
+  }
+}
+function makeSvg(w, h) {
+  const svg1 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg1.setAttribute("width", w);
+  svg1.setAttribute("height", h);
+  return svg1;
+}
+function show(elem) {
+  elem.classList.remove("hidden");
+}
+function showSvg(elem){
+  elem.setAttribute("style", "visibility:visible");
+}
+function toHTMLString(msg){
+  msg = JSON.stringify(msg);
+  msg = msg.replace(/(?:\r\n|\r|\n)/g, "<br>");
+  msg = msg.replace("\\n", "<br>");
+  msg = msg.replace(/\\n/g, "<br>");
+  msg = msg.replace(/"/g, "");
+  return msg.trim();
+}
+//tableCreate();
+function makeKeyValueTable(data) {
+  let cols = 2;
+  let rows = data.length;
+  let res = `<table>`;
+  for (const k in data) {
+    res += `<tr><th>${k}</th><td>${data[k]}</td></tr>`;
+  }
+  res += `</table>`;
+  let res1 = (elem = new DOMParser().parseFromString(res, "text/html").body.firstChild);
+  return res1;
+}
+
+function makeTable(tableName, rowHeaders, colHeaders) {
+  let cols = colHeaders.length + 1;
+  let rows = rowHeaders.length + 1;
+  let sh = `<table id='${tableName}'><tr><th></th>`;
+  for (const ch of colHeaders) {
+    sh += `<th id='${ch}Header'>${ch}</th>`;
+  }
+  sh += `</tr>`;
+  for (const rh of rowHeaders) {
+    sh += `<tr id='${rh}${tableName}'><th>${rh}</th>`;
+    for (const ch of colHeaders) {
+      sh += `<td id='${rh}${ch}'>0</td>`;
+    }
+    sh += `</tr>`;
+  }
+  sh += `</table>`;
+  let res = (elem = new DOMParser().parseFromString(sh, "text/html").body.firstChild);
+  return res;
+}
+function makeCadreTable(powers) {
+  let cadreTypes = ["Infantry", "Fortress", "Tank", "AirForce", "Fleet", "Carrier", "Submarine"];
+  //let powers = ['Germany','Italy','Britain','France','USA','USSR'];
+  let table = makeTable("AvailableCadres", cadreTypes, powers);
+  addTableTo(table);
+}
+function addTableTo(table) {
+  let div = document.getElementById("slideInAvailableCadres");
+  div.appendChild(table);
+}
+
+//#endregion
+
 //#region flask server: uses jQuery ajax!
 // function loadTest(){
 //   $.ajax({
@@ -985,139 +1050,14 @@ function saveFile(name, type, data) {
 // });
 //#endregion file helpers
 
-//#region DOM helpers:
-function clearElement(elem, eventHandlerDictByEvent = {}) {
-  while (elem.firstChild) {
-    for (key in eventHandlerDictByEvent) {
-      elem.removeEventListener(key, eventHandlerDictByEvent[key]);
-    }
-    let el = elem.firstChild;
-    elem.removeChild(el);
-    //console.log('removed',el)
-  }
+//#region id helpers
+function comp_(...arr){
+  return arr.join('_');
 }
-function closestParent(elem, selector) {
-  for (; elem && elem !== document; elem = elem.parentNode) {
-    if (elem.matches(selector)) return elem;
-  }
-  return null;
-}
-function findParentWithId(elem) {
-  ////console.log(elem);
-  while (elem && !elem.id) {
-    elem = elem.parentNode;
-  }
-  ////console.log("parent with id: ", elem);
-  return elem;
-}
-function ellipsis(text, font, width, padding) {
-  let textLength = getTextWidth(text, font);
-  let ellipsisLength = 0;
-  while (textLength + ellipsisLength > width - 2 * padding && text.length > 0) {
-    text = text.slice(0, -1).trim();
-    ellipsisLength = getTextWidth("...", font);
-    textLength = getTextWidth(text, font); //self.node().getComputedTextLength();
-  }
-  return ellipsisLength > 0 ? text + "..." : text;
-}
-function evToId(ev) {
-  let elem = findParentWithId(ev.target);
-  return elem.id;
-}
-function evToIdParent(ev) {
-  let elem = findParentWithId(ev.target);
-  return elem;
-}
-function getParentOfScript() {
-  // finds script in which this function is called
-  var thisScript = document.scripts[document.scripts.length - 1];
-  var parent = thisScript.parentElement;
-  return parent;
-}
-function getTextWidth(text, font) {
-  // re-use canvas object for better performance
-  var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
-  var context = canvas.getContext("2d");
-  context.font = font;
-  var metrics = context.measureText(text);
-  return metrics.width;
-}
-function hide(elem) {
-  elem.classList.add("hidden");
-}
-function insertHere() {
-  var thisScript = document.scripts[document.scripts.length - 1];
-  var parent = thisScript.parentElement;
-  for (let i = 0; i < arguments.length; i++) {
-    const el = arguments[i];
-    if (typeof el == "string") {
-      thisScript.nextSibling.insertAdjacentHTML("beforebegin", el);
-    } else {
-      parent.insertBefore(el, thisScript.nextSibling);
-    }
-  }
-}
-function makeSvg(w, h) {
-  const svg1 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg1.setAttribute("width", w);
-  svg1.setAttribute("height", h);
-  return svg1;
-}
-function show(elem) {
-  elem.classList.remove("hidden");
-}
-function toHTMLString(msg){
-  msg = JSON.stringify(msg);
-  msg = msg.replace(/(?:\r\n|\r|\n)/g, "<br>");
-  msg = msg.replace("\\n", "<br>");
-  msg = msg.replace(/\\n/g, "<br>");
-  msg = msg.replace(/"/g, "");
-  return msg.trim();
-}
-//tableCreate();
-function makeKeyValueTable(data) {
-  let cols = 2;
-  let rows = data.length;
-  let res = `<table>`;
-  for (const k in data) {
-    res += `<tr><th>${k}</th><td>${data[k]}</td></tr>`;
-  }
-  res += `</table>`;
-  let res1 = (elem = new DOMParser().parseFromString(res, "text/html").body.firstChild);
-  return res1;
-}
-
-function makeTable(tableName, rowHeaders, colHeaders) {
-  let cols = colHeaders.length + 1;
-  let rows = rowHeaders.length + 1;
-  let sh = `<table id='${tableName}'><tr><th></th>`;
-  for (const ch of colHeaders) {
-    sh += `<th id='${ch}Header'>${ch}</th>`;
-  }
-  sh += `</tr>`;
-  for (const rh of rowHeaders) {
-    sh += `<tr id='${rh}${tableName}'><th>${rh}</th>`;
-    for (const ch of colHeaders) {
-      sh += `<td id='${rh}${ch}'>0</td>`;
-    }
-    sh += `</tr>`;
-  }
-  sh += `</table>`;
-  let res = (elem = new DOMParser().parseFromString(sh, "text/html").body.firstChild);
-  return res;
-}
-function makeCadreTable(powers) {
-  let cadreTypes = ["Infantry", "Fortress", "Tank", "AirForce", "Fleet", "Carrier", "Submarine"];
-  //let powers = ['Germany','Italy','Britain','France','USA','USSR'];
-  let table = makeTable("AvailableCadres", cadreTypes, powers);
-  addTableTo(table);
-}
-function addTableTo(table) {
-  let div = document.getElementById("slideInAvailableCadres");
-  div.appendChild(table);
-}
-
-//#endregion
+function comp_1(id){return stringBefore(id,'_');}
+function comp_2(id){return stringBefore(stringAfter(id,'_'),'_');}
+function comp_last(id){return stringAfterLast(id,'_');}
+//#endregion id helpers
 
 //#region io helpers
 function dump(...arr){
@@ -1127,140 +1067,6 @@ function dump(...arr){
 }
 function error(msg){console.log('ERROR!!!!! '+msg)}
 //#endregion io helpers
-
-//#region string helpers:
-function allNumbers(s) {
-  //returns array of all numbers within string s
-  return s.match(/\d+\.\d+|\d+\b|\d+(?=\w)/g).map(v => {
-    return +v;
-  });
-}
-
-function eraseSpaces(s) {
-  let i = 0;
-  while (s.includes("  ")) {
-    ////console.log(i++ + ": ", s);
-    s = s.replace("  ", " ");
-    s = s.replace(" {", "{");
-    s = s.replace(" (", "(");
-    s = s.replace("\n ", " ");
-    s = s.replace("\n{", "{");
-    s = s.replace("\n}", "}");
-  }
-  return s;
-}
-function endsWith(s, sSub) {
-  let i = s.indexOf(sSub);
-  return i == s.length - sSub.length;
-}
-function getLines(s) {
-  // returns array of lines in s
-  var str = s;
-  var res = str.split("\n");
-  return res;
-}
-
-function firstNumber(s) {
-  // returns first number in string s
-  return s ? Number(s.match(/-?\d+/).shift()) : -1;
-}
-
-function firstPositiveNumber(s) {
-  // returns first number in string s
-  return s ? Number(s.match(/\d+/).shift()) : -1;
-}
-
-function padSep(sep, n, args) {
-  //sep..separator string, n..length of result, args are arbitrary numbers
-  s = "";
-  for (var i = 2; i < arguments.length; i++) {
-    s += arguments[i].toString().padStart(n, "0") + sep;
-  }
-  return s.substring(0, s.length - 1);
-}
-function replaceAll(str, sSub, sBy) {
-  let regex = new RegExp(sSub, "g");
-  return str.replace(regex, sBy);
-}
-function startsWith(s, sSub) {
-  ////console.log('startWith: s='+s+', sSub='+sSub,typeof(s),typeof(sSub));
-  return s.substring(0, sSub.length) == sSub;
-}
-function stringAfter(sFull, sSub) {
-  ////console.log('s='+sFull,'sub='+sSub)
-  let idx = sFull.indexOf(sSub);
-  ////console.log('idx='+idx)
-  if (idx < 0) return "";
-  return sFull.substring(idx + sSub.length);
-}
-function stringAfterLast(sFull,sSub){
-  let parts = sFull.split(sSub);
-  return last(parts);
-}
-function stringBefore(sFull, sSub) {
-  let idx = sFull.indexOf(sSub);
-  if (idx < 0) return sFull;
-  return sFull.substring(0, idx);
-}
-//#endregion
-
-//#region type and conversion helpers
-function getTypeOf(param) {
-  let type = typeof param;
-  ////console.log("typeof says:" + type);
-  if (type == "string") {
-    return "string";
-  }
-  if (type == "object") {
-    type = param.constructor.name;
-  }
-  let lType = type.toLowerCase();
-  if (lType.includes("event")) type = "event";
-  ////console.log("this param is of type: " + type);
-  ////console.log(param);
-  return type;
-}
-function isEvent(param) {
-  return getTypeOf(param) == "event";
-}
-function isString(param) {
-  return typeof param == "string";
-}
-function isMS(param) {
-  return getTypeOf(param) == "MS";
-}
-function isNumber(param) {
-  return !isNaN(Number(param));
-}
-function convertToMS(p) {
-  let res = undefined;
-  if (isMS(p)) {
-    ////console.log("convertToMS: isMS ", p);
-    res = p;
-  } else if (isEvent(p)) {
-    ////console.log("convertToMS: isEvent ", p);
-    p = p.target;
-    res = findParentWithId(p);
-    res = MS.byId[res.id];
-  } else if (isString(p)) {
-    //assume that this is the id
-    ////console.log("convertToMS: isString ", p);
-    res = MS.byId[p];
-  } else {
-    //assume some ui element
-    ////console.log("convertToMS: else ", res);
-  }
-  ////console.log("convertToMS: RESULT=", res);
-  return res;
-}
-
-//#endregion
-
-//#region numbers
-function intDiv(n, q) {
-  return Math.floor(n / q);
-}
-//#endregion
 
 //#region layout helpers
 function calculateDims(n, sz = 60, minRows = 1) {
@@ -1634,6 +1440,215 @@ var countries = [
   "Zambia",
   "Zimbabwe"
 ];
+//#endregion
+
+//#region numbers
+function intDiv(n, q) {
+  return Math.floor(n / q);
+}
+//#endregion
+
+//#region set and tuple helpers
+function extractUniqueStrings(tupleList) {
+  let idlist = [];
+  tupleList.map(x => x.map(y => addIf(y, idlist)));
+  return idlist;
+}
+
+function isSet(x) {
+  return "set" in x;
+}
+function isNumeric(x) {
+  return !isNaN(+x);
+}
+function isLiteral(x) {
+  return isString(x) || $.isNumeric(x);
+}
+function isTuple(x) {
+  return Array.isArray(x);
+}
+function isSingleton(x) {
+  return (isSet(x) && x.set.length == 1) || (isTuple(x) && x.length == 1);
+}
+function firstElement(x) {
+  if (isSet(x)) return x.set[0];
+  else if (isTuple(x)) return x[0];
+  else return null;
+}
+function expand1(x) {
+  if (isEmpty(x)) return [];
+  if (isLiteral(x)) return [x.toString()];
+  if (isSingleton(x)) return expand1(firstElement(x));
+  if (isSet(x)) return x.set.map(el => expand1(el));
+  if (isTuple(x)) {
+    let a = expand1(firstElement(x));
+    let b = x.slice(1);
+    let c = expand1(x.slice(1));
+    let d = extractStringLists(c);
+    //console.log('a=',fj(a),'b=',fj(b),'c=',fj(c))
+    //console.log('d=',fj(d))
+    return carteset(a, d);
+  }
+}
+function isListOfLiterals(lst) {
+  if (!isList(lst)) return false;
+  for (const el of lst) {
+    if (isList(el)) return false;
+  }
+  return true;
+}
+function extractStringLists(lst) {
+  let res = [];
+  for (const l of lst) {
+    if (isListOfLiterals(l)) res.push(l);
+    else if (isLiteral(l)) res.push([l]);
+    else {
+      let r2 = extractStringLists(l);
+      r2.map(x => res.push(x));
+    }
+  }
+  return res;
+}
+function expand(e) {
+  let res = [];
+  e = expand1(e);
+  for (const el of e) {
+    if (isll(el)) el.map(x => res.push(x));
+    else res.push(el);
+  }
+  return res;
+}
+function prex(x) {
+  prll(expand(x));
+}
+//#endregion
+
+//#region string helpers:
+function allNumbers(s) {
+  //returns array of all numbers within string s
+  return s.match(/\d+\.\d+|\d+\b|\d+(?=\w)/g).map(v => {
+    return +v;
+  });
+}
+
+function eraseSpaces(s) {
+  let i = 0;
+  while (s.includes("  ")) {
+    ////console.log(i++ + ": ", s);
+    s = s.replace("  ", " ");
+    s = s.replace(" {", "{");
+    s = s.replace(" (", "(");
+    s = s.replace("\n ", " ");
+    s = s.replace("\n{", "{");
+    s = s.replace("\n}", "}");
+  }
+  return s;
+}
+function endsWith(s, sSub) {
+  let i = s.indexOf(sSub);
+  return i == s.length - sSub.length;
+}
+function getLines(s) {
+  // returns array of lines in s
+  var str = s;
+  var res = str.split("\n");
+  return res;
+}
+
+function firstNumber(s) {
+  // returns first number in string s
+  return s ? Number(s.match(/-?\d+/).shift()) : -1;
+}
+
+function firstPositiveNumber(s) {
+  // returns first number in string s
+  return s ? Number(s.match(/\d+/).shift()) : -1;
+}
+
+function padSep(sep, n, args) {
+  //sep..separator string, n..length of result, args are arbitrary numbers
+  s = "";
+  for (var i = 2; i < arguments.length; i++) {
+    s += arguments[i].toString().padStart(n, "0") + sep;
+  }
+  return s.substring(0, s.length - 1);
+}
+function replaceAll(str, sSub, sBy) {
+  let regex = new RegExp(sSub, "g");
+  return str.replace(regex, sBy);
+}
+function startsWith(s, sSub) {
+  ////console.log('startWith: s='+s+', sSub='+sSub,typeof(s),typeof(sSub));
+  return s.substring(0, sSub.length) == sSub;
+}
+function stringAfter(sFull, sSub) {
+  ////console.log('s='+sFull,'sub='+sSub)
+  let idx = sFull.indexOf(sSub);
+  ////console.log('idx='+idx)
+  if (idx < 0) return "";
+  return sFull.substring(idx + sSub.length);
+}
+function stringAfterLast(sFull,sSub){
+  let parts = sFull.split(sSub);
+  return last(parts);
+}
+function stringBefore(sFull, sSub) {
+  let idx = sFull.indexOf(sSub);
+  if (idx < 0) return sFull;
+  return sFull.substring(0, idx);
+}
+//#endregion
+
+//#region type and conversion helpers
+function getTypeOf(param) {
+  let type = typeof param;
+  ////console.log("typeof says:" + type);
+  if (type == "string") {
+    return "string";
+  }
+  if (type == "object") {
+    type = param.constructor.name;
+  }
+  let lType = type.toLowerCase();
+  if (lType.includes("event")) type = "event";
+  ////console.log("this param is of type: " + type);
+  ////console.log(param);
+  return type;
+}
+function isEvent(param) {
+  return getTypeOf(param) == "event";
+}
+function isString(param) {
+  return typeof param == "string";
+}
+function isMS(param) {
+  return getTypeOf(param) == "MS";
+}
+function isNumber(param) {
+  return !isNaN(Number(param));
+}
+function convertToMS(p) {
+  let res = undefined;
+  if (isMS(p)) {
+    ////console.log("convertToMS: isMS ", p);
+    res = p;
+  } else if (isEvent(p)) {
+    ////console.log("convertToMS: isEvent ", p);
+    p = p.target;
+    res = findParentWithId(p);
+    res = MS.byId[res.id];
+  } else if (isString(p)) {
+    //assume that this is the id
+    ////console.log("convertToMS: isString ", p);
+    res = MS.byId[p];
+  } else {
+    //assume some ui element
+    ////console.log("convertToMS: else ", res);
+  }
+  ////console.log("convertToMS: RESULT=", res);
+  return res;
+}
+
 //#endregion
 
 // #region zooming

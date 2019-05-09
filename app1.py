@@ -271,7 +271,7 @@ def init_game(game_type='hotseat', player='Axis', debug=False):
 	
 	if not game_type == 'hotseat':
 		return 'Error: Game type must be hotseat'
-	out = FORMAT_MSG(start_new_game(player, debug=debug), player)
+	out = FORMAT_MSG(start_new_game(player, debug=debug, seed=0), player)
 	return out
 
 @app.route('/info/<faction>')
