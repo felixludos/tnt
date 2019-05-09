@@ -16,7 +16,8 @@ import traceback
 from new_year import new_year_phase
 from production import production_phase, production_pre_phase
 from government import governmnet_phase, government_pre_phase
-from command import pre_command_phase, movement_phase, planning_phase, combat_phase
+from command import pre_command_phase, movement_phase, planning_phase
+from combat import combat_phase, retreat_phase
 from blockades import supply_phase, blockade_phase
 from battles import land_battle_phase, naval_battle_phase
 from scoring import scoring_phase
@@ -52,6 +53,7 @@ PHASES = adict({
 
 	'Combat': combat_phase,
 	'Supply': supply_phase,
+	'Retreat': retreat_phase,
 
     'Land_Battle': land_battle_phase,
     'Naval_Battle': naval_battle_phase,

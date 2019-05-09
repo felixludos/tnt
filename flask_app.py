@@ -115,6 +115,7 @@ def refresh(player):
 	return FORMAT_MSG(get_object_table(), player)
 
 @app.route('/init/<game_type>/<player>')
+@app.route('/init/<game_type>/<player>/<seed>')
 def init_game(game_type='hotseat', player='Axis', debug=False, seed=None):
 	
 	if not game_type == 'hotseat':

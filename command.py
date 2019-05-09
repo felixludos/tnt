@@ -288,11 +288,6 @@ def movement_phase(G, player=None, action=None):
 	new_movement(G)
 	return encode_movement(G)
 
-def combat_phase(G, player, action):
-	
-	
-	pass
-
 def end_phase(G):
 	
 	# check blockades

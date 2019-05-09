@@ -2,7 +2,7 @@
 
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
 from tnt_cards import discard_cards
-from tnt_units import add_unit, move_unit
+from tnt_units import add_unit, move_unit, remove_unit
 from tnt_util import travel_options, eval_tile_control, present_powers
 from government import check_revealable, reveal_tech
 import random
@@ -48,14 +48,32 @@ def supply_phase(G):
 	
 	for player, faction in G.players:
 		
+		goals = xset(faction.stats.cities.SubCapitals)
+		goals.add(faction.stats.cities.MainCapital)
+		
 		if not faction.stats.at_war:
 			continue
 			
 		for uid, unit in faction.units:
-			if G.units.rules[unit.type].type != 'G':
+			if unit.type == 'Fortress' or G.units.rules[unit.type].type != 'G':
 				continue
 				
+			supplied = find_path(G, unit.tile, goals=goals, player=player)
+			tile = G.tiles[unit.tile]
 			
-	
-	raise NotImplementedError
-
+			if not supplied:
+				unit.cv -= 1
+				if unit.cv == 0:
+					msg = 'was eliminated'
+					remove_unit(G, unit)
+				else:
+					msg = 'lost 1 cv'
+					G.objects.updated[uid] = unit
+				
+				G.logger.write('{} unit in {} {} due to lack of supplies'.format(player, unit.tile, msg))
+				
+			elif 'unsupplied' in tile and player in tile.unsupplied:
+				tile.unsupplied.remove(player)
+				if len(tile.unsupplied) == 0:
+					del tile.unsupplied
+				G.objects.updated[tile._id] = tile

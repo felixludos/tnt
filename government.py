@@ -587,9 +587,9 @@ def governmnet_phase(G, player, action): # play cards
 	if 'move_to_post' in G.temp: # after phase has ended and only clean up is necessary
 		return government_post_phase(G, player, action)
 	
+	# TODO: make sure cards that should now be visible stay visible
 	if player in G.temp.intel: # hide any temporarily visible objects from intel cards
 		for ID, obj in G.temp.intel[player].items():
-			# print(ID, obj.visible)
 			obj.visible.discard(player)
 			G.objects.updated[ID] = obj
 		del G.temp.intel[player]
