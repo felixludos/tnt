@@ -88,6 +88,7 @@ class MS {
     }
     return null;
   }
+  getPos(){return {x:this.x,y:this.y};}
   hide() {
     //if (!this.isVisible) return;
     this.elem.setAttribute("style", "visibility:hidden;display:none");
