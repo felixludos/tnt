@@ -4,7 +4,7 @@ import sys, os, time
 import random
 import numpy as np
 seed = None
-#seed = 0
+seed = 10
 RNG = None
 
 import util as util
@@ -16,84 +16,9 @@ from itertools import chain, product
 from tnt_units import load_unit_rules
 import tnt_setup as setup
 
-def complete_phase(players):
-	for player in players:
-		while True:
-			out = format_msg_to_python(get_status(player))
-			
-			if 'error' in out:
-				print(out.error)
-				break
-			
-			if 'log' in out:
-				print(out.log)
-			
-			if 'waiting_for' in out:
-				print('-- {} is waiting for {}'.format(player, out.waiting_for))
-				break
-			
-			if player in fixed and len(fixed[player]):
-				action = fixed[player].pop()
-				print('-- from {} chose {}'.format('fixed', action))
-			else:
-				actions = list(util.decode_actions(out.actions))
-				action = RNG.choice(actions)
-				print('-- from {} chose {}'.format(len(actions), action))
-			
-			out = format_msg_to_python(take_action(player, action))
-			
-	return out
-
-def continue_game(pass_after=None, player = 'Axis'):
-	out = format_msg_to_python(get_status(player))
-	
-	if 'log' in out and len(out.log):
-		print('<{} log>'.format(player))
-		print(out.log, end='')
-		print('</>')
-	
-	steps = adict()
-	for p in ['Axis', 'West', 'USSR']:
-		steps[p] = 0
-	
-	while 'actions' in out or len(out.waiting_for):
-		if 'actions' in out:
-			actions = list(util.decode_actions(out.actions))
-			msg = ''
-			if pass_after is not None and steps[player] > pass_after and ('pass',) in actions:
-				action = ('pass',)
-				msg = ' (auto pass)'
-			else:
-				action = ('remove',)
-				while action[0] == 'remove': # never remove
-					action = RNG.choice(actions)
-			print('-- from {} chose {}{}'.format(len(actions), action, msg))
-			
-			out = format_msg_to_python(take_action(player, action))
-			steps[player] += 1
-			
-			if 'error' in out:
-				print(out.error)
-				# from IPython import embed
-				# embed()
-				break
-			
-			if 'log' in out and len(out.log):
-				print('<{} log>'.format(player))
-				print(out.log, end='')
-				print('</>')
-			
-		else:
-			print('-- {} is waiting for {}'.format(player, out.waiting_for))
-			player = out.waiting_for.pop()
-			out = format_msg_to_python(get_status(player))
-			
-			# if 'log' in out and len(out.log):
-			# 	print('<{} log>'.format(player))
-			# 	print(out.log, end='')
-			# 	print('</{}>'.format(player))
-
 from flask_app import *
+
+from nb_backend import *
 
 print(ping())
 
@@ -112,15 +37,10 @@ RNG = G.random
 
 
 # Setup + New Year
-try:
-	for player in G.game.turn_order:
-		fixed[player] = [('investment_card',)]*6# + [('action_card',)]
-	players = G.game.turn_order
-except KeyError:
-	players = ['Axis', 'USSR', 'West']
+players = ['Axis', 'USSR', 'West']
 print(players)
 
-complete_phase(players)
+complete_phase(players, rng=RNG)
 
 path = save('setup_complete.json')
 print('Saved Setup phase at {}'.format(path))
@@ -136,7 +56,7 @@ except KeyError:
 	players = ['Axis', 'USSR', 'West']
 print(players)
 
-complete_phase(players)
+complete_phase(players, rng=RNG)
 
 path = save('prod_complete.json')
 print('Saved Prod phase at {}'.format(path))
@@ -144,7 +64,7 @@ print('Saved Prod phase at {}'.format(path))
 # from IPython import embed
 # embed()
 
-load('saves/prod_complete.json')
+# load('saves/prod_complete.json')
 
 G = get_G()
 RNG = G.random
@@ -155,7 +75,7 @@ take_action('Axis', None)
 G = get_G()
 players = G.game.turn_order * 6
 
-continue_game(12)
+continue_game(12, rng=RNG)
 
 next_phase = G.game.sequence[G.game.index]
 # print('Next phase: {}'.format(next_phase))
