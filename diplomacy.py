@@ -240,9 +240,12 @@ def violation_of_neutrality(G, declarer, nation):  # including world reaction an
 	del G.diplomacy.neutrals[nation]
 	G.nations.status[nation].is_armed = 1
 	
+	desig = G.nations.designations[nation]
+	
 	# arming the minor
 	for tilename in G.nations.territories[nation]:
 		tile = G.tiles[tilename]
+		tile.owner = desig
 		
 		if tile.muster > 0:
 			unit = adict()

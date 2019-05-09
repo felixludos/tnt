@@ -100,10 +100,18 @@ def present_powers(G, tile):
 # check for new battle
 def eval_tile_control(G, player, tile, unit=None): # usually done when a unit leaves a tile
 	
+	owner = None
+	if 'alligence' in tile:
+		owner = tile.owner if 'owner' in tile else G.nations.designations[tile.alligence]
+	
 	# if no unit, just update disputed
+	if unit is None:
+		pass
+	else:
+		assert player == G.nations.designations[unit.nationality], 'Unit doesnt match player: {} {}'.format(player, unit.nationality)
 	
 	if 'alligence' in tile:  # land tile
-		owner = tile.owner if 'owner' in tile else G.nations.designations[tile.alligence]
+		
 		
 		if player == owner: # or player inside
 			return False

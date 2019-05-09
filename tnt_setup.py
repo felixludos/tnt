@@ -218,8 +218,8 @@ def load_game_info(G, seed=None, path='config/game_info.yml'):
 
 def init_gamestate(seed=None):
 	
-	# if seed is None:
-	# 	seed = random.getrandbits(64)
+	if seed is None:
+		seed = random.getrandbits(64)
 	
 	G = tdict()
 	
