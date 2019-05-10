@@ -1057,6 +1057,13 @@ function comp_(...arr){
 function comp_1(id){return stringBefore(id,'_');}
 function comp_2(id){return stringBefore(stringAfter(id,'_'),'_');}
 function comp_last(id){return stringAfterLast(id,'_');}
+
+function complus(...arr){
+  return arr.join('+');
+}
+function complus1(id){return stringBefore(id,'+');}
+function complus2(id){return stringBefore(stringAfter(id,'+'),'+');}
+function compluslast(id){return stringAfterLast(id,'+');}
 //#endregion id helpers
 
 //#region io helpers
@@ -1598,6 +1605,26 @@ function stringBefore(sFull, sSub) {
   return sFull.substring(0, idx);
 }
 //#endregion
+
+//#region tnt helpers
+function getUnitOwner(nationality) {
+  if (nationality == "Germany" || nationality == "Italy") {
+    return "Axis";
+  } else if (nationality == "USSR") {
+    return "USSR";
+  } else if (nationality == "Britain" || nationality == "France" || nationality == "USA") {
+    return "West";
+  } else {
+    return "Neutral";
+  }
+}
+
+function getVisibleSet(o){
+  if (!("visible" in o) || !("set" in o.visible) && !("xset" in o.visible)) return null;
+  else if ("set" in o.visible) return o.visible.set;
+  else return o.visible.xset;
+}
+//#endregion tnt helpers
 
 //#region type and conversion helpers
 function getTypeOf(param) {

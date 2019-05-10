@@ -32,7 +32,11 @@ class NU {
   //  nation nationality unitHidden chip deck
   constructor(assetMan) {
     this.assetMan = assetMan;
-    this.U = {uis: {}}; //map game object id to everything needed for ui
+    this.U = {uis: {}, units: {Axis: {}, West: {}, USSR: {}}}; //map game object id to everything needed for ui
+    //unit ids are stored per owner and tile!
+    //so when remove unit, need to remove from uis AND units!
+    //units are destroyed and re-created when moved
+    //hidden Units treated separately
     this.clearTemp();
   }
   addElement(ms, id, type) {
@@ -75,18 +79,18 @@ class NU {
     //console.log('createCard',ms,pos)
     return ms;
   }
-  createTile(id) {
-    let pos = this.assetMan.tilePositions[id];
-    let ms = new MS(id, this.getUniqueId(id, "tile"), "mapG")
-      .circle({className: "overlay region", sz: SZ.region})
-      .setPos(pos.x, pos.y)
-      .draw();
-    return ms;
-  }
   createNationPosition(id) {
     let pos = this.assetMan.nationPositions[id];
     let ms = new MS(id, this.getUniqueId(id, "nation"), "mapG")
       .circle({className: "overlay nation", sz: SZ.influence})
+      .setPos(pos.x, pos.y)
+      .draw();
+    return ms;
+  }
+  createTile(id) {
+    let pos = this.assetMan.tilePositions[id];
+    let ms = new MS(id, this.getUniqueId(id, "tile"), "mapG")
+      .circle({className: "overlay region", sz: SZ.region})
       .setPos(pos.x, pos.y)
       .draw();
     return ms;
@@ -132,6 +136,28 @@ class NU {
       this.addElement(ms, id, "tile");
     }
   }
+  drawUnit(o,player) {
+    let owner = getUnitOwner(o.nationality);
+    let ms = this.createUnit(o._id, o, owner);
+    let idHidden = comp_(owner, o.tile);
+    if (!getUI(idHidden,'unitHidden')){
+      let msHidden = this.createHiddenUnit(idHidden, o, owner);
+    }
+    
+
+  }
+
+  drawUnits() {
+    if (!("unit" in this.U.create)) return;
+
+    for (const id in this.U.create["unit"]) {
+      let prep = this.U.create["unit"][id];
+      let o=prep.o;
+      let player=prep.player;
+      drawUnit(o, player);
+      this.addElement(ms, id, "unit");
+    }
+  }
   findParentForCard(vis, owner) {
     let parentName = null;
     if (vis.length == 0) {
@@ -173,16 +199,32 @@ class NU {
       y = lastPos.y;
       if (x + wCard + 1 > wTotal) {
         console.log("MUSS ERWEITERN!!!!", div.style.height);
-      let hDiv = firstNumber(div.style.height);
+        let hDiv = firstNumber(div.style.height);
         console.log("current height of cardDisplay:", hDiv);
         hDiv += hCard + gap;
         div.style.height = hDiv + "px";
         console.log("new height of", div.id, hDiv);
-      x = startPos.x;
+        x = startPos.x;
         y += hCard + gap;
       }
     }
     return {x: x, y: y};
+
+    // let x = startPos.x + nCards * (wCard + gap);
+    // let y = startPos.y;
+    // //console.log('startPos',startPos,x,y)
+
+    // if (x + wCard + gap > wTotal) {
+    //   console.log("MUSS ERWEITERN!!!!", div.style.height);
+    //   let hDiv = firstNumber("height vor erweitern", div.style.height);
+    //   //console.log("current height of cardDisplay:", h);
+    //   hDiv += hCard + gap;
+    //   div.style.height = hDiv + "px";
+    //   console.log("new height of", div.id, hDiv);
+    //   x = startPos.x;
+    //   y += hCard + gap;
+    // }
+    // return {x: x, y: y};
   }
   getId(uid) {
     return complus1(uid);
@@ -266,5 +308,31 @@ class NU {
     ms.tag("title", title);
     ms.tag("json", JSON.stringify(o));
     return ms;
+  }
+  updateCv(id, o) {
+    let cv = o.cv;
+    let ms = this.getUI(id, "unit");
+    alert("updateCv", id, o, ms, cv);
+    updateUnitCv(ms, cv);
+  }
+  updateUnitCv(ms, cv) {
+    console.log("updateUnitCv", ms, cv);
+    //plaziere 1 circle foreach  #
+    //muss alte punkte wegnehmen!!! falls welche hat!
+    ms.removeFromChildIndex(5);
+    //msUnit.circle({sz:20,fill:'white'});
+    let sz = SZ.cadreDetail;
+    let dx = sz / (cv + 1);
+    let xStart = -sz / 2;
+    let y = -sz / 3.2;
+    let diam = Math.min(dx / 1.5, sz / 5);
+    //console.log(dx,y)
+    let x = dx + xStart;
+    for (let i = 0; i < cv; i++) {
+      ms.circle({sz: diam, x: x, y: y, fill: "white"});
+      x += dx;
+    }
+
+    ms.tag("cv", cv);
   }
 }
