@@ -1624,6 +1624,8 @@ function getVisibleSet(o){
   else if ("set" in o.visible) return o.visible.set;
   else return o.visible.xset;
 }
+
+
 //#endregion tnt helpers
 
 //#region type and conversion helpers

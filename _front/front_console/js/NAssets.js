@@ -10,6 +10,34 @@ class NAssets {
     this.unitTypeNames;
     this.factionSetup;
     this.factionNames;
+    this.troopColors = {
+      Germany: [174, 174, 176],
+      Britain: [86, 182, 222],
+      France: [121, 200, 205],
+      USSR: [233, 138, 134],
+      USA: [145, 186, 130],
+      Italy: [174, 172, 131],
+      Neutral: [255, 255, 102],
+      Axis: [174, 174, 176],
+      West: [86, 182, 222]
+    };
+    this.SZ = {
+      //various sizes used
+      region: 180,
+      pAxis: {x: 0, y: 20}, // this is where on the region placement of cadre is started
+      pWest: {x: -50, y: -30},
+      pUSSR: {x: +50, y: -30},
+      cadrePrototype: 60,
+      sumCadre: 60,
+      cadreDetail: 44,
+      cardWidth: 100,
+      cardHeight: 150,
+      gap: 10,
+      chip: 40,
+      influence: 100
+    };
+    
+    
   }
   initAssets(callback) {
     //console.log("loading...");
