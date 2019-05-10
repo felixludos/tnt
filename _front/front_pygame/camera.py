@@ -13,6 +13,7 @@ class Camera:
         self.game = game
         self.width = width
         self.height = height
+        self.zoom_level = 1.0
 
     def update_map(self, width, height):
         self.width = width
@@ -42,12 +43,37 @@ class Camera:
 
     def zoom_out(self, target):
         """ Zooming functionality - scales down the target. """
-        target.width = target.width - ZOOM_SPEED
-        target.height = target.height - ZOOM_SPEED
+        new_zoom_level = self.zoom_level - ZOOM_SPEED
+        if new_zoom_level < ZOOM_OUT_CAP:
+            new_zoom_level = self.zoom_level
+        if isinstance(target, pg.Rect):
+            new_width = int(round((target.width / self.zoom_level) * new_zoom_level))
+            new_height = int(round((target.height / self.zoom_level) * new_zoom_level))
+        else:
+            new_width = int(round(target.get_width() * new_zoom_level))
+            new_height = int(round(target.get_height() * new_zoom_level))
+        # check for zooming out too far, beyond map bounds
+        if new_width < self.game.width or new_height < self.game.height:
+            new_width = self.game.width
+            new_height = self.game.height
+        target = pg.transform.smoothscale(target, (new_width, new_height))
+        self.zoom_level = new_zoom_level
         return target
 
     def zoom_in(self, target):
         """ Zooming functionality - scales up the target. """
-        target.width = target.width + ZOOM_SPEED
-        target.height = target.height + ZOOM_SPEED
+        new_zoom_level = self.zoom_level + ZOOM_SPEED
+        if new_zoom_level > ZOOM_IN_CAP:
+            new_zoom_level = self.zoom_level
+        if isinstance(target, pg.Rect):
+            new_width = int(round((target.width / self.zoom_level) * new_zoom_level))
+            new_height = int(round((target.height / self.zoom_level) * new_zoom_level))
+        else:
+            new_width = int(round(target.get_width() * new_zoom_level))
+            new_height = int(round(target.get_height() * new_zoom_level))
+        if new_width < self.game.width or new_height < self.game.height:
+            new_width = self.game.width
+            new_height = self.game.height
+        target = pg.transform.smoothscale(target, (new_width, new_height))
+        self.zoom_level = new_zoom_level
         return target
