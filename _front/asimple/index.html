@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>a94</title>
+    <link rel="shortcut icon" href="#" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.2/js-yaml.js"></script>
+
+    <script src="/a/js/ASender.js"></script>
+    <script src="/a/js/NAssets.js"></script>
+    <script src="/a/js/helpers.js"></script>
+  </head>
+  <body>
+    <script>
+      function present(data) {
+        console.log(data);
+      }
+
+      var serverData;
+      var sender = new ASender();
+      //sender.send('initWest');
+      let player = "Axis";
+      let chain = ["init/hotseat/" + player + "/1", "info/" + player, "status/" + player];
+      let assets=new NAssets();
+
+      assets.initAssets(()=>sender.chainSend(chain, player, present));
+    </script>
+  </body>
+</html>

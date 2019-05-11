@@ -40,6 +40,7 @@ class NBackendCommunicator {
       communicator.send("refresh/" + player, callback);
     } else {
       serverData = JSON.parse(serverText);
+      console.log(serverData);
       callback(serverData);
     }
   }

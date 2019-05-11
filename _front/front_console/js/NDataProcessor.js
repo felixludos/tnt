@@ -10,6 +10,7 @@ class NDataProcessor {
     this.sender = new NBackendCommunicator("http://localhost:5000/");
     //this.sender.sendOrPost('initWest'); //test
   }
+  //action
   action(player, tuple, callback) {
     this.player = player;
     this.callback = callback;
@@ -21,7 +22,7 @@ class NDataProcessor {
     this.sender.send("info/" + this.player, this.actionStep2.bind(this)); //send info message
   }
   actionStep2(data) {
-    //console.log("raw info data:", data);
+    //console.log("actionStep 2: raw info data:", data);
     this.augmentServerData(data, 2);
     if ("waiting_for" in this.serverData) {
       let plNext = this.serverData.waiting_for.set[0];
@@ -38,31 +39,51 @@ class NDataProcessor {
     this.processServerData();
   }
   augmentServerData(data, step) {
+    //console.log('this',this);
     jQuery.extend(true, this.serverData, data);
     //console.log("step " + step, this.serverData);
   }
+  //init
   initGame(player, callback) {
     this.callback = callback;
     this.player = player;
     this.sender.send("init/hotseat/" + player, this.actionStep1.bind(this)); //send init message
   }
+  //load 'init_complete', setup_complete','production_complete', 'gov_complete'
   loadGame(player, filename, callback) {
     this.callback = callback;
     this.filename = filename;
     this.player = player;
-    this.sender.send("init/hotseat/" + player, this.loadStep1.bind(this), player);
+    this.sender.send("myload/"+this.filename+'.json',this.loadStep3.bind(this),this.player);
+//    this.sender.send("init/hotseat/" + player, this.loadStep1.bind(this), player);
   }
   loadStep1(data){
-    console.log('loadStep1 data (thrown away?!):',data)
+    //console.log('loadStep1 data (thrown away?!):',data)
     this.serverData = data;
     this.sender.send("myload/"+this.filename+'.json',this.loadStep2.bind(this),this.player);
   }
   loadStep2(data){
-    console.log(data);//these are the data of refresh call
+    //console.log(data);//these are the data of refresh call
+    if (!this.serverData) this.serverData = {}
     this.serverData.created = data;
-    this.sender.send("info/" + this.player, this.actionStep2.bind(this)); //send info message
+    this.sender.send("info/" + this.player, this.actionStep2.bind(this)); 
 
   }
+
+  loadStep3(data){ //bekomme refresh data hier!
+    if (!this.serverData) this.serverData = {}
+    this.serverData.created = data;
+    this.sender.send("info/" + this.player, this.loadStep4.bind(this)); 
+  }
+  loadStep4(data){
+    this.augmentServerData(data, 3);
+    this.sender.send("status/" + this.player, this.loadStep5.bind(this)); 
+  }
+  loadStep5(data){
+    this.augmentServerData(data, 3);
+    //this.sender.send("info/" + this.player, this.loadStep5.bind(this)); 
+  }
+
   processActions() {
     //convert serverData to structures needed by frontend:
     // actionTuples, gameObjects, sorted and upToDate, player
@@ -125,10 +146,10 @@ class NDataProcessor {
     this.serverData.game.player = this.player;
     //console.log('*** nach player ***')
     this.processActions();
-    // console.log('*** dp vor callback ***');
-    // console.log('tuples',this.tuplesInAction);
-    // console.log('gameObjects',this.gameObjects);
-    console.log('serverData augmented',this.serverData);
+    // //console.log('*** dp vor callback ***');
+    // //console.log('tuples',this.tuplesInAction);
+    // //console.log('gameObjects',this.gameObjects);
+    //console.log('serverData augmented',this.serverData);
     this.callback(this.tuplesInAction, this.gameObjects, this.serverData.game, this.serverData);
   }
 }

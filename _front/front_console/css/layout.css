@@ -18,6 +18,8 @@
 
 #log_area {
   grid-area: log;
+  height: 760px;
+  overflow-y: scroll;
 }
 #command_area {
   grid-area: command;
@@ -44,14 +46,13 @@
 .grid_game {
   display: grid;
   grid-template-columns: 60px 1190px auto;
-  grid-template-rows: auto 500px 260px auto auto auto;
+  grid-template-rows: auto 760px auto auto;
   grid-template-areas:
     "status status status"
     "reserve map  log"
-    "reserve map  command"
     "cards cards command"
-    "openCard openCard openCard"
-    "invest invest invest";
+    "openCard openCard command";
+    /* "invest invest invest"; */
   grid-gap: 8px;
   background-color: #2196f3;
   padding: 8px;

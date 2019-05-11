@@ -18,7 +18,7 @@ class NPage {
     hideSvg(this.actionDeckG);
     showSvg(this.openCardG);
 
-    show(this.cards3_area);
+    hide(this.cards3_area);
     hideSvg(this.investmentDeckG);
     showSvg(this.discardedG);
     

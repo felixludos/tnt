@@ -118,6 +118,15 @@ def get_infoAxis():
 def get_infoUSSR():
 	return FORMAT_MSG(get_game_info('USSR'))
 
+statfold_sim='_front/asimple'
+@app.route('/sim')
+@app.route('/sim/')
+def rootsim():
+	return send_from_directory(statfold_sim, 'index.html')
+@app.route('/a/<path:path>')
+def rootsimPath(path):
+    return send_from_directory(statfold_sim, path)
+
 statfold_con='_front/front_console'
 @app.route('/c')
 @app.route('/c/')
@@ -266,12 +275,11 @@ def refresh(player):
 def reset(player):
 	return FORMAT_MSG(get_object_table(), player)
 
-@app.route('/init/<game_type>/<player>')
-def init_game(game_type='hotseat', player='Axis', debug=False):
-	
+@app.route('/init/<game_type>/<player>/<seed>')
+def init_game(game_type='hotseat', player='Axis', debug=False, seed=0):
 	if not game_type == 'hotseat':
 		return 'Error: Game type must be hotseat'
-	out = FORMAT_MSG(start_new_game(player, debug=debug, seed=0), player)
+	out = FORMAT_MSG(start_new_game(player, debug=debug, seed=seed), player)
 	return out
 
 @app.route('/info/<faction>')
