@@ -186,6 +186,13 @@ class MS {
       this.isDrawn = false;
     }
   }
+  removeFromUIAndParent() {
+    if (this.isDrawn && this.parent) {
+      this.parent.removeChild(this.elem);
+      this.isDrawn = false;
+    }
+    this.parent = null;
+  }
   roundedRect({className = "", w = 150, h = 125, fill = "darkviolet", rounding = 10, alpha = 1, x = 0, y = 0} = {}) {
     this.rect({
       className: className,

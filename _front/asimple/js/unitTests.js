@@ -1,4 +1,6 @@
-//vorsicht: tests are using globals!!!
+
+//test setup, test production, test government, 
+
 function testEndToEndCom(data) {
   //input is init chain response data
   msgCounter = 0;

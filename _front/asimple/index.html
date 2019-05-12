@@ -173,6 +173,7 @@
         updateLog(data);
         updateGameObjects(data);
         map.update(data,gameObjects);
+        cards.update(data,objects);
       }
       function updateGameObjects(data){
         //augment gameObjects by all created and updated objects
@@ -273,7 +274,7 @@
 
       //control flow;
       var execOptions = {
-        output: "endToEnd", // 'fine' | 'endToEnd' | 'manual'
+        output: "endToEnd", // 'fine' | 'endToEnd' | 'manual' | 'none'
         playerChange: "auto", // 'auto' | 'manual'
         log: "general", // 'general' | 'individual'
         mode: "skipTo", // 'step' | 'continuous' | 'nskip' | 'skipTo'
@@ -297,6 +298,7 @@
         .updateGameView(player, execOptions); //handles layout
       panzoom("mapG"); //handles pan zoom on map
       map=new AMap(assets); //responsible for tile influence nation chip
+      cards=new ACards(assets);
       var chain = ["init/hotseat/" + player + "/" + seed, "info/" + player, "status/" + player];
       assets.initAssets(map, () => sender.chainSend(chain, player, present));
     </script>

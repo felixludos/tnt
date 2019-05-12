@@ -816,6 +816,9 @@ function inferType(val) {
 //#endregion dictionary helpers
 
 //#region DOM helpers:
+function addChildNodes(elem) {
+  return [...elem.childNodes];
+}
 function clearElement(elem, eventHandlerDictByEvent = {}) {
   while (elem.firstChild) {
     for (key in eventHandlerDictByEvent) {
@@ -1470,6 +1473,43 @@ function intDiv(n, q) {
 }
 //#endregion
 
+//#region object helpers
+function jsCopy(o) {
+  return JSON.parse(JSON.stringify(o));
+}
+function propDiff(o_old, o_new) {
+  //berechne diff in props
+  let onlyOld = [];
+  let onlyNew = [];
+  let propChange = [];
+  let summary = [];
+  for (const prop in o_new) {
+    if (!(prop in o_old)) {
+      addIf(prop, onlyNew);
+      addIf(prop,summary);
+    } else if (o_new[prop] != o_old[prop]) {
+      if (prop == "visible") {
+        let visOld = getVisibleSet(o_old);
+        let visNew = getVisibleSet(o_new);
+        if (sameList(visOld, visNew)) {
+          continue;
+        }
+      }
+      addIf({prop: prop, old: o_old[prop], new: o_new[prop]}, propChange);
+      addIf(prop,summary);
+      updatedSomething = true;
+    }
+  }
+  for (const prop in o_old) {
+    if (!(prop in o_new)) {
+      addIf(prop, onlyOld);
+      addIf(prop,summary);
+    }
+  }
+  return {onlyOld:onlyOld,onlyNew:onlyNew,propChange:propChange,hasChanged:hasChanged};
+}
+//#endregion object helpers
+
 //#region set and tuple helpers
 function extractUniqueStrings(tupleList) {
   let idlist = [];
@@ -1727,7 +1767,7 @@ function sendAction(player, tuple, callback, ms = 60) {
 function sendChangePlayer(data, callback) {
   player = data.waiting_for.set[0];
   if (!assets.factionNames.includes(player)) {
-    logFormattedData(data, msgCounter, "ERROR: waiting_for data corrupt!!!"+player);
+    logFormattedData(data, msgCounter, "ERROR: waiting_for data corrupt!!!" + player);
   } else {
     console.log("________ player:", player);
     let chain = ["info/" + player, "status/" + player];
