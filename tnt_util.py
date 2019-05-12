@@ -95,28 +95,82 @@ def present_powers(G, tile):
 	for uid in tile.units:
 		unit = G.objects.table[uid]
 		powers.add(G.nations.designations[unit.nationality])
-	return powers
+	
+	disputed = False
+	if len(powers) > 1:
+		for p1 in powers:
+			if p1 not in G.players:
+				disputed = True
+			else:
+				wars = G.players[p1].stats.at_war_with
+				for p2 in powers:
+					if p2 in wars and wars[p2]:
+						disputed = True
+						break
+			if disputed:
+				break
+	
+	return powers, disputed
 
 # check for new battle
-def eval_tile_control(G, player, tile, unit=None): # usually done when a unit leaves a tile
+def eval_tile_control(G, tile, unit=None): # usually done when a unit leaves a tile
+	
+	# TODO: Axis entering Canada -> USA becomes West satellite
+	# TODO: Interventions
 	
 	owner = None
 	if 'alligence' in tile:
 		owner = tile.owner if 'owner' in tile else G.nations.designations[tile.alligence]
 	
-	# if no unit, just update disputed
-	if unit is None:
+	player = None
+	if unit is not None:
+		player = G.nations.designations[unit.nationality]
+	
+	powers, conflict = present_powers(G, tile)
+	
+	if not conflict: # no conflict based on units already there
+		if (player is None        # noone trying to enter
+		    or player in powers): # player entering is already present
+		
+			if 'disputed' in tile:
+				del tile.disputed
+				del tile.aggressors
+		elif player is not None:
+			if len(powers) == 0:
+				pass
+			pass
+			
+	# there is a conflict
+	elif player is not None: # noone trying to enter
 		pass
 	else:
-		assert player == G.nations.designations[unit.nationality], 'Unit doesnt match player: {} {}'.format(player, unit.nationality)
+		pass
 	
+	# if no unit, just update disputed
+	if unit is None:
+		
+		if owner is None: # sea/ocean
+			if len(powers) <= 1:
+				if 'disputed' in tile:
+					del tile.disputed
+					del tile.aggressors
+			elif not 'disputed' in tile:
+				raise Exception('')
+				
+				pass
+		
+		pass
+	else:
+		player = G.nations.designations[unit.nationality]
+		
+		
 	if 'alligence' in tile:  # land tile
 		
 		
 		if player == owner: # or player inside
 			return False
 	
-		powers = present_powers(G, tile)
+		
 		
 		if len(powers) == 1: # only a single power on the island
 			
