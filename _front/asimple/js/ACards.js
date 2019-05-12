@@ -6,12 +6,13 @@ class ACards {
     this.cardWidth = assets.SZ.cardWidth;
     this.cardHeight = assets.SZ.cardHeight;
     this.gap = assets.SZ.gap;
-    this.startPos = {x: gap + w / 2, y: gap + h / 2};
+    this.startPos = {x: this.gap + this.cardWidth / 2, y: this.gap + this.cardHeight / 2};
   }
   createCard(id, o) {
-    parentName = this.findParentForCard(o);
+    let parentName = this.findParentForCard(o);
     if (parentName == null) return null; //if card is not visible it is not created
 
+    console.log('card is created!',id,Object.keys(o).toString())
     let pos = this.findPositionForCard(parentName);
 
     let ms = new MS(id, id, parentName); // cards have id also as elem id! so make sure it is unique!
@@ -59,7 +60,7 @@ class ACards {
     let lastChild = nCards <= 1 ? null : parent.childNodes[nCards - 1];
 
     if (!lastChild) return {x: this.startPos.x, y: this.startPos.y};
-    let posLastChild = cards[lastChild.id].getPos();
+    let posLastChild = this.cards[lastChild.id].getPos();
     let x = posLastChild.x + this.gap + this.cardWidth;
     let y = posLastChild.y;
     let div = parent.parentNode.parentNode;
@@ -72,8 +73,10 @@ class ACards {
     }
     return {x: x, y: y};
   }
-  isCard(o) {
-    return endsWith(o.obj_type, "card");
+  isCard(id,o) {
+    //console.log('isCard?',id,o.obj_type)
+    //console.log('isCard?',o)
+    return  endsWith(o.obj_type, "card");
   }
   relayoutCards(parentName) {
     let parent = document.getElementById(parentName);
@@ -93,11 +96,57 @@ class ACards {
       c.setPos(pos).draw();
     }
   }
+  setCardContent(ms, o) {
+    let txt = [];
+    let title = "";
+    if ("top" in o) {
+      if (o.obj_type == "action_card") {
+        txt = [o.top, " ", o.season, o.priority + o.value, " ", o.bottom];
+      } else {
+        txt = [o.top, " ", " ", o.value ? o.value.toString() : " ", " ", " ", o.bottom];
+      }
+      title = o.top;
+    } else if ("wildcard" in o) {
+      txt = [o.wildcard, " ", o.season, o.priority + o.value, " ", " "];
+      title = o.wildcard;
+    } else if ("intelligence" in o) {
+      txt = [o.intelligence, " ", " ", o.value ? o.value.toString() : " ", " ", " ", " "];
+      title = o.intelligence;
+    } else if ("science" in o) {
+      txt = [o.value + "   (" + o.year.toString() + ")"];
+      o.science.map(x => txt.push(x));
+      title = o.year;
+    }
+    if (txt.length > 0) {
+      //console.log(txt)
+      txt = txt.map(x => x.replace(/_/g, " "));
+    }
+    let cardWidth = this.cardWidth;
+    let cardHeight = this.cardHeight;
+    console.log(cardWidth, cardHeight);
+
+    let testText = ms.id;
+    if ("owner" in o) {
+      testText += " " + o.owner;
+    }
+
+    ms.roundedRect({w: cardWidth, h: cardHeight, fill: "white"})
+      .text({txt: testText, fill: "red", y: cardHeight / 2, fz: cardWidth / 7})
+      .textMultiline({txt: txt, maxWidth: cardWidth, fz: cardWidth / 7}) // / 6})
+      .roundedRect({className: "overlay", w: cardWidth, h: cardHeight});
+
+    ms.tag("content", txt);
+    ms.tag("type", o.obj_type);
+    ms.tag("title", title);
+    ms.tag("json", JSON.stringify(o));
+    return ms;
+  }
+
   update(data, G) {
     for (const id in G) {
       let o = G[id];
-      if (!this.isCard(o)) continue;
-      if (!id in this.cards) {
+      if (!this.isCard(id,o)||!('owner' in o) && !(id in this.cards)) continue;
+      if (!(id in this.cards)) {
         let ms = this.createCard(id, o);
         if (ms) {
           console.log("CREATED card", id);
@@ -110,6 +159,8 @@ class ACards {
 
         //check which props have changed!
         //update accordingly!
+        console.log('o_old',o_old)
+        console.log('o_new',o_new)
         let ch = propDiff(o_old, o_new);
         if (ch.hasChanged) {
           console.log("update:", id);

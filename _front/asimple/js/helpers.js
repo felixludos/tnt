@@ -1483,10 +1483,12 @@ function propDiff(o_old, o_new) {
   let onlyNew = [];
   let propChange = [];
   let summary = [];
+  let hasChanged = false;
   for (const prop in o_new) {
     if (!(prop in o_old)) {
       addIf(prop, onlyNew);
-      addIf(prop,summary);
+      addIf(prop, summary);
+      hasChanged = true;
     } else if (o_new[prop] != o_old[prop]) {
       if (prop == "visible") {
         let visOld = getVisibleSet(o_old);
@@ -1496,17 +1498,18 @@ function propDiff(o_old, o_new) {
         }
       }
       addIf({prop: prop, old: o_old[prop], new: o_new[prop]}, propChange);
-      addIf(prop,summary);
-      updatedSomething = true;
+      addIf(prop, summary);
+      hasChanged = true;
     }
   }
   for (const prop in o_old) {
     if (!(prop in o_new)) {
       addIf(prop, onlyOld);
-      addIf(prop,summary);
+      addIf(prop, summary);
+      hasChanged = true;
     }
   }
-  return {onlyOld:onlyOld,onlyNew:onlyNew,propChange:propChange,hasChanged:hasChanged};
+  return {onlyOld: onlyOld, onlyNew: onlyNew, propChange: propChange, hasChanged: hasChanged};
 }
 //#endregion object helpers
 
