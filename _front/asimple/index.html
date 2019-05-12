@@ -3,10 +3,10 @@
   <head>
     <title>a94</title>
     <link rel="shortcut icon" href="#" />
+    <link rel="stylesheet" type="text/css" href="/a/css/autocomp.css" />
     <link rel="stylesheet" type="text/css" href="/a/css/main.css" />
     <link rel="stylesheet" type="text/css" href="/a/css/layout.css" />
     <link rel="stylesheet" type="text/css" href="/a/css/msStyles.css" />
-    <link rel="stylesheet" type="text/css" href="/a/css/autocomp.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.2/js-yaml.js"></script>
 
@@ -14,7 +14,12 @@
     <script src="/a/js/NAssets.js"></script>
     <script src="/a/js/helpers.js"></script>
     <script src="/a/js/panzoom.js"></script>
+    <script src="/a/js/MS.js"></script>
     <script src="/a/js/NPage.js"></script>
+    <script src="/a/js/AMap.js"></script>
+    <script src="/a/js/ACards.js"></script>
+    <script src="/a/js/AUnits.js"></script>
+    <script src="/a/js/unitTests.js"></script>
   </head>
   <body>
     <!-- #region HTML -->
@@ -82,8 +87,20 @@
         <button id="bEditDone" onclick="onClickEditDone(this)">done</button>
       </div>
       <div id="command_area" class="grid_div">
-        <button id="bNextPlayer" class="hidden" style="width:90%;" onclick="onClickNextPlayer()">next player</button>
-        <button id="bStep" class="hidden" style="width:90%;" onclick="onClickStep()">step</button>
+        <div class="columnDiv">
+          <!-- <button id="bNextPlayer" class="hidden" style="width:90%;" onclick="onClickNextPlayer()">next player</button> -->
+          <button class="chrome" id="bStop" style="background-color:red" onclick="onClickStop()">STOP</button>
+          <button class="chrome" id="bStep" onclick="onClickStep()">step</button>
+          <label class="chrome" for="inYear">year</label>
+          <input class="chrome" type="text" id="inYear" />
+          <label class="chrome" for="inPhase">phase</label>
+          <input class="chrome" type="text" id="inPhase" />
+          <label class="chrome" for="inPhase">player</label>
+          <input class="chrome" type="text" id="inPlayer" />
+          <label class="chrome" for="inStep">step</label>
+          <input class="chrome" type="text" id="inStep" />
+          <button class="chrome" id="bGo" onclick="onClickGo()">go</button>
+        </div>
       </div>
       <div id="chat_area" class="grid_div hidden">chat</div>
       <div id="hand_area" class="grid_div" style="height:200px">
@@ -107,28 +124,181 @@
       </div>
     </div>
     <!-- #endregion HTML -->
+
+    <!-- #region handlers -->
+    <script>
+      function onClickStop() {
+        STOP = true;
+      }
+      function onClickGo() {
+        inputsToOptions();
+        console.log("options:", execOptions.skipTo);
+        step = 0;
+        STOP = false;
+        callNextAction();
+      }
+      function onClickStep() {
+        STOP = false;
+        callNextAction();
+      }
+      // function onClickNextPlayer() {
+      //   hide(bNextPlayer);
+      //   nextPlayer();
+      // }
+    </script>
+    <!-- #endregion handlers -->
+
+    <!-- #region helpers -->
+    <script>
+      function activateButtons() {
+        show(bStep);
+        show(bGo);
+      }
+      function deactivateButtons() {
+        hide(bStep);
+        hide(bGo);
+      }
+    </script>
+    <!-- #endregion helpers -->
+
+    <!-- #region _work -->
     <script>
       function present(data) {
-        console.log(data);
+        updateUI(data);
+
+        processActions(data);
+      }
+      function updateUI(data) {
+        updateStatus(data);
+        updateLog(data);
+        updateGameObjects(data);
+        map.update(data,gameObjects);
+      }
+      function updateGameObjects(data){
+        //augment gameObjects by all created and updated objects
+        if ('created' in data){
+          jQuery.extend(true, gameObjects, data.created);
+        }
+        if ('updated' in data){
+          jQuery.extend(true, gameObjects, data.updated);
+        }
+        if ('removed' in data){
+          for (const id in data.removed) {
+            delete gameObjects[id];
+          }
+        }
+      }
+      function updateLog(data) {
+        if ("log" in data && !empty(data.log)) {
+          let id = execOptions.log == "individual" ? "log_" + player : "log_all";
+          let d = document.getElementById(id);
+          let para = document.createElement("p");
+          para.innerHTML = data.log;
+          d.appendChild(para);
+          para.scrollIntoView();
+        }
+      }
+      function updateStatus(data) {
+        if ("game" in data) {
+          year = Number(data.game.year);
+          phase = data.game.phase;
+          player = data.game.player;
+          statusMessage();
+        }
       }
 
+      function processActions(data) {
+        step += 1;
+        let tuples = getTuples(data);
+
+        console.assert(tuples.length > 0 || "waiting_for" in data, "ASSERTION FAIL!!! no action or waiting_for!!!!");
+
+        if (empty(tuples)) {
+          let msgAfter = "...waiting for player change!";
+
+          if (execOptions.output == "endToEnd") {
+            logFormattedData(data, msgCounter, msgAfter);
+            msgCounter += 1;
+          }
+
+          nextAction = () => sendChangePlayer(data, present);
+        } else {
+          let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
+          choiceIndex = (choiceIndex + 1) % choiceModulo;
+          let msgAfter = player + " chooses " + tuple.toString();
+
+          if (execOptions.output == "endToEnd") {
+            logFormattedData(data, msgCounter, msgAfter);
+            msgCounter += 1;
+          }
+
+          nextAction = () => sendAction(player, tuple, present);
+        }
+
+        checkProceedCondition();
+      }
+      function callNextAction() {
+        if (nextAction) {
+          deactivateButtons();
+          nextAction();
+        }
+      }
+      function checkProceedCondition() {
+        //skipTo: {year:'1935',phase:'production',player:'any',step:0},
+        if (execOptions.mode == "skipTo") {
+          let opt = execOptions.skipTo;
+          let nYear = Number(year);
+          let skipAhead = isWrongPhase() || isTooEarly() || isWrongPlayer();
+          if (skipAhead) {
+            callNextAction();
+          } else {
+            activateButtons();
+          }
+        }
+      }
+    </script>
+    <!-- #endregion _work -->
+
+    <script>
+      var player = "Axis"; //22 steps
+      var year = 1935;
+      var phase = "Setup";
+      var step = 0; // if step==0 take every step, otherwise skip step steps.
+
+      // determinism
+      var choiceIndex = 0;
+      var choiceModulo = 3;
+      var msgCounter = 0;
+      var seed = 1;
+
+      //control flow;
       var execOptions = {
+        output: "endToEnd", // 'fine' | 'endToEnd' | 'manual'
         playerChange: "auto", // 'auto' | 'manual'
         log: "general", // 'general' | 'individual'
-        mode: "nSkip" // 'step' | 'continuous' | 'nskip'
+        mode: "skipTo", // 'step' | 'continuous' | 'nskip' | 'skipTo'
+        skipTo: {year: 1935, phase: "g", player: "w", step: 0}
       };
-      var serverData;
-      var sender = new ASender();
+      optionsToInputs();
+      var nextAction = null;
+      var STOP = false; //interrupt endless play
+
+      //data
+      var gameObjects={}; //all created objects in play, ids same as server ids
+      var serverData; //not used right now
+
+      //initialization
+      var sender = new ASender(execOptions);
       //sender.send('initWest');
-      let player = "Axis";
-      let chain = ["init/hotseat/" + player + "/1", "info/" + player, "status/" + player];
-      let assets = new NAssets();
+      var assets = new NAssets();
       var page = new NPage()
         .initView()
         .gameView()
         .updateGameView(player, execOptions); //handles layout
-      panzoom("mapG"); //initPanZoom("mapG"); //handles pan zoom on map
-      assets.initAssets(() => sender.chainSend(chain, player, present));
+      panzoom("mapG"); //handles pan zoom on map
+      map=new AMap(assets); //responsible for tile influence nation chip
+      var chain = ["init/hotseat/" + player + "/" + seed, "info/" + player, "status/" + player];
+      assets.initAssets(map, () => sender.chainSend(chain, player, present));
     </script>
   </body>
 </html>

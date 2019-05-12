@@ -1,12 +1,12 @@
 //#region _HACKS
-function hackPhaseAndPlayerTest(msg){
-  console.log(msg)
-  let res = stringAfterLast(msg,'Beginning ');
-  let phase = stringBefore(res,' ');
-  console.log(res, 'phase='+phase);
-  let res1=stringAfter(res,'<br>');
-  let player = stringBefore(res1,' ');
-  console.log(res1,'player='+player);
+function hackPhaseAndPlayerTest(msg) {
+  //console.log(msg);
+  let res = stringAfterLast(msg, "Beginning ");
+  let phase = stringBefore(res, " ");
+  //console.log(res, "phase=" + phase);
+  let res1 = stringAfter(res, "<br>");
+  let player = stringBefore(res1, " ");
+  //console.log(res1, "player=" + player);
 }
 
 //#endregion HACKS
@@ -93,7 +93,8 @@ function empty(arr) {
 function first(arr) {
   return arr.length > 0 ? arr[0] : null;
 }
-function firstCond(arr, func) { //return first elem that fulfills condition
+function firstCond(arr, func) {
+  //return first elem that fulfills condition
   let res = arr.filter(x => func(x));
   return res.length > 0 ? res[0] : null;
 }
@@ -898,10 +899,10 @@ function makeSvg(w, h) {
 function show(elem) {
   elem.classList.remove("hidden");
 }
-function showSvg(elem){
+function showSvg(elem) {
   elem.setAttribute("style", "visibility:visible");
 }
-function toHTMLString(msg){
+function toHTMLString(msg) {
   msg = JSON.stringify(msg);
   msg = msg.replace(/(?:\r\n|\r|\n)/g, "<br>");
   msg = msg.replace("\\n", "<br>");
@@ -1051,28 +1052,42 @@ function saveFile(name, type, data) {
 //#endregion file helpers
 
 //#region id helpers
-function comp_(...arr){
-  return arr.join('_');
+function comp_(...arr) {
+  return arr.join("_");
 }
-function comp_1(id){return stringBefore(id,'_');}
-function comp_2(id){return stringBefore(stringAfter(id,'_'),'_');}
-function comp_last(id){return stringAfterLast(id,'_');}
+function comp_1(id) {
+  return stringBefore(id, "_");
+}
+function comp_2(id) {
+  return stringBefore(stringAfter(id, "_"), "_");
+}
+function comp_last(id) {
+  return stringAfterLast(id, "_");
+}
 
-function complus(...arr){
-  return arr.join('+');
+function complus(...arr) {
+  return arr.join("+");
 }
-function complus1(id){return stringBefore(id,'+');}
-function complus2(id){return stringBefore(stringAfter(id,'+'),'+');}
-function compluslast(id){return stringAfterLast(id,'+');}
+function complus1(id) {
+  return stringBefore(id, "+");
+}
+function complus2(id) {
+  return stringBefore(stringAfter(id, "+"), "+");
+}
+function compluslast(id) {
+  return stringAfterLast(id, "+");
+}
 //#endregion id helpers
 
 //#region io helpers
-function dump(...arr){
+function dump(...arr) {
   for (const a of arr) {
     console.log(a);
   }
 }
-function error(msg){console.log('ERROR!!!!! '+msg)}
+function error(msg) {
+  console.log("ERROR!!!!! " + msg);
+}
 //#endregion io helpers
 
 //#region layout helpers
@@ -1571,7 +1586,24 @@ function firstPositiveNumber(s) {
   // returns first number in string s
   return s ? Number(s.match(/\d+/).shift()) : -1;
 }
-
+function makeString(obj, prop, maxlen = 50, isStart = true) {
+  let s = prop + ":";
+  if (prop in obj) {
+    let s1 = JSON.stringify(obj[prop]);
+    if (maxlen > 0) {
+      s += isStart ? s1.substring(0, maxlen) : s1.substring(s.length - maxlen);
+    } else {
+      s += s1;
+    }
+  } else {
+    s += " not present";
+  }
+  return s;
+}
+function makeStrings(obj, props, maxlen = 50, isStart = true) {
+  strs = props.map(x => makeString(obj, x)).join("\n");
+  return strs;
+}
 function padSep(sep, n, args) {
   //sep..separator string, n..length of result, args are arbitrary numbers
   s = "";
@@ -1584,9 +1616,15 @@ function replaceAll(str, sSub, sBy) {
   let regex = new RegExp(sSub, "g");
   return str.replace(regex, sBy);
 }
+function sameCaseIn(s1, s2) {
+  return s1.toLowerCase() == s2.toLowerCase();
+}
 function startsWith(s, sSub) {
   ////console.log('startWith: s='+s+', sSub='+sSub,typeof(s),typeof(sSub));
   return s.substring(0, sSub.length) == sSub;
+}
+function startsWithCaseIn(s, ssub) {
+  return startsWith(s.toLowerCase(), ssub.toLowerCase());
 }
 function stringAfter(sFull, sSub) {
   ////console.log('s='+sFull,'sub='+sSub)
@@ -1595,7 +1633,7 @@ function stringAfter(sFull, sSub) {
   if (idx < 0) return "";
   return sFull.substring(idx + sSub.length);
 }
-function stringAfterLast(sFull,sSub){
+function stringAfterLast(sFull, sSub) {
   let parts = sFull.split(sSub);
   return last(parts);
 }
@@ -1607,6 +1645,32 @@ function stringBefore(sFull, sSub) {
 //#endregion
 
 //#region tnt helpers
+function chooseFirstNonPassTuple(tuples) {
+  if (tuples.length == 1) return tuples[0];
+  else return firstCond(tuples, t => !t.includes("pass"));
+}
+function chooseNthNonPassTuple(tuples, n) {
+  if (tuples.length == 1) return tuples[0];
+  else if (tuples.length < n) {
+    return firstCond(tuples, t => !t.includes("pass"));
+  } else {
+    return firstCond(tuples.slice(n - 1), t => !t.includes("pass"));
+  }
+}
+function getTuples(data) {
+  let tuples = [];
+  //console.log("getTuples", tuples);
+  if ("actions" in data) {
+    tuples = expand(data.actions);
+
+    if (!empty(tuples) && tuples.length == 1 && !Array.isArray(tuples[0])) {
+      //console.log("tuple correction", tuples);
+      tuples = [tuples]; //correct single with just 'pass' eg.
+    }
+  }
+  //console.log("returning:", tuples);
+  return tuples;
+}
 function getUnitOwner(nationality) {
   if (nationality == "Germany" || nationality == "Italy") {
     return "Axis";
@@ -1618,13 +1682,63 @@ function getUnitOwner(nationality) {
     return "Neutral";
   }
 }
-
-function getVisibleSet(o){
-  if (!("visible" in o) || !("set" in o.visible) && !("xset" in o.visible)) return null;
+function getVisibleSet(o) {
+  if (!("visible" in o) || (!("set" in o.visible) && !("xset" in o.visible))) return null;
   else if ("set" in o.visible) return o.visible.set;
   else return o.visible.xset;
 }
-
+function logFormattedData(data, n, msgAfter = "") {
+  let s = makeStrings(data, ["game", "actions", "waiting_for", "created"]);
+  console.log("___ step " + n, "\n" + s);
+  console.log(msgAfter);
+}
+function isWrongPhase() {
+  let ph = execOptions.skipTo.phase;
+  return ph != "any" && !startsWithCaseIn(phase, ph);
+}
+function isTooEarly() {
+  let yr = execOptions.skipTo.year;
+  return Number(year) < yr || step < execOptions.skipTo.step;
+}
+function isWrongPlayer() {
+  let pl = execOptions.skipTo.player;
+  return pl != "any" && !startsWithCaseIn(player, pl);
+}
+function inputsToOptions() {
+  execOptions.skipTo.year = document.getElementById("inYear").value;
+  execOptions.skipTo.phase = document.getElementById("inPhase").value;
+  execOptions.skipTo.player = document.getElementById("inPlayer").value;
+  execOptions.skipTo.step = document.getElementById("inStep").value;
+}
+function optionsToInputs() {
+  document.getElementById("inYear").value = execOptions.skipTo.year;
+  document.getElementById("inPhase").value = execOptions.skipTo.phase;
+  document.getElementById("inPlayer").value = execOptions.skipTo.player;
+  document.getElementById("inStep").value = execOptions.skipTo.step;
+}
+function sendAction(player, tuple, callback, ms = 60) {
+  setTimeout(() => {
+    if (!STOP) {
+      let chain = ["action/" + player + "/" + tuple.join("+"), "info/" + player, "status/" + player];
+      sender.chainSend(chain, player, callback);
+    }
+  }, ms);
+}
+function sendChangePlayer(data, callback) {
+  player = data.waiting_for.set[0];
+  if (!assets.factionNames.includes(player)) {
+    logFormattedData(data, msgCounter, "ERROR: waiting_for data corrupt!!!"+player);
+  } else {
+    console.log("________ player:", player);
+    let chain = ["info/" + player, "status/" + player];
+    sender.chainSend(chain, player, callback);
+  }
+}
+function statusMessage(msgAdd = "") {
+  let s = "Phase:" + phase + ", Year:" + year + ", Player:" + player;
+  s += " " + msgAdd;
+  document.getElementById("status_area").innerHTML = s;
+}
 
 //#endregion tnt helpers
 

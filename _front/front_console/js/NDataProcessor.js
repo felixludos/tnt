@@ -95,7 +95,7 @@ class NDataProcessor {
       //problem: wenn a_Tuples nur 1 option hat, dann ist es manchmal (oder immer?)
       //nur eine liste
       //muss daraus list of list machen
-      if (!empty(tuples) && !Array.isArray(tuples[0])) {
+      if (!empty(tuples) && tuples.length==1 && !Array.isArray(tuples[0])) {
         //console.log(tuples, "vorher");
         tuples = [tuples];
         //console.log(tuples, "nachher");
@@ -141,7 +141,7 @@ class NDataProcessor {
 
     this.processLog();
     //console.log('*** nach log ***')
-    this.processGameObjects();
+    this.processGameObjects(); //integrates update and create!
     //console.log('*** nach objects ***')
     this.serverData.game.player = this.player;
     //console.log('*** nach player ***')
