@@ -6,13 +6,13 @@ class ACards {
     this.cardWidth = assets.SZ.cardWidth;
     this.cardHeight = assets.SZ.cardHeight;
     this.gap = assets.SZ.gap;
-    this.startPos = {x: this.gap + this.cardWidth / 2, y: this.gap + this.cardHeight / 2};
+    this.startPos = {x: 80 + this.gap + this.cardWidth / 2, y: this.gap + this.cardHeight / 2};
   }
   createCard(id, o) {
     let parentName = this.findParentForCard(o);
     if (parentName == null) return null; //if card is not visible it is not created
 
-    console.log('card is created!',id,Object.keys(o).toString())
+    console.log("card is created!", id, Object.keys(o).toString());
     let pos = this.findPositionForCard(parentName);
 
     let ms = new MS(id, id, parentName); // cards have id also as elem id! so make sure it is unique!
@@ -65,18 +65,27 @@ class ACards {
     let y = posLastChild.y;
     let div = parent.parentNode.parentNode;
     let wTotal = div.offsetWidth;
-    let hTotal = div.offsetHeight;
     if (x + this.cardWidth + 2 > wTotal) {
+      console.log("MUSS IN NEUE ZEILE!!!");
       x = this.startPos.x;
       y += this.cardHeight + this.gap;
-      div.style.height = hTotal + this.cardHeight + this.gap;
+      let hTotal = div.offsetHeight;
+      let hDiv = firstNumber(div.style.height);
+      console.log("current height of cardDisplay:", hDiv);
+      console.log("card new y:", y);
+      if (hDiv < y + this.cardHeight + 2) {
+        console.log("MUSS ERWEITERN!!!");
+        hDiv += this.cardHeight + this.gap;
+        div.style.height = hDiv + "px";
+        console.log("new height of cardDisplay:", hDiv);
+      }
     }
     return {x: x, y: y};
   }
-  isCard(id,o) {
+  isCard(id, o) {
     //console.log('isCard?',id,o.obj_type)
     //console.log('isCard?',o)
-    return  endsWith(o.obj_type, "card");
+    return endsWith(o.obj_type, "card");
   }
   relayoutCards(parentName) {
     let parent = document.getElementById(parentName);
@@ -145,13 +154,13 @@ class ACards {
   update(data, G) {
     for (const id in G) {
       let o = G[id];
-      if (!this.isCard(id,o)||!('owner' in o) && !(id in this.cards)) continue;
+      if (!this.isCard(id, o) || (!("owner" in o) && !(id in this.cards))) continue;
       if (!(id in this.cards)) {
         let ms = this.createCard(id, o);
-        if (ms) {
-          console.log("CREATED card", id);
-          console.log(" props changed:", Object.keys(o).toString());
-        }
+        // if (ms) {
+        //   //console.log("CREATED card", id);
+        //   //console.log(" props changed:", Object.keys(o).toString());
+        // }
       } else {
         let ms = this.cards[id];
         let o_new = o;
@@ -159,15 +168,15 @@ class ACards {
 
         //check which props have changed!
         //update accordingly!
-        console.log('o_old',o_old)
-        console.log('o_new',o_new)
+        //console.log("o_old", o_old);
+        //console.log("o_new", o_new);
         let ch = propDiff(o_old, o_new);
         if (ch.hasChanged) {
-          console.log("update:", id);
-          if (!empty(ch.summary)) console.log(" props changed:", summary.toString());
-          // if (!empty(ch.onlyOld)) console.log(" old:", onlyOld.toString());
-          // if (!empty(ch.onlyNew)) console.log(" new:", onlyNew.toString());
-          // if (!empty(ch.propChange)) console.log("  changes:", propChange);
+          //console.log("update:", id);
+          if (!empty(ch.summary)) {} //console.log(" props changed:", summary.toString());
+          // if (!empty(ch.onlyOld)) //console.log(" old:", onlyOld.toString());
+          // if (!empty(ch.onlyNew)) //console.log(" new:", onlyNew.toString());
+          // if (!empty(ch.propChange)) //console.log("  changes:", propChange);
         }
 
         //if owner or visibility changed

@@ -141,10 +141,10 @@
         STOP = false;
         callNextAction();
       }
-      // function onClickNextPlayer() {
-      //   hide(bNextPlayer);
-      //   nextPlayer();
-      // }
+      function onClickNextPlayer() {
+        hide(bNextPlayer);
+        callNextAction();
+      }
     </script>
     <!-- #endregion handlers -->
 
@@ -163,7 +163,13 @@
 
     <!-- #region _work -->
     <script>
+
       function present(data) {
+        if (isPlayerChanging) {
+          isPlayerChanging = false;
+          page.updateGameView(player, execOptions);
+        }
+
         updateUI(data);
 
         processActions(data);
@@ -172,18 +178,18 @@
         updateStatus(data);
         updateLog(data);
         updateGameObjects(data);
-        map.update(data,gameObjects);
-        cards.update(data,gameObjects);
+        map.update(data, gameObjects);
+        cards.update(data, gameObjects);
       }
-      function updateGameObjects(data){
+      function updateGameObjects(data) {
         //augment gameObjects by all created and updated objects
-        if ('created' in data){
+        if ("created" in data) {
           jQuery.extend(true, gameObjects, data.created);
         }
-        if ('updated' in data){
+        if ("updated" in data) {
           jQuery.extend(true, gameObjects, data.updated);
         }
-        if ('removed' in data){
+        if ("removed" in data) {
           for (const id in data.removed) {
             delete gameObjects[id];
           }
@@ -223,6 +229,7 @@
           }
 
           nextAction = () => sendChangePlayer(data, present);
+          isPlayerChanging = true;
         } else {
           let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
           choiceIndex = (choiceIndex + 1) % choiceModulo;
@@ -274,18 +281,19 @@
 
       //control flow;
       var execOptions = {
-        output: "endToEnd", // 'fine' | 'endToEnd' | 'manual' | 'none'
+        output: "none", // 'fine' | 'endToEnd' | 'manual' | 'none'
         playerChange: "auto", // 'auto' | 'manual'
         log: "general", // 'general' | 'individual'
         mode: "skipTo", // 'step' | 'continuous' | 'nskip' | 'skipTo'
-        skipTo: {year: 1935, phase: "g", player: "w", step: 0}
+        skipTo: {year: 1935, phase: "p", player: "u", step: 0}
       };
       optionsToInputs();
       var nextAction = null;
       var STOP = false; //interrupt endless play
+      var isPlayerChanging = true;
 
       //data
-      var gameObjects={}; //all created objects in play, ids same as server ids
+      var gameObjects = {}; //all created objects in play, ids same as server ids
       var serverData; //not used right now
 
       //initialization
@@ -297,8 +305,8 @@
         .gameView()
         .updateGameView(player, execOptions); //handles layout
       panzoom("mapG"); //handles pan zoom on map
-      map=new AMap(assets); //responsible for tile influence nation chip
-      cards=new ACards(assets);
+      map = new AMap(assets); //responsible for tile influence nation chip
+      cards = new ACards(assets);
       var chain = ["init/hotseat/" + player + "/" + seed, "info/" + player, "status/" + player];
       assets.initAssets(map, () => sender.chainSend(chain, player, present));
     </script>
