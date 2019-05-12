@@ -4,6 +4,12 @@ import random
 
 from flask_app import *
 
+# class Test():
+#     def test(self,x,y):
+#         print(x)
+#         x += y
+#         return y - x
+
 def update_table(table, out):
 	table.update(out.created)
 	table.update(out.updated)
