@@ -1,5 +1,62 @@
+/*TODO: 
+- generate sample objects for all types
+ok -- generateCard
+-- simulate updating cards
+*/
+var unitTestId = 0;
+function generateCard(hasOwner = true, hasContent = true, visibleToN = 1) {
+  let id = "action_" + unitTestId;
+  unitTestId += 1;
+  let o = JSON.parse(`
+  {
+    "wildcard": "Isolationism",
+    "season": "Fall",
+    "priority": "H",
+    "value": 8,
+    "obj_type": "action_card",
+    "visible": {
+      "xset": [
+        "Axis"
+      ]
+    },
+    "owner": "Axis",
+    "_id": "action_48"
+  }
+  `);
+  if (!hasContent) {
+    o = JSON.parse(`
+    {
+    "obj_type": "action_card",
+    "visible": {
+      "xset": [
+        "Axis"
+      ]
+    },
+    "owner": "Axis",
+    "_id": "action_48"
+  }
+  `);
+  }
+  o._id = id;
+  if (!hasOwner) {
+    delete o.owner;
+  }
+  if (visibleToN == 0) {
+    o.visible.xset = [];
+  } else if (visibleToN == 2) {
+    o.visible.xset.push("West");
+  } else if (visibleToN == 3) {
+    o.visible.xset = ["Axis", "West", "USSR"];
+  }
+  return {id: id, o: o};
+}
+function testUpdateCardsPlacement(){
+  for (let i = 0; i < n; i++) {
+    let c=generateCard();
+  }
+}
 
-//test setup, test production, test government, 
+//test setup, test production, test government,
 
 function testEndToEndCom(data) {
   //input is init chain response data
