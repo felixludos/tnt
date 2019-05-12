@@ -10,6 +10,7 @@ class NAssets {
     this.unitTypeNames;
     this.factionSetup;
     this.factionNames;
+    this.uniqueIdCounter = 0;
     this.troopColors = {
       Germany: [174, 174, 176],
       Britain: [86, 182, 222],
@@ -23,7 +24,7 @@ class NAssets {
     };
     this.SZ = {
       //various sizes used
-      region: 180,
+      tile: 180,
       pAxis: {x: 0, y: 20}, // this is where on the region placement of cadre is started
       pWest: {x: -50, y: -30},
       pUSSR: {x: +50, y: -30},
@@ -36,10 +37,10 @@ class NAssets {
       chip: 40,
       influence: 100
     };
-    
-    
+    this.uid2id={};
+    this.id2uid={};
   }
-  initAssets(callback) {
+  initAssets(map,callback) {
     //console.log("loading...");
     this.calculateTrackPositions();
     loadYML("/assets/config/map_pos.yml", data => {
@@ -54,6 +55,7 @@ class NAssets {
         for (const idNation in data) {
           let id = replaceAll(idNation, " ", "_");
           this.nationPositions[id] = data[idNation];
+          map.drawNationPositions();
         }
         this.nationNames = Object.keys(this.nationPositions);
         loadYML("/assets/config/unit_count.yml", data => {
@@ -107,4 +109,12 @@ class NAssets {
     }
     this.trackPositions.USSR = arr;
   }
+  getUniqueId(id) {
+    let uid = this.uniqueIdCounter + "_" + id;
+    this.uniqueIdCounter += 1;
+    this.uid2id[uid] = id;
+    this.id2uid[id] = uid;
+    return uid;
+  }
+
 }
