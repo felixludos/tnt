@@ -1777,7 +1777,13 @@ function sendAction(player, tuple, callback, ms = 60) {
     }
   }, ms);
 }
+function sendChangeToPlayer(player, callback) {
+  let chain = ["info/" + player, "status/" + player];
+  sender.chainSend(chain, player, callback);
+}
+//deprecate!
 function sendChangePlayer(data, callback) {
+  //deprecate!!!
   player = data.waiting_for.set[0];
   if (!assets.factionNames.includes(player)) {
     logFormattedData(data, msgCounter, "ERROR: waiting_for data corrupt!!!" + player);
@@ -1787,27 +1793,31 @@ function sendChangePlayer(data, callback) {
     sender.chainSend(chain, player, callback);
   }
 }
-function sendLoading(filename,player,callback,options){
-  execOptions.output=options;
-  var sData={};
-  sender.send('myload/'+filename+'.json',data=>{
-    console.log('myload response:',data);
-    sender.send("refresh/" + player, data=>{
-      console.log('refresh response:',data);
-      sData.created=data;
+function sendInit(player,callback,seed=1) {
+  var chain = ["init/hotseat/" + player + "/" + seed, "info/" + player, "status/" + player];
+  sender.chainSend(chain, player, callback);
+}
+function sendLoading(filename, player, callback, options) {
+  execOptions.output = options;
+  var sData = {};
+  sender.send("myload/" + filename + ".json", data => {
+    console.log("myload response:", data);
+    sender.send("refresh/" + player, data => {
+      console.log("refresh response:", data);
+      sData.created = data;
       let chain = ["info/" + player, "status/" + player];
-      sender.chainSend(chain, player, data=>{
-        console.log('info+status response:',data);
-        augment(sData,data);
-        augment(sData.created,sData.updated);
-        if ('waiting_for' in data && empty(getSet(data,'waiting_for'))){
-          sender.send("action/" + player + '/none', data=>{
-            console.log('empty action response:',data);
-            augment(sData,data);
-            console.log('=augmented data:',sData);
+      sender.chainSend(chain, player, data => {
+        console.log("info+status response:", data);
+        augment(sData, data);
+        augment(sData.created, sData.updated);
+        if ("waiting_for" in data && empty(getSet(data, "waiting_for"))) {
+          sender.send("action/" + player + "/none", data => {
+            console.log("empty action response:", data);
+            augment(sData, data);
+            console.log("=augmented data:", sData);
             if (callback) callback(sData);
           });
-        }else{
+        } else {
           if (callback) callback(sData);
         }
       });

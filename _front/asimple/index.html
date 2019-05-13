@@ -266,7 +266,7 @@
     </script>
     <!-- #endregion _work -->
 
-    <!-- globals -->
+    <!-- #region globals -->
     <script>
       var player = "Axis"; //22 steps
       var year = 1935;
@@ -316,10 +316,6 @@
 
     <!-- #region execution -->
     <script>
-      function initGame() {
-        var chain = ["init/hotseat/" + player + "/" + seed, "info/" + player, "status/" + player];
-        sender.chainSend(chain, player, present);
-      }
       function loadGame() {
         var chain = ["myload/prod_complete.json", "refresh/" + player, "info/" + player, "status/" + player];
         sender.chainSend(chain, player, present);
@@ -328,7 +324,7 @@
       function startScript() {
         //initGame();
         //testLoadingSimpleOutput();
-        testLoadingSequence();
+        testInitToEnd();
       }
     </script>
     <!-- #endregion execution -->

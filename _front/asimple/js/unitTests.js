@@ -58,7 +58,7 @@ function testCreateOneCard() {
 }
 function testCreateNCards() {
   let cman = new ACards(assets);
-  let n=20;
+  let n = 20;
   for (let i = 0; i < n; i++) {
     let c = generateCard();
     cman.createCard(c.id, c.o);
@@ -75,7 +75,7 @@ function testUpdateCardsPlacement() {
   let cman = new ACards(assets);
   cman.update(data, g);
 }
-function testCardsUpdate(data){
+function testCardsUpdate(data) {
   cards.update(data, gameObjects);
 }
 //#endregion
@@ -84,40 +84,66 @@ function testCardsUpdate(data){
 //test setup, test production, test government,
 function testLoadingSimpleOutput() {
   //input is chain response data
-  execOptions.output='fine';
+  execOptions.output = "fine";
   var chain = ["myload/prod_complete.json", "refresh/" + player, "info/" + player, "status/" + player];
-  sender.chainSend(chain, player, data=>console.log(data));
+  sender.chainSend(chain, player, data => console.log(data));
 }
-function testLoading2(callback){
-  execOptions.output='raw';
-  var sData={};
-  sender.send("myload/prod_complete.json",data=>{
-    console.log('myload response:',data);
-    sender.send("refresh/" + player, data=>{
-      console.log('refresh response:',data);
-      sData.created=data;
+function testLoading2(callback) {
+  execOptions.output = "raw";
+  var sData = {};
+  sender.send("myload/prod_complete.json", data => {
+    console.log("myload response:", data);
+    sender.send("refresh/" + player, data => {
+      console.log("refresh response:", data);
+      sData.created = data;
       let chain = ["info/" + player, "status/" + player];
-      sender.chainSend(chain, player, data=>{
-        console.log('info+status response:',data);
-        augment(sData,data);
-        augment(sData.created,sData.updated);
-        if ('waiting_for' in data && empty(getSet(data,'waiting_for'))){
-          sender.send("action/" + player + '/none', data=>{
-            console.log('empty action response:',data);
-            augment(sData,data);
-            console.log('=augmented data:',sData);
+      sender.chainSend(chain, player, data => {
+        console.log("info+status response:", data);
+        augment(sData, data);
+        augment(sData.created, sData.updated);
+        if ("waiting_for" in data && empty(getSet(data, "waiting_for"))) {
+          sender.send("action/" + player + "/none", data => {
+            console.log("empty action response:", data);
+            augment(sData, data);
+            console.log("=augmented data:", sData);
             if (callback) callback(sData);
           });
-        }else{
+        } else {
           if (callback) callback(sData);
         }
       });
     });
   });
 }
-function testLoadingSequence(){
-  sendLoading('gov_complete','USSR',stepToPresent,'raw');
+function testLoadingSequence() {
+  sendLoading("gov_complete", "USSR", stepToPresent, "raw");
 }
+
+function testInitToEnd(player = "Axis") {
+  sendInit(player, d=>testRunToEnd(d,player));
+}
+function testRunToEnd(data, player) {
+  let tuples = getTuples(data);
+  if (empty(tuples)) {
+    let waitingSet = getSet(data, "waiting_for");
+    if (empty(waitingSet)) {
+      error("NO ACTIONS AND EMPTY WAITING SET!!!");
+    } else {
+      let nextPlayer = waitingSet[0];
+      sendChangeToPlayer(nextPlayer, d1 => {
+        console.log("player changed to", nextPlayer, "on server");
+        console.log(d1);
+        testRunToEnd(d1, nextPlayer);
+      });
+    }
+  } else {
+    let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
+    choiceIndex = (choiceIndex + 1) % choiceModulo;
+    console.log(player + " chooses " + tuple.toString());
+    sendAction(player, tuple, d=>testRunToEnd(d,player));
+  }
+}
+
 //#endregion
 
 function testEndToEndCom(data) {

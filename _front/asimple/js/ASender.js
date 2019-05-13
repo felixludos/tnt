@@ -13,12 +13,12 @@ class ASender {
     jQuery.extend(true, this.serverData, data);
     //console.log("this", this);
 
-    console.log('sender this=',this,'options',this.options)
+    //console.log('sender this=',this,'options',this.options)
 
     if (this.options.output == "fine") {
       logFormattedData(this.serverData, this.stepCounter);
-    } else if (this.options.output == 'raw'){
-      console.log(this.serverData);
+    } else if (this.options.output == "raw") {
+      //console.log(this.serverData);
     }
   }
   chainSend(msgChain, player, callback) {
@@ -41,22 +41,28 @@ class ASender {
   send(url, callback) {
     url = this.backendUrl + url;
     this.msgCounter += 1;
-    if (this.options.output == "fine") console.log(this.msgCounter + ": request sent: " + url);
+    if (this.options.output == "fine") {
+      //console.log(this.msgCounter + ": request sent: " + url);
+    }
 
     $.ajax({
       url: url,
       type: "GET",
       success: function(response) {
         if (response[0] != "{") {
-          callback(JSON.parse('{"response":"'+response+'"}'));
+          callback(JSON.parse('{"response":"' + response + '"}'));
         } else {
           this.serverData = JSON.parse(response);
-          //console.log(this.serverData);
-          callback(this.serverData);
+          if ("error" in this.serverData) {
+            error(response);
+          } else {
+            //console.log(this.serverData);
+            callback(this.serverData);
+          }
         }
       },
-      error: function(error) {
-        console.log(error);
+      error: function(err) {
+        error(err);
       }
     });
   }
