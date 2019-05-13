@@ -163,7 +163,6 @@
 
     <!-- #region _work -->
     <script>
-
       function present(data) {
         if (isPlayerChanging) {
           isPlayerChanging = false;
@@ -267,6 +266,7 @@
     </script>
     <!-- #endregion _work -->
 
+    <!-- globals -->
     <script>
       var player = "Axis"; //22 steps
       var year = 1935;
@@ -281,13 +281,12 @@
 
       //control flow;
       var execOptions = {
-        output: "none", // 'fine' | 'endToEnd' | 'manual' | 'none'
-        playerChange: "auto", // 'auto' | 'manual'
-        log: "general", // 'general' | 'individual'
-        mode: "skipTo", // 'step' | 'continuous' | 'nskip' | 'skipTo'
+        output: 'raw', // 'fine' | 'endToEnd' | 'manual' | 'none' | 'raw'
+        playerChange: 'auto', // 'auto' | 'manual'
+        log: 'general', // 'general' | 'individual'
+        mode: 'skipTo', // 'step' | 'continuous' | 'nskip' | 'skipTo'
         skipTo: {year: 1935, phase: "p", player: "u", step: 0}
       };
-      optionsToInputs();
       var nextAction = null;
       var STOP = false; //interrupt endless play
       var isPlayerChanging = true;
@@ -304,11 +303,34 @@
         .initView()
         .gameView()
         .updateGameView(player, execOptions); //handles layout
-      panzoom("mapG"); //handles pan zoom on map
-      map = new AMap(assets); //responsible for tile influence nation chip
-      cards = new ACards(assets);
-      var chain = ["init/hotseat/" + player + "/" + seed, "info/" + player, "status/" + player];
-      assets.initAssets(map, () => sender.chainSend(chain, player, present));
+
+      $(document).ready(function() {
+        optionsToInputs();
+        panzoom("mapG"); //handles pan zoom on map
+        map = new AMap(assets); //responsible for tile influence nation chip
+        cards = new ACards(assets);
+        assets.initAssets(map, startScript);
+      });
     </script>
+    <!-- #endregion globals -->
+
+    <!-- #region execution -->
+    <script>
+      function initGame() {
+        var chain = ["init/hotseat/" + player + "/" + seed, "info/" + player, "status/" + player];
+        sender.chainSend(chain, player, present);
+      }
+      function loadGame() {
+        var chain = ["myload/prod_complete.json", "refresh/" + player, "info/" + player, "status/" + player];
+        sender.chainSend(chain, player, present);
+      }
+
+      function startScript() {
+        //initGame();
+        //testLoadingSimpleOutput();
+        testLoadingSequence();
+      }
+    </script>
+    <!-- #endregion execution -->
   </body>
 </html>

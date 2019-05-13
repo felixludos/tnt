@@ -1,3 +1,4 @@
+//#region tests for cards
 /*TODO: 
 - generate sample objects for all types
 ok -- generateCard
@@ -50,13 +51,74 @@ function generateCard(hasOwner = true, hasContent = true, visibleToN = 1) {
   }
   return {id: id, o: o};
 }
-function testUpdateCardsPlacement(){
+function testCreateOneCard() {
+  let c = generateCard();
+  let cman = new ACards(assets);
+  cman.createCard(c.id, c.o);
+}
+function testCreateNCards() {
+  let cman = new ACards(assets);
+  let n=20;
   for (let i = 0; i < n; i++) {
-    let c=generateCard();
+    let c = generateCard();
+    cman.createCard(c.id, c.o);
   }
 }
+function testUpdateCardsPlacement() {
+  let g = {},
+    data = {},
+    n = 20;
+  for (let i = 0; i < n; i++) {
+    let c = generateCard();
+    data[c.id] = c.o;
+  }
+  let cman = new ACards(assets);
+  cman.update(data, g);
+}
+function testCardsUpdate(data){
+  cards.update(data, gameObjects);
+}
+//#endregion
 
+//#region tests for server communication
 //test setup, test production, test government,
+function testLoadingSimpleOutput() {
+  //input is chain response data
+  execOptions.output='fine';
+  var chain = ["myload/prod_complete.json", "refresh/" + player, "info/" + player, "status/" + player];
+  sender.chainSend(chain, player, data=>console.log(data));
+}
+function testLoading2(callback){
+  execOptions.output='raw';
+  var sData={};
+  sender.send("myload/prod_complete.json",data=>{
+    console.log('myload response:',data);
+    sender.send("refresh/" + player, data=>{
+      console.log('refresh response:',data);
+      sData.created=data;
+      let chain = ["info/" + player, "status/" + player];
+      sender.chainSend(chain, player, data=>{
+        console.log('info+status response:',data);
+        augment(sData,data);
+        augment(sData.created,sData.updated);
+        if ('waiting_for' in data && empty(getSet(data,'waiting_for'))){
+          sender.send("action/" + player + '/none', data=>{
+            console.log('empty action response:',data);
+            augment(sData,data);
+            console.log('=augmented data:',sData);
+            if (callback) callback(sData);
+          });
+        }else{
+          if (callback) callback(sData);
+        }
+      });
+    });
+  });
+}
+function testLoadingSequence(){
+  sendLoading('gov_complete','USSR',stepToPresent,'raw');
+}
+//#endregion
 
 function testEndToEndCom(data) {
   //input is init chain response data

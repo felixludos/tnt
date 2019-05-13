@@ -1473,7 +1473,10 @@ function intDiv(n, q) {
 }
 //#endregion
 
-//#region object helpers
+//#region object and dictionary helpers
+function augment(obj, newobj) {
+  jQuery.extend(true, obj, newobj);
+}
 function jsCopy(o) {
   return JSON.parse(JSON.stringify(o));
 }
@@ -1726,10 +1729,17 @@ function getUnitOwner(nationality) {
   }
 }
 function getVisibleSet(o) {
+  return getSet(o, "visible");
   if (!("visible" in o) || (!("set" in o.visible) && !("xset" in o.visible))) return null;
   else if ("set" in o.visible) return o.visible.set;
   else return o.visible.xset;
 }
+function getSet(o, key) {
+  if (!(key in o) || (!("set" in o[key]) && !("xset" in o[key]))) return null;
+  else if ("set" in o[key]) return o[key].set;
+  else return o[key].xset;
+}
+
 function logFormattedData(data, n, msgAfter = "") {
   let s = makeStrings(data, ["game", "actions", "waiting_for", "created"]);
   console.log("___ step " + n, "\n" + s);
@@ -1776,6 +1786,33 @@ function sendChangePlayer(data, callback) {
     let chain = ["info/" + player, "status/" + player];
     sender.chainSend(chain, player, callback);
   }
+}
+function sendLoading(filename,player,callback,options){
+  execOptions.output=options;
+  var sData={};
+  sender.send('myload/'+filename+'.json',data=>{
+    console.log('myload response:',data);
+    sender.send("refresh/" + player, data=>{
+      console.log('refresh response:',data);
+      sData.created=data;
+      let chain = ["info/" + player, "status/" + player];
+      sender.chainSend(chain, player, data=>{
+        console.log('info+status response:',data);
+        augment(sData,data);
+        augment(sData.created,sData.updated);
+        if ('waiting_for' in data && empty(getSet(data,'waiting_for'))){
+          sender.send("action/" + player + '/none', data=>{
+            console.log('empty action response:',data);
+            augment(sData,data);
+            console.log('=augmented data:',sData);
+            if (callback) callback(sData);
+          });
+        }else{
+          if (callback) callback(sData);
+        }
+      });
+    });
+  });
 }
 function statusMessage(msgAdd = "") {
   let s = "Phase:" + phase + ", Year:" + year + ", Player:" + player;
