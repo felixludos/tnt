@@ -7,9 +7,13 @@ from government import check_revealable, reveal_tech
 
 
 def combat_phase(G, player, action):
-	pass
+	raise NotImplementedError
 
 
-def retreat_phase(G):
-	pass
+def retreat_phase(G, player, action):
+	
+	if action is None:
+		pass
+	
+	raise NotImplementedError
 

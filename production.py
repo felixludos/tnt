@@ -80,41 +80,38 @@ def encode_production_actions(G):
 	code[active_player] = options
 
 	return code
-		
-
-def production_pre_phase(G):
-	
-	G.logger.write('Beginning Production Phase')
-	
-	if 'temp' in G:
-		del G.temp
-		
-	G.temp = tdict()
-	
-	G.temp.active_idx = 0
-	G.temp.prod = tdict()
-	
-	# TODO: update blockades
-	
-	
-	for player, faction in G.players.items():
-		G.temp.prod[player] = tdict()
-		G.temp.prod[player].production_remaining = compute_production_level(faction)
-		
-		G.temp.prod[player].upgraded_units = tset()
-		
-		G.temp.prod[player].action_cards_drawn = 0
-		G.temp.prod[player].invest_cards_drawn = 0
-	
-	# remove all blockades (not unsupplied markers)
-	
-	active_player = G.game.turn_order[G.temp.active_idx]
-	G.logger.write('{} may spend {} production points'.format(active_player, G.temp.prod[active_player].production_remaining))
-	
-	return encode_production_actions(G)
 
 
 def production_phase(G, player, action):
+	
+	if action is None:
+		
+		if 'temp' in G:
+			del G.temp
+		
+		G.temp = tdict()
+		
+		G.temp.active_idx = 0
+		G.temp.prod = tdict()
+		
+		# TODO: update blockades
+		
+		for player, faction in G.players.items():
+			G.temp.prod[player] = tdict()
+			G.temp.prod[player].production_remaining = compute_production_level(faction)
+			
+			G.temp.prod[player].upgraded_units = tset()
+			
+			G.temp.prod[player].action_cards_drawn = 0
+			G.temp.prod[player].invest_cards_drawn = 0
+		
+		# remove all blockades (not unsupplied markers)
+		
+		active_player = G.game.turn_order[G.temp.active_idx]
+		G.logger.write(
+			'{} may spend {} production points'.format(active_player, G.temp.prod[active_player].production_remaining))
+		
+		return encode_production_actions(G)
 	
 	if len(action) == 1: # card or upgrade unit
 		

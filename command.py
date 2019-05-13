@@ -40,25 +40,6 @@ def check_declarations(G, player):
 	return options
 
 
-def pre_command_phase(G):
-
-	if 'temp' in G:
-		del G.temp
-
-	G.temp = tdict()
-	G.temp.season = G.game.sequence[G.game.index]
-
-	G.temp.active_idx = 0
-	G.temp.active_players = G.game.turn_order.copy()
-	if G.temp.season == 'Winter':
-		G.temp.active_players = tlist(p for p in G.game.turn_order if G.players[p].stats.enable_Winter)
-
-	G.temp.decision = tdict()
-	G.temp.passes = 0
-
-	G.temp.borders = tdict({p:tdict() for p in G.players})
-
-	return encode_command_card_phase(G)
 
 
 # def command_phase(G, player, action):
@@ -87,6 +68,25 @@ def pre_command_phase(G):
 
 
 def planning_phase(G, player, action):
+	
+	if action is None:
+		if 'temp' in G:
+			del G.temp
+		
+		G.temp = tdict()
+		G.temp.season = G.game.sequence[G.game.index]
+		
+		G.temp.active_idx = 0
+		G.temp.active_players = G.game.turn_order.copy()
+		if G.temp.season == 'Winter':
+			G.temp.active_players = tlist(p for p in G.game.turn_order if G.players[p].stats.enable_Winter)
+		
+		G.temp.decision = tdict()
+		G.temp.passes = 0
+		
+		G.temp.borders = tdict({p: tdict() for p in G.players})
+		
+		return encode_command_card_phase(G)
 	
 	faction = G.players[player]
 	

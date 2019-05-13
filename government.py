@@ -562,27 +562,28 @@ def encode_factory_upgrade_actions(G):
 	code[active_player] = (options,)
 	return code
 
-def government_pre_phase(G): # prep influence
-	
-	G.logger.write('Beginning Government Phase')
-	
-	if 'temp' in G:
-		del G.temp
-	
-	G.temp = tdict()
-	G.temp.diplomacy = tdict()
-	G.temp.diplomacy_cards = tset()
-	G.temp.intel = tdict()
-	G.temp.past_upgrades = tdict()
-	for player in G.players:
-		G.temp.past_upgrades[player] = 0
-	
-	G.temp.passes = 0
-	
-	G.temp.active_idx = 0
-	return encode_government_actions(G)
 
 def governmnet_phase(G, player, action): # play cards
+	
+	if action is None: # prep influence
+		
+		G.logger.write('Beginning Government Phase')
+		
+		if 'temp' in G:
+			del G.temp
+		
+		G.temp = tdict()
+		G.temp.diplomacy = tdict()
+		G.temp.diplomacy_cards = tset()
+		G.temp.intel = tdict()
+		G.temp.past_upgrades = tdict()
+		for player in G.players:
+			G.temp.past_upgrades[player] = 0
+		
+		G.temp.passes = 0
+		
+		G.temp.active_idx = 0
+		return encode_government_actions(G)
 	
 	if 'move_to_post' in G.temp: # after phase has ended and only clean up is necessary
 		return government_post_phase(G, player, action)

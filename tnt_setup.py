@@ -203,7 +203,7 @@ def load_game_info(G, seed=None, path='config/game_info.yml'):
 	game.turn_order_options = info.turn_order_options
 	
 	game.sequence = ['Setup'] + num_rounds*info.year_order + ['Scoring']
-	game.index = -1 # start below 0, so after increment in next_phase() it starts at 0
+	game.index = 0 # start below 0, so after increment in next_phase() it starts at 0
 	#game.action_phases = tset(x for x in info.phases if info.phases[x]) # no need for action phases anymore (all action phases have a pre phase)
 	
 	game.peace_dividends = tlist(sum([[v]*n for v,n in info.peace_dividends.items()], []))
@@ -261,34 +261,33 @@ def encode_setup_actions(G):
 
 player_setup_path='config/faction_setup.yml'
 
-def setup_pre_phase(G):
-	
-	player_setup = load(player_setup_path)
-	
-	# prep temp info - phase specific data
-	
-	temp = tdict()
-	temp.setup = tdict()
-	
-	for name, faction in player_setup.items():
-		
-		if 'units' in faction.setup:
-		
-			for unit in faction.setup.units:
-				add_unit(G, unit)
-	
-			del faction.setup.units
-	
-		temp.setup[name] = faction.setup
-	
-	G.temp = temp
-	
-	# return action adict(faction: (action_keys, action_options))
-	return encode_setup_actions(G)
-	
-
 def setup_phase(G, player, action): # player, nationality, tilename, unit_type
 	# place user chosen units
+	
+	if action is None: # pre phase
+		
+		player_setup = load(player_setup_path)
+		
+		# prep temp info - phase specific data
+		
+		temp = tdict()
+		temp.setup = tdict()
+		
+		for name, faction in player_setup.items():
+			
+			if 'units' in faction.setup:
+				
+				for unit in faction.setup.units:
+					add_unit(G, unit)
+				
+				del faction.setup.units
+			
+			temp.setup[name] = faction.setup
+		
+		G.temp = temp
+		
+		# return action adict(faction: (action_keys, action_options))
+		return encode_setup_actions(G)
 	
 	nationality, tilename, unit_type = action
 	
