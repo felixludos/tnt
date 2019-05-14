@@ -1,4 +1,4 @@
-''' Some constants '''
+""" Some constants """
 
 # Default window settings
 WIN_WIDTH = 768
@@ -16,3 +16,4 @@ SCROLL_SPEED = 12
 # File locations
 GAME_MAP_PATH = "_front,front_pygame,assets,TTmap.jpg".split(",")
 LOGO_PATH = "_front,front_pygame,assets,images,tnt_logo.png".split(",")
+IMG_PATH = "_front,front_pygame,assets,images".split(",")
