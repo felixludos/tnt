@@ -183,8 +183,6 @@ def evaluate_action(player=None, action=None):  # keeps going through phases unt
 
 def step(player, action):
 	
-	phase = PHASES[G.game.sequence[G.game.index]]
-	
 	G.objects.created = tdict()
 	G.objects.updated = tdict()
 	G.objects.removed = tdict()

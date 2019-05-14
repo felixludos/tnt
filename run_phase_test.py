@@ -34,17 +34,16 @@ RNG = G.random
 # inv = len(G.cards.investment.deck) + len(G.cards.investment.discard_pile)
 # print(sum(hands) + act + inv)
 
-
-
 # Setup + New Year
 players = ['Axis', 'USSR', 'West']
 print(players)
 
 complete_phase(players, rng=RNG)
-
+	
 path = save('setup_complete.json')
 print('Saved Setup phase at {}'.format(path))
 
+take_action('Axis', None)
 take_action('Axis', None)
 
 # Production
@@ -86,6 +85,14 @@ if next_phase == 'Satellite':
 path = save('gov_complete.json')
 print('Saved Gov phase at {}'.format(path))
 
+# load('saves/gov_complete.json')
 
+take_action('Axis', None)
+
+G = get_G()
+continue_game(12, rng=RNG)
+
+path = save('planning_complete.json')
+print('Saved Planning phase at {}'.format(path))
 
 print('=== job complete ===')
