@@ -54,34 +54,34 @@ class NDataProcessor {
     this.callback = callback;
     this.filename = filename;
     this.player = player;
-    this.sender.send("myload/"+this.filename+'.json',this.loadStep3.bind(this),this.player);
-//    this.sender.send("init/hotseat/" + player, this.loadStep1.bind(this), player);
+    this.sender.send("myload/" + this.filename + ".json", this.loadStep3.bind(this), this.player);
+    //    this.sender.send("init/hotseat/" + player, this.loadStep1.bind(this), player);
   }
-  loadStep1(data){
+  loadStep1(data) {
     //console.log('loadStep1 data (thrown away?!):',data)
     this.serverData = data;
-    this.sender.send("myload/"+this.filename+'.json',this.loadStep2.bind(this),this.player);
+    this.sender.send("myload/" + this.filename + ".json", this.loadStep2.bind(this), this.player);
   }
-  loadStep2(data){
+  loadStep2(data) {
     //console.log(data);//these are the data of refresh call
-    if (!this.serverData) this.serverData = {}
+    if (!this.serverData) this.serverData = {};
     this.serverData.created = data;
-    this.sender.send("info/" + this.player, this.actionStep2.bind(this)); 
-
+    this.sender.send("info/" + this.player, this.actionStep2.bind(this));
   }
 
-  loadStep3(data){ //bekomme refresh data hier!
-    if (!this.serverData) this.serverData = {}
+  loadStep3(data) {
+    //bekomme refresh data hier!
+    if (!this.serverData) this.serverData = {};
     this.serverData.created = data;
-    this.sender.send("info/" + this.player, this.loadStep4.bind(this)); 
+    this.sender.send("info/" + this.player, this.loadStep4.bind(this));
   }
-  loadStep4(data){
+  loadStep4(data) {
     this.augmentServerData(data, 3);
-    this.sender.send("status/" + this.player, this.loadStep5.bind(this)); 
+    this.sender.send("status/" + this.player, this.loadStep5.bind(this));
   }
-  loadStep5(data){
+  loadStep5(data) {
     this.augmentServerData(data, 3);
-    //this.sender.send("info/" + this.player, this.loadStep5.bind(this)); 
+    //this.sender.send("info/" + this.player, this.loadStep5.bind(this));
   }
 
   processActions() {
@@ -95,7 +95,7 @@ class NDataProcessor {
       //problem: wenn a_Tuples nur 1 option hat, dann ist es manchmal (oder immer?)
       //nur eine liste
       //muss daraus list of list machen
-      if (!empty(tuples) && tuples.length==1 && !Array.isArray(tuples[0])) {
+      if (!empty(tuples) && tuples.length == 1 && !Array.isArray(tuples[0])) {
         //console.log(tuples, "vorher");
         tuples = [tuples];
         //console.log(tuples, "nachher");

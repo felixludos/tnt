@@ -876,7 +876,11 @@ function getTextWidth(text, font) {
   return metrics.width;
 }
 function hide(elem) {
-  elem.classList.add("hidden");
+  if (isSvg(elem)) {
+    hideSvg(elem);
+  } else {
+    elem.classList.add("hidden");
+  }
 }
 function hideSvg(elem) {
   elem.setAttribute("style", "visibility:hidden;display:none");
@@ -893,6 +897,18 @@ function insertHere() {
     }
   }
 }
+function isSvg(elem) {
+  return startsWith(elem.constructor.name, "SVG");
+}
+function isVisible(elem) {
+  if (isSvg(elem)) {
+    let style = elem.getAttribute("style");
+    if (style) return !style.includes("hidden");
+    else return true;
+  } else {
+    return !elem.classList.includes("hidden");
+  }
+}
 function makeSvg(w, h) {
   const svg1 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg1.setAttribute("width", w);
@@ -900,7 +916,11 @@ function makeSvg(w, h) {
   return svg1;
 }
 function show(elem) {
-  elem.classList.remove("hidden");
+  if (isSvg(elem)) {
+    showSvg(elem);
+  } else {
+    elem.classList.remove("hidden");
+  }
 }
 function showSvg(elem) {
   elem.setAttribute("style", "visibility:visible");
@@ -1475,10 +1495,48 @@ function intDiv(n, q) {
 
 //#region object and dictionary helpers
 function augment(obj, newobj) {
-  jQuery.extend(true, obj, newobj);
+  return extend(true, obj, newobj);
 }
+var extend = function() {
+  // Variables
+  var extended = {};
+  var deep = false;
+  var i = 0;
+
+  // Check if a deep merge
+  if (typeof arguments[0] === "boolean") {
+    deep = arguments[0];
+    i++;
+  }
+
+  // Merge the object into the extended object
+  var merge = function(obj) {
+    for (var prop in obj) {
+      if (obj.hasOwnProperty(prop)) {
+        if (deep && Object.prototype.toString.call(obj[prop]) === "[object Object]") {
+          // If we're doing a deep merge and the property is an object
+          extended[prop] = extend(true, extended[prop], obj[prop]);
+        } else {
+          // Otherwise, do a regular merge
+          extended[prop] = obj[prop];
+        }
+      }
+    }
+  };
+
+  // Loop through each object and conduct a merge
+  for (; i < arguments.length; i++) {
+    merge(arguments[i]);
+  }
+
+  return extended;
+};
 function jsCopy(o) {
   return JSON.parse(JSON.stringify(o));
+}
+function hasSameProps(o1,o2){
+  let diff=propDiff(o1,o2);
+  return !diff.hasChanged;
 }
 function propDiff(o_old, o_new) {
   //berechne diff in props
@@ -1487,32 +1545,42 @@ function propDiff(o_old, o_new) {
   let propChange = [];
   let summary = [];
   let hasChanged = false;
+
   for (const prop in o_new) {
-    if (!(prop in o_old)) {
-      addIf(prop, onlyNew);
-      addIf(prop, summary);
-      hasChanged = true;
-    } else if (o_new[prop] != o_old[prop]) {
-      if (prop == "visible") {
-        let visOld = getVisibleSet(o_old);
-        let visNew = getVisibleSet(o_new);
-        if (sameList(visOld, visNew)) {
-          continue;
+    if (o_new.hasOwnProperty(prop)) {
+      if (!(prop in o_old)) {
+        addIf(prop, onlyNew);
+        addIf(prop, summary);
+        hasChanged = true;
+      } else if (o_new[prop] != o_old[prop]) {
+        if (prop == "visible") {
+          let visOld = getVisibleSet(o_old);
+          let visNew = getVisibleSet(o_new);
+          if (sameList(visOld, visNew)) {
+            continue;
+          }
+        } else if (typeof(o_new[prop])=='object'){
+          if (hasSameProps(o_new[prop],o_old[prop])){
+            continue;
+          }
         }
+  
+        addIf({prop: prop, old: o_old[prop], new: o_new[prop]}, propChange);
+        addIf(prop, summary);
+        hasChanged = true;
       }
-      addIf({prop: prop, old: o_old[prop], new: o_new[prop]}, propChange);
-      addIf(prop, summary);
-      hasChanged = true;
     }
   }
   for (const prop in o_old) {
-    if (!(prop in o_new)) {
-      addIf(prop, onlyOld);
-      addIf(prop, summary);
-      hasChanged = true;
+    if (o_new.hasOwnProperty(prop)) {
+      if (!(prop in o_new)) {
+        addIf(prop, onlyOld);
+        addIf(prop, summary);
+        hasChanged = true;
+      }
     }
   }
-  return {onlyOld: onlyOld, onlyNew: onlyNew, propChange: propChange, hasChanged: hasChanged};
+  return {onlyOld: onlyOld, onlyNew: onlyNew, propChange: propChange, summary: summary, hasChanged: hasChanged};
 }
 //#endregion object helpers
 
@@ -1745,6 +1813,13 @@ function logFormattedData(data, n, msgAfter = "") {
   console.log("___ step " + n, "\n" + s);
   console.log(msgAfter);
 }
+function isCardType(o) {
+  return "obj_type" in o && endsWith(o.obj_type, "card");
+}
+function isVisibleObject(o, player) {
+  let vis = getVisibleSet(o);
+  if (vis && vis.includes(player)) return true;
+}
 function isWrongPhase() {
   let ph = execOptions.skipTo.phase;
   return ph != "any" && !startsWithCaseIn(phase, ph);
@@ -1793,27 +1868,28 @@ function sendChangePlayer(data, callback) {
     sender.chainSend(chain, player, callback);
   }
 }
-function sendInit(player,callback,seed=1) {
+function sendInit(player, callback, seed = 1) {
   var chain = ["init/hotseat/" + player + "/" + seed, "info/" + player, "status/" + player];
   sender.chainSend(chain, player, callback);
 }
-function sendLoading(filename, player, callback, options) {
-  execOptions.output = options;
+function sendLoading(filename, player, callback, outputOption='fine') {
+  console.log('loading',filename)
+  execOptions.output = outputOption;
   var sData = {};
   sender.send("myload/" + filename + ".json", data => {
-    console.log("myload response:", data);
+    //console.log("myload response:", data);
     sender.send("refresh/" + player, data => {
-      console.log("refresh response:", data);
+      //console.log("refresh response:", data);
       sData.created = data;
       let chain = ["info/" + player, "status/" + player];
       sender.chainSend(chain, player, data => {
-        console.log("info+status response:", data);
-        augment(sData, data);
-        augment(sData.created, sData.updated);
+        //console.log("info+status response:", data);
+        sData = augment(sData, data);
+        sData.created = augment(sData.created, sData.updated);
         if ("waiting_for" in data && empty(getSet(data, "waiting_for"))) {
           sender.send("action/" + player + "/none", data => {
             console.log("empty action response:", data);
-            augment(sData, data);
+            sData = augment(sData, data);
             console.log("=augmented data:", sData);
             if (callback) callback(sData);
           });
@@ -1835,12 +1911,15 @@ function statusMessage(msgAdd = "") {
 //#region type and conversion helpers
 function getTypeOf(param) {
   let type = typeof param;
-  ////console.log("typeof says:" + type);
+  console.log("typeof says:" + type);
   if (type == "string") {
     return "string";
   }
   if (type == "object") {
     type = param.constructor.name;
+    console.log(type, startsWith(type, "SVG"));
+    if (startsWith(type, "SVG")) type = stringBefore(stringAfter(type, "SVG"), "Element").toLowerCase();
+    else if (startsWith(type, "HTML")) type = stringBefore(stringAfter(type, "HTML"), "Element").toLowerCase();
   }
   let lType = type.toLowerCase();
   if (lType.includes("event")) type = "event";

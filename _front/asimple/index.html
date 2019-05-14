@@ -17,6 +17,7 @@
     <script src="/a/js/MS.js"></script>
     <script src="/a/js/NPage.js"></script>
     <script src="/a/js/AMap.js"></script>
+    <script src="/a/js/AHand.js"></script>
     <script src="/a/js/ACards.js"></script>
     <script src="/a/js/AUnits.js"></script>
     <script src="/a/js/unitTests.js"></script>
@@ -167,32 +168,27 @@
         if (isPlayerChanging) {
           isPlayerChanging = false;
           page.updateGameView(player, execOptions);
+          // cards.resizePlayerHand();
         }
 
         updateUI(data);
 
-        processActions(data);
+        processActions(data, present);
       }
       function updateUI(data) {
         updateStatus(data);
         updateLog(data);
+
         updateGameObjects(data);
+
         map.update(data, gameObjects);
-        cards.update(data, gameObjects);
+        cards.update(player, data, gameObjects);
+
+        gameObjects = extend(true, gameObjects, data.created);
       }
-      function updateGameObjects(data) {
-        //augment gameObjects by all created and updated objects
-        if ("created" in data) {
-          jQuery.extend(true, gameObjects, data.created);
-        }
-        if ("updated" in data) {
-          jQuery.extend(true, gameObjects, data.updated);
-        }
-        if ("removed" in data) {
-          for (const id in data.removed) {
-            delete gameObjects[id];
-          }
-        }
+      function updateGameObjects(data){
+        if (!('created' in data)) data.created = {};
+        data.created = extend(true, data.created, data.updated);
       }
       function updateLog(data) {
         if ("log" in data && !empty(data.log)) {
@@ -212,8 +208,7 @@
           statusMessage();
         }
       }
-
-      function processActions(data) {
+      function processActions(data, callback) {
         step += 1;
         let tuples = getTuples(data);
 
@@ -225,9 +220,11 @@
           if (execOptions.output == "endToEnd") {
             logFormattedData(data, msgCounter, msgAfter);
             msgCounter += 1;
+          } else {
+            console.log(msgAfter);
           }
 
-          nextAction = () => sendChangePlayer(data, present);
+          nextAction = () => sendChangePlayer(data, callback);
           isPlayerChanging = true;
         } else {
           let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
@@ -237,9 +234,11 @@
           if (execOptions.output == "endToEnd") {
             logFormattedData(data, msgCounter, msgAfter);
             msgCounter += 1;
+          } else {
+            console.log(msgAfter);
           }
 
-          nextAction = () => sendAction(player, tuple, present);
+          nextAction = () => sendAction(player, tuple, callback);
         }
 
         checkProceedCondition();
@@ -281,10 +280,10 @@
 
       //control flow;
       var execOptions = {
-        output: 'raw', // 'fine' | 'endToEnd' | 'manual' | 'none' | 'raw'
-        playerChange: 'auto', // 'auto' | 'manual'
-        log: 'general', // 'general' | 'individual'
-        mode: 'skipTo', // 'step' | 'continuous' | 'nskip' | 'skipTo'
+        output: "raw", // 'fine' | 'endToEnd' | 'manual' | 'none' | 'raw'
+        playerChange: "auto", // 'auto' | 'manual'
+        log: "general", // 'general' | 'individual'
+        mode: "skipTo", // 'step' | 'continuous' | 'nskip' | 'skipTo'
         skipTo: {year: 1935, phase: "p", player: "u", step: 0}
       };
       var nextAction = null;
@@ -304,11 +303,14 @@
         .gameView()
         .updateGameView(player, execOptions); //handles layout
 
+      var map = new AMap(assets); //responsible for tile influence nation chip
+
+      //var h1=new AHand(assets,"handG_West",'hand_area');
+      var cards = new ACards(assets);
+
       $(document).ready(function() {
         optionsToInputs();
         panzoom("mapG"); //handles pan zoom on map
-        map = new AMap(assets); //responsible for tile influence nation chip
-        cards = new ACards(assets);
         assets.initAssets(map, startScript);
       });
     </script>
@@ -316,15 +318,15 @@
 
     <!-- #region execution -->
     <script>
-      function loadGame() {
-        var chain = ["myload/prod_complete.json", "refresh/" + player, "info/" + player, "status/" + player];
-        sender.chainSend(chain, player, present);
-      }
-
       function startScript() {
-        //initGame();
-        //testLoadingSimpleOutput();
-        testInitToEnd();
+        //sendInit(player, present, 4);
+
+        testUpdateCards();
+
+        //testPhaseSteps('Axis','prod_complete');
+        //testCreateOneCard(); //ok
+        //testInitToEnd(); //ok
+        //testLoadToEnd(); //ok
       }
     </script>
     <!-- #endregion execution -->

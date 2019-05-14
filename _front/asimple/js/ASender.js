@@ -1,6 +1,7 @@
 class ASender {
   constructor(options) {
     this.serverData = {};
+    this.akku = {};
     this.msgCounter = 0;
     this.stepCounter = 0;
     this.callback = null;
@@ -10,7 +11,7 @@ class ASender {
   }
   augment(data) {
     this.stepCounter += 1;
-    jQuery.extend(true, this.serverData, data);
+    this.akku = extend(true, this.akku, data);
     //console.log("this", this);
 
     //console.log('sender this=',this,'options',this.options)
@@ -23,7 +24,7 @@ class ASender {
   }
   chainSend(msgChain, player, callback) {
     this.stepCounter = 0;
-    this.serverData = {game: {player: player}};
+    this.akku = {game: {player: player}};
     this.callback = callback;
     this.chainSendRec({}, msgChain, callback);
   }
@@ -34,7 +35,7 @@ class ASender {
       //console.log('sending:',msgChain[0]);
       this.send(msgChain[0], d => this.chainSendRec(d, msgChain.slice(1), callback));
     } else {
-      callback(this.serverData);
+      callback(this.akku);
       //console.log("done chainSend");
     }
   }
@@ -42,13 +43,13 @@ class ASender {
     url = this.backendUrl + url;
     this.msgCounter += 1;
     if (this.options.output == "fine") {
-      //console.log(this.msgCounter + ": request sent: " + url);
+      console.log(this.msgCounter + ": request sent: " + url);
     }
 
     $.ajax({
       url: url,
       type: "GET",
-      success: function(response) {
+      success: response => {
         if (response[0] != "{") {
           callback(JSON.parse('{"response":"' + response + '"}'));
         } else {
@@ -61,7 +62,7 @@ class ASender {
           }
         }
       },
-      error: function(err) {
+      error: err => {
         error(err);
       }
     });

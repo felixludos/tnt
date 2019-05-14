@@ -1,10 +1,8 @@
-//#region tests for cards
-/*TODO: 
-- generate sample objects for all types
-ok -- generateCard
--- simulate updating cards
-*/
+//#region test globals
 var unitTestId = 0;
+//#endregion
+
+//#region tests for cards
 function generateCard(hasOwner = true, hasContent = true, visibleToN = 1) {
   let id = "action_" + unitTestId;
   unitTestId += 1;
@@ -64,75 +62,52 @@ function testCreateNCards() {
     cman.createCard(c.id, c.o);
   }
 }
-function testUpdateCardsPlacement() {
-  let g = {},
-    data = {},
-    n = 20;
-  for (let i = 0; i < n; i++) {
-    let c = generateCard();
-    data[c.id] = c.o;
-  }
-  let cman = new ACards(assets);
-  cman.update(data, g);
+function testUpdateCards(filename = "prod_complete", player = "Axis") {
+  execOptions.skipTo = {year: 1935, phase: "any", player: "any", step: 0}
+  sendLoading(filename, player, presentUpdateCardsOnly);
 }
-function testCardsUpdate(data) {
-  cards.update(data, gameObjects);
+function presentUpdateCardsOnly(data) {
+  console.log(data)
+  if (isPlayerChanging) {
+    isPlayerChanging = false;
+    page.updateGameView(player, execOptions);
+  }
+
+  updateStatus(data);
+  updateLog(data);
+
+  updateGameObjects(data);
+  //console.log('presentUpdateCardsOnly')
+  cards.update(player, data, gameObjects);
+
+  gameObjects = extend(true, gameObjects, data.created);
+
+  //alert('press to continue...')
+  processActions(data, presentUpdateCardsOnly);
+  //nextAction = () => processActions(data, presentUpdateCardsOnly);
+  //show(bStep);
 }
 //#endregion
 
 //#region tests for server communication
-//test setup, test production, test government,
-function testLoadingSimpleOutput() {
-  //input is chain response data
-  execOptions.output = "fine";
-  var chain = ["myload/prod_complete.json", "refresh/" + player, "info/" + player, "status/" + player];
-  sender.chainSend(chain, player, data => console.log(data));
+function testInitToEnd(player = "USSR", seed = 0) {
+  sendInit(player, d => testRunToEnd(d, player), seed);
 }
-function testLoading2(callback) {
-  execOptions.output = "raw";
-  var sData = {};
-  sender.send("myload/prod_complete.json", data => {
-    console.log("myload response:", data);
-    sender.send("refresh/" + player, data => {
-      console.log("refresh response:", data);
-      sData.created = data;
-      let chain = ["info/" + player, "status/" + player];
-      sender.chainSend(chain, player, data => {
-        console.log("info+status response:", data);
-        augment(sData, data);
-        augment(sData.created, sData.updated);
-        if ("waiting_for" in data && empty(getSet(data, "waiting_for"))) {
-          sender.send("action/" + player + "/none", data => {
-            console.log("empty action response:", data);
-            augment(sData, data);
-            console.log("=augmented data:", sData);
-            if (callback) callback(sData);
-          });
-        } else {
-          if (callback) callback(sData);
-        }
-      });
-    });
-  });
-}
-function testLoadingSequence() {
-  sendLoading("gov_complete", "USSR", stepToPresent, "raw");
-}
-
-function testInitToEnd(player = "Axis") {
-  sendInit(player, d=>testRunToEnd(d,player));
+function testLoadToEnd(player = "Axis", filename = "gov_complete") {
+  sendLoading(filename, player, d => testRunToEnd(d, player), "raw");
 }
 function testRunToEnd(data, player) {
   let tuples = getTuples(data);
   if (empty(tuples)) {
     let waitingSet = getSet(data, "waiting_for");
     if (empty(waitingSet)) {
-      error("NO ACTIONS AND EMPTY WAITING SET!!!");
+      error("NO ACTIONS AND EMPTY WAITING SET... sending empty action!!!");
+      sendAction(player, ["none"], d => testRunToEnd(d, player));
     } else {
       let nextPlayer = waitingSet[0];
       sendChangeToPlayer(nextPlayer, d1 => {
-        console.log("player changed to", nextPlayer, "on server");
-        console.log(d1);
+        //console.log("player changed to", nextPlayer, "on server");
+        //console.log(d1);
         testRunToEnd(d1, nextPlayer);
       });
     }
@@ -140,59 +115,36 @@ function testRunToEnd(data, player) {
     let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
     choiceIndex = (choiceIndex + 1) % choiceModulo;
     console.log(player + " chooses " + tuple.toString());
-    sendAction(player, tuple, d=>testRunToEnd(d,player));
+    sendAction(player, tuple, d => testRunToEnd(d, player));
   }
 }
-
-//#endregion
-
-function testEndToEndCom(data) {
-  //input is init chain response data
-  msgCounter = 0;
-  execOptions.output = "endToEnd";
-  console.log("testEndToEndCom", execOptions.output);
-  testCom(data);
+function testPhaseSteps(player = "Axis", filename = "gov_complete") {
+  sendLoading(filename, player, d => testStep(d, player), "raw");
 }
-function testFinegrainedCom(data) {
-  //input is init chain response data
-  msgCounter = 0;
-  execOptions.output = "fine";
-  console.log("testFinegrainedCom", execOptions.output);
-  testCom(data);
-}
-function testCom(data) {
+function testStep(data, player) {
   let tuples = getTuples(data);
-
-  console.assert(tuples.length > 0 || "waiting_for" in data, "ASSERTION FAIL!!! no action or waiting_for!!!!");
-
   if (empty(tuples)) {
-    let msgAfter = "...waiting for player change!";
+    let waitingSet = getSet(data, "waiting_for");
+    if (empty(waitingSet)) {
+      error("NO ACTIONS AND EMPTY WAITING SET... sending empty action!!!");
+      nextAction = () => sendAction(player, ["none"], d => testStep(d, player));
+    } else {
+      let nextPlayer = waitingSet[0];
 
-    if (execOptions.output == "endToEnd") {
-      logFormattedData(data, msgCounter, msgAfter);
-      msgCounter += 1;
+      nextAction = () =>
+        sendChangeToPlayer(nextPlayer, d1 => {
+          console.log("player changed to", nextPlayer, "on server");
+          //console.log(d1);
+          testStep(d1, nextPlayer);
+        });
     }
-
-    alert("next");
-
-    sendChangePlayer(data, testCom); //data supposedly contains waiting_for
-    player = data.game.playerChangedTo;
-    console.log("________ player:", player);
   } else {
     let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
     choiceIndex = (choiceIndex + 1) % choiceModulo;
-    let msgAfter = player + " chooses " + tuple.toString();
-
-    if (execOptions.output == "endToEnd") {
-      logFormattedData(data, msgCounter, msgAfter);
-      msgCounter += 1;
-    }
-
-    alert("next");
-
-    sendAction(player, tuple, testCom);
+    console.log(player + " chooses " + tuple.toString());
+    nextAction = () => sendAction(player, tuple, d => testStep(d, player));
   }
+  show(bStep);
 }
-function testRefresh() {
-  let chain = ["refresh/" + player, "info/" + player, "status/" + player];
-}
+
+//#endregion
