@@ -42,6 +42,10 @@ def find_path(G, loc, goals, player,
 	return False
 
 def blockade_phase(G):
+	
+	
+	
+	
 	raise NotImplementedError
 
 def supply_phase(G):
@@ -66,6 +70,9 @@ def supply_phase(G):
 				if unit.cv == 0:
 					msg = 'was eliminated'
 					remove_unit(G, unit)
+					
+					# TODO: check for retreats
+					
 				else:
 					msg = 'lost 1 cv'
 					G.objects.updated[uid] = unit

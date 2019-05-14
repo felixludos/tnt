@@ -33,6 +33,9 @@ class NU {
   constructor(assetMan) {
     this.assetMan = assetMan;
     this.U = {uis: {}}; //map game object id to everything needed for ui
+    this.id2uid = {}; //map game object ids to ms.elem ids (ms.id will always by game obj id!)
+    this.uid2id = {};
+    this.uniqueIdCounter = 0;
     this.clearTemp();
   }
   addElement(ms, id, type) {
@@ -47,37 +50,91 @@ class NU {
     this.U.create = {};
     this.U.remove = {};
   }
+  findParentForCard(vis, owner) {
+    let parentName = null;
+    if (vis.length == 0) {
+      return null;
+    } else if (vis.length < 3) {
+      parentName = "handG_" + owner; //card belongs in a hand
+    } else {
+      parentName = "openCardsG"; //card is open to all
+    }
+    return parentName;
+  }
+  findPositionForCard(parentName) {
+    let parent = document.getElementById(parentName);
+   console.log(parentName, parent);
+    let nCards = parent.childNodes.length-1; //because of text!
+   //console.log('n',nCards);
+    let w = SZ.cardWidth;
+    let h = SZ.cardHeight;
+    let gap = SZ.gap;
+   //console.log('w',w, gap, h);
+    let startPos = {x: gap + w / 2, y: 22 + gap + h / 2};
+    let x = startPos.x + nCards * (w + gap);
+    let y = startPos.y;
+   //console.log('startPos',startPos,x,y)
+
+    let div = parent.parentNode.parentNode;
+   //console.log('div',div)
+    let wTotal = div.offsetWidth;
+   //console.log(div.id, 'wTotal',wTotal);
+    if (x + w + gap > wTotal) {
+     //console.log("MUSS ERWEITERN!!!!", div.style.height);
+      let hDiv = firstNumber(div.style.height);
+     //console.log("current height of cardDisplay:", h);
+      hDiv += h;
+     //console.log("new height of cardDisplay:", h);
+      div.style.height = h + "px";
+      x = startPos.x;
+      y += h + gap;
+    }
+    return {x: x, y: y};
+  }
+  getUniqueId(id) {
+    let uid = this.uniqueIdCounter + "_" + id;
+    this.uniqueIdCounter += 1;
+    this.uid2id[uid] = id;
+    this.id2uid[id] = uid;
+    return uid;
+  }
+  initUI() {
+    this.drawNationPositions();
+  }
+  prepCreate(id, o, otype, player) {
+    if (!(otype in this.U.create)) {
+      this.U.create[otype] = {};
+    }
+    this.U.create[otype][id] = {o: o, player: player};
+  }
+  prepRemove(id, otype) {
+    this.U.remove[id] = otype;
+  }
   createCard(id, o) {
     //find parent of this card: hand of a player, openCards, none
-    // if (!("owner" in o)) {
-    //   console.log("creating card without owner", id, o);
-    // }
     let parentName = null;
+    if (!("visible" in o) || !("set" in o.visible)) return null;
+    parentName = this.findParentForCard(o.visible.set, o.owner);
+   //console.log('createCard',id,o,parentName)
 
-    //if card is not visible it is not created
-    let vis = getVisibleSet(o);
-
-    parentName = this.findParentForCard(vis, "owner" in o ? o.owner : null);
-    //console.log('createCard',id,o,parentName)
-
-    if (parentName == null) return null;
+    if (parentName == null || parentName.includes('undefined')) return null;
 
     // find position of this card:
     let pos = this.findPositionForCard(parentName); //TODO: make to helper!
 
     //finally make card:
-    let ms = new MS(id, this.getUniqueId(id, o.obj_type), parentName);
+    let ms = new MS(id, this.getUniqueId(id),  parentName);
     this.setCardContent(ms, o);
 
     //pos={x:100,y:110};
 
-    ms.setPos(pos.x, pos.y).draw();
-    //console.log('createCard',ms,pos)
+    ms.setPos(pos.x,pos.y).draw();
+   //console.log('createCard',ms,pos)
     return ms;
   }
   createTile(id) {
     let pos = this.assetMan.tilePositions[id];
-    let ms = new MS(id, this.getUniqueId(id, "tile"), "mapG")
+    let ms = new MS(id, this.getUniqueId(id), "mapG")
       .circle({className: "overlay region", sz: SZ.region})
       .setPos(pos.x, pos.y)
       .draw();
@@ -85,19 +142,19 @@ class NU {
   }
   createNationPosition(id) {
     let pos = this.assetMan.nationPositions[id];
-    let ms = new MS(id, this.getUniqueId(id, "nation"), "mapG")
+    let ms = new MS(id, this.getUniqueId(id), "mapG")
       .circle({className: "overlay nation", sz: SZ.influence})
       .setPos(pos.x, pos.y)
       .draw();
     return ms;
   }
-  drawCard(o) {
+  drawCard(o){
     let ms = this.createCard(o._id, o);
   }
   drawCards(type) {
     // cards that are not visible to anyone will not be created
     // they might be created later when updated
-    let done = false;
+    let done=false;
     if (!(type in this.U.create)) return done;
 
     for (const id in this.U.create[type]) {
@@ -132,92 +189,12 @@ class NU {
       this.addElement(ms, id, "tile");
     }
   }
-  findParentForCard(vis, owner) {
-    let parentName = null;
-    if (vis.length == 0) {
-      return null;
-    } else if (vis.length < 3) {
-      parentName = owner ? "handG_" + owner : "discardedG"; //card belongs in a hand
-    } else {
-      parentName = "openCardG"; //card is visible to all
-      alert("card visible to all!");
-    }
-    return parentName;
-  }
-  findPositionForCard(parentName) {
-    let parent = document.getElementById(parentName);
-    console.log("parent:", parentName, parent);
 
-    let nCards = parent.childNodes.length; // NO - 1; //because of text!
-    let lastChild = nCards <= 1 ? null : parent.childNodes[nCards - 1];
-    console.log("n", nCards, "lastChild", lastChild);
-
-    let wCard = SZ.cardWidth;
-    let hCard = SZ.cardHeight;
-    let gap = SZ.gap;
-    let div = parent.parentNode.parentNode;
-    let wTotal = div.offsetWidth;
-    let startPos = {x: gap + wCard / 2, y: gap + hCard / 2};
-    console.log("div", div.id, "wTotal", wTotal, "n", nCards, "startPos", startPos);
-
-    let x = startPos.x;
-    let y = startPos.y;
-    if (lastChild) {
-      let uid = lastChild.id;
-      let ms = this.getUI(complus1(uid), complus2(uid));
-      if (!ms) {
-        alert("ms non existing findPositionForCard elem if", uid, "id=", complus1(uid));
-      }
-      let lastPos = ms.getPos();
-      x = lastPos.x + wCard + gap;
-      y = lastPos.y;
-      if (x + wCard + 1 > wTotal) {
-        console.log("MUSS ERWEITERN!!!!", div.style.height);
-      let hDiv = firstNumber(div.style.height);
-        console.log("current height of cardDisplay:", hDiv);
-        hDiv += hCard + gap;
-        div.style.height = hDiv + "px";
-        console.log("new height of", div.id, hDiv);
-      x = startPos.x;
-        y += hCard + gap;
-      }
-    }
-    return {x: x, y: y};
-  }
-  getId(uid) {
-    return complus1(uid);
-  }
-  getType(uid) {
-    return complus2(uid);
-  }
-  getUI(id, type) {
-    return type in this.U.uis && id in this.U.uis[type] ? this.U.uis[type][id] : null;
-  }
-  getUniqueId(id, type) {
-    let uid = complus(id, type);
-    return uid;
-  }
-  initUI() {
-    this.drawNationPositions();
-  }
-  prepCreate(id, o, otype, player) {
-    //if (id == "action_12") console.log("prepCreate", id, o, otype, player);
-    if (!(otype in this.U.create)) {
-      this.U.create[otype] = {};
-    }
-    this.U.create[otype][id] = {o: o, player: player};
-  }
-  prepRemove(id, otype) {
-    if (this.getUI(id, otype)) this.U.remove[id] = otype;
-  }
   removeUis() {
     for (const id in this.U.remove) {
       let type = this.U.remove[id];
-      let ms = this.getUI(id, type);
-      if (!ms) {
-        alert("ms doesnt exist:", id, type);
-        return;
-      }
+      if (!(type in this.U.uis) || !(id in this.U.uis[type])) continue;
+      let ms = this.U.uis[type][id];
       ms.removeForever();
       delete this.U.uis[type][id];
     }

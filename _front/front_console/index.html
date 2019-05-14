@@ -66,7 +66,7 @@
           </g>
         </svg>
       </div>
-      <div id="log_area" class="grid_div" style="overflow-y:scroll">
+      <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll">
         <div id="log_all" class="hidden">all messages</div>
         <div id="log_Axis" class="hidden">Axis messages</div>
         <div id="log_USSR" class="hidden">USSR messages</div>
@@ -88,8 +88,8 @@
         <button id="bEditDone" onclick="onClickEditDone(this)">done</button>
       </div>
       <div id="command_area" class="grid_div">
-        <button id="bNextPlayer" style="width:90%;" onclick="onClickNextPlayer()">next player</button>
-        <button id="bStep" style="width:90%;" onclick="onClickStep()">step</button>
+        <button id="bNextPlayer" class="hidden" style="width:90%;" onclick="onClickNextPlayer()">next player</button>
+        <button id="bStep" class="hidden" style="width:90%;" onclick="onClickStep()">step</button>
       </div>
       <div id="chat_area" class="grid_div hidden">chat</div>
       <div id="hand_area" class="grid_div" style="height:200px">
@@ -116,12 +116,15 @@
 
     <!-- #region globals -->
     <script>
-      var player = "Axis";
+      var player = "USSR";
       var execOptions = {
-        playerChange: "auto", // | 'manual'
-        log: "general" // | 'individual'
-        //automove: "playerChange" // | 'error' | 'skip' | 0
+        playerChange: "auto", // 'auto' | 'manual'
+        log: "general", // 'general' | 'individual'
+        mode: "nSkip" // 'step' | 'continuous' | 'nskip'
       };
+      var nSkip = 12; //USSR starts, then Axis
+      var STOP = false;
+
       var phase = "Setup";
       var year = "1935";
       var dp = new NDataProcessor("http://localhost:5000/"); //handles messaging
@@ -145,15 +148,11 @@
     <script>
       function onClickNextPlayer() {
         hide(bNextPlayer);
-        player = gameData.playerChangedTo;
-        alert("player changing to " + player);
-        statusMessage();
-        page.updateGameView(player, execOptions);
-        processActions(actionTuples);
+        nextPlayer();
       }
       function onClickStep() {
         //console.log("tuple chosen:", actionTuples[0]);
-        dp.action(player, actionTuples[0], nextMove);
+        proceedWithGame(actionTuples, true);
       }
     </script>
     <!-- #endregion handlers -->
@@ -183,7 +182,39 @@
         actionTuples = a_Tuples;
         gameData = g_Data;
         serverData = s_Data;
-        //updateGameObjects(g_Objects,indices);
+        if ("error" in s_Data) {
+          error("nextMove");
+        } else if ("playerChangedTo" in g_Data) {
+          player = g_Data.playerChangedTo;
+          if (player != "West") {
+            //  dp.action(player, a_Tuples[0], nextMove);
+          }
+        } else {
+          if (player != "West") {
+            //  dp.action(player, a_Tuples[0], nextMove);
+          }
+        }
+      }
+      function testDrawUnit() {
+        let o_new = JSON.parse(`
+        {
+          "nationality": "Britain",
+          "tile": "London",
+          "type": "Fleet",
+          "cv": 4,
+          "obj_type": "unit",
+          "visible": {
+            "xset": [
+              "West"
+            ]
+          },
+          "_id": 246
+        }
+        `);
+        //console.log(o_new);
+        //let ms=UnitMan.createUnit(o_new._id,'West',o_new);
+        //UnitMan.placeUnit(ms,o_new.tile);
+        UnitMan.updateUnit(o_new._id, o_new, null, "West");
       }
       function testDrawCard() {
         let card = JSON.parse(`{
@@ -200,7 +231,7 @@
           "owner": "Axis",
           "_id": "action_48"
         }`);
-        console.log(card);
+        //console.log(card);
         UIMan.drawCard(card);
       }
     </script>
@@ -218,7 +249,16 @@
           para.scrollIntoView();
         }
       }
-
+      function handleError(a_Tuples, g_Objects, g_Data, s_Data) {
+        error("________________________gameloop");
+        dump("player", player, a_Tuples, g_Objects, g_Data, "serverData:", s_Data);
+        error("gameloop");
+        dump(s_Data.error);
+        STOP = true;
+      }
+      function isPhase(s) {
+        return startsWith(phase.toLowerCase(), s);
+      }
       function statusMessage(msgAdd = "") {
         let s = "Phase:" + phase + ", Year:" + year + ", Player:" + player;
         s += " " + msgAdd;
@@ -229,65 +269,187 @@
 
     <!-- #region _work -->
     <script>
+      function chooseTuple(tuples) {
+        //choose first tuple that is not pass if possible!
+        if (tuples.length == 1) return tuples[0];
+        else {
+          for (const t of tuples) {
+            if (Array.isArray(t) && !t.includes("pass")) return t;
+            else if (!t.toString().toLowerCase() == "pass") return t;
+          }
+        }
+      }
       function gameloop(a_Tuples, g_Objects, g_Data, s_Data) {
+        gameData = g_Data;
+        actionTuples = a_Tuples;
         if ("error" in s_Data) {
-          error("________________________gameloop");
-          dump("player", player, a_Tuples, g_Objects, g_Data, "serverData:", s_Data);
-          error("gameloop");
-          dump(s_Data.error);
+          handleError(a_Tuples, g_Objects, g_Data, s_Data);
           return;
         }
 
-        update(g_Objects, g_Data, s_Data);
+        //update stats
+        phase = g_Data.phase;
+        year = g_Data.year;
+        player = g_Data.player;
+        //statusMessage();
 
-        draw();
+        //update player log
+        //do this directly without storing log
+        addLogToPlayerLog(s_Data);
+
+        //update(g_Objects, g_Data, s_Data);
+
+        //if (player == 'West') STOP=true;
+
+        //draw();
 
         if ("playerChangedTo" in g_Data) {
-          gameData = g_Data;
-          actionTuples = a_Tuples;
           if (execOptions.playerChange == "auto") {
-            onClickNextPlayer();
+            nextPlayer();
           } else {
             show(bNextPlayer);
           }
         } else {
-          if (!STOP) processActions(a_Tuples);
+          proceedWithGame(a_Tuples);
         }
       }
-      var STOP = false;
-      function isPhase(s) {
-        return startsWith(phase.toLowerCase(), s);
+      function nextPlayer() {
+        player = gameData.playerChangedTo;
+        //alert("player changing to " + player);
+        statusMessage();
+        page.updateGameView(player, execOptions);
+        proceedWithGame(actionTuples);
+      }
+      function proceedWithGame(a_Tuples, unconditional = false) {
+        if (STOP) {
+          return;
+        } else if (unconditional) {
+          sendActionDelayed(a_Tuples);
+        }
+        switch (execOptions.mode) {
+          case "nSkip":
+            if (nSkip > 0) {
+              hide(bStep);
+              nSkip -= 1;
+              sendActionDelayed(a_Tuples);
+            } else {
+              console.log("press step!");
+              show(bStep);
+            }
+            break;
+          case "continuous":
+            sendActionDelayed(a_Tuples);
+            break;
+          case "step":
+          default:
+            console.log("press step!");
+            show(bStep);
+            break;
+        }
+        // if (!STOP && (execOptions.mode == "continuous" || unconditional)) {
+        //   sendActionDelayed(a_Tuples);
+        // }
       }
       function update(g_Objects, g_Data, s_Data) {
         //console.log("*** update ***");
 
+        //UIMan.clearTemp();
+        for (const id in g_Objects) {
+          let o_new = g_Objects[id];
+          let otype = o_new.obj_type;
+          let updatedSomething = false;
+
+          if (!(id in G.objects)) {
+            console.log("create:", id);
+            updatedSomething = true;
+            G.objects[id] = o_new;
+            //UIMan.prepCreate(id, o_new, otype);
+          } else {
+            //object already exists, update it
+
+            if (o_new.obj_type == "tile") continue;
+            //berechne diff in props
+            let onlyOld = [];
+            let onlyNew = [];
+            let propChange = [];
+            let o_old = G.objects[id];
+            for (const prop in o_new) {
+              if (!(prop in o_old)) {
+                addIf(prop, onlyNew);
+                G.objects[id][prop] = o_new[prop];
+              } else if (o_new[prop] != o_old[prop]) {
+                if (prop == "visible") {
+                  let visOld = getVisibleSet(o_old);
+                  let visNew = getVisibleSet(o_new);
+                  if (sameList(visOld, visNew)) {
+                    continue;
+                  }
+                }
+                addIf({prop: prop, old: o_old[prop], new: o_new[prop]}, propChange);
+                G.objects[id][prop] = o_new[prop];
+                updatedSomething = true;
+              }
+            }
+            for (const prop in o_old) {
+              if (!(prop in o_new)) {
+                addIf(prop, onlyOld);
+              }
+            }
+            if (updatedSomething) console.log("update:", id);
+
+            if (!empty(onlyOld)) console.log(" old:", onlyOld.toString());
+            if (!empty(onlyNew)) console.log(" new:", onlyNew.toString());
+            if (!empty(propChange)) console.log("  changes:", propChange);
+            //UIMan.prepRemove(id, otype);
+            //UIMan.prepCreate(id, o_new, otype, player);
+          }
+          if (updatedSomething) {
+            console.log("G updated to", G.objects[id]);
+            console.log("_________");
+          }
+        }
+
+        if ("removed" in s_Data) {
+          for (const id in s_Data.removed) {
+            //UIMan.prepRemove(id, G[id].slice(), o_new.obj_type); //have added copy of o_new here!
+            delete G[id];
+          }
+        }
+
+        //console.log(G);
+      }
+
+      function update_FAIL(g_Objects, g_Data, s_Data) {
+        //console.log("*** update ***");
+
         //augment G
         //created/updated is content of g_Objects
-        console.log("created or updated:", Object.keys(g_Objects));
+        //console.log("created or updated:", Object.keys(g_Objects));
         UIMan.clearTemp();
         for (const id in g_Objects) {
-          let o = g_Objects[id];
-          let otype = o.obj_type;
+          let o_new = g_Objects[id];
+          let otype = o_new.obj_type;
 
           if (otype == "unit") {
             let o_old = id in G.objects ? G.objects[id] : null;
-            UnitMan.updateUnit(id, o, o_old, player);
-            G.objects[id] = o;
+            //UnitMan.updateUnit(id, o_new, o_old, player);
+            G.objects[id] = o_new;
           } else {
-            G.objects[id] = o;
+            G.objects[id] = o_new;
             UIMan.prepRemove(id, otype);
-            UIMan.prepCreate(id, o, otype, player);
+            UIMan.prepCreate(id, o_new, otype, player);
           }
         }
         //reduce G
         // s_Data.removed contains objects to remove from game
         if ("removed" in s_Data) {
           for (const id in s_Data.removed) {
+            alert("REMOVE" + id); //nie vorgekommen
             if (id in G) {
               if (G[id].obj_type == "unit") {
                 UnitMan.removeUnit(id, s_Data.removed[id]);
               } else {
-                UIMan.prepRemove(id, o.obj_type); //have added copy of o here!
+                UIMan.prepRemove(id, o_new.obj_type); //have added copy of o_new here!
               }
               delete G[id];
             }
@@ -315,12 +477,26 @@
 
         UIMan.drawTiles(); // first create tiles
         UIMan.drawActionCards(); //
-        UIMan.drawInvestmentCards(); 
-        UnitMan.drawUnits(player);
+        UIMan.drawInvestmentCards();
+        //UnitMan.drawUnits(player);
       }
-      function processActions(tuples) {
-        //console.log("*** processActions ***");
-        dp.action(player, tuples[0], gameloop);
+      function sendActionDelayed(tuples, ms = 60) {
+        //console.log("*** sendAction ***");
+        setTimeout(() => {
+          if (!STOP) {
+            let t = chooseTuple(tuples);
+            console.log(phase, year, player, "chooses:", t);
+            dp.action(player, t, gameloop);
+          }
+        }, ms);
+      }
+      function sendAction(tuples) {
+        //console.log("*** sendAction ***");
+        if (!STOP) {
+          let t = chooseTuple(tuples);
+          console.log("tuple chosen:", t);
+          dp.action(player, t, gameloop);
+        }
       }
     </script>
     <!-- #endregion _work -->
@@ -331,7 +507,10 @@
         UIMan.initUI();
 
         statusMessage();
+        //testDrawUnit();
+        //player = "West";
         dp.initGame(player, gameloop);
+        //dp.loadGame(player, 'prod_complete', gameloop);
       });
     </script>
     <!-- #endregion execution starts here! -->

@@ -3,6 +3,7 @@ class NBackendCommunicator {
     this.serverData = null;
     this.backendUrl = backendUrl;
     this.msgCounter = 0;
+    this.callback = null;
   }
   post(url, data, callback) {
     url = backendUrl + url;
@@ -32,13 +33,27 @@ class NBackendCommunicator {
       this.send(msg, d => callback(d));
     }
   }
-  send(url, callback) {
+
+  receive(communicator, serverText, callback, player) {
+    //console.log("bin richtig");
+    if (startsWith(serverText, "loaded")) {
+      communicator.send("refresh/" + player, callback);
+    } else {
+      serverData = JSON.parse(serverText);
+      console.log(serverData);
+      callback(serverData);
+    }
+  }
+
+  send(url, callback, player) {
+    var communicator = this;
+    var receiveFunction = this.receive;
     url = this.backendUrl + url;
     this.msgCounter += 1;
     console.log(this.msgCounter, "request sent: ", url);
     w3.http(url, function() {
       if (this.readyState == 4 && this.status == 200) {
-        callback(this.responseText);
+        receiveFunction(communicator,this.responseText, callback, player);
       }
     });
   }

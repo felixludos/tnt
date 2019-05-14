@@ -1,6 +1,6 @@
 
 from tnt_util import compute_tracks, count_victory_points
-from util import adict, xset, tdict, tlist, tset
+from util import adict, xset, tdict, tlist, tset, PhaseComplete
 import random
 from tnt_cards import shuffle
 
@@ -37,6 +37,7 @@ def new_year_phase(G, player=None, action=None):
 	G.game.turn_order = G.game.turn_order_options[G.random.randint(1,6)]
 	G.logger.write('Turn order: {}'.format(', '.join(G.game.turn_order)))
 	
+	raise PhaseComplete
 	
 
 

@@ -107,11 +107,7 @@ class NPage {
   }
   updateGameView(player, options) {
     //show/hide hand and log
-    for (const pl of ["Axis", "USSR", "West"]) {
-      let gHand = document.getElementById("handG_" + pl);
-      gHand.setAttribute("style", pl == player ? "visibility:visible;" : "visibility:hidden;display:none");
-    }
-
+    // cardManager.updateHandView(player);
     if (options.log == "individual") {
       for (const pl of ["Axis", "USSR", "West"]) {
         let dLog = document.getElementById("log_" + pl);

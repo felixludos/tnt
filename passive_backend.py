@@ -6,7 +6,7 @@ import networkx as nx
 import random
 import util
 from util import adict, idict, iddict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete, PhaseInterrupt
-from tnt_setup import init_gamestate, setup_phase, setup_pre_phase
+from tnt_setup import init_gamestate, setup_phase
 from tnt_util import count_victory_points, switch_phase, add_next_phase
 import tnt_setup as setup
 from tnt_cards import load_card_decks, draw_cards
@@ -14,9 +14,9 @@ from collections import namedtuple
 import traceback
 
 from new_year import new_year_phase
-from production import production_phase, production_pre_phase
-from government import governmnet_phase, government_pre_phase
-from command import pre_command_phase, movement_phase, planning_phase
+from production import production_phase
+from government import governmnet_phase
+from command import movement_phase, planning_phase
 from combat import combat_phase, retreat_phase
 from blockades import supply_phase, blockade_phase
 from battles import land_battle_phase, naval_battle_phase
@@ -25,16 +25,6 @@ from diplomacy import satellite_phase
 
 import json
 
-PRE_PHASES = adict({ # all action phases
-	'Setup': setup_pre_phase,
-	'Production': production_pre_phase,
-	'Government': government_pre_phase,
-	'Spring': pre_command_phase,
-	'Summer': pre_command_phase,
-	'Fall': pre_command_phase,
-	'Winter': pre_command_phase,
-	
-})
 PHASES = adict({
 	'Setup': setup_phase,
 
@@ -69,6 +59,8 @@ WAITING_OBJS = adict()
 WAITING_ACTIONS = adict()
 REPEATS = adict()
 
+PHASE_DONE = False
+
 def get_G():
 	return G
 def get_waiting():
@@ -102,7 +94,7 @@ def start_new_game(player='Axis', debug=False, seed=None):
 		WAITING_OBJS[name].removed = adict()
 	
 	# start setup phase - no need for a transaction, since there is no user input yet, so the outcome is constant
-	return process_actions('actions', next_phase(), player)
+	return process_actions('actions', evaluate_action(), player)
 
 
 def pull_msg(player):
@@ -156,38 +148,40 @@ def process_actions(outtype, results, player):
 		raise Exception('Unknown outtype {}'.format(outtype))
 
 
-def next_phase(player=None, action=None):  # keeps going through phases until actions are returned
+def evaluate_action(player=None, action=None):  # keeps going through phases until actions are returned
 	
 	out = None
 	
-	while out is None or len(out) == 0:
-		
-		G.game.index += 1
-		
-		phase = G.game.sequence[G.game.index]
-		
-		G.logger.write('Beginning phase: {}'.format(phase))
-		
-		# maybe save G to file
-		save_gamestate('temp.json')
-		
-		if phase in PRE_PHASES:
-			assert action is None, 'The action: {} by player {} was not handled, starting {} pre phase'.format(action, player, phase)
-			out = PRE_PHASES[phase](G)
-		else:
+	while out is None:
+		try:
+			phase = G.game.sequence[G.game.index]
 			out = PHASES[phase](G, player=player, action=action)
-		
-		if out is not None and len(out) == 0:
 			player, action = None, None
+		except PhaseComplete:
+			G.game.index += 1
+			
+			G.logger.write('Beginning phase: {}'.format(G.game.sequence[G.game.index]))
+			
+			# maybe save G to file
+			save_gamestate('temp.json')
+			
+			player, action = None, None
+			if DEBUG:
+				out = adict()
+				global PHASE_DONE
+				PHASE_DONE = True
+		except PhaseInterrupt as e:
+			switch_phase(G, e.phase)
+			player, action = e.player, e.action
+		else:
+			assert out is not None, 'Phase {} did not complete'.format(phase)
 	
 	return out
 
 
-PHASE_DONE = False
+
 
 def step(player, action):
-	
-	phase = PHASES[G.game.sequence[G.game.index]]
 	
 	G.objects.created = tdict()
 	G.objects.updated = tdict()
@@ -201,27 +195,14 @@ def step(player, action):
 		
 		if PHASE_DONE:
 			PHASE_DONE = False
-			all_actions = next_phase()
+			all_actions = evaluate_action()
 		else:
 			# validate action
 			assert player in WAITING_ACTIONS, 'It is not {}\'s turn'.format(player)
 			options = util.decode_actions(WAITING_ACTIONS[player])
 			assert action in options, 'Invalid action: {}'.format(action)
 			
-			try:
-				all_actions = phase(G, player, action)
-				if all_actions is None:
-					all_actions = next_phase(player, action)
-			except PhaseInterrupt as e:
-				switch_phase(G, e.phase)
-				all_actions = next_phase(e.player, e.action)
-			except PhaseComplete:
-				if DEBUG:
-					PHASE_DONE = True
-					all_actions = adict()
-				else:
-					all_actions = next_phase()
-				
+			all_actions = evaluate_action(player, action)
 			
 	except Exception as e:
 		G.abort()
