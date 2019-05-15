@@ -1,4 +1,4 @@
-import sys, os, time
+"""import sys, os, time
 import tnt_util as util
 from tnt_util import adict, idict, tdict, xset #collate, load, render_dict, save, Logger, seq_iterate
 from tnt_setup import init_gamestate, setup_phase
@@ -8,12 +8,13 @@ import random
 from itertools import chain, product
 from tnt_units import load_unit_rules
 
-import tnt_setup as setup
+import tnt_setup as setup"""
 
 from flask_app import *
 
 import pygame as pg
 from _front.front_pygame.camera import Camera
+from _front.front_pygame.game_object_loader import GameObjectLoader
 from _front.front_pygame.pygame_settings import *
 
 
@@ -47,6 +48,7 @@ class PGame:
         self.map_rect = None
         self.logo = None
         self.camera = None
+        self.game_imgs = None
 
         self.playing = False
         self.running = True
@@ -55,6 +57,9 @@ class PGame:
     def load_data(self):
         self.map_img = pg.image.load(os.path.join(*GAME_MAP_PATH)).convert()  # Load map
         self.map = self.map_img  # Reference map
+
+        loader = GameObjectLoader()
+        self.game_imgs = loader.load_game_imgs()
 
     def new(self):
         # set background
@@ -99,13 +104,11 @@ class PGame:
                 if event.button == 1:  # Click
                     print(str(mouse_pos))
                 if event.button == 5:  # Scroll Down (Zoom out)
-                    print("Mouse wheel DOWN - zoom out")
                     self.map = self.map_img
                     self.map = self.camera.zoom_out(self.map)
                     self.map_rect = self.map.get_rect()
                     self.draw()
                 if event.button == 4:  # Scroll Up (Zoom in)
-                    print("Mouse wheel UP - zoom in")
                     self.map = self.map_img
                     self.map = self.camera.zoom_in(self.map)
                     self.map_rect = self.map.get_rect()
