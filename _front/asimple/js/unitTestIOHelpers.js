@@ -3,7 +3,7 @@ function testOutput(o) {
   for (const key in o) {
     const arg = o[key];
     switch (key) {
-      case "msmin":
+      case 0:
         console.log(arg);
         break;
     }
@@ -11,5 +11,11 @@ function testOutput(o) {
 }
 function unitTestCards() {
   if (execOptions.activatedTests.includes("cards")) console.log(...arguments);
+}
+function unitTestMap(){
+  if (execOptions.activatedTests.includes("map")) console.log(...arguments);
+}
+function unitTestUnits(){
+  if (execOptions.activatedTests.includes("units")) console.log(...arguments);
 }
 //#endregion

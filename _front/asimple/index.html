@@ -225,13 +225,12 @@
 
         updateStatus(data);
         updateLog(data);
+
         mergeCreatedAndUpdated(data);
 
-        // //console.log("*** calling cards.update with data: ***", data);
-        // //console.log("...and gameObjects:", gameObjects);
-        // //console.log("...and player", player);
-
+        //each manager in turn updates gameObjects!!!
         cards.update(player, data, gameObjects);
+        map.update(data,gameObjects);
 
         processActions(data, present);
       }
@@ -322,6 +321,8 @@
       //var h1=new AHand(assets,"handG_West",'hand_area');
       var cards = new ACards(assets);
 
+      var units = new AUnits(assets);
+
       $(document).ready(function() {
         optionsToInputs();
         panzoom("mapG"); //handles pan zoom on map
@@ -335,7 +336,13 @@
       function startScript() {
         //sendInit(player, present, 4);
 
-        testUpdateCards(); //ok
+        //testUpdateCards(); //ok
+        //testUpdateCardsAndMap();
+        //testUpdateMap();
+        
+        //units testing
+        testDrawSingleUnit();
+        //testUpdateUnits();
 
         //testPhaseSteps('Axis','prod_complete');
         //testCreateOneCard(); //ok

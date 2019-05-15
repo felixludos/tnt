@@ -58,14 +58,10 @@ class AMap {
     return ms;
   }
   createInfluence(id, nation, faction, value) {
-    //level can be 1,2,3
-    //let fnamePrefix=level<3?'influence':'control';
-    //console.log('createInfluence',id,nation,faction,level)
+    unitTestMap('createInfluence',id,nation,faction,value);
     let ms = new MS(id, assets.getUniqueId(id), "mapG");
     this.drawInfluence(ms, nation, faction, value);
     this.influences[nation] = ms;
-
-    //console.log('nationPositions',this.nationPositions)
 
     let pos = this.assets.nationPositions[nation];
 
@@ -135,10 +131,10 @@ class AMap {
   setChip(prefix, text, faction, n, color) {
     let pts = this.vpts[faction];
     let pos = pts[n - 1];
-    let offset=7;
-    let yOffset = text == 'P'?-offset:text=='I'?0:offset;
-    let xOffset = text == 'P'?-offset:text=='I'?0:offset;
-    pos = {x:pos.x+xOffset,y:pos.y+yOffset};
+    let offset = 7;
+    let yOffset = text == "P" ? -offset : text == "I" ? 0 : offset;
+    let xOffset = text == "P" ? -offset : text == "I" ? 0 : offset;
+    pos = {x: pos.x + xOffset, y: pos.y + yOffset};
     let id = prefix + faction;
     if (!(id in this.chips)) {
       this.chips[id] = this.createChip(id, {text: text, prefix: prefix, faction: faction, color: color});
@@ -150,33 +146,42 @@ class AMap {
     ms.setPos(pos.x, pos.y);
   }
   updateInfluence(id, nation, faction, value) {
+    unitTestMap('updateInfluence',id,nation,faction,value);
+
     let ms = this.influences[id];
     ms.show();
     ms.removeFromChildIndex(1);
     this.drawInfluence(ms, nation, faction, value);
   }
   update(data, G) {
-    //tiles
     if ("created" in data) {
       for (const id in data.created) {
-        let o = data.created[id];
-        if (o.obj_type == "tile") {
-          if (id in this.tiles) continue;
-          this.tiles[id] = this.createTile(id, o);
+        let o_new = data.created[id];
+
+        //tiles
+        if (o_new.obj_type == "tile") {
+          if (id in this.tiles) continue; //tiles created once only, never updated
+          this.tiles[id] = this.createTile(id, o_new);
+          G[id] = o_new;
+
+        //influences
+        } else if (o_new.obj_type == "influence" && "nation" in o_new && "faction" in o_new) {
+          if (id in this.influences) {
+            let o_old = G[id];
+            // property change check! only value should ever change for existing influence!
+            let d = propDiff(o_old,o_new);
+            if (d.hasChanged) {
+              unitTestMap('influence has changed props:',d.summary.toString());
+              this.updateInfluence(id, o_new.nation, o_new.faction, o_new.value);
+            }
+          } else {
+            this.influences[id] = this.createInfluence(id, o_new.nation, o_new.faction, o_new.value);
+          }
+          G[id] = o_new;
         }
       }
     }
-    //influences
-    for (const id in G) {
-      let o = G[id];
-      if (o.obj_type == "influence" && "nation" in o && "faction" in o) {
-        if (id in this.influences) {
-          this.updateInfluence(id, o.nation, o.faction, o.value);
-        } else {
-          this.influences[id] = this.createInfluence(id, o.nation, o.faction, o.value);
-        }
-      }
-    }
+
     //tracks
     if ("players" in data) {
       for (const faction of this.assets.factionNames) {
