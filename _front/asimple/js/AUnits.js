@@ -105,7 +105,7 @@ class AUnits {
       //unitTestUnits("createUnit", id, owner, o.tile, o.type, player);
     } else {
       unitTestUnits("create unit", id, o, "...player is", player);
-      let imagePath = "/assets/images/" + type + ".svg";
+      let imagePath = "/a/assets/images/" + type + ".svg";
       let color = this.assets.troopColors[nationality];
       let darker = darkerColor(color[0], color[1], color[2]);
       let sz = this.SZ.cadreDetail;

@@ -121,7 +121,7 @@ function testUpdateCards(filename = "prod_complete", player = "Axis") {
   execOptions.output = "none";
   addIf("cards", execOptions.activatedTests);
   if (empty(filename)) {
-    sendInit(player, presentUpdateCardsOnly, (seed = 0));
+    sendInit(player, presentUpdateCardsOnly, 0);
   } else {
     sendLoading(filename, player, presentUpdateCardsOnly);
   }
@@ -138,6 +138,7 @@ function testUpdateCardsAndMap(filename = "", player = "Axis") {
   }
 }
 function presentUpdateCardsOnly(data) {
+  console.log('presentUpdateCardsOnly>>>>>>>>>>>>>>>>>>>>>>>>>')
   if (isPlayerChanging) {
     isPlayerChanging = false;
     page.updateGameView(player, execOptions);

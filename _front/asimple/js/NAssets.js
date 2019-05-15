@@ -43,14 +43,14 @@ class NAssets {
   initAssets(map,callback) {
     //console.log("loading...");
     this.calculateTrackPositions();
-    loadYML("/assets/config/map_pos.yml", data => {
+    loadYML("/a/assets/config/map_pos.yml", data => {
       this.tilePositions = {};
       for (const idTile in data) {
         let id = replaceAll(idTile, " ", "_");
         this.tilePositions[id] = data[idTile];
       }
       this.tileNames = Object.keys(this.tilePositions);
-      loadYML("/assets/config/nations.yml", data => {
+      loadYML("/a/assets/config/nations.yml", data => {
         this.nationPositions = {};
         for (const idNation in data) {
           let id = replaceAll(idNation, " ", "_");
@@ -58,12 +58,12 @@ class NAssets {
           map.drawNationPositions();
         }
         this.nationNames = Object.keys(this.nationPositions);
-        loadYML("/assets/config/unit_count.yml", data => {
+        loadYML("/a/assets/config/unit_count.yml", data => {
           this.unitCountInfo = data;
           this.nationalityNames = Object.keys(data);
           this.unitTypeNames = Object.keys(data["Germany"]);
 
-          loadYML("/assets/config/faction_setup.yml", data => {
+          loadYML("/a/assets/config/faction_setup.yml", data => {
             this.factionSetup = data;
             this.factionNames = Object.keys(data);
             console.log("...finished loading assets!");
