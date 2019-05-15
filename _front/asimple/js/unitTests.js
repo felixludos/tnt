@@ -63,11 +63,14 @@ function testCreateNCards() {
   }
 }
 function testUpdateCards(filename = "prod_complete", player = "Axis") {
-  execOptions.skipTo = {year: 1935, phase: "any", player: "any", step: 0}
-  sendLoading(filename, player, presentUpdateCardsOnly);
+  setSkipOptions({step:10});
+  execOptions.output = 'none';
+  addIf('cards',execOptions.activatedTests);
+  //sendInit(player,presentUpdateCardsOnly,seed=0);
+  sendLoading(filename,player,presentUpdateCardsOnly);
 }
 function presentUpdateCardsOnly(data) {
-  console.log(data)
+  //console.log(data)
   if (isPlayerChanging) {
     isPlayerChanging = false;
     page.updateGameView(player, execOptions);
@@ -76,16 +79,16 @@ function presentUpdateCardsOnly(data) {
   updateStatus(data);
   updateLog(data);
 
-  updateGameObjects(data);
-  //console.log('presentUpdateCardsOnly')
+  mergeCreatedAndUpdated(data);
+
+  //each manager in turn updates gameObjects!!!
+  //console.log('*** calling cards.update with data: ***',data)
+  //console.log('...and gameObjects:',gameObjects)
+  //console.log('...and player',player);
+
   cards.update(player, data, gameObjects);
 
-  gameObjects = extend(true, gameObjects, data.created);
-
-  //alert('press to continue...')
   processActions(data, presentUpdateCardsOnly);
-  //nextAction = () => processActions(data, presentUpdateCardsOnly);
-  //show(bStep);
 }
 //#endregion
 
@@ -93,7 +96,7 @@ function presentUpdateCardsOnly(data) {
 function testInitToEnd(player = "USSR", seed = 0) {
   sendInit(player, d => testRunToEnd(d, player), seed);
 }
-function testLoadToEnd(player = "Axis", filename = "gov_complete") {
+function testLoadToEnd(player = "Axis", filename = "setup_complete") {
   sendLoading(filename, player, d => testRunToEnd(d, player), "raw");
 }
 function testRunToEnd(data, player) {
@@ -121,7 +124,7 @@ function testRunToEnd(data, player) {
 function testPhaseSteps(player = "Axis", filename = "gov_complete") {
   sendLoading(filename, player, d => testStep(d, player), "raw");
 }
-function testStep(data, player) {
+function testStep(data, player) { //doesn't work!!!
   let tuples = getTuples(data);
   if (empty(tuples)) {
     let waitingSet = getSet(data, "waiting_for");
@@ -133,7 +136,7 @@ function testStep(data, player) {
 
       nextAction = () =>
         sendChangeToPlayer(nextPlayer, d1 => {
-          console.log("player changed to", nextPlayer, "on server");
+          //console.log("player changed to", nextPlayer, "on server");
           //console.log(d1);
           testStep(d1, nextPlayer);
         });

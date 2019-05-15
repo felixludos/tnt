@@ -1534,8 +1534,8 @@ var extend = function() {
 function jsCopy(o) {
   return JSON.parse(JSON.stringify(o));
 }
-function hasSameProps(o1,o2){
-  let diff=propDiff(o1,o2);
+function hasSameProps(o1, o2) {
+  let diff = propDiff(o1, o2);
   return !diff.hasChanged;
 }
 function propDiff(o_old, o_new) {
@@ -1559,12 +1559,12 @@ function propDiff(o_old, o_new) {
           if (sameList(visOld, visNew)) {
             continue;
           }
-        } else if (typeof(o_new[prop])=='object'){
-          if (hasSameProps(o_new[prop],o_old[prop])){
+        } else if (typeof o_new[prop] == "object") {
+          if (hasSameProps(o_new[prop], o_old[prop])) {
             continue;
           }
         }
-  
+
         addIf({prop: prop, old: o_old[prop], new: o_new[prop]}, propChange);
         addIf(prop, summary);
         hasChanged = true;
@@ -1572,7 +1572,7 @@ function propDiff(o_old, o_new) {
     }
   }
   for (const prop in o_old) {
-    if (o_new.hasOwnProperty(prop)) {
+    if (o_old.hasOwnProperty(prop)) {
       if (!(prop in o_new)) {
         addIf(prop, onlyOld);
         addIf(prop, summary);
@@ -1807,7 +1807,6 @@ function getSet(o, key) {
   else if ("set" in o[key]) return o[key].set;
   else return o[key].xset;
 }
-
 function logFormattedData(data, n, msgAfter = "") {
   let s = makeStrings(data, ["game", "actions", "waiting_for", "created"]);
   console.log("___ step " + n, "\n" + s);
@@ -1816,7 +1815,7 @@ function logFormattedData(data, n, msgAfter = "") {
 function isCardType(o) {
   return "obj_type" in o && endsWith(o.obj_type, "card");
 }
-function isVisibleObject(o, player) {
+function isVisibleToPlayer(o, player) {
   let vis = getVisibleSet(o);
   if (vis && vis.includes(player)) return true;
 }
@@ -1843,6 +1842,35 @@ function optionsToInputs() {
   document.getElementById("inPhase").value = execOptions.skipTo.phase;
   document.getElementById("inPlayer").value = execOptions.skipTo.player;
   document.getElementById("inStep").value = execOptions.skipTo.step;
+}
+function mergeCreatedAndUpdated(data) {
+  if (!("created" in data)) data.created = {};
+  data.created = extend(true, data.created, data.updated);
+
+  //verify merge worked: created should have same data as updated for same ids
+  let mergeFailed = false;
+  let d = {};
+  if ("created" in data && "updated" in data) {
+    for (const id in data.updated) {
+      if (!(id in data.created)) {
+        d.summary = "missing id in data.created " + id;
+
+        //console.log("missing id in data.created " + id);
+      } else {
+        d = propDiff(data.created[id], data.updated[id]);
+        if (d.hasChanged && (!empty(d.propChange) || !empty(d.onlyNew))) {
+          mergeFailed = true;
+          //alert('MERGE FAILED!!!'+id + " " + d.summary.toString());
+
+          //console.log("difference created - updated: " + id + " " + d.summary.toString());
+          //console.log(d);
+          //console.log("created:", data.created[id]);
+          //console.log("updated:", data.updated[id]);
+        }
+      }
+      console.assert("created" in data && !mergeFailed, "MERGE FAILED!!!" + id + " " + d.summary.toString() + "\n" + data.toString());
+    }
+  }
 }
 function sendAction(player, tuple, callback, ms = 60) {
   setTimeout(() => {
@@ -1872,8 +1900,8 @@ function sendInit(player, callback, seed = 1) {
   var chain = ["init/hotseat/" + player + "/" + seed, "info/" + player, "status/" + player];
   sender.chainSend(chain, player, callback);
 }
-function sendLoading(filename, player, callback, outputOption='fine') {
-  console.log('loading',filename)
+function sendLoading(filename, player, callback, outputOption = "none") {
+  console.log("loading", filename);
   execOptions.output = outputOption;
   var sData = {};
   sender.send("myload/" + filename + ".json", data => {
@@ -1888,9 +1916,9 @@ function sendLoading(filename, player, callback, outputOption='fine') {
         sData.created = augment(sData.created, sData.updated);
         if ("waiting_for" in data && empty(getSet(data, "waiting_for"))) {
           sender.send("action/" + player + "/none", data => {
-            console.log("empty action response:", data);
+            //console.log("empty action response:", data);
             sData = augment(sData, data);
-            console.log("=augmented data:", sData);
+            //console.log("=augmented data:", sData);
             if (callback) callback(sData);
           });
         } else {
@@ -1899,6 +1927,10 @@ function sendLoading(filename, player, callback, outputOption='fine') {
       });
     });
   });
+}
+function setSkipOptions({year = 1935, player = "any", phase = "any", step = 0} = {}) {
+  execOptions.skipTo = {year: year, player: player, phase: phase, step: step};
+  optionsToInputs();
 }
 function statusMessage(msgAdd = "") {
   let s = "Phase:" + phase + ", Year:" + year + ", Player:" + player;
@@ -1911,13 +1943,13 @@ function statusMessage(msgAdd = "") {
 //#region type and conversion helpers
 function getTypeOf(param) {
   let type = typeof param;
-  console.log("typeof says:" + type);
+  //console.log("typeof says:" + type);
   if (type == "string") {
     return "string";
   }
   if (type == "object") {
     type = param.constructor.name;
-    console.log(type, startsWith(type, "SVG"));
+    //console.log(type, startsWith(type, "SVG"));
     if (startsWith(type, "SVG")) type = stringBefore(stringAfter(type, "SVG"), "Element").toLowerCase();
     else if (startsWith(type, "HTML")) type = stringBefore(stringAfter(type, "HTML"), "Element").toLowerCase();
   }
@@ -1969,7 +2001,6 @@ function deltaTransformPoint(matrix, point) {
   var dy = point.x * matrix.b + point.y * matrix.d + 0;
   return {x: dx, y: dy};
 }
-
 function decomposeMatrix(matrix) {
   // @see https://gist.github.com/2052247
 
@@ -2005,5 +2036,4 @@ function getZoomFactor(gElement) {
   return info.scale;
   // //console.log(x.scale);
 }
-
 //#endregion zooming

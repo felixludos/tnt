@@ -12,6 +12,7 @@
 
     <script src="/a/js/ASender.js"></script>
     <script src="/a/js/NAssets.js"></script>
+    <script src="/a/js/unitTestIOHelpers.js"></script>
     <script src="/a/js/helpers.js"></script>
     <script src="/a/js/panzoom.js"></script>
     <script src="/a/js/MS.js"></script>
@@ -133,7 +134,7 @@
       }
       function onClickGo() {
         inputsToOptions();
-        console.log("options:", execOptions.skipTo);
+        //console.log("options:", execOptions.skipTo);
         step = 0;
         STOP = false;
         callNextAction();
@@ -164,31 +165,97 @@
 
     <!-- #region _work -->
     <script>
+      function callNextAction() {
+        if (nextAction) {
+          deactivateButtons();
+          //console.log(nextAction,'called')
+          nextAction();
+        }
+      }
+      function checkProceedCondition() {
+        //skipTo: {year:'1935',phase:'production',player:'any',step:0},
+        if (execOptions.mode == "skipTo") {
+          let opt = execOptions.skipTo;
+          let nYear = Number(year);
+          let skipAhead = isWrongPhase() || isTooEarly() || isWrongPlayer();
+          if (skipAhead) {
+            callNextAction();
+          } else {
+            activateButtons();
+            //console.log("press step to send choice to server!");
+          }
+        }
+      }
+      function prepareActionSelection(data, callback, tuples) {
+        let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
+        choiceIndex = (choiceIndex + 1) % choiceModulo;
+
+        testOutput({
+          step: step,
+          player: player,
+          data: data,
+          tuples: tuples,
+          0: player + " chooses " + tuple.toString(),
+          callback: callback
+        });
+        nextAction = () => {
+          testOutput({1: "sending action:" + player + tuple + callback.name});
+          sendAction(player, tuple, callback);
+        };
+      }
+      function preparePlayerChange(data, callback) {
+        testOutput({step: step, player: player, data: data, 0: "...waiting for player change!", callback: callback});
+        let waitingSet = getSet(data, "waiting_for");
+        if (empty(waitingSet)) {
+          testOutput({1: "sending empty action!!!"});
+          sendAction(player, ["none"], callback);
+        } else {
+          nextAction = () => {
+            testOutput({1: "calling sendChangePlayer:" + waitingSet[0] + " " + callback.name, data: data, callback: callback});
+            sendChangePlayer(data, callback);
+            isPlayerChanging = true;
+          };
+        }
+      }
       function present(data) {
         if (isPlayerChanging) {
           isPlayerChanging = false;
           page.updateGameView(player, execOptions);
-          // cards.resizePlayerHand();
         }
 
-        updateUI(data);
+        updateStatus(data);
+        updateLog(data);
+        mergeCreatedAndUpdated(data);
+
+        // //console.log("*** calling cards.update with data: ***", data);
+        // //console.log("...and gameObjects:", gameObjects);
+        // //console.log("...and player", player);
+
+        cards.update(player, data, gameObjects);
 
         processActions(data, present);
+      }
+      function processActions(data, callback) {
+        step += 1;
+        let tuples = getTuples(data);
+        console.assert(tuples.length > 0 || "waiting_for" in data, "ASSERTION FAIL!!! no action or waiting_for!!!!");
+        if (empty(tuples)) {
+          preparePlayerChange(data, callback); //player change is next
+        } else {
+          prepareActionSelection(data, callback, tuples); //automatic tuple choice, to be replaced by selection
+        }
+        checkProceedCondition(); //auto next move or show buttons
       }
       function updateUI(data) {
         updateStatus(data);
         updateLog(data);
 
-        updateGameObjects(data);
+        mergeCreatedAndUpdated(data);
 
         map.update(data, gameObjects);
         cards.update(player, data, gameObjects);
 
-        gameObjects = extend(true, gameObjects, data.created);
-      }
-      function updateGameObjects(data){
-        if (!('created' in data)) data.created = {};
-        data.created = extend(true, data.created, data.updated);
+        //NO CANNOT DO THAT!!! gameObjects must be updated by indiv update managers!!!! gameObjects = extend(true, gameObjects, data.created);
       }
       function updateLog(data) {
         if ("log" in data && !empty(data.log)) {
@@ -206,60 +273,6 @@
           phase = data.game.phase;
           player = data.game.player;
           statusMessage();
-        }
-      }
-      function processActions(data, callback) {
-        step += 1;
-        let tuples = getTuples(data);
-
-        console.assert(tuples.length > 0 || "waiting_for" in data, "ASSERTION FAIL!!! no action or waiting_for!!!!");
-
-        if (empty(tuples)) {
-          let msgAfter = "...waiting for player change!";
-
-          if (execOptions.output == "endToEnd") {
-            logFormattedData(data, msgCounter, msgAfter);
-            msgCounter += 1;
-          } else {
-            console.log(msgAfter);
-          }
-
-          nextAction = () => sendChangePlayer(data, callback);
-          isPlayerChanging = true;
-        } else {
-          let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
-          choiceIndex = (choiceIndex + 1) % choiceModulo;
-          let msgAfter = player + " chooses " + tuple.toString();
-
-          if (execOptions.output == "endToEnd") {
-            logFormattedData(data, msgCounter, msgAfter);
-            msgCounter += 1;
-          } else {
-            console.log(msgAfter);
-          }
-
-          nextAction = () => sendAction(player, tuple, callback);
-        }
-
-        checkProceedCondition();
-      }
-      function callNextAction() {
-        if (nextAction) {
-          deactivateButtons();
-          nextAction();
-        }
-      }
-      function checkProceedCondition() {
-        //skipTo: {year:'1935',phase:'production',player:'any',step:0},
-        if (execOptions.mode == "skipTo") {
-          let opt = execOptions.skipTo;
-          let nYear = Number(year);
-          let skipAhead = isWrongPhase() || isTooEarly() || isWrongPlayer();
-          if (skipAhead) {
-            callNextAction();
-          } else {
-            activateButtons();
-          }
         }
       }
     </script>
@@ -280,11 +293,12 @@
 
       //control flow;
       var execOptions = {
-        output: "raw", // 'fine' | 'endToEnd' | 'manual' | 'none' | 'raw'
+        output: "none", // 'fine' | 'endToEnd' | 'manual' | 'none' | 'raw'
         playerChange: "auto", // 'auto' | 'manual'
         log: "general", // 'general' | 'individual'
         mode: "skipTo", // 'step' | 'continuous' | 'nskip' | 'skipTo'
-        skipTo: {year: 1935, phase: "p", player: "u", step: 0}
+        skipTo: {year: 1935, phase: "any", player: "any", step: 100},
+        activatedTests: [] // unitTest flags to control output
       };
       var nextAction = null;
       var STOP = false; //interrupt endless play
@@ -321,7 +335,7 @@
       function startScript() {
         //sendInit(player, present, 4);
 
-        testUpdateCards();
+        testUpdateCards(); //ok
 
         //testPhaseSteps('Axis','prod_complete');
         //testCreateOneCard(); //ok
