@@ -1860,15 +1860,21 @@ function mergeCreatedAndUpdated(data) {
     }
   }
 }
+function sendEmptyAction(player,callback){
+  testOutput({1: "sending empty action!!!"});
+  sendAction(player, ["none"], callback);
+
+}
 function sendAction(player, tuple, callback, ms = 40) {
   setTimeout(() => {
+    testOutput({1: "sending action:" + player + tuple + callback.name});
     let chain = ["action/" + player + "/" + tuple.join("+"), "info/" + player, "status/" + player];
     sender.chainSend(chain, player, callback);
   }, ms);
 }
-function sendChangeToPlayer(player, callback) {
-  let chain = ["info/" + player, "status/" + player];
-  sender.chainSend(chain, player, callback);
+function sendChangeToPlayer(nextPlayer, callback) {
+  let chain = ["info/" + nextPlayer, "status/" + nextPlayer];
+  sender.chainSend(chain, nextPlayer, callback);
 }
 //deprecate!
 function sendChangePlayer(data, callback) {
