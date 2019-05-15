@@ -3,8 +3,8 @@ function testOutput(o) {
   for (const key in o) {
     const arg = o[key];
     switch (key) {
-      case 0:
-        console.log(arg);
+      case 0, '0':
+        console.log('*************************\n',arg);
         break;
     }
   }

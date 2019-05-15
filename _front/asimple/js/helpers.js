@@ -1831,18 +1831,6 @@ function isWrongPlayer() {
   let pl = execOptions.skipTo.player;
   return pl != "any" && !startsWithCaseIn(player, pl);
 }
-function inputsToOptions() {
-  execOptions.skipTo.year = document.getElementById("inYear").value;
-  execOptions.skipTo.phase = document.getElementById("inPhase").value;
-  execOptions.skipTo.player = document.getElementById("inPlayer").value;
-  execOptions.skipTo.step = document.getElementById("inStep").value;
-}
-function optionsToInputs() {
-  document.getElementById("inYear").value = execOptions.skipTo.year;
-  document.getElementById("inPhase").value = execOptions.skipTo.phase;
-  document.getElementById("inPlayer").value = execOptions.skipTo.player;
-  document.getElementById("inStep").value = execOptions.skipTo.step;
-}
 function mergeCreatedAndUpdated(data) {
   if (!("created" in data)) data.created = {};
   data.created = extend(true, data.created, data.updated);
@@ -1872,12 +1860,10 @@ function mergeCreatedAndUpdated(data) {
     }
   }
 }
-function sendAction(player, tuple, callback, ms = 60) {
+function sendAction(player, tuple, callback, ms = 40) {
   setTimeout(() => {
-    if (!STOP) {
-      let chain = ["action/" + player + "/" + tuple.join("+"), "info/" + player, "status/" + player];
-      sender.chainSend(chain, player, callback);
-    }
+    let chain = ["action/" + player + "/" + tuple.join("+"), "info/" + player, "status/" + player];
+    sender.chainSend(chain, player, callback);
   }, ms);
 }
 function sendChangeToPlayer(player, callback) {
@@ -1927,10 +1913,6 @@ function sendLoading(filename, player, callback, outputOption = "none") {
       });
     });
   });
-}
-function setSkipOptions({year = 1935, player = "any", phase = "any", step = 0} = {}) {
-  execOptions.skipTo = {year: year, player: player, phase: phase, step: step};
-  optionsToInputs();
 }
 function statusMessage(msgAdd = "") {
   let s = "Phase:" + phase + ", Year:" + year + ", Player:" + player;

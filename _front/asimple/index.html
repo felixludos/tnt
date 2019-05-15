@@ -89,20 +89,39 @@
         <button id="bEditDone" onclick="onClickEditDone(this)">done</button>
       </div>
       <div id="command_area" class="grid_div">
-        <div class="columnDiv">
+        <!-- <div > -->
           <!-- <button id="bNextPlayer" class="hidden" style="width:90%;" onclick="onClickNextPlayer()">next player</button> -->
           <button class="chrome" id="bStop" style="background-color:red" onclick="onClickStop()">STOP</button>
           <button class="chrome" id="bStep" onclick="onClickStep()">step</button>
-          <label class="chrome" for="inYear">year</label>
+
+          <p style="margin:2px 5px">SkipTo:</p>
+          <input id='rYear' type="radio" name="skipTo" value="year" />
+          <label for="rYear">year</label>
+          <br />
+          <input type="radio" name="skipTo" value="phase" />
+          phase
+          <br />
+          <input type="radio" name="skipTo" value="player" />
+          player
+          <br />
+          <input type="radio" name="skipTo" value="step" />
+          step
+          <br />
+          <input class="chrome" type="text" id="inSkipTo" value="0" />
+
+          <p style="margin:2px 5px">Output:</p>
+          <input class="chrome" type="number" id="inOutput" value="0" />
+
+          <!-- <label class="chrome" for="inYear">year</label>
           <input class="chrome" type="text" id="inYear" />
           <label class="chrome" for="inPhase">phase</label>
           <input class="chrome" type="text" id="inPhase" />
           <label class="chrome" for="inPhase">player</label>
           <input class="chrome" type="text" id="inPlayer" />
           <label class="chrome" for="inStep">step</label>
-          <input class="chrome" type="text" id="inStep" />
+          <input class="chrome" type="text" id="inStep" /> -->
           <button class="chrome" id="bGo" onclick="onClickGo()">go</button>
-        </div>
+        <!-- </div> -->
       </div>
       <div id="chat_area" class="grid_div hidden">chat</div>
       <div id="hand_area" class="grid_div" style="height:200px">
@@ -127,8 +146,70 @@
     </div>
     <!-- #endregion HTML -->
 
-    <!-- #region handlers -->
+    <!-- #region UI / handlers -->
     <script>
+      function activateButtons() {
+        show(bStep);
+        show(bGo);
+      }
+      function deactivateButtons() {
+        hide(bStep);
+        hide(bGo);
+      }
+      function inputsToOptions() {
+        let key = document.querySelector('input[name="skipTo"]:checked').value;
+        let val = document.getElementById("inSkipTo").value;
+        let opt = {};
+        opt[key] = val;
+        setSkipOptions(opt);
+        execOptions.outputLevel = document.getElementById("inOutput").value;
+
+
+        // execOptions.skipTo.year = document.getElementById("inYear").value;
+        // execOptions.skipTo.phase = document.getElementById("inPhase").value;
+        // execOptions.skipTo.player = document.getElementById("inPlayer").value;
+        // execOptions.skipTo.step = document.getElementById("inStep").value;
+      }
+      function optionsToInputs() {
+        var opt = document.getElementsByName("skipTo");
+        //var selectedSkipTo;
+
+        var nonDefault =
+          execOptions.skipTo.step != 0
+            ? {k: "step", v: execOptions.skipTo.step}
+            : execOptions.skipTo.player != "any"
+            ? {k: "player", v: execOptions.skipTo.player}
+            : execOptions.skipTo.phase != "any"
+            ? {k: "phase", v: execOptions.skipTo.phase}
+            : execOptions.skipTo.year != 1935
+            ? {k: "year", v: execOptions.skipTo.year}
+            : {k: "step", v: 0};
+
+        for (var i = 0; i < opt.length; i++) {
+          if (opt[i].value == nonDefault.k) {
+            opt[i].checked = true;
+          } else {
+            opt[i].checked = false;
+          }
+          //if (opt[i].checked) selectedSkipTo = opt[i].value;
+        }
+        document.getElementsByName("inSkipTo").value = nonDefault.v;
+        document.getElementsByName("inOutput").value = execOptions.outputLevel;
+
+
+        // document.getElementById("inYear").value = execOptions.skipTo.year;
+        // document.getElementById("inPhase").value = execOptions.skipTo.phase;
+        // document.getElementById("inPlayer").value = execOptions.skipTo.player;
+        // document.getElementById("inStep").value = execOptions.skipTo.step;
+      }
+      function setSkipOptions(opt = {year: 1935, player: "any", phase: "any", step: 0}) {
+        execOptions.skipTo = {year: 1935, player: "any", phase: "any", step: 0}; // {year: year, player: player, phase: phase, step: step};
+        for (const key in opt) {
+          const element = opt[key];
+          execOptions.skipTo[key] = element;
+        }
+        optionsToInputs();
+      }
       function onClickStop() {
         STOP = true;
         activateButtons();
@@ -141,6 +222,7 @@
         callNextAction();
       }
       function onClickStep() {
+        step = execOptions.skipTo.step;
         STOP = false;
         callNextAction();
       }
@@ -150,19 +232,6 @@
       }
     </script>
     <!-- #endregion handlers -->
-
-    <!-- #region helpers -->
-    <script>
-      function activateButtons() {
-        show(bStep);
-        show(bGo);
-      }
-      function deactivateButtons() {
-        hide(bStep);
-        hide(bGo);
-      }
-    </script>
-    <!-- #endregion helpers -->
 
     <!-- #region control flow -->
     <script>
@@ -175,7 +244,9 @@
       }
       function checkProceedCondition() {
         //skipTo: {year:'1935',phase:'production',player:'any',step:0},
-        if (execOptions.mode == "skipTo") {
+        if (STOP) {
+          return;
+        } else if (execOptions.mode == "skipTo") {
           let opt = execOptions.skipTo;
           let nYear = Number(year);
           let skipAhead = isWrongPhase() || isTooEarly() || isWrongPlayer();
@@ -231,7 +302,7 @@
 
         //each manager in turn updates gameObjects!!!
         cards.update(player, data, gameObjects);
-        map.update(data,gameObjects);
+        map.update(data, gameObjects);
 
         processActions(data, present);
       }
@@ -294,6 +365,7 @@
       //control flow;
       var execOptions = {
         output: "none", // 'fine' | 'endToEnd' | 'manual' | 'none' | 'raw'
+        outputLevel: 0, // priority output (see testOutput)
         playerChange: "auto", // 'auto' | 'manual'
         log: "general", // 'general' | 'individual'
         mode: "skipTo", // 'step' | 'continuous' | 'nskip' | 'skipTo'
@@ -340,7 +412,7 @@
         //testUpdateCards(); //ok
         //testUpdateCardsAndMap();
         //testUpdateMap();
-        
+
         //units testing
         //testCreateSingleUnit();
         //testCreateMultipleUnitsOnSameTile();

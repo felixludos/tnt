@@ -247,9 +247,11 @@ function presentUpdateUnitsOnly(data) {
 
 //#region tests for server communication
 function testInitToEnd(player = "USSR", seed = 0) {
+  hide(bStop);
   sendInit(player, d => testRunToEnd(d, player), seed);
 }
 function testLoadToEnd(player = "Axis", filename = "setup_complete") {
+  hide(bStop);
   sendLoading(filename, player, d => testRunToEnd(d, player), "raw");
 }
 function testRunToEnd(data, player) {

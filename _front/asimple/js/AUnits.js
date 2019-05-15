@@ -95,7 +95,6 @@ class AUnits {
     return ms;
   }
   createUnit(id, o, player) {
-    unitTestUnits("create unit", id, o, "...player is", player);
     let nationality = o.nationality;
     let owner = getUnitOwner(nationality);
     let type = o.type;
@@ -103,8 +102,9 @@ class AUnits {
     if (type === undefined) {
       unitTestUnits("CANNOT CREATE UNIT BECAUSE TYPE UNKNOWN!!!", player, owner);
       unitTestUnits(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
-      unitTestUnits("createUnit", id, owner, o.tile, o.type, player);
+      //unitTestUnits("createUnit", id, owner, o.tile, o.type, player);
     } else {
+      unitTestUnits("create unit", id, o, "...player is", player);
       let imagePath = "/assets/images/" + type + ".svg";
       let color = this.assets.troopColors[nationality];
       let darker = darkerColor(color[0], color[1], color[2]);
@@ -132,6 +132,7 @@ class AUnits {
     if (!(idHidden in this.uis)) {
       this.createHiddenUnit(idHidden, owner, o.tile);
     } else {
+      unitTestUnits('hidden unit already there!!!!!!!!!!!!!')
       this.updateUnitCounter(owner, o.tile);
     }
     this.updateVisibility(id, o, player);
@@ -141,7 +142,7 @@ class AUnits {
   }
   getPosition(idTile) {
     let pos = this.assets.tilePositions[idTile];
-    unitTestUnits("getPosition", pos);
+    //unitTestUnits("getPosition", pos);
     return pos;
   }
   placeUnit(msUnit, tile) {
@@ -244,15 +245,15 @@ class AUnits {
           let d = propDiff(o_old, o_new);
           if (d.hasChanged) {
             //unitTestUnits('________________________');
-            unitTestUnits("changes:", d.summary.toString()); //type,cv, WHY TYPE???????
+            //unitTestUnits("changes:", d.summary.toString()); //type,cv, WHY TYPE???????
             if (d.summary.includes("type")) {
               let owner = getUnitOwner(o_old.nationality);
               console.assert(player != owner, "type, cv change for VISIBLE unit!");
-              unitTestUnits("type was " + o_old.type + " new=" + o_new.type);
-              this.updateVisibility(id, o_new, player); //hier werden units hidden!
+              //unitTestUnits("type was " + o_old.type + " new=" + o_new.type);
+              //this.updateVisibility(id, o_new, player); //hier werden units hidden!
             } else if (d.summary.includes("cv")) {
               unitTestUnits("cv change!!!!! " + o_old.cv + " " + o_new.cv);
-              this.updateCv(this.uis[id].ms);
+              this.updateCv(this.uis[id].ms,o_new.cv);
               G[id] = o_new;
             } else if (d.summary.includes("tile")) {
               //move unit!!!
@@ -264,6 +265,7 @@ class AUnits {
     }
 
     //update visibility!
+    unitTestUnits('...visibility is updated for all units!')
     for (const id in this.uis) {
       const ms = this.uis[id].ms;
       const owner = ms.getTag("owner");
