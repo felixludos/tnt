@@ -185,7 +185,7 @@ function presentUpdateMapOnly(data) {
 //#endregion
 
 //#region tests for units
-function testDrawSingleUnit() {
+function testCreateSingleUnit() {
   execOptions.output = "none";
   addIf("units", execOptions.activatedTests);
   let data = generateUnitList();
@@ -196,16 +196,37 @@ function testDrawSingleUnit() {
     break;
   }
 }
+function testCreateMultipleUnitsOnSameTile(){
+  execOptions.output = "none";
+  addIf("units", execOptions.activatedTests);
+  let data = generateUnitList();
+  let player = 'West';
+  for (const id in data.created) {
+    const o = data.created[id];
+    o.tile = 'London';
+    o.nationality = 'Britain';
+    units.createUnit(id,o,player);
+  }
+  player = 'USSR';
+  for (const id in data.created) {
+    let idNew=id+200;
+    const o = data.created[id];
+    o.tile = 'Berlin';
+    o.nationality = 'Germany';
+    o._id = idNew;
+    units.createUnit(idNew,o,player);
+  }
+}
 function testUpdateUnits(filename = "", player = "USSR") {
   execOptions.output = "none";
   addIf("units", execOptions.activatedTests);
+  
   if (empty(filename)) {
     sendInit(player, presentUpdateUnitsOnly, (seed = 0));
   } else {
     sendLoading(filename, player, presentUpdateUnitsOnly);
   }
 }
-
 function presentUpdateUnitsOnly(data) {
   if (isPlayerChanging) {
     isPlayerChanging = false;
@@ -218,7 +239,7 @@ function presentUpdateUnitsOnly(data) {
   mergeCreatedAndUpdated(data);
 
   //each manager in turn updates gameObjects!!!
-  units.update(data, gameObjects);
+  units.update(data, gameObjects, player);
 
   processActions(data, presentUpdateUnitsOnly);
 }

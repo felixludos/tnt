@@ -131,6 +131,7 @@
     <script>
       function onClickStop() {
         STOP = true;
+        activateButtons();
       }
       function onClickGo() {
         inputsToOptions();
@@ -163,7 +164,7 @@
     </script>
     <!-- #endregion helpers -->
 
-    <!-- #region _work -->
+    <!-- #region control flow -->
     <script>
       function callNextAction() {
         if (nextAction) {
@@ -275,7 +276,7 @@
         }
       }
     </script>
-    <!-- #endregion _work -->
+    <!-- #endregion control flow -->
 
     <!-- #region globals -->
     <script>
@@ -341,8 +342,9 @@
         //testUpdateMap();
         
         //units testing
-        testDrawSingleUnit();
-        //testUpdateUnits();
+        //testCreateSingleUnit();
+        //testCreateMultipleUnitsOnSameTile();
+        testUpdateUnits();
 
         //testPhaseSteps('Axis','prod_complete');
         //testCreateOneCard(); //ok

@@ -37,8 +37,8 @@ class AUnits {
     let tile = msHidden.getTag("tile");
     let owner = msHidden.getTag("owner");
     this.hiddenUnits[owner][tile] = idHidden;
-    let o = {obj_type: 'hidden_unit', owner: owner, tile: tile, count: 1};
-    this.uis[idHidden] = {o:o , ms: msHidden};
+    let o = {obj_type: "hidden_unit", owner: owner, tile: tile, count: 1};
+    this.uis[idHidden] = {o: o, ms: msHidden};
     unitTestUnits("addHiddenUnit", idHidden, msHidden, o, owner, tile);
   }
   moveUnit(id, o_old, o_new) {
@@ -95,49 +95,53 @@ class AUnits {
     return ms;
   }
   createUnit(id, o, player) {
-    unitTestUnits("create unit", id, o, "...player is",player);
+    unitTestUnits("create unit", id, o, "...player is", player);
     let nationality = o.nationality;
     let owner = getUnitOwner(nationality);
     let type = o.type;
-    let imagePath = "/assets/images/" + type + ".svg";
-    let color = this.assets.troopColors[nationality];
-    let darker = darkerColor(color[0], color[1], color[2]);
-    let sz = this.SZ.cadreDetail;
-    let sz80 = sz * 0.86;
-    let szImage = sz / 1.5;
-    let y = szImage / 6;
-    let ms = new MS(id, id, "mapG")
-      .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
-      .roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
-      .image({path: imagePath, y: y, w: szImage, h: szImage})
-      .roundedRect({className: "unit overlay", w: sz, h: sz, fill: darker, rounding: sz * 0.1});
-    ms.tag("type", "unit");
-    ms.tag("owner", owner);
-    ms.tag("nationality", nationality);
 
-    this.placeUnit(ms, o.tile);
-    this.addUnit(id,ms,o);
-    if ('cv' in o){
-      this.updateCv(ms,o.cv);
+    if (type === undefined) {
+      unitTestUnits("CANNOT CREATE UNIT BECAUSE TYPE UNKNOWN!!!", player, owner);
+      unitTestUnits(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
+      unitTestUnits("createUnit", id, owner, o.tile, o.type, player);
+    } else {
+      let imagePath = "/assets/images/" + type + ".svg";
+      let color = this.assets.troopColors[nationality];
+      let darker = darkerColor(color[0], color[1], color[2]);
+      let sz = this.SZ.cadreDetail;
+      let sz80 = sz * 0.86;
+      let szImage = sz / 1.5;
+      let y = szImage / 6;
+      let ms = new MS(id, id, "mapG")
+        .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
+        .roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
+        .image({path: imagePath, y: y, w: szImage, h: szImage})
+        .roundedRect({className: "unit overlay", w: sz, h: sz, fill: darker, rounding: sz * 0.1});
+      ms.tag("type", "unit");
+      ms.tag("owner", owner);
+      ms.tag("nationality", nationality);
+
+      this.placeUnit(ms, o.tile);
+      this.addUnit(id, ms, o);
+      if ("cv" in o) {
+        this.updateCv(ms, o.cv);
+      }
     }
 
-    let idHidden = this.getHiddenId(owner,o.tile);
-    if (!(idHidden in this.uis)){
-      this.createHiddenUnit(idHidden,owner,o.tile);
-    }else{
-      this.updateUnitCounter(owner,o.tile);
+    let idHidden = this.getHiddenId(owner, o.tile);
+    if (!(idHidden in this.uis)) {
+      this.createHiddenUnit(idHidden, owner, o.tile);
+    } else {
+      this.updateUnitCounter(owner, o.tile);
     }
-    units.updateVisibility(id,o,player);
-
-
-    return ms;
+    this.updateVisibility(id, o, player);
   }
   getHiddenId(faction, tile) {
     return comp_(faction, tile);
   }
   getPosition(idTile) {
     let pos = this.assets.tilePositions[idTile];
-    unitTestUnits('getPosition',pos)
+    unitTestUnits("getPosition", pos);
     return pos;
   }
   placeUnit(msUnit, tile) {
@@ -200,24 +204,100 @@ class AUnits {
     }
 
     ms.tag("cv", cv);
+    this.uis[ms.id].o.cv = cv;
     unitTestUnits("updateCv", ms.id, ms.getTag("owner"), ms.getTag("tile"), "to", cv);
   }
-  updateVisibility(id,o,player){
-    let ms = this.uis[id].ms;
-    unitTestUnits('updateVisibility',id,o,player,ms);
+  updateVisibility(id, o, player) {
+    let ms = id in this.uis ? this.uis[id].ms : null;
+    unitTestUnits("updateVisibility", id, o, player, ms);
     let tile = o.tile;
-    let owner = ms.getTag('owner');
-    let idHidden = this.getHiddenId(owner,tile);
+    let owner = getUnitOwner(o.nationality);
+    let idHidden = this.getHiddenId(owner, tile);
     let msHidden = this.uis[idHidden].ms;
-    if (isVisibleToPlayer(o,player)){
-      ms.show();
+    if (isVisibleToPlayer(o, player)) {
+      if (ms) ms.show();
+      else unitTestUnits("SERIOUS PROBLEM!!!!!!!! no unit but visible!", o);
       msHidden.hide();
-    }else{
-      ms.hide();
+    } else {
+      if (ms) ms.hide();
       msHidden.show();
     }
   }
-  update(data,G,player){
+  update(data, G, player) {
+    if ("created" in data) {
+      for (const id in data.created) {
+        let o_new = data.created[id];
+        if (o_new.obj_type != "unit") continue;
 
+        if (!(id in G)) {
+          this.createUnit(id, o_new, player);
+          if (id in this.uis) {
+            G[id] = o_new;
+          } else {
+            unitTestUnits(":::::::UNIT WAS NOT CREATED!!!");
+          }
+        } else {
+          //this unit has already been created,
+          //check for propDiff
+          let o_old = G[id];
+          console.assert(id in this.uis, "unit in G but not in uis", id, o_new);
+          let d = propDiff(o_old, o_new);
+          if (d.hasChanged) {
+            //unitTestUnits('________________________');
+            unitTestUnits("changes:", d.summary.toString()); //type,cv, WHY TYPE???????
+            if (d.summary.includes("type")) {
+              let owner = getUnitOwner(o_old.nationality);
+              console.assert(player != owner, "type, cv change for VISIBLE unit!");
+              unitTestUnits("type was " + o_old.type + " new=" + o_new.type);
+              this.updateVisibility(id, o_new, player); //hier werden units hidden!
+            } else if (d.summary.includes("cv")) {
+              unitTestUnits("cv change!!!!! " + o_old.cv + " " + o_new.cv);
+              this.updateCv(this.uis[id].ms);
+              G[id] = o_new;
+            } else if (d.summary.includes("tile")) {
+              //move unit!!!
+              alert("tile change!");
+            }
+          }
+        }
+      }
+    }
+
+    //update visibility!
+    for (const id in this.uis) {
+      const ms = this.uis[id].ms;
+      const owner = ms.getTag("owner");
+      const o = this.uis[id].o;
+      const isHidden = o.obj_type == "hidden_unit";
+      if (owner == player) {
+        if (isHidden) {
+          ms.hide();
+        } else {
+          ms.show();
+        }
+      } else {
+        if (isHidden) {
+          ms.show();
+        } else {
+          ms.hide();
+        }
+      }
+    }
+    unitTestUnits('player',player, 'previousPlayer:',this.previousPlayer);
+    this.previousPlayer = player;
+
+    //show player's units!
+    // if (player != this.previousPlayer) {
+    //   for (const tile in this.units[player]) {
+    //     let unitList = this.units[player][tile];
+
+    //     for (const idUnit of unitList) {
+    //       this.uis[idUnit].ms.show();
+    //     }
+    //     let idHidden = this.getHiddenId(player, tile);
+    //     this.uis[idHidden].ms.hide();
+    //   }
+    //   this.previousPlayer = player;
+    // }
   }
 }
