@@ -132,7 +132,7 @@ class AUnits {
     if (!(idHidden in this.uis)) {
       this.createHiddenUnit(idHidden, owner, o.tile);
     } else {
-      unitTestUnits('hidden unit already there!!!!!!!!!!!!!')
+      unitTestUnits('hidden unit already there!!!!!!!!!!!!!',idHidden,owner,o.tile)
       this.updateUnitCounter(owner, o.tile);
     }
     this.updateVisibility(id, o, player);
@@ -168,7 +168,11 @@ class AUnits {
     removeInPlace(this.units[owner][tile], id);
   }
   updateUnitCounter(owner, tile) {
-    //console.log('updateUnitCounter')
+    unitTestUnits('updateUnitCounter',owner,tile)
+    if (!(tile in this.units[owner])){
+      unitTestUnits('nothing to update because no unit of',owner,'has been created!');
+      return;
+    }
     let n = this.units[owner][tile].length;
     let idHidden = this.getHiddenId(owner, tile);
     let msHidden = this.uis[idHidden].ms;
@@ -189,7 +193,7 @@ class AUnits {
     msHidden.tag("count", n);
     unitTestUnits("updateUnitCounter", owner, tile, "to", n, oHidden, msHidden);
 
-    return n;
+    //return n;
   }
   updateCv(ms, cv) {
     ms.removeFromChildIndex(5);

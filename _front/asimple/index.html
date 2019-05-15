@@ -90,29 +90,29 @@
       </div>
       <div id="command_area" class="grid_div">
         <!-- <div > -->
-          <!-- <button id="bNextPlayer" class="hidden" style="width:90%;" onclick="onClickNextPlayer()">next player</button> -->
-          <button class="chrome" id="bStop" style="background-color:red" onclick="onClickStop()">STOP</button>
-          <button class="chrome" id="bStep" onclick="onClickStep()">step</button>
+        <!-- <button id="bNextPlayer" class="hidden" style="width:90%;" onclick="onClickNextPlayer()">next player</button> -->
+        <button class="chrome" id="bStop" style="background-color:red" onclick="onClickStop()">STOP</button>
+        <button class="chrome" id="bStep" onclick="onClickStep()">step</button>
 
-          <p style="margin:2px 5px">SkipTo:</p>
-          <input id='rYear' type="radio" name="skipTo" value="year" />
-          <label for="rYear">year</label>
-          <br />
-          <input type="radio" name="skipTo" value="phase" />
-          phase
-          <br />
-          <input type="radio" name="skipTo" value="player" />
-          player
-          <br />
-          <input type="radio" name="skipTo" value="step" />
-          step
-          <br />
-          <input class="chrome" type="text" id="inSkipTo" value="0" />
+        <p style="margin:2px 5px">SkipTo:</p>
+        <input id="rYear" type="radio" name="skipTo" value="year" />
+        <label for="rYear">year</label>
+        <br />
+        <input type="radio" name="skipTo" value="phase" />
+        phase
+        <br />
+        <input type="radio" name="skipTo" value="player" />
+        player
+        <br />
+        <input type="radio" name="skipTo" value="step" />
+        step
+        <br />
+        <input class="chrome" type="text" id="inSkipTo" name='inSkipTo'/>
 
-          <p style="margin:2px 5px">Output:</p>
-          <input class="chrome" type="number" id="inOutput" value="0" />
+        <p style="margin:2px 5px">Output:</p>
+        <input class="chrome" type="number" id="inOutput" value="0" />
 
-          <!-- <label class="chrome" for="inYear">year</label>
+        <!-- <label class="chrome" for="inYear">year</label>
           <input class="chrome" type="text" id="inYear" />
           <label class="chrome" for="inPhase">phase</label>
           <input class="chrome" type="text" id="inPhase" />
@@ -120,7 +120,7 @@
           <input class="chrome" type="text" id="inPlayer" />
           <label class="chrome" for="inStep">step</label>
           <input class="chrome" type="text" id="inStep" /> -->
-          <button class="chrome" id="bGo" onclick="onClickGo()">go</button>
+        <button class="chrome" id="bGo" onclick="onClickGo()">go</button>
         <!-- </div> -->
       </div>
       <div id="chat_area" class="grid_div hidden">chat</div>
@@ -164,7 +164,6 @@
         setSkipOptions(opt);
         execOptions.outputLevel = document.getElementById("inOutput").value;
 
-
         // execOptions.skipTo.year = document.getElementById("inYear").value;
         // execOptions.skipTo.phase = document.getElementById("inPhase").value;
         // execOptions.skipTo.player = document.getElementById("inPlayer").value;
@@ -185,17 +184,21 @@
             ? {k: "year", v: execOptions.skipTo.year}
             : {k: "step", v: 0};
 
+        //console.log('optionsToInputs nonDefault',nonDefault);
         for (var i = 0; i < opt.length; i++) {
+          //console.log(opt[i]);
           if (opt[i].value == nonDefault.k) {
             opt[i].checked = true;
           } else {
             opt[i].checked = false;
           }
+          //console.log('opt[i].value',opt[i].value,'nonDefault.k',nonDefault.k,'opt[i].checked',opt[i])
           //if (opt[i].checked) selectedSkipTo = opt[i].value;
         }
-        document.getElementsByName("inSkipTo").value = nonDefault.v;
-        document.getElementsByName("inOutput").value = execOptions.outputLevel;
+        document.getElementById("inSkipTo").value = nonDefault.v;
 
+
+        document.getElementById("inOutput").value = execOptions.outputLevel;
 
         // document.getElementById("inYear").value = execOptions.skipTo.year;
         // document.getElementById("inPhase").value = execOptions.skipTo.phase;
@@ -303,6 +306,7 @@
         //each manager in turn updates gameObjects!!!
         cards.update(player, data, gameObjects);
         map.update(data, gameObjects);
+        units.update(data, gameObjects, player);
 
         processActions(data, present);
       }
@@ -369,7 +373,7 @@
         playerChange: "auto", // 'auto' | 'manual'
         log: "general", // 'general' | 'individual'
         mode: "skipTo", // 'step' | 'continuous' | 'nskip' | 'skipTo'
-        skipTo: {year: 1935, phase: "any", player: "any", step: 100},
+        skipTo: {year: 1935, phase: "any", player: "any", step: 0},
         activatedTests: [] // unitTest flags to control output
       };
       var nextAction = null;
@@ -407,7 +411,7 @@
     <!-- #region execution -->
     <script>
       function startScript() {
-        //sendInit(player, present, 4);
+        sendInit(player, present, 4);
 
         //testUpdateCards(); //ok
         //testUpdateCardsAndMap();
@@ -416,7 +420,7 @@
         //units testing
         //testCreateSingleUnit();
         //testCreateMultipleUnitsOnSameTile();
-        testUpdateUnits();
+        //testUpdateUnits("", player, 4);
 
         //testPhaseSteps('Axis','prod_complete');
         //testCreateOneCard(); //ok

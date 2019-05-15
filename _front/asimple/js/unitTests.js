@@ -217,12 +217,12 @@ function testCreateMultipleUnitsOnSameTile(){
     units.createUnit(idNew,o,player);
   }
 }
-function testUpdateUnits(filename = "", player = "USSR") {
+function testUpdateUnits(filename = "", player = "USSR", seed=4) {
   execOptions.output = "none";
   addIf("units", execOptions.activatedTests);
   
   if (empty(filename)) {
-    sendInit(player, presentUpdateUnitsOnly, (seed = 0));
+    sendInit(player, presentUpdateUnitsOnly, seed);
   } else {
     sendLoading(filename, player, presentUpdateUnitsOnly);
   }
