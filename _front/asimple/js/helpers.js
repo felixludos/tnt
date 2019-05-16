@@ -54,10 +54,20 @@ function cartesianOf(ll) {
   }
   return cart;
 }
+function chooseRandomElement(arr, condFunc = null) {
+  let len = arr.length;
+  let idx = Math.floor(Math.random() * len);
+  if (condFunc) {
+    while (!condFunc(arr[idx])) {
+      idx = (idx + 1) % len;
+    }
+  }
+  return arr[idx];
+}
 function choose(arr, n) {
-  var result = new Array(n),
-    len = arr.length,
-    taken = new Array(len);
+  var result = new Array(n);
+  var len = arr.length;
+  var taken = new Array(len);
   if (n > len) throw new RangeError("getRandom: more elements taken than available");
   while (n--) {
     var x = Math.floor(Math.random() * len);
@@ -852,6 +862,22 @@ function ellipsis(text, font, width, padding) {
     textLength = getTextWidth(text, font); //self.node().getComputedTextLength();
   }
   return ellipsisLength > 0 ? text + "..." : text;
+}
+function ensureInView(container, element) {
+  //Determine container top and bottom
+  let cTop = container.scrollTop;
+  let cBottom = cTop + container.clientHeight;
+
+  //Determine element top and bottom
+  let eTop = element.offsetTop;
+  let eBottom = eTop + element.clientHeight;
+
+  //Check if out of view
+  if (eTop < cTop) {
+    container.scrollTop -= cTop - eTop;
+  } else if (eBottom > cBottom) {
+    container.scrollTop += eBottom - cBottom;
+  }
 }
 function evToId(ev) {
   let elem = findParentWithId(ev.target);
@@ -1759,18 +1785,7 @@ function stringBefore(sFull, sSub) {
 //#endregion
 
 //#region tnt helpers
-function chooseFirstNonPassTuple(tuples) {
-  if (tuples.length == 1) return tuples[0];
-  else return firstCond(tuples, t => !t.includes("pass"));
-}
-function chooseNthNonPassTuple(tuples, n) {
-  if (tuples.length == 1) return tuples[0];
-  else if (tuples.length < n) {
-    return firstCond(tuples, t => !t.includes("pass"));
-  } else {
-    return firstCond(tuples.slice(n - 1), t => !t.includes("pass"));
-  }
-}
+
 function getTuples(data) {
   let tuples = [];
   //console.log("getTuples", tuples);
@@ -1819,17 +1834,14 @@ function isVisibleToPlayer(o, player) {
   let vis = getVisibleSet(o);
   if (vis && vis.includes(player)) return true;
 }
-function isWrongPhase() {
-  let ph = execOptions.skipTo.phase;
-  return ph != "any" && !startsWithCaseIn(phase, ph);
+function isWrongPhase(optPhase, curPhase) {
+  return optPhase != "any" && !startsWithCaseIn(curPhase, optPhase);
 }
-function isTooEarly() {
-  let yr = execOptions.skipTo.year;
-  return Number(year) < yr || step < execOptions.skipTo.step;
+function isTooEarly(optYear, curYear, optStep, curStep) {
+  return Number(curYear) < optYear || curStep < optStep;
 }
-function isWrongPlayer() {
-  let pl = execOptions.skipTo.player;
-  return pl != "any" && !startsWithCaseIn(player, pl);
+function isWrongPlayer(optPlayer, curPlayer) {
+  return optPlayer != "any" && !startsWithCaseIn(curPlayer, optPlayer);
 }
 function mergeCreatedAndUpdated(data) {
   if (!("created" in data)) data.created = {};
@@ -1860,10 +1872,9 @@ function mergeCreatedAndUpdated(data) {
     }
   }
 }
-function sendEmptyAction(player,callback){
+function sendEmptyAction(player, callback) {
   testOutput({1: "sending empty action!!!"});
   sendAction(player, ["none"], callback);
-
 }
 function sendAction(player, tuple, callback, ms = 40) {
   setTimeout(() => {

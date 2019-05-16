@@ -11,6 +11,10 @@
   grid-area: reserve;
   width: 60px;
 }
+#select_area {
+  grid-area: select;
+  width: 280px;
+}
 
 #map_area {
   grid-area: map;
@@ -59,6 +63,21 @@
   background-color: #2196f3;
   padding: 8px;
 }
+.grid_game_select {
+  display: grid;
+  grid-template-columns: 280px 1190px auto;
+  grid-template-rows: auto 760px auto auto;
+  grid-template-areas:
+    "status status status"
+    "select map  log"
+    "select cards command"
+    "openCard openCard command";
+    /* "invest invest invest"; */
+  grid-gap: 8px;
+  background-color: #2196f3;
+  padding: 8px;
+}
+
 .grid_game_no_reserve {
   display: grid;
   grid-template-columns: 1190px auto;

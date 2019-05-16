@@ -6,6 +6,7 @@ class NPage {
     hide(this.test_area);
 
     show(this.reserve_area);
+    hide(this.select_area);
 
     show(this.log_area);
     show(this.command_area);
@@ -29,6 +30,32 @@ class NPage {
       hide(this.reserve_area);
       this.mainDiv.className = "grid_game_no_reserve";
     }
+    return this;
+  }
+  selectView(){
+    hide(this.menu_area);
+    show(this.status_area);
+    hide(this.test_area);
+
+    hide(this.reserve_area);
+    show(this.select_area);
+
+    show(this.log_area);
+    show(this.command_area);
+    hide(this.prop_area);
+    hide(this.chat_area);
+
+    show(this.hand_area);
+
+    show(this.cards2_area);
+    hideSvg(this.actionDeckG);
+    showSvg(this.openCardG);
+
+    hide(this.cards3_area);
+    hideSvg(this.investmentDeckG);
+    showSvg(this.discardedG);
+    
+    this.mainDiv.className = "grid_game_select";
     return this;
   }
   editView() {
@@ -62,6 +89,7 @@ class NPage {
     this.test_area = document.getElementById("test_area");
 
     this.reserve_area = document.getElementById("reserve_area");
+    this.select_area = document.getElementById("select_area");
 
     this.map_area = document.getElementById("map_area")
 

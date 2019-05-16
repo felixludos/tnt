@@ -237,10 +237,10 @@ function testStep(data, player) {
         });
     }
   } else {
-    let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
-    choiceIndex = (choiceIndex + 1) % choiceModulo;
-    console.log(player + " chooses " + tuple.toString());
-    nextAction = () => sendAction(player, tuple, d => testStep(d, player));
+    decider.pickTuple(tuples, t => {
+      console.log(player + " chooses " + t.toString());
+      sendAction(player, t, d => testStep(d, player));
+    });
   }
   show(bStep);
 }
