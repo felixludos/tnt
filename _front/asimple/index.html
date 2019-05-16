@@ -365,22 +365,22 @@
     <!-- #region execution -->
     <script>
       function startScript() {
-        sendInit(player, gameloop, 4);
+        
+        //sendInit(player, gameloop, 4);
 
-        //TODO: all test routines must update control flow!!!
+        //testInitToEnd(player,4); //ok
+        //testLoadToEnd('Axis','prod_complete'); //ok
+        
+        //testCreateSingleUnit(); //ok
+        //testCreateMultipleUnitsOnSameTile(); //ok
+        //testIntegrationUnits(); //ok
 
-        //testUpdateCards(); //ok
-        //testUpdateCardsAndMap(); //ok
-        //testUpdateMap(); //ok
+        // testIntegrationMap(); //ok
 
-        //units testing
-        //testCreateSingleUnit();
-        //testCreateMultipleUnitsOnSameTile();
-        //testUpdateUnits("", player, 4);
+        // testCreateOneCard(); //ok
+        // testCreateNCards(); //ok
+        // testIntegrationCards(); //ok
 
-        //testCreateOneCard(); //ok
-        //testInitToEnd(); //ok
-        //testLoadToEnd(); //ok
       }
     </script>
     <!-- #endregion execution -->

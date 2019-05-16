@@ -3,6 +3,52 @@ var unitTestId = 0;
 //#endregion
 
 //#region generators
+function generateCard(hasOwner = true, hasContent = true, visibleToN = 1) {
+  let id = "action_" + unitTestId;
+  unitTestId += 1;
+  let o = JSON.parse(`
+  {
+    "wildcard": "Isolationism",
+    "season": "Fall",
+    "priority": "H",
+    "value": 8,
+    "obj_type": "action_card",
+    "visible": {
+      "xset": [
+        "Axis"
+      ]
+    },
+    "owner": "Axis",
+    "_id": "action_48"
+  }
+  `);
+  if (!hasContent) {
+    o = JSON.parse(`
+    {
+    "obj_type": "action_card",
+    "visible": {
+      "xset": [
+        "Axis"
+      ]
+    },
+    "owner": "Axis",
+    "_id": "action_48"
+  }
+  `);
+  }
+  o._id = id;
+  if (!hasOwner) {
+    delete o.owner;
+  }
+  if (visibleToN == 0) {
+    o.visible.xset = [];
+  } else if (visibleToN == 2) {
+    o.visible.xset.push("West");
+  } else if (visibleToN == 3) {
+    o.visible.xset = ["Axis", "West", "USSR"];
+  }
+  return {id: id, o: o};
+}
 function generateUnitList() {
   data = {
     created: {
@@ -57,52 +103,6 @@ function generateUnitList() {
 //#endregion
 
 //#region tests for cards
-function generateCard(hasOwner = true, hasContent = true, visibleToN = 1) {
-  let id = "action_" + unitTestId;
-  unitTestId += 1;
-  let o = JSON.parse(`
-  {
-    "wildcard": "Isolationism",
-    "season": "Fall",
-    "priority": "H",
-    "value": 8,
-    "obj_type": "action_card",
-    "visible": {
-      "xset": [
-        "Axis"
-      ]
-    },
-    "owner": "Axis",
-    "_id": "action_48"
-  }
-  `);
-  if (!hasContent) {
-    o = JSON.parse(`
-    {
-    "obj_type": "action_card",
-    "visible": {
-      "xset": [
-        "Axis"
-      ]
-    },
-    "owner": "Axis",
-    "_id": "action_48"
-  }
-  `);
-  }
-  o._id = id;
-  if (!hasOwner) {
-    delete o.owner;
-  }
-  if (visibleToN == 0) {
-    o.visible.xset = [];
-  } else if (visibleToN == 2) {
-    o.visible.xset.push("West");
-  } else if (visibleToN == 3) {
-    o.visible.xset = ["Axis", "West", "USSR"];
-  }
-  return {id: id, o: o};
-}
 function testCreateOneCard() {
   let c = generateCard();
   let cman = new ACards(assets);
@@ -116,72 +116,28 @@ function testCreateNCards() {
     cman.createCard(c.id, c.o);
   }
 }
-function testUpdateCards(filename = "prod_complete", player = "Axis") {
+function testIntegrationCards(filename = "prod_complete", player = "Axis") {
   setSkipOptions({step: 10});
   execOptions.output = "none";
   addIf("cards", execOptions.activatedTests);
   if (empty(filename)) {
-    sendInit(player, presentUpdateCardsOnly, 0);
+    sendInit(player, gameloop, 0);
   } else {
-    sendLoading(filename, player, presentUpdateCardsOnly);
+    sendLoading(filename, player, gameloop);
   }
-}
-function testUpdateCardsAndMap(filename = "", player = "Axis") {
-  setSkipOptions({step: 42});
-  execOptions.output = "none";
-  addIf("cards", execOptions.activatedTests);
-  addIf("map", execOptions.activatedTests);
-  if (empty(filename)) {
-    sendInit(player, present, (seed = 0));
-  } else {
-    sendLoading(filename, player, present);
-  }
-}
-function presentUpdateCardsOnly(data) {
-  console.log('presentUpdateCardsOnly>>>>>>>>>>>>>>>>>>>>>>>>>')
-  if (isPlayerChanging) {
-    isPlayerChanging = false;
-    page.updateGameView(player, execOptions);
-  }
-
-  updateStatus(data);
-  updateLog(data);
-
-  mergeCreatedAndUpdated(data);
-
-  //each manager in turn updates gameObjects!!!
-  cards.update(player, data, gameObjects);
-
-  processActions(data, presentUpdateCardsOnly);
 }
 //#endregion
 
-//#region tests for map
-function testUpdateMap(filename = "prod_complete", player = "USSR") {
+//#region tests for map: influence, tracks, tiles, nations
+function testIntegrationMap(filename = "prod_complete", player = "Axis") {
+  setSkipOptions({step: 10});
   execOptions.output = "none";
   addIf("map", execOptions.activatedTests);
   if (empty(filename)) {
-    sendInit(player, presentUpdateMapOnly, (seed = 0));
+    sendInit(player, gameloop, 0);
   } else {
-    sendLoading(filename, player, presentUpdateMapOnly);
+    sendLoading(filename, player, gameloop);
   }
-}
-
-function presentUpdateMapOnly(data) {
-  if (isPlayerChanging) {
-    isPlayerChanging = false;
-    page.updateGameView(player, execOptions);
-  }
-
-  updateStatus(data);
-  updateLog(data);
-
-  mergeCreatedAndUpdated(data);
-
-  //each manager in turn updates gameObjects!!!
-  map.update(data, gameObjects);
-
-  processActions(data, presentUpdateMapOnly);
 }
 //#endregion
 
@@ -190,59 +146,43 @@ function testCreateSingleUnit() {
   execOptions.output = "none";
   addIf("units", execOptions.activatedTests);
   let data = generateUnitList();
-  let player = 'West';
+  let player = "West";
   for (const id in data.created) {
     const o = data.created[id];
-    units.createUnit(id,o,player);
+    units.createUnit(id, o, player);
     break;
   }
 }
-function testCreateMultipleUnitsOnSameTile(){
+function testCreateMultipleUnitsOnSameTile() {
   execOptions.output = "none";
   addIf("units", execOptions.activatedTests);
   let data = generateUnitList();
-  let player = 'West';
+  let player = "West";
   for (const id in data.created) {
     const o = data.created[id];
-    o.tile = 'London';
-    o.nationality = 'Britain';
-    units.createUnit(id,o,player);
+    o.tile = "London";
+    o.nationality = "Britain";
+    units.createUnit(id, o, player);
   }
-  player = 'USSR';
+  player = "USSR";
   for (const id in data.created) {
-    let idNew=id+200;
+    let idNew = id + 200;
     const o = data.created[id];
-    o.tile = 'Berlin';
-    o.nationality = 'Germany';
+    o.tile = "Berlin";
+    o.nationality = "Germany";
     o._id = idNew;
-    units.createUnit(idNew,o,player);
+    units.createUnit(idNew, o, player);
   }
 }
-function testUpdateUnits(filename = "", player = "USSR", seed=4) {
+function testIntegrationUnits(filename = "", player = "USSR", seed = 4) {
   execOptions.output = "none";
   addIf("units", execOptions.activatedTests);
-  
+
   if (empty(filename)) {
-    sendInit(player, presentUpdateUnitsOnly, seed);
+    sendInit(player, gameloop, seed);
   } else {
-    sendLoading(filename, player, presentUpdateUnitsOnly);
+    sendLoading(filename, player, gameloop);
   }
-}
-function presentUpdateUnitsOnly(data) {
-  if (isPlayerChanging) {
-    isPlayerChanging = false;
-    page.updateGameView(player, execOptions);
-  }
-
-  updateStatus(data);
-  updateLog(data);
-
-  mergeCreatedAndUpdated(data);
-
-  //each manager in turn updates gameObjects!!!
-  units.update(data, gameObjects, player);
-
-  processActions(data, presentUpdateUnitsOnly);
 }
 //#endregion
 
@@ -265,23 +205,24 @@ function testRunToEnd(data, player) {
     } else {
       let nextPlayer = waitingSet[0];
       sendChangeToPlayer(nextPlayer, d1 => {
-        //console.log("player changed to", nextPlayer, "on server");
-        //console.log(d1);
         testRunToEnd(d1, nextPlayer);
       });
     }
   } else {
-    let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
-    choiceIndex = (choiceIndex + 1) % choiceModulo;
-    console.log(player + " chooses " + tuple.toString());
-    sendAction(player, tuple, d => testRunToEnd(d, player));
+    decider.pickTuple(tuples, t => {
+      console.log(player + " chooses " + t.toString());
+      sendAction(player, t, d => testRunToEnd(d, player));
+    });
   }
 }
-function testPhaseSteps(player = "Axis", filename = "gov_complete") {
+//#endregion
+
+//#region tests for server communication - not sure if work!
+function testStepByStep(player = "Axis", filename = "gov_complete") {
   sendLoading(filename, player, d => testStep(d, player), "raw");
 }
 function testStep(data, player) {
-  //doesn't work!!!
+  //doesn't work!!!???
   let tuples = getTuples(data);
   if (empty(tuples)) {
     let waitingSet = getSet(data, "waiting_for");
@@ -290,11 +231,8 @@ function testStep(data, player) {
       nextAction = () => sendAction(player, ["none"], d => testStep(d, player));
     } else {
       let nextPlayer = waitingSet[0];
-
       nextAction = () =>
         sendChangeToPlayer(nextPlayer, d1 => {
-          //console.log("player changed to", nextPlayer, "on server");
-          //console.log(d1);
           testStep(d1, nextPlayer);
         });
     }
