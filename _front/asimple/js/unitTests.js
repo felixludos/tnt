@@ -117,7 +117,6 @@ function testCreateNCards() {
   }
 }
 function testIntegrationCards(filename = "prod_complete", player = "Axis") {
-  setSkipOptions({step: 10});
   execOptions.output = "none";
   addIf("cards", execOptions.activatedTests);
   if (empty(filename)) {
@@ -130,7 +129,6 @@ function testIntegrationCards(filename = "prod_complete", player = "Axis") {
 
 //#region tests for map: influence, tracks, tiles, nations
 function testIntegrationMap(filename = "prod_complete", player = "Axis") {
-  setSkipOptions({step: 10});
   execOptions.output = "none";
   addIf("map", execOptions.activatedTests);
   if (empty(filename)) {
@@ -214,6 +212,20 @@ function testRunToEnd(data, player) {
       sendAction(player, t, d => testRunToEnd(d, player));
     });
   }
+}
+//#endregion
+
+//#region test control flow
+function testControlFlow(player = "USSR", filename = "", seed = 4){
+  execOptions.output = "none";
+  addIf("control", execOptions.activatedTests);
+
+  if (empty(filename)) {
+    sendInit(player, gameloop, seed);
+  } else {
+    sendLoading(filename, player, gameloop);
+  }
+
 }
 //#endregion
 

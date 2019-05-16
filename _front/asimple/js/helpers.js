@@ -1931,11 +1931,6 @@ function sendLoading(filename, player, callback, outputOption = "none") {
     });
   });
 }
-function statusMessage(msgAdd = "") {
-  let s = "Phase:" + phase + ", Year:" + year + ", Player:" + player;
-  s += " " + msgAdd;
-  document.getElementById("status_area").innerHTML = s;
-}
 
 //#endregion tnt helpers
 

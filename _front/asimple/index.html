@@ -22,50 +22,24 @@
     <script src="/a/js/AHand.js"></script>
     <script src="/a/js/ACards.js"></script>
     <script src="/a/js/AUnits.js"></script>
-    <script src="/a/js/ADecider.js"></script>
-    <script src="/a/js/ADeciderSimpleList.js"></script>
+    <script src="/a/js/ADecisiongen.js"></script>
     <script src="/a/js/unitTests.js"></script>
   </head>
   <body>
     <!-- #region HTML -->
     <div id="mainDiv" class="grid_game">
-      <div id="menu_area" class="grid_div" style="text-align:left;">
-        <div style="float:left;margin-left:10px">
-          <button class="hidden" id="bLoadScenario" onclick="onClickLoadScenario()">load scenario</button>
-          <button class="hidden" id="bStartScenario" onclick="onClickStartScenario()">start scenario</button>
-          <button class="hidden" id="bSkipAction" onclick="onClickSkipAction()">skip action</button>
-        </div>
-        <div style="float:right;margin-right:10px">
-          view:
-          <button id="bViewGame" onclick="page.gameView()">game</button>
-          <button class="hidden" id="bViewNoReserve" onclick="page.gameView(false)">no reserve</button>
-          <button id="bViewEdit" onclick="page.editView()">edit</button>
-          <button id="bViewTest" onclick="page.testView()">test</button>
-        </div>
-      </div>
-      <div id="status_area" class="grid_div" onclick="page.testView()">status</div>
-      <div id="test_area" class="grid_div">
-        <div class="flexdiv">
-          <div class="autocomplete">
-            <input id="myInput" type="text" name="myCountry" style="font-size:30px;" placeholder="command" />
+      <div id="status_area" class="grid_div">
+        <div id="status_info" style="float:right;margin-right:10px;"></div>
+        <div id="ui_control" style="float:left;text-align:left;margin-left:10px;">
+          <div id="dFrozen" style="color:darkviolet;">wait...</div>
+          <div id="dAutoplay" style="color:red;">
+            autoplay...
+            <button id="bStop" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
           </div>
-          <div class="autocomplete">
-            <input id="inparam" type="text" name="inparam" style="font-size:30px;" placeholder="param" />
-          </div>
-          <button style="margin:10px" id="bSendMessage" onclick="onClickSendMessage()">send message</button>
-          <button style="margin:10px" id="bClear" onclick="onClickClearInputs()">clear inputs</button>
+          <div id="dActive" style="color:rgb(0, 104, 0);">Select Action:</div>
+          <button id="bNextPlayer" style="color:green;" onclick="onClickNextPlayer()">Next Player</button>
         </div>
-        <div style="margin:10px;text-align:left;">
-          <!-- <input type="text" id="inAction" style="width:90%;font-size:30px;" placeholder="enter action"> -->
-          <button id="bAddUnit" onclick="onClickAddUnit()">add unit</button>
-        </div>
-      </div>
-      <div id="select_area" class="grid_div">
-        <div id="divSelect" class="sidenav"></div>
-      </div>
-
-      <div id="reserve_area" class="grid_div">
-        <svg id="selSvg" width="60" height="760"><g id="reserveG"></g></svg>
+        <div id="status_message"></div>
       </div>
       <div id="map_area" class="grid_div" style="background-color:rgba(86, 182, 222);">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
@@ -74,68 +48,18 @@
           </g>
         </svg>
       </div>
-      <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll">
-        <div id="log_all" class="hidden">all messages</div>
-        <div id="log_Axis" class="hidden">Axis messages</div>
-        <div id="log_USSR" class="hidden">USSR messages</div>
-        <div id="log_West" class="hidden">West messages</div>
-        <div id="tempDisplay" class="hidden" style="width:100%;height:100%">
-          <svg width="100%" height="100%" style="box-sizing:border-box;">
-            <g id="tempG"></g>
-          </svg>
-        </div>
-      </div>
-      <div id="prop_area" class="grid_div hidden">
-        actions
-        <button id="bEditPlaceUnits" onclick="onClickEditPlaceUnits(this)">place unit</button>
-        <button id="bEditDrawCards" onclick="onClickEditDrawCards(this)">draw card</button>
-        <button id="bEditDeleteUnits" onclick="onClickEditDeleteUnits(this)">delete unit</button>
-        <button id="bEditDeleteCards" onclick="onClickEditDeleteCards(this)">delete card</button>
-        <button id="bEditDeleteAll" onclick="onClickEditDeleteAll(this)">delete all</button>
-        <button id="bEditNextPlayer" onclick="onClickEditNextPlayer(this)">next player</button>
-        <button id="bEditDone" onclick="onClickEditDone(this)">done</button>
+      <div id="select_area" class="grid_div">
+        <div id="divSelect" class="sidenav"></div>
       </div>
       <div id="command_area" class="grid_div">
-        <!-- <div > -->
-        <!-- <button id="bNextPlayer" class="hidden" style="width:90%;" onclick="onClickNextPlayer()">next player</button> -->
-        <button class="chrome" id="bStop" style="background-color:red" onclick="onClickStop()">STOP</button>
-        <button class="chrome" id="bStep" onclick="onClickStep()">step</button>
-
-        <p style="margin:2px 5px">SkipTo:</p>
-        <input id="rYear" type="radio" name="skipTo" value="year" />
-        <label for="rYear">year</label>
-        <br />
-        <input type="radio" name="skipTo" value="phase" />
-        phase
-        <br />
-        <input type="radio" name="skipTo" value="player" />
-        player
-        <br />
-        <input type="radio" name="skipTo" value="step" />
-        step
-        <br />
-        <input class="chrome" type="text" id="inSkipTo" name="inSkipTo" />
-
-        <p style="margin:2px 5px">Output:</p>
-        <input class="chrome" type="number" id="inOutput" value="0" />
-
-        <!-- <label class="chrome" for="inYear">year</label>
-          <input class="chrome" type="text" id="inYear" />
-          <label class="chrome" for="inPhase">phase</label>
-          <input class="chrome" type="text" id="inPhase" />
-          <label class="chrome" for="inPhase">player</label>
-          <input class="chrome" type="text" id="inPlayer" />
-          <label class="chrome" for="inStep">step</label>
-          <input class="chrome" type="text" id="inStep" /> -->
-        <button class="chrome" id="bGo" onclick="onClickGo()">go</button>
-        <!-- </div> -->
+        <button id="bStep" onclick="decider.onClickStep()">step</button>
       </div>
-      <div id="chat_area" class="grid_div hidden">chat</div>
+      <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
       <div id="hand_area" class="grid_div" style="height:200px">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="handG_Axis"><text x="10" y="25" fill="grey">Axis</text></g>
-          <g id="handG_USSR"><text x="10" y="25" fill="red">USSR</text></g>
-          <g id="handG_West"><text x="10" y="25" fill="blue">West</text></g>
+          <g id="handG_Axis" style="visibility:hidden"><text x="10" y="25" fill="grey">Axis</text></g>
+          <g id="handG_USSR" style="visibility:hidden"><text x="10" y="25" fill="red">USSR</text></g>
+          <g id="handG_West" style="visibility:hidden"><text x="10" y="25" fill="blue">West</text></g>
         </svg>
       </div>
       <div id="cards2_area" class="grid_div" style="height:200px">
@@ -155,112 +79,61 @@
 
     <!-- #region UI / handlers -->
     <script>
-      function activateButtons() {
-        show(bStep);
-        show(bGo);
+      function activateWaitingForServer() {
+        show(document.getElementById("dFrozen"));
+        hide(document.getElementById("dAutoplay"));
+        hide(document.getElementById("dActive"));
+        hide(document.getElementById("bStep"));
+        hide(document.getElementById("bNextPlayer"));
       }
-      function deactivateButtons() {
-        hide(bStep);
-        hide(bGo);
+      function activateNextPlayerButton() {
+        hide(document.getElementById("dFrozen"));
+        hide(document.getElementById("dAutoplay"));
+        hide(document.getElementById("dActive"));
+        hide(document.getElementById("bStep"));
+        show(document.getElementById("bNextPlayer"));
       }
-      function inputsToOptions() {
-        let key = document.querySelector('input[name="skipTo"]:checked').value;
-        let val = document.getElementById("inSkipTo").value;
-        let opt = {};
-        opt[key] = val;
-        setSkipOptions(opt);
-        execOptions.outputLevel = document.getElementById("inOutput").value;
-
-        // execOptions.skipTo.year = document.getElementById("inYear").value;
-        // execOptions.skipTo.phase = document.getElementById("inPhase").value;
-        // execOptions.skipTo.player = document.getElementById("inPlayer").value;
-        // execOptions.skipTo.step = document.getElementById("inStep").value;
+      function activateUserSelection() {
+        hide(document.getElementById("dFrozen"));
+        hide(document.getElementById("dAutoplay"));
+        show(document.getElementById("dActive"));
+        show(document.getElementById("bStep"));
+        hide(document.getElementById("bNextPlayer"));
       }
-      function optionsToInputs() {
-        var opt = document.getElementsByName("skipTo");
-        //var selectedSkipTo;
-
-        var nonDefault =
-          execOptions.skipTo.step != 0
-            ? {k: "step", v: execOptions.skipTo.step}
-            : execOptions.skipTo.player != "any"
-            ? {k: "player", v: execOptions.skipTo.player}
-            : execOptions.skipTo.phase != "any"
-            ? {k: "phase", v: execOptions.skipTo.phase}
-            : execOptions.skipTo.year != 1935
-            ? {k: "year", v: execOptions.skipTo.year}
-            : {k: "step", v: 0};
-
-        //console.log('optionsToInputs nonDefault',nonDefault);
-        for (var i = 0; i < opt.length; i++) {
-          //console.log(opt[i]);
-          if (opt[i].value == nonDefault.k) {
-            opt[i].checked = true;
-          } else {
-            opt[i].checked = false;
-          }
-          //console.log('opt[i].value',opt[i].value,'nonDefault.k',nonDefault.k,'opt[i].checked',opt[i])
-          //if (opt[i].checked) selectedSkipTo = opt[i].value;
+      function activateAutoplay() {
+        hide(document.getElementById("dFrozen"));
+        show(document.getElementById("dAutoplay"));
+        hide(document.getElementById("dActive"));
+        hide(document.getElementById("bStep"));
+        hide(document.getElementById("bNextPlayer"));
+      }
+      function callNextAction() {
+        if (nextAction) {
+          activateWaitingForServer();
+          nextAction();
+        } else {
+          error("NO NEXT ACTION!!!!!!!");
         }
-        document.getElementById("inSkipTo").value = nonDefault.v;
-
-        document.getElementById("inOutput").value = execOptions.outputLevel;
-
-        // document.getElementById("inYear").value = execOptions.skipTo.year;
-        // document.getElementById("inPhase").value = execOptions.skipTo.phase;
-        // document.getElementById("inPlayer").value = execOptions.skipTo.player;
-        // document.getElementById("inStep").value = execOptions.skipTo.step;
       }
-      function setSkipOptions(opt = {year: 1935, player: "any", phase: "any", step: 0}) {
-        execOptions.skipTo = {year: 1935, player: "any", phase: "any", step: 0}; // {year: year, player: player, phase: phase, step: step};
-        for (const key in opt) {
-          const element = opt[key];
-          execOptions.skipTo[key] = element;
-        }
-        optionsToInputs();
+      function onClickNextPlayer() {
+        callNextAction();
       }
       function onClickStop() {
         STOP = true;
-        activateButtons();
       }
-      function onClickGo() {
-        inputsToOptions();
-        //console.log("options:", execOptions.skipTo);
-        step = 0;
-        STOP = false;
-        callNextAction();
-      }
-      function onClickStep() {
-        step = execOptions.skipTo.step;
-        STOP = false;
-        callNextAction();
-      }
-      function onClickNextPlayer() {
-        hide(bNextPlayer);
-        callNextAction();
+      function statusMessage(msg = "") {
+        let s = "Phase:" + phase + ", Year:" + year + ", Player:" + player;
+        document.getElementById("status_info").innerHTML = s;
+        if (!empty(msg)) document.getElementById("status_message").innerHTML = msg;
       }
     </script>
     <!-- #endregion handlers -->
 
     <!-- #region control flow -->
     <script>
-      function callNextAction() {
-        if (nextAction) {
-          deactivateButtons();
-          nextAction();
-        }
-      }
-      function checkProceedCondition(stp, pl, ph, yr) {
-        if (STOP) {
-          return;
-        } else if (skipCondition(stp, pl, ph, yr)) {
-          callNextAction();
-        } else {
-          activateButtons();
-        }
-      }
       function gameloop(data) {
         //update
+        unitTestControl("*** gameloop: updating ***");
         updateStepPlayerPhaseYear(data);
         updateLog(data);
         mergeCreatedAndUpdated(data);
@@ -271,44 +144,32 @@
         //next action
         let tuples = getTuples(data);
 
+        //player change if no actions
         if (empty(tuples)) {
-          prepareForPlayerChange(data, gameloop); //player change is next
-        } else if (skipCondition(step, player, phase, year)) {
-          decider.pickAuto(tuples, t => prepareForSendAction(t, gameloop));
+          let waitingSet = getSet(data, "waiting_for");
+          if (empty(waitingSet)) {
+            unitTestControl("*** gameloop: sending empty action ***");
+            sendEmptyAction(player, callback);
+          } else {
+            unitTestControl("*** gameloop: setting nextAction to sendChangeToPlayer ***");
+            nextAction = () => sendChangeToPlayer(waitingSet[0], gameloop);
+
+            //player change manual or automatic:
+            if (execOptions.playerChange == "auto") callNextAction();
+            else show(bNextPlayer);
+          }
         } else {
-          decider.pickUser(tuples, t => sendAction(player, t, gameloop));
+          //decider generates a move:
+          let autoplay = execOptions.skipCond();
+          if (autoplay) activateAutoplay();
+          else activateUserSelection();
+          unitTestControl("*** gameloop: calling decider.genMove ***");
+          decider.genMove(tuples, t => sendAction(player, t, gameloop), autoplay);
         }
         window.scrollTo(0, 0);
       }
-      function prepareForPlayerChange(data, callback) {
-        let waitingSet = getSet(data, "waiting_for");
-        if (empty(waitingSet)) {
-          sendEmptyAction(player, callback);
-        } else {
-          nextAction = () => {
-            sendChangeToPlayer(waitingSet[0], callback);
-          };
-          checkProceedCondition(step, player, phase, year); //auto next move or show buttons
-        }
-      }
-      function prepareForSendAction(tuple, callback) {
-        nextAction = () => {
-          sendAction(player, tuple, callback);
-        };
-        checkProceedCondition(step, player, phase, year); //auto next move or show buttons
-      }
-      function skipCondition(stp, pl, ph, yr) {
-        if (STOP) {
-          return false;
-        } else if (execOptions.mode == "skipTo") {
-          //only mode currently used
-          let opt = execOptions.skipTo;
-          let skipAhead = isWrongPhase(opt.phase, ph) || isTooEarly(opt.year, yr, opt.step, stp) || isWrongPlayer(opt.player, pl);
-          return skipAhead;
-        } else return false;
-      }
       function updateStepPlayerPhaseYear(data) {
-        step += 1;
+        moveCounter += 1;
         if ("game" in data) {
           year = Number(data.game.year);
           phase = data.game.phase;
@@ -316,7 +177,6 @@
           //handle player change
           if (data.game.player != player) {
             player = data.game.player;
-            page.updateGameView(player, execOptions);
           }
 
           statusMessage();
@@ -326,8 +186,7 @@
       }
       function updateLog(data) {
         if ("log" in data && !empty(data.log)) {
-          let id = execOptions.log == "individual" ? "log_" + player : "log_all";
-          let d = document.getElementById(id);
+          let d = document.getElementById("log_area");
           let para = document.createElement("p");
           para.innerHTML = data.log;
           d.appendChild(para);
@@ -345,54 +204,46 @@
       var gameObjects = {}; //all created objects in play, ids same as server ids
       var nextAction = null;
 
-      //control flow;
+      //control flow and console output flags
       var execOptions = {
-        output: "none", // 'fine' | 'endToEnd' | 'manual' | 'none' | 'raw'
-        outputLevel: 0, // priority output (see testOutput)
+        outputLevel: 0, // (see testOutput: )
         playerChange: "auto", // 'auto' | 'manual'
-        log: "general", // 'general' | 'individual'
-        mode: "skipTo", // 'step' | 'continuous' | 'nskip' | 'skipTo'
-        skipTo: {year: 1935, phase: "any", player: "any", step: 10},
+        skipCond: () => player == "Axis", // predicate func evaluating to cond for autoplay
         activatedTests: [] // unitTest flags to control output
       };
-      var step = 0;
-      var STOP = false;
+      var moveCounter = 0; //sendaction counts as a move (also player change)
+      var STOP = false; //to interrupt autoplay
+      var isUIFrozen = true; //no user interaction during sending and autoplay
+
+      //test: if (execOptions.skipCond()){console.log('ja das functioniert sehr gut sogar')}
 
       var sender = new ASender(execOptions);
       var assets = new NAssets();
-      var page = new NPage()
-        .initView()
-        .selectView()
-        .updateGameView(player, execOptions); //handles layout
+      var page = new NPage().initView().selectView();
 
       var map = new AMap(assets); //responsible for tile influence nation chip
       var cards = new ACards(assets);
       var units = new AUnits(assets);
-      // var decider = new ADecider(assets); //responsible for tuple selection
-      var decider = new ADeciderSimpleList(assets); //responsible for tuple selection
+      var decider = new ADecisiongen(assets); //responsible for move generation
 
+      panzoom("mapG"); //handles pan zoom on map
       $(document).ready(function() {
-        optionsToInputs();
-        panzoom("mapG"); //handles pan zoom on map
         assets.initAssets(map, startScript);
       });
     </script>
     <!-- #endregion globals -->
 
-    <!-- #region execution -->
+    <!-- #region execution starts here! -->
     <script>
       function startScript() {
         sendInit(player, gameloop, 4);
-
-        //testInitToEnd(player,4); //ok
-        //testLoadToEnd('Axis','prod_complete'); //ok
-
-        //testCreateSingleUnit(); //ok
-        //testCreateMultipleUnitsOnSameTile(); //ok
-        //testIntegrationUnits(); //ok
-
+        // testControlFlow(player);
+        // testInitToEnd(player,4); //ok
+        // testLoadToEnd('Axis','prod_complete'); //ok
+        // testCreateSingleUnit(); //ok
+        // testCreateMultipleUnitsOnSameTile(); //ok
+        // testIntegrationUnits(); //ok
         // testIntegrationMap(); //ok
-
         // testCreateOneCard(); //ok
         // testCreateNCards(); //ok
         // testIntegrationCards(); //ok

@@ -14,6 +14,7 @@
 #select_area {
   grid-area: select;
   width: 280px;
+  height: 760px;
 }
 
 #map_area {
@@ -70,8 +71,8 @@
   grid-template-areas:
     "status status status"
     "select map  log"
-    "select cards command"
-    "openCard openCard command";
+    "command cards cards"
+    "command openCard openCard";
     /* "invest invest invest"; */
   grid-gap: 8px;
   background-color: #2196f3;

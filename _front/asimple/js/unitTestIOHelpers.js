@@ -18,4 +18,7 @@ function unitTestMap(){
 function unitTestUnits(){
   if (execOptions.activatedTests.includes("units")) console.log(...arguments);
 }
+function unitTestControl(){
+  if (execOptions.activatedTests.includes("control")) console.log(...arguments);
+}
 //#endregion
