@@ -59,13 +59,11 @@ function chooseRandom(arr){
 }
 function chooseRandomElement(arr, condFunc = null) {
   let len = arr.length;
-  let idx = Math.floor(Math.random() * len);
-  if (condFunc) {
-    //console.log(condFunc)
-    while (!condFunc(arr[idx])) {
-      idx = (idx + 1) % len;
-    }
+  if (condFunc){
+    let best = arr.filter(condFunc);
+    if (!empty(best)) return chooseRandomElement(best);
   }
+  let idx = Math.floor(Math.random() * len);
   return arr[idx];
 }
 function choose(arr, n) {

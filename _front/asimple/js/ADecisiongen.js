@@ -2,7 +2,7 @@ class ADecisiongen {
   constructor(assets) {
     this.assets = assets;
     this.choiceIndex = 0;
-    this.choiceModulo = 3;
+    this.choiceModulo = 5;
     this.callback = null;
     this.autoplay = true;
     this.tuples = [];
@@ -14,7 +14,7 @@ class ADecisiongen {
     this.choiceIndex = (this.choiceIndex + 1) % this.choiceModulo;
 
     if (tuples.length == 1) return tuples[0];
-    else if (tuples.length < n) {
+    else if (tuples.length <= n) {
       return firstCond(tuples, t => !t.includes("pass"));
     } else {
       return firstCond(tuples.slice(n - 1), t => !t.includes("pass"));
@@ -24,6 +24,17 @@ class ADecisiongen {
     if (tuples.length == 1) return tuples[0];
     else {
       let tuple = chooseRandomElement(tuples, t => !t.includes("pass"));
+      return tuple;
+    }
+  }
+  chooseFavIfPossible(tuples,fav) {
+    if (tuples.length == 1) return tuples[0];
+    else {
+      let favTuples = tuples.filter(t => t.includes(fav));
+      console.log('favTuples:',favTuples);
+      let tuple=empty(favTuples)?chooseRandomElement(tuples, t => !t.includes("pass")):favTuples[0];
+      console.log('chooseFavIfPossible outcome:',tuple);
+      
       return tuple;
     }
   }
@@ -38,7 +49,7 @@ class ADecisiongen {
     this.tuples = tuples;
     this.presentTuples(tuples);
     if (autoplay) {
-      let tuple = this.chooseRandomNonPassTuple(tuples); //tuples[tuples.length - 1]; // this.chooseDeterministicRandomNonPassTuple(tuples);
+      let tuple = this.chooseRandomNonPassTuple(tuples); //this.chooseFavIfPossible(tuples,'investment_card'); //tuples[tuples.length - 1]; // this.chooseDeterministicRandomNonPassTuple(tuples);
       let index = tuples.indexOf(tuple);
       let msecs = 0;
       this.highlightTuple(index, msecs);
