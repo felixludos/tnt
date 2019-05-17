@@ -82,7 +82,7 @@ class AMap {
   }
   drawInfluence(ms, nation, faction, level) {
     if (faction === undefined){alert();}
-    let imagePath = "/assets/images/" + faction + ".svg";
+    let imagePath = "/a/assets/images/" + faction + ".svg";
     let color = this.assets.troopColors[faction];
     //console.log('COLOR:',color)
     let darker = darkerColor(color[0], color[1], color[2]);

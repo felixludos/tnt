@@ -46,7 +46,7 @@ button {
   padding: 0px;
   font-size: 18pt;
   font-family:Verdana;
-  height:30px;
+  /* height:30px; */
   width:100px;
   cursor: pointer;
   text-align: center;
@@ -56,6 +56,12 @@ button {
   background-color: #2196f3;
   border: none;
   border-radius: 12px;
+}
+
+#command_area button{
+  width:150px;
+  padding: 6px 6px 6px 8px;
+  margin-top: 6px;
 }
 
 button:hover {
