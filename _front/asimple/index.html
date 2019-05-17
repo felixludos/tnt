@@ -32,12 +32,12 @@
         <div id="status_info" style="float:right;margin-right:10px;"></div>
         <div id="ui_control" style="float:left;text-align:left;margin-left:10px;">
           <div id="dFrozen" style="color:darkviolet;">wait...</div>
-          <div id="dAutoplay" class='hidden' style="color:red;">
+          <div id="dAutoplay" class="hidden" style="color:red;">
             autoplay...
             <button id="bStop" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
           </div>
-          <div id="dActive" class='hidden'  style="color:rgb(0, 104, 0);">Select Action:</div>
-          <button id="bNextPlayer" class='hidden'  style="color:green;" onclick="onClickNextPlayer()">Next Player</button>
+          <div id="dActive" class="hidden" style="color:rgb(0, 104, 0);">Select Action:</div>
+          <button id="bNextPlayer" class="hidden" style="color:green;" onclick="onClickNextPlayer()">Next Player</button>
         </div>
         <div id="status_message"></div>
       </div>
@@ -52,8 +52,14 @@
         <div id="divSelect" class="sidenav"></div>
       </div>
       <div id="command_area" class="grid_div">
-        <button id="bStep" class='hidden'  onclick="decider.onClickStep()" >step</button>
-        <button id="bRunToEnd" class='hidden'  onclick="onClickRunToEnd()" >run to end</button>
+        <div id="uiActiveButtons" class="hidden" >
+          <button id="bStep" onclick="decider.onClickStep()">step</button>
+          <button id="bRunToEnd" onclick="onClickRunToEnd()">run to end</button>
+          <!-- <button id="bPlayWest" onclick="onClickPlay(this)">play West</button>
+          <button id="bPlayUSSR" onclick="onClickPlay(this)">play USSR</button>
+          <button id="bPlayAxis" onclick="onClickPlay(this)">play Axis</button> -->
+          <button id="bRestart" style='margin-top:24px;background-color:orangered;' onclick="onClickRestart(this)">restart</button>
+        </div>
       </div>
       <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
       <div id="hand_area" class="grid_div" style="height:200px">
@@ -84,32 +90,28 @@
         show(document.getElementById("dFrozen"));
         hide(document.getElementById("dAutoplay"));
         hide(document.getElementById("dActive"));
-        hide(document.getElementById("bStep"));
-        hide(document.getElementById("bRunToEnd"));
-       hide(document.getElementById("bNextPlayer"));
+        hide(document.getElementById("uiActiveButtons"));
+        hide(document.getElementById("bNextPlayer"));
       }
       function activateNextPlayerButton() {
         hide(document.getElementById("dFrozen"));
         hide(document.getElementById("dAutoplay"));
         hide(document.getElementById("dActive"));
-        hide(document.getElementById("bStep"));
-        hide(document.getElementById("bRunToEnd"));
-       show(document.getElementById("bNextPlayer"));
+        hide(document.getElementById("uiActiveButtons"));
+        show(document.getElementById("bNextPlayer"));
       }
       function activateUserSelection() {
         hide(document.getElementById("dFrozen"));
         hide(document.getElementById("dAutoplay"));
         show(document.getElementById("dActive"));
-        show(document.getElementById("bStep"));
-        show(document.getElementById("bRunToEnd"));
+        show(document.getElementById("uiActiveButtons"));
         hide(document.getElementById("bNextPlayer"));
       }
       function activateAutoplay() {
         hide(document.getElementById("dFrozen"));
         show(document.getElementById("dAutoplay"));
         hide(document.getElementById("dActive"));
-        hide(document.getElementById("bStep"));
-        hide(document.getElementById("bRunToEnd"));
+        hide(document.getElementById("uiActiveButtons"));
         hide(document.getElementById("bNextPlayer"));
       }
       function callNextAction() {
@@ -123,12 +125,44 @@
       function onClickNextPlayer() {
         callNextAction();
       }
-      function onClickRunToEnd(){
-        STOP=false;
-        execOptions.skipCond = ()=>true;
+      function onClickRunToEnd() {
+        STOP = false;
+        execOptions.manualPlay = [];//skipCond = () => true;
         decider.onClickStep();
       }
+      function onClickPlay(b) {
+        // do not restart, just change role: execOptions.skipCond
+        //b.classList.add('selected')
+        //was ich will wenn einer auch playWest clicked:
+        //toggle 
+
+        let pl = stringAfter(b.id,'Play');
+        //toggle this player 
+        console.log('before toggle',execOptions.manualPlay.toString());
+        console.log(execOptions.skipCond);
+        if (execOptions.manualPlay.includes(pl)){
+          console.log('player',pl,'is in manualPlay!')
+          removeInPlace(execOptions.manualPlay,pl);
+          console.log(execOptions.manualPlay);
+          b.classList.remove('toggleSelected');
+        } else{
+          console.log('player',pl,'is NOT in manualPlay!')
+          execOptions.manualPlay.push(pl);
+          b.classList.add('toggleSelected');
+        }
+        console.log('after toggle',execOptions.manualPlay.toString());
+        console.log(execOptions.skipCond, player);
+        STOP=false;
+        decider.onClickStep();
+      }
+      function onClickRestart(){
+        //restart with random player, do NOT change role!
+        let pl = chooseRandom(assets.factionNames);
+        console.log('restarting with',pl,assets.factionNames.toString());
+        restart(pl);
+      }
       function onClickStop() {
+        unitTestControl("*** onClickStop!!! ***");
         STOP = true;
       }
       function statusMessage(msg = "") {
@@ -174,9 +208,28 @@
           if (autoplay) activateAutoplay();
           else activateUserSelection();
           unitTestControl("*** gameloop: calling decider.genMove ***");
+          unitTestControl("autoplay:",autoplay,'player',player);
           decider.genMove(tuples, t => sendAction(player, t, gameloop), autoplay);
         }
         window.scrollTo(0, 0);
+      }
+      function restart(pl, filename = "") {
+        player = pl;
+        year = 1935;
+        phase = "Setup";
+        gameObjects = {};
+        nextAction = null;
+        moveCounter = 0;
+        STOP = false;
+        sender = new ASender(execOptions);
+
+        page.clearAllObjects();
+        map = new AMap(assets);
+        cards = new ACards(assets);
+        units = new AUnits(assets);
+        decider = new ADecisiongen(assets);
+        if (empty(filename)) sendInit(player, gameloop, 0);
+        else sendLoading(filename, player, gameloop);
       }
       function updateStepPlayerPhaseYear(data) {
         moveCounter += 1;
@@ -218,12 +271,13 @@
       var execOptions = {
         outputLevel: 0, // (see testOutput: )
         playerChange: "auto", // 'auto' | 'manual'
-        skipCond: () => player != "Axis", // predicate func evaluating to cond for autoplay
+        skipCond: () => !execOptions.manualPlay.includes(player), // predicate func evaluating to cond for autoplay
+        manualPlay: [],
         activatedTests: [] // unitTest flags to control output
       };
       var moveCounter = 0; //sendaction counts as a move (also player change)
       var STOP = false; //to interrupt autoplay
-      var isUIFrozen = true; //no user interaction during sending and autoplay
+      //var isUIFrozen = true; //no user interaction during sending and autoplay
 
       //test: if (execOptions.skipCond()){console.log('ja das functioniert sehr gut sogar')}
 
@@ -246,8 +300,8 @@
     <!-- #region execution starts here! -->
     <script>
       function startScript() {
-        sendInit(player, gameloop, 4);
-        // testControlFlow(player);
+        //sendInit(player, gameloop, 4);
+        testControlFlow(player);
         // testInitToEnd(player,4); //ok
         // testLoadToEnd('Axis','prod_complete'); //ok
         // testCreateSingleUnit(); //ok

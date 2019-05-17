@@ -54,10 +54,14 @@ function cartesianOf(ll) {
   }
   return cart;
 }
+function chooseRandom(arr){
+  return chooseRandomElement(arr)
+}
 function chooseRandomElement(arr, condFunc = null) {
   let len = arr.length;
   let idx = Math.floor(Math.random() * len);
   if (condFunc) {
+    //console.log(condFunc)
     while (!condFunc(arr[idx])) {
       idx = (idx + 1) % len;
     }
@@ -826,8 +830,8 @@ function inferType(val) {
 //#endregion dictionary helpers
 
 //#region DOM helpers:
-function addChildNodes(elem) {
-  return [...elem.childNodes];
+function arrChildren(elem) {
+  return [...elem.children];
 }
 function clearElement(elem, eventHandlerDictByEvent = {}) {
   while (elem.firstChild) {
@@ -837,6 +841,12 @@ function clearElement(elem, eventHandlerDictByEvent = {}) {
     let el = elem.firstChild;
     elem.removeChild(el);
     //console.log('removed',el)
+  }
+}
+function clearElementFromChildIndex(elem, idx = 0) {
+  let charr = arrChildren(elem).slice(idx);
+  for (const ch of charr) {
+    elem.removeChild(ch);
   }
 }
 function closestParent(elem, selector) {
@@ -1879,7 +1889,7 @@ function sendEmptyAction(player, callback) {
 function sendAction(player, tuple, callback, ms = 30) {
   setTimeout(() => {
     testOutput({1: "sending action:" + player + tuple + callback.name});
-    testOutput({0: player+" selects:" + tuple});
+    testOutput({0: player + " selects:" + tuple});
     let chain = ["action/" + player + "/" + tuple.join("+"), "info/" + player, "status/" + player];
     sender.chainSend(chain, player, callback);
   }, ms);

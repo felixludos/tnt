@@ -1,5 +1,13 @@
 class NPage {
   constructor() {}
+  clearAllObjects(){
+    clearElementFromChildIndex(document.getElementById('mapG'),1);
+    clearElementFromChildIndex(document.getElementById('handG_West'),1);
+    clearElementFromChildIndex(document.getElementById('handG_Axis'),1);
+    clearElementFromChildIndex(document.getElementById('handG_USSR'),1);
+    clearElementFromChildIndex(document.getElementById('openCardG'),1);
+    clearElement(document.getElementById('divSelect'));
+  }
   selectView() {
     show(this.status_area);
 

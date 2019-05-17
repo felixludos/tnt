@@ -72,6 +72,10 @@ button:active {
   background-color: rgb(233, 138, 134);
 }
 
+.toggleSelected{
+  background-color: #1bb84a;
+}
+
 .columnDiv{
   float:left;    
   width:150px;
