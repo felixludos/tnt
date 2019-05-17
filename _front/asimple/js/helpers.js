@@ -1876,9 +1876,10 @@ function sendEmptyAction(player, callback) {
   testOutput({1: "sending empty action!!!"});
   sendAction(player, ["none"], callback);
 }
-function sendAction(player, tuple, callback, ms = 40) {
+function sendAction(player, tuple, callback, ms = 30) {
   setTimeout(() => {
     testOutput({1: "sending action:" + player + tuple + callback.name});
+    testOutput({0: player+" selects:" + tuple});
     let chain = ["action/" + player + "/" + tuple.join("+"), "info/" + player, "status/" + player];
     sender.chainSend(chain, player, callback);
   }, ms);

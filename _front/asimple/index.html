@@ -32,12 +32,12 @@
         <div id="status_info" style="float:right;margin-right:10px;"></div>
         <div id="ui_control" style="float:left;text-align:left;margin-left:10px;">
           <div id="dFrozen" style="color:darkviolet;">wait...</div>
-          <div id="dAutoplay" style="color:red;">
+          <div id="dAutoplay" class='hidden' style="color:red;">
             autoplay...
             <button id="bStop" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
           </div>
-          <div id="dActive" style="color:rgb(0, 104, 0);">Select Action:</div>
-          <button id="bNextPlayer" style="color:green;" onclick="onClickNextPlayer()">Next Player</button>
+          <div id="dActive" class='hidden'  style="color:rgb(0, 104, 0);">Select Action:</div>
+          <button id="bNextPlayer" class='hidden'  style="color:green;" onclick="onClickNextPlayer()">Next Player</button>
         </div>
         <div id="status_message"></div>
       </div>
@@ -52,7 +52,7 @@
         <div id="divSelect" class="sidenav"></div>
       </div>
       <div id="command_area" class="grid_div">
-        <button id="bStep" onclick="decider.onClickStep()">step</button>
+        <button id="bStep" class='hidden'  onclick="decider.onClickStep()" style="padding:5px;height:auto;">step</button>
       </div>
       <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
       <div id="hand_area" class="grid_div" style="height:200px">
@@ -144,7 +144,7 @@
         //next action
         let tuples = getTuples(data);
 
-        //player change if no actions
+        //player change if no actions OR decide next action
         if (empty(tuples)) {
           let waitingSet = getSet(data, "waiting_for");
           if (empty(waitingSet)) {
@@ -159,7 +159,7 @@
             else show(bNextPlayer);
           }
         } else {
-          //decider generates a move:
+          //actions: decider generates a move:
           let autoplay = execOptions.skipCond();
           if (autoplay) activateAutoplay();
           else activateUserSelection();
@@ -208,7 +208,7 @@
       var execOptions = {
         outputLevel: 0, // (see testOutput: )
         playerChange: "auto", // 'auto' | 'manual'
-        skipCond: () => player == "Axis", // predicate func evaluating to cond for autoplay
+        skipCond: () => player != "Axis", // predicate func evaluating to cond for autoplay
         activatedTests: [] // unitTest flags to control output
       };
       var moveCounter = 0; //sendaction counts as a move (also player change)

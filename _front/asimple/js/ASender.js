@@ -43,7 +43,7 @@ class ASender {
     url = this.backendUrl + url;
     this.msgCounter += 1;
     if (this.options.output == "fine") {
-      console.log(this.msgCounter + ": request sent: " + url);
+      testOutput({1:this.msgCounter + ": request sent: " + url});
     }
 
     $.ajax({

@@ -9,6 +9,24 @@ class ADecisiongen {
     this.selectionDone = false;
     this.bAuto = document.getElementById("bAuto");
   }
+  chooseDeterministicRandomNonPassTuple(tuples) {
+    let n = this.choiceIndex;
+    this.choiceIndex = (this.choiceIndex + 1) % this.choiceModulo;
+
+    if (tuples.length == 1) return tuples[0];
+    else if (tuples.length < n) {
+      return firstCond(tuples, t => !t.includes("pass"));
+    } else {
+      return firstCond(tuples.slice(n - 1), t => !t.includes("pass"));
+    }
+  }
+  chooseRandomNonPassTuple(tuples) {
+    if (tuples.length == 1) return tuples[0];
+    else {
+      let tuple = chooseRandomElement(tuples, t => !t.includes("pass"));
+      return tuple;
+    }
+  }
   clear() {
     let d = document.getElementById("divSelect");
     clearElement(d);
@@ -18,10 +36,26 @@ class ADecisiongen {
     this.autoplay = autoplay;
     this.callback = callback;
     this.tuples = tuples;
-    if (autoplay) callback(tuples[0]);
-    else {
-      this.presentTuples(tuples);
+    this.presentTuples(tuples);
+    if (autoplay) {
+      let tuple = this.chooseRandomNonPassTuple(tuples); //tuples[tuples.length - 1]; // this.chooseDeterministicRandomNonPassTuple(tuples);
+      let index = tuples.indexOf(tuple);
+      let msecs = 0;
+      this.highlightTuple(index, msecs);
+      setTimeout(() => callback(tuple), msecs + 30); // leave user time to see what happened!
+
+      // callback(tuples[0]);
     }
+  }
+  highlightTuple(index, msecs = 30) {
+    let d = document.getElementById("divSelect");
+    let els = document.getElementsByTagName("a");
+    let el = els[index];
+    el.classList.add("selected");
+    ensureInView(d, el);
+    //$('#divSelect').animate({ scrollTop: $(el).offset().top }, msecs);
+    //d.scrollTo(el);
+    //test ob er automatisch scroll to index macht?!?
   }
   onClickStep() {
     this.callback(this.tuples[0]);
@@ -31,7 +65,6 @@ class ADecisiongen {
       this.selectionDone = true;
       let id = evToId(ev);
       let idx = firstNumber(id);
-      console.log("tuple selected:", this.tuples[idx]);
       this.callback(this.tuples[idx]);
     }
   }

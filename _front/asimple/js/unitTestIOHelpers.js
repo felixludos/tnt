@@ -1,11 +1,10 @@
 //#region unit test i/o helpers
 function testOutput(o) {
   for (const key in o) {
+    //console.log(key,execOptions.outputLevel,isNumber(key),typeof(key))
     const arg = o[key];
-    switch (key) {
-      case 0, '0':
-        console.log('*************************\n',arg);
-        break;
+    if (isNumber(key) && key <= execOptions.outputLevel){
+      console.log(key+':',arg);
     }
   }
 }
