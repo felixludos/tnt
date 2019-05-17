@@ -3,6 +3,7 @@
 }
 #status_area {
   grid-area: status;
+  height: 36px;
 }
 #menu_area {
   grid-area: menu1;
