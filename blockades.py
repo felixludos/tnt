@@ -19,9 +19,10 @@ border_types = {
 	'River': 'land',
 }
 
+# TODO: reverse order: compute a set of all tiles reachable from set of maincapital or subcapitals, then check set for each territory
 def find_path(G, loc, goals, player,
               neutrals=False, peaceful=False, observed=None,
-              switch_limits=None, switch_current=None):
+              switch_limits=None, switch_current=None, africa=True):
 	if loc in goals:
 		return True
 	
@@ -47,10 +48,32 @@ def find_path(G, loc, goals, player,
 			if power in wars and wars[power]:
 				return False
 	
+	
 	# recurse
 	for neighbor, border in tile.borders.items():
-		if neighbor not in observed and find_path(G, loc, goals, player,
-              neutrals=neutrals, peaceful=peaceful, observed=observed):
+		if neighbor in observed:
+			continue
+			
+		budget = switch_limits
+		group = switch_current
+		
+		if budget is not None:
+		
+			if switch_current is None:
+				switch_current = border_types[border]
+			elif border_types[border] is not None and switch_current != border_types[border]:
+				budget -= 1
+				group = border_types[border_types]
+			
+			if budget < 0:
+				continue
+				
+		if 'Africa' in border and not africa:
+			continue
+		
+		if find_path(G, loc, goals, player,
+              neutrals=neutrals, peaceful=peaceful, observed=observed,
+		                   switch_current=group, switch_limits=budget):
 			return True
 	return False
 
@@ -59,6 +82,7 @@ def blockade_phase(G):
 	for player, faction in G.players:
 
 		if not faction.stats.at_war:
+			G.logger.write('{} is at peace, so there are no blockades'.format(player))
 			continue
 		
 		goals = xset()
@@ -67,11 +91,66 @@ def blockade_phase(G):
 		for tilename in faction.territory:
 			
 			connected = find_path(G, tilename, goals=goals, player=player,
-			                      neutrals=True,)
-		
-		pass
+			                      neutrals=True, switch_limits=1, peaceful=True, africa=False)
+			
+
+			tile = G.tiles[tilename]
+			
+			res, pop = 0, 0
+			
+			africa_connected = True
+			if 'res_afr' in tile:
+				africa_connected = find_path(G, tilename, goals=goals, player=player,
+				                             neutrals=True, switch_limits=1, peaceful=True, africa=True)
+			
+			# regular
+			if not connected:
+				tile.blockaded = True
+				
+				G.updated[tilename] = tile
+				
+				msg = ''
+				
+				pop = -tile['pop']
+				res = -tile['res']
+				
+				if pop > 0 or res > 0:
+					msg += ''.format(player, pop, res)
+				
+				G.logger.write('{} is blockaded from {} (losing POP={} RES={})'.format(tilename, player, -pop, -res))
+				
+			elif 'blockaded' in tile:
+				
+				del tile.blockaded
+				
+				G.updated[tilename] = tile
+				
+				pop = tile['pop']
+				res = tile['res']
+				
+				G.logger.write('{} regains trade routes to {} (regaining POP={} RES={})'.format(player, tilename, pop, res))
+
+			# trans africa
+			if not africa_connected:
+				res -= tile.res_afr
+				
+				tile.blockaded_afr = True
+				G.updated[tilename] = tile
+				
+				G.logger.write('Trans-Africa route for {} is also blockaded ({} loses RES={})'.format(tilename, player, tile.res_afr))
+			
+			elif 'blockaded_afr' in tile:
+				del tile.blockaded_afr
+				res += tile.res_afr
+
+				G.updated[tilename] = tile
+				
+				G.logger.write('Trans-Africa route is no longer blockaded in {} ({} regains RES={})'.format(tilename, player, tile.res_afr))
+			
+			faction.tracks.POP += pop
+			faction.tracks.RES += res
 	
-	
+	raise PhaseComplete
 	
 
 def supply_phase(G):
@@ -82,6 +161,7 @@ def supply_phase(G):
 		goals.add(faction.stats.cities.MainCapital)
 		
 		if not faction.stats.at_war:
+			G.logger.write('{} is at peace, so all units are supplied'.format(player))
 			continue
 			
 		for uid, unit in faction.units:
@@ -97,7 +177,7 @@ def supply_phase(G):
 					msg = 'was eliminated'
 					remove_unit(G, unit)
 					
-					# TODO: check for retreats
+					# TODO: check for forced retreats of ANS
 					
 				else:
 					msg = 'lost 1 cv'
@@ -110,3 +190,6 @@ def supply_phase(G):
 				if len(tile.unsupplied) == 0:
 					del tile.unsupplied
 				G.objects.updated[tile._id] = tile
+
+
+	raise PhaseComplete
