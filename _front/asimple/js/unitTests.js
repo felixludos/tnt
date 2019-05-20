@@ -2,7 +2,7 @@
 var unitTestId = 0;
 //#endregion
 
-//#region tests for cards
+//#region generators
 function generateCard(hasOwner = true, hasContent = true, visibleToN = 1) {
   let id = "action_" + unitTestId;
   unitTestId += 1;
@@ -49,6 +49,60 @@ function generateCard(hasOwner = true, hasContent = true, visibleToN = 1) {
   }
   return {id: id, o: o};
 }
+function generateUnitList() {
+  data = {
+    created: {
+      "246": {
+        nationality: "Britain",
+        tile: "London",
+        type: "Fleet",
+        cv: 4,
+        obj_type: "unit",
+        visible: {
+          xset: ["West"]
+        },
+        _id: 246
+      },
+      "246": {
+        nationality: "Britain",
+        tile: "London",
+        type: "Fleet",
+        cv: 4,
+        obj_type: "unit",
+        visible: {
+          xset: ["West"]
+        },
+        _id: 246
+      },
+      "247": {
+        nationality: "Britain",
+        tile: "Gibraltar",
+        type: "Fortress",
+        cv: 1,
+        obj_type: "unit",
+        visible: {
+          xset: ["West"]
+        },
+        _id: 247
+      },
+      "248": {
+        nationality: "Britain",
+        tile: "Karachi",
+        type: "Fortress",
+        cv: 1,
+        obj_type: "unit",
+        visible: {
+          xset: ["West"]
+        },
+        _id: 248
+      }
+    }
+  };
+  return data;
+}
+//#endregion
+
+//#region tests for cards
 function testCreateOneCard() {
   let c = generateCard();
   let cman = new ACards(assets);
@@ -62,38 +116,81 @@ function testCreateNCards() {
     cman.createCard(c.id, c.o);
   }
 }
-function testUpdateCards(filename = "prod_complete", player = "Axis") {
-  execOptions.skipTo = {year: 1935, phase: "any", player: "any", step: 0}
-  sendLoading(filename, player, presentUpdateCardsOnly);
-}
-function presentUpdateCardsOnly(data) {
-  console.log(data)
-  if (isPlayerChanging) {
-    isPlayerChanging = false;
-    page.updateGameView(player, execOptions);
+function testIntegrationCards(filename = "prod_complete", player = "Axis") {
+  execOptions.output = "none";
+  addIf("cards", execOptions.activatedTests);
+  if (empty(filename)) {
+    sendInit(player, gameloop, 0);
+  } else {
+    sendLoading(filename, player, gameloop);
   }
+}
+//#endregion
 
-  updateStatus(data);
-  updateLog(data);
+//#region tests for map: influence, tracks, tiles, nations
+function testIntegrationMap(filename = "prod_complete", player = "Axis") {
+  execOptions.output = "none";
+  addIf("map", execOptions.activatedTests);
+  if (empty(filename)) {
+    sendInit(player, gameloop, 0);
+  } else {
+    sendLoading(filename, player, gameloop);
+  }
+}
+//#endregion
 
-  updateGameObjects(data);
-  //console.log('presentUpdateCardsOnly')
-  cards.update(player, data, gameObjects);
+//#region tests for units
+function testCreateSingleUnit() {
+  execOptions.output = "none";
+  addIf("units", execOptions.activatedTests);
+  let data = generateUnitList();
+  let player = "West";
+  for (const id in data.created) {
+    const o = data.created[id];
+    units.createUnit(id, o, player);
+    break;
+  }
+}
+function testCreateMultipleUnitsOnSameTile() {
+  execOptions.output = "none";
+  addIf("units", execOptions.activatedTests);
+  let data = generateUnitList();
+  let player = "West";
+  for (const id in data.created) {
+    const o = data.created[id];
+    o.tile = "London";
+    o.nationality = "Britain";
+    units.createUnit(id, o, player);
+  }
+  player = "USSR";
+  for (const id in data.created) {
+    let idNew = id + 200;
+    const o = data.created[id];
+    o.tile = "Berlin";
+    o.nationality = "Germany";
+    o._id = idNew;
+    units.createUnit(idNew, o, player);
+  }
+}
+function testIntegrationUnits(filename = "", player = "USSR", seed = 4) {
+  execOptions.output = "none";
+  addIf("units", execOptions.activatedTests);
 
-  gameObjects = extend(true, gameObjects, data.created);
-
-  //alert('press to continue...')
-  processActions(data, presentUpdateCardsOnly);
-  //nextAction = () => processActions(data, presentUpdateCardsOnly);
-  //show(bStep);
+  if (empty(filename)) {
+    sendInit(player, gameloop, seed);
+  } else {
+    sendLoading(filename, player, gameloop);
+  }
 }
 //#endregion
 
 //#region tests for server communication
 function testInitToEnd(player = "USSR", seed = 0) {
+  hide(bStop);
   sendInit(player, d => testRunToEnd(d, player), seed);
 }
-function testLoadToEnd(player = "Axis", filename = "gov_complete") {
+function testLoadToEnd(player = "Axis", filename = "setup_complete") {
+  hide(bStop);
   sendLoading(filename, player, d => testRunToEnd(d, player), "raw");
 }
 function testRunToEnd(data, player) {
@@ -106,22 +203,38 @@ function testRunToEnd(data, player) {
     } else {
       let nextPlayer = waitingSet[0];
       sendChangeToPlayer(nextPlayer, d1 => {
-        //console.log("player changed to", nextPlayer, "on server");
-        //console.log(d1);
         testRunToEnd(d1, nextPlayer);
       });
     }
   } else {
-    let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
-    choiceIndex = (choiceIndex + 1) % choiceModulo;
-    console.log(player + " chooses " + tuple.toString());
-    sendAction(player, tuple, d => testRunToEnd(d, player));
+    decider.pickTuple(tuples, t => {
+      console.log(player + " chooses " + t.toString());
+      sendAction(player, t, d => testRunToEnd(d, player));
+    });
   }
 }
-function testPhaseSteps(player = "Axis", filename = "gov_complete") {
+//#endregion
+
+//#region test control flow
+function testControlFlow(player = "USSR", filename = "", seed = 4){
+  execOptions.output = "none";
+  addIf("control", execOptions.activatedTests);
+
+  if (empty(filename)) {
+    sendInit(player, gameloop, seed);
+  } else {
+    sendLoading(filename, player, gameloop);
+  }
+
+}
+//#endregion
+
+//#region tests for server communication - not sure if work!
+function testStepByStep(player = "Axis", filename = "gov_complete") {
   sendLoading(filename, player, d => testStep(d, player), "raw");
 }
 function testStep(data, player) {
+  //doesn't work!!!???
   let tuples = getTuples(data);
   if (empty(tuples)) {
     let waitingSet = getSet(data, "waiting_for");
@@ -130,19 +243,16 @@ function testStep(data, player) {
       nextAction = () => sendAction(player, ["none"], d => testStep(d, player));
     } else {
       let nextPlayer = waitingSet[0];
-
       nextAction = () =>
         sendChangeToPlayer(nextPlayer, d1 => {
-          console.log("player changed to", nextPlayer, "on server");
-          //console.log(d1);
           testStep(d1, nextPlayer);
         });
     }
   } else {
-    let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
-    choiceIndex = (choiceIndex + 1) % choiceModulo;
-    console.log(player + " chooses " + tuple.toString());
-    nextAction = () => sendAction(player, tuple, d => testStep(d, player));
+    decider.pickTuple(tuples, t => {
+      console.log(player + " chooses " + t.toString());
+      sendAction(player, t, d => testStep(d, player));
+    });
   }
   show(bStep);
 }

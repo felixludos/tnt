@@ -1,0 +1,30 @@
+.sidenav {
+  height: 100%;
+  width: 100%;
+  overflow-y:scroll;
+  background-color: #082a44;
+  overflow-x: hidden;
+  text-align:left;
+}
+
+.sidenav a {
+  padding-top: 8px;
+  padding-bottom: 4px;
+  padding-left: 8px;
+  font-size: 16px;
+  color: #999797;
+  overflow:hidden;
+  display: block;
+  cursor:pointer;
+}
+
+.sidenav a:hover {
+  color: white;
+  font-size: 20px;
+  /* color: #f1f1f1; */
+}
+.sidenav .selected {
+  color: white;
+  font-size: 20px;
+  /* color: #f1f1f1; */
+}

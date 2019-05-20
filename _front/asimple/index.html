@@ -3,6 +3,7 @@
   <head>
     <title>a94</title>
     <link rel="shortcut icon" href="#" />
+    <link rel="stylesheet" type="text/css" href="/a/css/selectStyle.css" />
     <link rel="stylesheet" type="text/css" href="/a/css/autocomp.css" />
     <link rel="stylesheet" type="text/css" href="/a/css/main.css" />
     <link rel="stylesheet" type="text/css" href="/a/css/layout.css" />
@@ -12,6 +13,7 @@
 
     <script src="/a/js/ASender.js"></script>
     <script src="/a/js/NAssets.js"></script>
+    <script src="/a/js/unitTestIOHelpers.js"></script>
     <script src="/a/js/helpers.js"></script>
     <script src="/a/js/panzoom.js"></script>
     <script src="/a/js/MS.js"></script>
@@ -20,95 +22,51 @@
     <script src="/a/js/AHand.js"></script>
     <script src="/a/js/ACards.js"></script>
     <script src="/a/js/AUnits.js"></script>
+    <script src="/a/js/ADecisiongen.js"></script>
     <script src="/a/js/unitTests.js"></script>
   </head>
   <body>
     <!-- #region HTML -->
     <div id="mainDiv" class="grid_game">
-      <div id="menu_area" class="grid_div" style="text-align:left;">
-        <div style="float:left;margin-left:10px">
-          <button class="hidden" id="bLoadScenario" onclick="onClickLoadScenario()">load scenario</button>
-          <button class="hidden" id="bStartScenario" onclick="onClickStartScenario()">start scenario</button>
-          <button class="hidden" id="bSkipAction" onclick="onClickSkipAction()">skip action</button>
-        </div>
-        <div style="float:right;margin-right:10px">
-          view:
-          <button id="bViewGame" onclick="page.gameView()">game</button>
-          <button class="hidden" id="bViewNoReserve" onclick="page.gameView(false)">no reserve</button>
-          <button id="bViewEdit" onclick="page.editView()">edit</button>
-          <button id="bViewTest" onclick="page.testView()">test</button>
-        </div>
-      </div>
-      <div id="status_area" class="grid_div" onclick="page.testView()">status</div>
-      <div id="test_area" class="grid_div">
-        <div class="flexdiv">
-          <div class="autocomplete">
-            <input id="myInput" type="text" name="myCountry" style="font-size:30px;" placeholder="command" />
+      <div id="status_area" class="grid_div">
+        <div id="status_info" style="float:right;margin-right:10px;"></div>
+        <div id="ui_control" style="float:left;text-align:left;margin-left:10px;">
+          <div id="dFrozen" style="color:darkviolet;">wait...</div>
+          <div id="dAutoplay" class="hidden" style="color:red;">
+            autoplay...
+            <button id="bStop" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
           </div>
-          <div class="autocomplete">
-            <input id="inparam" type="text" name="inparam" style="font-size:30px;" placeholder="param" />
-          </div>
-          <button style="margin:10px" id="bSendMessage" onclick="onClickSendMessage()">send message</button>
-          <button style="margin:10px" id="bClear" onclick="onClickClearInputs()">clear inputs</button>
+          <div id="dActive" class="hidden" style="color:rgb(0, 104, 0);">Select Action:</div>
+          <button id="bNextPlayer" class="hidden" style="color:green;" onclick="onClickNextPlayer()">Next Player</button>
         </div>
-        <div style="margin:10px;text-align:left;">
-          <!-- <input type="text" id="inAction" style="width:90%;font-size:30px;" placeholder="enter action"> -->
-          <button id="bAddUnit" onclick="onClickAddUnit()">add unit</button>
-        </div>
-      </div>
-      <div id="reserve_area" class="grid_div">
-        <svg id="selSvg" width="60" height="760"><g id="reserveG"></g></svg>
+        <div id="status_message"></div>
       </div>
       <div id="map_area" class="grid_div" style="background-color:rgba(86, 182, 222);">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
           <g id="mapG" viewBox="0 0 3400 2200">
-            <image id="imgMap" width="3400" height="2200" href="/assets/TTmap.jpg" />
+            <image id="imgMap" width="3400" height="2200" href="/a/assets/TTmap.jpg" />
           </g>
         </svg>
       </div>
-      <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll">
-        <div id="log_all" class="hidden">all messages</div>
-        <div id="log_Axis" class="hidden">Axis messages</div>
-        <div id="log_USSR" class="hidden">USSR messages</div>
-        <div id="log_West" class="hidden">West messages</div>
-        <div id="tempDisplay" class="hidden" style="width:100%;height:100%">
-          <svg width="100%" height="100%" style="box-sizing:border-box;">
-            <g id="tempG"></g>
-          </svg>
-        </div>
-      </div>
-      <div id="prop_area" class="grid_div hidden">
-        actions
-        <button id="bEditPlaceUnits" onclick="onClickEditPlaceUnits(this)">place unit</button>
-        <button id="bEditDrawCards" onclick="onClickEditDrawCards(this)">draw card</button>
-        <button id="bEditDeleteUnits" onclick="onClickEditDeleteUnits(this)">delete unit</button>
-        <button id="bEditDeleteCards" onclick="onClickEditDeleteCards(this)">delete card</button>
-        <button id="bEditDeleteAll" onclick="onClickEditDeleteAll(this)">delete all</button>
-        <button id="bEditNextPlayer" onclick="onClickEditNextPlayer(this)">next player</button>
-        <button id="bEditDone" onclick="onClickEditDone(this)">done</button>
+      <div id="select_area" class="grid_div">
+        <div id="divSelect" class="sidenav"></div>
       </div>
       <div id="command_area" class="grid_div">
-        <div class="columnDiv">
-          <!-- <button id="bNextPlayer" class="hidden" style="width:90%;" onclick="onClickNextPlayer()">next player</button> -->
-          <button class="chrome" id="bStop" style="background-color:red" onclick="onClickStop()">STOP</button>
-          <button class="chrome" id="bStep" onclick="onClickStep()">step</button>
-          <label class="chrome" for="inYear">year</label>
-          <input class="chrome" type="text" id="inYear" />
-          <label class="chrome" for="inPhase">phase</label>
-          <input class="chrome" type="text" id="inPhase" />
-          <label class="chrome" for="inPhase">player</label>
-          <input class="chrome" type="text" id="inPlayer" />
-          <label class="chrome" for="inStep">step</label>
-          <input class="chrome" type="text" id="inStep" />
-          <button class="chrome" id="bGo" onclick="onClickGo()">go</button>
+        <div id="uiActiveButtons" class="hidden" >
+          <button id="bStep" onclick="decider.onClickStep()">step</button>
+          <button id="bRunToEnd" onclick="onClickRunToEnd()">run to end</button>
+          <!-- <button id="bPlayWest" onclick="onClickPlay(this)">play West</button>
+          <button id="bPlayUSSR" onclick="onClickPlay(this)">play USSR</button>
+          <button id="bPlayAxis" onclick="onClickPlay(this)">play Axis</button> -->
+          <button id="bRestart" style='margin-top:24px;background-color:orangered;' onclick="onClickRestart(this)">restart</button>
         </div>
       </div>
-      <div id="chat_area" class="grid_div hidden">chat</div>
+      <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
       <div id="hand_area" class="grid_div" style="height:200px">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="handG_Axis"><text x="10" y="25" fill="grey">Axis</text></g>
-          <g id="handG_USSR"><text x="10" y="25" fill="red">USSR</text></g>
-          <g id="handG_West"><text x="10" y="25" fill="blue">West</text></g>
+          <g id="handG_Axis" style="visibility:hidden"><text x="10" y="25" fill="grey">Axis</text></g>
+          <g id="handG_USSR" style="visibility:hidden"><text x="10" y="25" fill="red">USSR</text></g>
+          <g id="handG_West" style="visibility:hidden"><text x="10" y="25" fill="blue">West</text></g>
         </svg>
       </div>
       <div id="cards2_area" class="grid_div" style="height:200px">
@@ -126,207 +84,233 @@
     </div>
     <!-- #endregion HTML -->
 
-    <!-- #region handlers -->
+    <!-- #region UI / handlers -->
     <script>
-      function onClickStop() {
-        STOP = true;
+      function activateWaitingForServer() {
+        show(document.getElementById("dFrozen"));
+        hide(document.getElementById("dAutoplay"));
+        hide(document.getElementById("dActive"));
+        hide(document.getElementById("uiActiveButtons"));
+        hide(document.getElementById("bNextPlayer"));
       }
-      function onClickGo() {
-        inputsToOptions();
-        console.log("options:", execOptions.skipTo);
-        step = 0;
-        STOP = false;
-        callNextAction();
+      function activateNextPlayerButton() {
+        hide(document.getElementById("dFrozen"));
+        hide(document.getElementById("dAutoplay"));
+        hide(document.getElementById("dActive"));
+        hide(document.getElementById("uiActiveButtons"));
+        show(document.getElementById("bNextPlayer"));
       }
-      function onClickStep() {
-        STOP = false;
-        callNextAction();
+      function activateUserSelection() {
+        hide(document.getElementById("dFrozen"));
+        hide(document.getElementById("dAutoplay"));
+        show(document.getElementById("dActive"));
+        show(document.getElementById("uiActiveButtons"));
+        hide(document.getElementById("bNextPlayer"));
+      }
+      function activateAutoplay() {
+        hide(document.getElementById("dFrozen"));
+        show(document.getElementById("dAutoplay"));
+        hide(document.getElementById("dActive"));
+        hide(document.getElementById("uiActiveButtons"));
+        hide(document.getElementById("bNextPlayer"));
+      }
+      function callNextAction() {
+        if (nextAction) {
+          activateWaitingForServer();
+          nextAction();
+        } else {
+          error("NO NEXT ACTION!!!!!!!");
+        }
       }
       function onClickNextPlayer() {
-        hide(bNextPlayer);
         callNextAction();
+      }
+      function onClickRunToEnd() {
+        STOP = false;
+        execOptions.manualPlay = [];//skipCond = () => true;
+        decider.onClickStep();
+      }
+      function onClickPlay(b) {
+        // do not restart, just change role: execOptions.skipCond
+        //b.classList.add('selected')
+        //was ich will wenn einer auch playWest clicked:
+        //toggle 
+
+        let pl = stringAfter(b.id,'Play');
+        //toggle this player 
+        console.log('before toggle',execOptions.manualPlay.toString());
+        console.log(execOptions.skipCond);
+        if (execOptions.manualPlay.includes(pl)){
+          console.log('player',pl,'is in manualPlay!')
+          removeInPlace(execOptions.manualPlay,pl);
+          console.log(execOptions.manualPlay);
+          b.classList.remove('toggleSelected');
+        } else{
+          console.log('player',pl,'is NOT in manualPlay!')
+          execOptions.manualPlay.push(pl);
+          b.classList.add('toggleSelected');
+        }
+        console.log('after toggle',execOptions.manualPlay.toString());
+        console.log(execOptions.skipCond, player);
+        STOP=false;
+        decider.onClickStep();
+      }
+      function onClickRestart(){
+        //restart with random player, do NOT change role!
+        let pl = chooseRandom(assets.factionNames);
+        console.log('restarting with',pl,assets.factionNames.toString());
+        restart(pl);
+      }
+      function onClickStop() {
+        unitTestControl("*** onClickStop!!! ***");
+        STOP = true;
+      }
+      function statusMessage(msg = "") {
+        let s = "Phase:" + phase + ", Year:" + year + ", Player:" + player;
+        document.getElementById("status_info").innerHTML = s;
+        if (!empty(msg)) document.getElementById("status_message").innerHTML = msg;
       }
     </script>
     <!-- #endregion handlers -->
 
-    <!-- #region helpers -->
+    <!-- #region control flow -->
     <script>
-      function activateButtons() {
-        show(bStep);
-        show(bGo);
-      }
-      function deactivateButtons() {
-        hide(bStep);
-        hide(bGo);
-      }
-    </script>
-    <!-- #endregion helpers -->
-
-    <!-- #region _work -->
-    <script>
-      function present(data) {
-        if (isPlayerChanging) {
-          isPlayerChanging = false;
-          page.updateGameView(player, execOptions);
-          // cards.resizePlayerHand();
-        }
-
-        updateUI(data);
-
-        processActions(data, present);
-      }
-      function updateUI(data) {
-        updateStatus(data);
+      function gameloop(data) {
+        //update
+        unitTestControl("*** gameloop: updating ***");
+        updateStepPlayerPhaseYear(data);
         updateLog(data);
-
-        updateGameObjects(data);
-
-        map.update(data, gameObjects);
+        mergeCreatedAndUpdated(data);
         cards.update(player, data, gameObjects);
+        map.update(data, gameObjects);
+        units.update(data, gameObjects, player);
 
-        gameObjects = extend(true, gameObjects, data.created);
+        //next action
+        let tuples = getTuples(data);
+
+        //player change if no actions OR decide next action
+        if (empty(tuples)) {
+          let waitingSet = getSet(data, "waiting_for");
+          if (empty(waitingSet)) {
+            unitTestControl("*** gameloop: sending empty action ***");
+            sendEmptyAction(player, callback);
+          } else {
+            unitTestControl("*** gameloop: setting nextAction to sendChangeToPlayer ***");
+            nextAction = () => sendChangeToPlayer(waitingSet[0], gameloop);
+
+            //player change manual or automatic:
+            if (execOptions.playerChange == "auto") callNextAction();
+            else show(bNextPlayer);
+          }
+        } else {
+          //actions: decider generates a move:
+          let autoplay = execOptions.skipCond() && !STOP;
+          if (autoplay) activateAutoplay();
+          else activateUserSelection();
+          unitTestControl("*** gameloop: calling decider.genMove ***");
+          unitTestControl("autoplay:",autoplay,'player',player);
+          decider.genMove(tuples, t => sendAction(player, t, gameloop), autoplay);
+        }
+        window.scrollTo(0, 0);
       }
-      function updateGameObjects(data){
-        if (!('created' in data)) data.created = {};
-        data.created = extend(true, data.created, data.updated);
+      function restart(pl, filename = "") {
+        player = pl;
+        year = 1935;
+        phase = "Setup";
+        gameObjects = {};
+        nextAction = null;
+        moveCounter = 0;
+        STOP = false;
+        sender = new ASender(execOptions);
+
+        page.clearAllObjects();
+        map = new AMap(assets);
+        cards = new ACards(assets);
+        units = new AUnits(assets);
+        decider = new ADecisiongen(assets);
+        if (empty(filename)) sendInit(player, gameloop, 0);
+        else sendLoading(filename, player, gameloop);
+      }
+      function updateStepPlayerPhaseYear(data) {
+        moveCounter += 1;
+        if ("game" in data) {
+          year = Number(data.game.year);
+          phase = data.game.phase;
+
+          //handle player change
+          if (data.game.player != player) {
+            player = data.game.player;
+          }
+
+          statusMessage();
+        } else {
+          error("updateStepPlayerPhaseYear: MISSING GAME DATA!!!");
+        }
       }
       function updateLog(data) {
         if ("log" in data && !empty(data.log)) {
-          let id = execOptions.log == "individual" ? "log_" + player : "log_all";
-          let d = document.getElementById(id);
+          let d = document.getElementById("log_area");
           let para = document.createElement("p");
           para.innerHTML = data.log;
           d.appendChild(para);
           para.scrollIntoView();
         }
       }
-      function updateStatus(data) {
-        if ("game" in data) {
-          year = Number(data.game.year);
-          phase = data.game.phase;
-          player = data.game.player;
-          statusMessage();
-        }
-      }
-      function processActions(data, callback) {
-        step += 1;
-        let tuples = getTuples(data);
-
-        console.assert(tuples.length > 0 || "waiting_for" in data, "ASSERTION FAIL!!! no action or waiting_for!!!!");
-
-        if (empty(tuples)) {
-          let msgAfter = "...waiting for player change!";
-
-          if (execOptions.output == "endToEnd") {
-            logFormattedData(data, msgCounter, msgAfter);
-            msgCounter += 1;
-          } else {
-            console.log(msgAfter);
-          }
-
-          nextAction = () => sendChangePlayer(data, callback);
-          isPlayerChanging = true;
-        } else {
-          let tuple = chooseNthNonPassTuple(tuples, choiceIndex);
-          choiceIndex = (choiceIndex + 1) % choiceModulo;
-          let msgAfter = player + " chooses " + tuple.toString();
-
-          if (execOptions.output == "endToEnd") {
-            logFormattedData(data, msgCounter, msgAfter);
-            msgCounter += 1;
-          } else {
-            console.log(msgAfter);
-          }
-
-          nextAction = () => sendAction(player, tuple, callback);
-        }
-
-        checkProceedCondition();
-      }
-      function callNextAction() {
-        if (nextAction) {
-          deactivateButtons();
-          nextAction();
-        }
-      }
-      function checkProceedCondition() {
-        //skipTo: {year:'1935',phase:'production',player:'any',step:0},
-        if (execOptions.mode == "skipTo") {
-          let opt = execOptions.skipTo;
-          let nYear = Number(year);
-          let skipAhead = isWrongPhase() || isTooEarly() || isWrongPlayer();
-          if (skipAhead) {
-            callNextAction();
-          } else {
-            activateButtons();
-          }
-        }
-      }
     </script>
-    <!-- #endregion _work -->
+    <!-- #endregion control flow -->
 
     <!-- #region globals -->
     <script>
       var player = "Axis"; //22 steps
       var year = 1935;
       var phase = "Setup";
-      var step = 0; // if step==0 take every step, otherwise skip step steps.
-
-      // determinism
-      var choiceIndex = 0;
-      var choiceModulo = 3;
-      var msgCounter = 0;
-      var seed = 1;
-
-      //control flow;
-      var execOptions = {
-        output: "raw", // 'fine' | 'endToEnd' | 'manual' | 'none' | 'raw'
-        playerChange: "auto", // 'auto' | 'manual'
-        log: "general", // 'general' | 'individual'
-        mode: "skipTo", // 'step' | 'continuous' | 'nskip' | 'skipTo'
-        skipTo: {year: 1935, phase: "p", player: "u", step: 0}
-      };
-      var nextAction = null;
-      var STOP = false; //interrupt endless play
-      var isPlayerChanging = true;
-
-      //data
       var gameObjects = {}; //all created objects in play, ids same as server ids
-      var serverData; //not used right now
+      var nextAction = null;
 
-      //initialization
+      //control flow and console output flags
+      var execOptions = {
+        outputLevel: 0, // (see testOutput: )
+        playerChange: "auto", // 'auto' | 'manual'
+        skipCond: () => !execOptions.manualPlay.includes(player), // predicate func evaluating to cond for autoplay
+        manualPlay: [],
+        activatedTests: [] // unitTest flags to control output
+      };
+      var moveCounter = 0; //sendaction counts as a move (also player change)
+      var STOP = false; //to interrupt autoplay
+      //var isUIFrozen = true; //no user interaction during sending and autoplay
+
+      //test: if (execOptions.skipCond()){console.log('ja das functioniert sehr gut sogar')}
+
       var sender = new ASender(execOptions);
-      //sender.send('initWest');
       var assets = new NAssets();
-      var page = new NPage()
-        .initView()
-        .gameView()
-        .updateGameView(player, execOptions); //handles layout
+      var page = new NPage().initView().selectView();
 
       var map = new AMap(assets); //responsible for tile influence nation chip
-
-      //var h1=new AHand(assets,"handG_West",'hand_area');
       var cards = new ACards(assets);
+      var units = new AUnits(assets);
+      var decider = new ADecisiongen(assets); //responsible for move generation
 
+      panzoom("mapG"); //handles pan zoom on map
       $(document).ready(function() {
-        optionsToInputs();
-        panzoom("mapG"); //handles pan zoom on map
         assets.initAssets(map, startScript);
       });
     </script>
     <!-- #endregion globals -->
 
-    <!-- #region execution -->
+    <!-- #region execution starts here! -->
     <script>
       function startScript() {
-        //sendInit(player, present, 4);
-
-        testUpdateCards();
-
-        //testPhaseSteps('Axis','prod_complete');
-        //testCreateOneCard(); //ok
-        //testInitToEnd(); //ok
-        //testLoadToEnd(); //ok
+        sendInit(player, gameloop, 4);
+        //testControlFlow(player);
+        // testInitToEnd(player,4); //ok
+        // testLoadToEnd('Axis','prod_complete'); //ok
+        // testCreateSingleUnit(); //ok
+        // testCreateMultipleUnitsOnSameTile(); //ok
+        // testIntegrationUnits(); //ok
+        // testIntegrationMap(); //ok
+        // testCreateOneCard(); //ok
+        // testCreateNCards(); //ok
+        // testIntegrationCards(); //ok
       }
     </script>
     <!-- #endregion execution -->

@@ -4,8 +4,13 @@ html {
   margin: 0px;
 }
 body {
-  min-width: 1366px;
+  min-width: 1416px; 
+  /* min-width: 1366px; */
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.lstTuples{
+  font-family: Arial;
 }
 
 .hidden {
@@ -41,7 +46,7 @@ button {
   padding: 0px;
   font-size: 18pt;
   font-family:Verdana;
-  height:30px;
+  /* height:30px; */
   width:100px;
   cursor: pointer;
   text-align: center;
@@ -53,12 +58,22 @@ button {
   border-radius: 12px;
 }
 
+#command_area button{
+  width:150px;
+  padding: 6px 6px 6px 8px;
+  margin-top: 6px;
+}
+
 button:hover {
   background-color: rgb(1, 48, 87);
 }
 
 button:active {
   background-color: rgb(233, 138, 134);
+}
+
+.toggleSelected{
+  background-color: #1bb84a;
 }
 
 .columnDiv{
@@ -76,7 +91,7 @@ button:active {
 }
 label.chrome{
   text-align:left;
-  font-size:16pt;
+  font-size:14pt;
   height:25px;
   color:grey;
   margin-top:3px;

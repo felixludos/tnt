@@ -3,6 +3,7 @@
 }
 #status_area {
   grid-area: status;
+  height: 36px;
 }
 #menu_area {
   grid-area: menu1;
@@ -10,6 +11,11 @@
 #reserve_area {
   grid-area: reserve;
   width: 60px;
+}
+#select_area {
+  grid-area: select;
+  width: 280px;
+  height: 760px;
 }
 
 #map_area {
@@ -19,10 +25,12 @@
 #log_area {
   grid-area: log;
   height: 760px;
+  /* min-width: 150px; */
   overflow-y: scroll;
 }
 #command_area {
   grid-area: command;
+  /* min-width: 150px; */
 }
 #chat_area {
   grid-area: chat;
@@ -57,6 +65,21 @@
   background-color: #2196f3;
   padding: 8px;
 }
+.grid_game_select {
+  display: grid;
+  grid-template-columns: 280px 1190px auto;
+  grid-template-rows: auto 760px auto auto;
+  grid-template-areas:
+    "status status status"
+    "select map  log"
+    "command cards cards"
+    "command openCard openCard";
+    /* "invest invest invest"; */
+  grid-gap: 8px;
+  background-color: #2196f3;
+  padding: 8px;
+}
+
 .grid_game_no_reserve {
   display: grid;
   grid-template-columns: 1190px auto;

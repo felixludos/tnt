@@ -54,10 +54,22 @@ function cartesianOf(ll) {
   }
   return cart;
 }
+function chooseRandom(arr){
+  return chooseRandomElement(arr)
+}
+function chooseRandomElement(arr, condFunc = null) {
+  let len = arr.length;
+  if (condFunc){
+    let best = arr.filter(condFunc);
+    if (!empty(best)) return chooseRandomElement(best);
+  }
+  let idx = Math.floor(Math.random() * len);
+  return arr[idx];
+}
 function choose(arr, n) {
-  var result = new Array(n),
-    len = arr.length,
-    taken = new Array(len);
+  var result = new Array(n);
+  var len = arr.length;
+  var taken = new Array(len);
   if (n > len) throw new RangeError("getRandom: more elements taken than available");
   while (n--) {
     var x = Math.floor(Math.random() * len);
@@ -816,8 +828,8 @@ function inferType(val) {
 //#endregion dictionary helpers
 
 //#region DOM helpers:
-function addChildNodes(elem) {
-  return [...elem.childNodes];
+function arrChildren(elem) {
+  return [...elem.children];
 }
 function clearElement(elem, eventHandlerDictByEvent = {}) {
   while (elem.firstChild) {
@@ -827,6 +839,12 @@ function clearElement(elem, eventHandlerDictByEvent = {}) {
     let el = elem.firstChild;
     elem.removeChild(el);
     //console.log('removed',el)
+  }
+}
+function clearElementFromChildIndex(elem, idx = 0) {
+  let charr = arrChildren(elem).slice(idx);
+  for (const ch of charr) {
+    elem.removeChild(ch);
   }
 }
 function closestParent(elem, selector) {
@@ -852,6 +870,22 @@ function ellipsis(text, font, width, padding) {
     textLength = getTextWidth(text, font); //self.node().getComputedTextLength();
   }
   return ellipsisLength > 0 ? text + "..." : text;
+}
+function ensureInView(container, element) {
+  //Determine container top and bottom
+  let cTop = container.scrollTop;
+  let cBottom = cTop + container.clientHeight;
+
+  //Determine element top and bottom
+  let eTop = element.offsetTop;
+  let eBottom = eTop + element.clientHeight;
+
+  //Check if out of view
+  if (eTop < cTop) {
+    container.scrollTop -= cTop - eTop;
+  } else if (eBottom > cBottom) {
+    container.scrollTop += eBottom - cBottom;
+  }
 }
 function evToId(ev) {
   let elem = findParentWithId(ev.target);
@@ -1534,8 +1568,8 @@ var extend = function() {
 function jsCopy(o) {
   return JSON.parse(JSON.stringify(o));
 }
-function hasSameProps(o1,o2){
-  let diff=propDiff(o1,o2);
+function hasSameProps(o1, o2) {
+  let diff = propDiff(o1, o2);
   return !diff.hasChanged;
 }
 function propDiff(o_old, o_new) {
@@ -1559,12 +1593,12 @@ function propDiff(o_old, o_new) {
           if (sameList(visOld, visNew)) {
             continue;
           }
-        } else if (typeof(o_new[prop])=='object'){
-          if (hasSameProps(o_new[prop],o_old[prop])){
+        } else if (typeof o_new[prop] == "object") {
+          if (hasSameProps(o_new[prop], o_old[prop])) {
             continue;
           }
         }
-  
+
         addIf({prop: prop, old: o_old[prop], new: o_new[prop]}, propChange);
         addIf(prop, summary);
         hasChanged = true;
@@ -1572,7 +1606,7 @@ function propDiff(o_old, o_new) {
     }
   }
   for (const prop in o_old) {
-    if (o_new.hasOwnProperty(prop)) {
+    if (o_old.hasOwnProperty(prop)) {
       if (!(prop in o_new)) {
         addIf(prop, onlyOld);
         addIf(prop, summary);
@@ -1759,18 +1793,7 @@ function stringBefore(sFull, sSub) {
 //#endregion
 
 //#region tnt helpers
-function chooseFirstNonPassTuple(tuples) {
-  if (tuples.length == 1) return tuples[0];
-  else return firstCond(tuples, t => !t.includes("pass"));
-}
-function chooseNthNonPassTuple(tuples, n) {
-  if (tuples.length == 1) return tuples[0];
-  else if (tuples.length < n) {
-    return firstCond(tuples, t => !t.includes("pass"));
-  } else {
-    return firstCond(tuples.slice(n - 1), t => !t.includes("pass"));
-  }
-}
+
 function getTuples(data) {
   let tuples = [];
   //console.log("getTuples", tuples);
@@ -1807,7 +1830,6 @@ function getSet(o, key) {
   else if ("set" in o[key]) return o[key].set;
   else return o[key].xset;
 }
-
 function logFormattedData(data, n, msgAfter = "") {
   let s = makeStrings(data, ["game", "actions", "waiting_for", "created"]);
   console.log("___ step " + n, "\n" + s);
@@ -1816,45 +1838,63 @@ function logFormattedData(data, n, msgAfter = "") {
 function isCardType(o) {
   return "obj_type" in o && endsWith(o.obj_type, "card");
 }
-function isVisibleObject(o, player) {
+function isVisibleToPlayer(o, player) {
   let vis = getVisibleSet(o);
   if (vis && vis.includes(player)) return true;
 }
-function isWrongPhase() {
-  let ph = execOptions.skipTo.phase;
-  return ph != "any" && !startsWithCaseIn(phase, ph);
+function isWrongPhase(optPhase, curPhase) {
+  return optPhase != "any" && !startsWithCaseIn(curPhase, optPhase);
 }
-function isTooEarly() {
-  let yr = execOptions.skipTo.year;
-  return Number(year) < yr || step < execOptions.skipTo.step;
+function isTooEarly(optYear, curYear, optStep, curStep) {
+  return Number(curYear) < optYear || curStep < optStep;
 }
-function isWrongPlayer() {
-  let pl = execOptions.skipTo.player;
-  return pl != "any" && !startsWithCaseIn(player, pl);
+function isWrongPlayer(optPlayer, curPlayer) {
+  return optPlayer != "any" && !startsWithCaseIn(curPlayer, optPlayer);
 }
-function inputsToOptions() {
-  execOptions.skipTo.year = document.getElementById("inYear").value;
-  execOptions.skipTo.phase = document.getElementById("inPhase").value;
-  execOptions.skipTo.player = document.getElementById("inPlayer").value;
-  execOptions.skipTo.step = document.getElementById("inStep").value;
-}
-function optionsToInputs() {
-  document.getElementById("inYear").value = execOptions.skipTo.year;
-  document.getElementById("inPhase").value = execOptions.skipTo.phase;
-  document.getElementById("inPlayer").value = execOptions.skipTo.player;
-  document.getElementById("inStep").value = execOptions.skipTo.step;
-}
-function sendAction(player, tuple, callback, ms = 60) {
-  setTimeout(() => {
-    if (!STOP) {
-      let chain = ["action/" + player + "/" + tuple.join("+"), "info/" + player, "status/" + player];
-      sender.chainSend(chain, player, callback);
+function mergeCreatedAndUpdated(data) {
+  if (!("created" in data)) data.created = {};
+  data.created = extend(true, data.created, data.updated);
+
+  //verify merge worked: created should have same data as updated for same ids
+  let mergeFailed = false;
+  let d = {};
+  if ("created" in data && "updated" in data) {
+    for (const id in data.updated) {
+      if (!(id in data.created)) {
+        d.summary = "missing id in data.created " + id;
+
+        //console.log("missing id in data.created " + id);
+      } else {
+        d = propDiff(data.created[id], data.updated[id]);
+        if (d.hasChanged && (!empty(d.propChange) || !empty(d.onlyNew))) {
+          mergeFailed = true;
+          //alert('MERGE FAILED!!!'+id + " " + d.summary.toString());
+
+          //console.log("difference created - updated: " + id + " " + d.summary.toString());
+          //console.log(d);
+          //console.log("created:", data.created[id]);
+          //console.log("updated:", data.updated[id]);
+        }
+      }
+      console.assert("created" in data && !mergeFailed, "MERGE FAILED!!!" + id + " " + d.summary.toString() + "\n" + data.toString());
     }
+  }
+}
+function sendEmptyAction(player, callback) {
+  testOutput({1: "sending empty action!!!"});
+  sendAction(player, ["none"], callback);
+}
+function sendAction(player, tuple, callback, ms = 30) {
+  setTimeout(() => {
+    testOutput({1: "sending action:" + player + tuple + callback.name});
+    testOutput({0: player + " selects:" + tuple});
+    let chain = ["action/" + player + "/" + tuple.join("+"), "info/" + player, "status/" + player];
+    sender.chainSend(chain, player, callback);
   }, ms);
 }
-function sendChangeToPlayer(player, callback) {
-  let chain = ["info/" + player, "status/" + player];
-  sender.chainSend(chain, player, callback);
+function sendChangeToPlayer(nextPlayer, callback) {
+  let chain = ["info/" + nextPlayer, "status/" + nextPlayer];
+  sender.chainSend(chain, nextPlayer, callback);
 }
 //deprecate!
 function sendChangePlayer(data, callback) {
@@ -1872,8 +1912,8 @@ function sendInit(player, callback, seed = 1) {
   var chain = ["init/hotseat/" + player + "/" + seed, "info/" + player, "status/" + player];
   sender.chainSend(chain, player, callback);
 }
-function sendLoading(filename, player, callback, outputOption='fine') {
-  console.log('loading',filename)
+function sendLoading(filename, player, callback, outputOption = "none") {
+  console.log("loading", filename);
   execOptions.output = outputOption;
   var sData = {};
   sender.send("myload/" + filename + ".json", data => {
@@ -1888,9 +1928,9 @@ function sendLoading(filename, player, callback, outputOption='fine') {
         sData.created = augment(sData.created, sData.updated);
         if ("waiting_for" in data && empty(getSet(data, "waiting_for"))) {
           sender.send("action/" + player + "/none", data => {
-            console.log("empty action response:", data);
+            //console.log("empty action response:", data);
             sData = augment(sData, data);
-            console.log("=augmented data:", sData);
+            //console.log("=augmented data:", sData);
             if (callback) callback(sData);
           });
         } else {
@@ -1900,24 +1940,19 @@ function sendLoading(filename, player, callback, outputOption='fine') {
     });
   });
 }
-function statusMessage(msgAdd = "") {
-  let s = "Phase:" + phase + ", Year:" + year + ", Player:" + player;
-  s += " " + msgAdd;
-  document.getElementById("status_area").innerHTML = s;
-}
 
 //#endregion tnt helpers
 
 //#region type and conversion helpers
 function getTypeOf(param) {
   let type = typeof param;
-  console.log("typeof says:" + type);
+  //console.log("typeof says:" + type);
   if (type == "string") {
     return "string";
   }
   if (type == "object") {
     type = param.constructor.name;
-    console.log(type, startsWith(type, "SVG"));
+    //console.log(type, startsWith(type, "SVG"));
     if (startsWith(type, "SVG")) type = stringBefore(stringAfter(type, "SVG"), "Element").toLowerCase();
     else if (startsWith(type, "HTML")) type = stringBefore(stringAfter(type, "HTML"), "Element").toLowerCase();
   }
@@ -1969,7 +2004,6 @@ function deltaTransformPoint(matrix, point) {
   var dy = point.x * matrix.b + point.y * matrix.d + 0;
   return {x: dx, y: dy};
 }
-
 function decomposeMatrix(matrix) {
   // @see https://gist.github.com/2052247
 
@@ -2005,5 +2039,4 @@ function getZoomFactor(gElement) {
   return info.scale;
   // //console.log(x.scale);
 }
-
 //#endregion zooming
