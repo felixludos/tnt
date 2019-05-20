@@ -229,6 +229,35 @@ function testControlFlow(player = "USSR", filename = "", seed = 4){
 }
 //#endregion
 
+//#region tests for edit mode
+function testEditModeCreateUnit(){
+  player = 'USSR';
+  sendLoading('setup_complete', player, dInit=>{
+    console.log('nach setup data:',dInit);
+    // gameloop(dInit);
+    sender.send('edit/'+player+'/USSR+Moscow+Infantry',dEdit=>{
+      let newUnit = Object.values(dEdit.created)[0];
+      let newId = Object.keys(dEdit.created)[0];
+      dInit.created[newId]=newUnit;
+      gameloop(dInit);
+    });
+  });
+}
+function testEditModeCreateUnit_trial1(){
+  sendInit(player, dInit=>{
+    console.log('init data:',dInit);
+    gameloop(dInit);
+    // sender.send('edit/Axis/Germany+Berlin+Infantry',dEdit=>{
+    //   let newUnit = Object.values(dEdit.created)[0];
+    //   let newId = Object.keys(dEdit.created)[0];
+    //   dInit.created[newId]=newUnit;
+    //   gameloop(dInit);
+    // });
+  });
+}
+
+//#endregion
+
 //#region tests for server communication - not sure if work!
 function testStepByStep(player = "Axis", filename = "gov_complete") {
   sendLoading(filename, player, d => testStep(d, player), "raw");

@@ -52,13 +52,14 @@
         <div id="divSelect" class="sidenav"></div>
       </div>
       <div id="command_area" class="grid_div">
-        <div id="uiActiveButtons" class="hidden" >
+        <div id="uiActiveButtons" class="hidden">
           <button id="bStep" onclick="decider.onClickStep()">step</button>
           <button id="bRunToEnd" onclick="onClickRunToEnd()">run to end</button>
           <!-- <button id="bPlayWest" onclick="onClickPlay(this)">play West</button>
           <button id="bPlayUSSR" onclick="onClickPlay(this)">play USSR</button>
           <button id="bPlayAxis" onclick="onClickPlay(this)">play Axis</button> -->
-          <button id="bRestart" style='margin-top:24px;background-color:orangered;' onclick="onClickRestart(this)">restart</button>
+          <button id="bRestart" style="margin-top:24px;background-color:orangered;" onclick="onClickRestart(this)">restart</button>
+          <button id="bEditTest" style="margin-top:24px;background-color:green;" onclick="onClickEditTest(this)">edit test</button>
         </div>
       </div>
       <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
@@ -127,39 +128,57 @@
       }
       function onClickRunToEnd() {
         STOP = false;
-        execOptions.manualPlay = [];//skipCond = () => true;
+        execOptions.manualPlay = []; //skipCond = () => true;
         decider.onClickStep();
       }
       function onClickPlay(b) {
         // do not restart, just change role: execOptions.skipCond
         //b.classList.add('selected')
         //was ich will wenn einer auch playWest clicked:
-        //toggle 
+        //toggle
 
-        let pl = stringAfter(b.id,'Play');
-        //toggle this player 
-        console.log('before toggle',execOptions.manualPlay.toString());
+        let pl = stringAfter(b.id, "Play");
+        //toggle this player
+        console.log("before toggle", execOptions.manualPlay.toString());
         console.log(execOptions.skipCond);
-        if (execOptions.manualPlay.includes(pl)){
-          console.log('player',pl,'is in manualPlay!')
-          removeInPlace(execOptions.manualPlay,pl);
+        if (execOptions.manualPlay.includes(pl)) {
+          console.log("player", pl, "is in manualPlay!");
+          removeInPlace(execOptions.manualPlay, pl);
           console.log(execOptions.manualPlay);
-          b.classList.remove('toggleSelected');
-        } else{
-          console.log('player',pl,'is NOT in manualPlay!')
+          b.classList.remove("toggleSelected");
+        } else {
+          console.log("player", pl, "is NOT in manualPlay!");
           execOptions.manualPlay.push(pl);
-          b.classList.add('toggleSelected');
+          b.classList.add("toggleSelected");
         }
-        console.log('after toggle',execOptions.manualPlay.toString());
+        console.log("after toggle", execOptions.manualPlay.toString());
         console.log(execOptions.skipCond, player);
-        STOP=false;
+        STOP = false;
         decider.onClickStep();
       }
-      function onClickRestart(){
+      function onClickRestart() {
         //restart with random player, do NOT change role!
         let pl = chooseRandom(assets.factionNames);
-        console.log('restarting with',pl,assets.factionNames.toString());
+        console.log("restarting with", pl, assets.factionNames.toString());
         restart(pl);
+      }
+      function onClickEditTest() {
+        //enter edit mode
+        // in edit mode, all units are visible
+        if (execOptions.mode != "edit") {
+          execOptions.mode = "edit";
+
+        }
+        //sender.send('edit/'+player+'/USSR+Moscow+Infantry',dEdit=>{
+        //  let newUnit = Object.values(dEdit.created)[0];
+        //  let newId = Object.keys(dEdit.created)[0];
+        //  dInit.created[newId]=newUnit;
+        //  gameloop(dInit);
+        //});
+        //restart with random player, do NOT change role!
+        //let pl = chooseRandom(assets.factionNames);
+        //console.log("restarting with", pl, assets.factionNames.toString());
+        //restart(pl);
       }
       function onClickStop() {
         unitTestControl("*** onClickStop!!! ***");
@@ -183,7 +202,7 @@
         mergeCreatedAndUpdated(data);
         cards.update(player, data, gameObjects);
         map.update(data, gameObjects);
-        units.update(data, gameObjects, player);
+        units.update(data, gameObjects, player, execOptions.mode == "edit");
 
         //next action
         let tuples = getTuples(data);
@@ -193,7 +212,7 @@
           let waitingSet = getSet(data, "waiting_for");
           if (empty(waitingSet)) {
             unitTestControl("*** gameloop: sending empty action ***");
-            sendEmptyAction(player, callback);
+            sendEmptyAction(player, gameloop);
           } else {
             unitTestControl("*** gameloop: setting nextAction to sendChangeToPlayer ***");
             nextAction = () => sendChangeToPlayer(waitingSet[0], gameloop);
@@ -208,7 +227,7 @@
           if (autoplay) activateAutoplay();
           else activateUserSelection();
           unitTestControl("*** gameloop: calling decider.genMove ***");
-          unitTestControl("autoplay:",autoplay,'player',player);
+          unitTestControl("autoplay:", autoplay, "player", player);
           decider.genMove(tuples, t => sendAction(player, t, gameloop), autoplay);
         }
         window.scrollTo(0, 0);
@@ -244,7 +263,9 @@
 
           statusMessage();
         } else {
-          error("updateStepPlayerPhaseYear: MISSING GAME DATA!!!");
+          console.log("editing mode");
+          statusMessage("EDIT MODE!");
+          //error("updateStepPlayerPhaseYear: MISSING GAME DATA!!!");
         }
       }
       function updateLog(data) {
@@ -269,10 +290,11 @@
 
       //control flow and console output flags
       var execOptions = {
+        mode: "game", // 'game' || 'edit'
         outputLevel: 0, // (see testOutput: )
         playerChange: "auto", // 'auto' | 'manual'
         skipCond: () => !execOptions.manualPlay.includes(player), // predicate func evaluating to cond for autoplay
-        manualPlay: [],
+        manualPlay: ["Axis", "West", "USSR"],
         activatedTests: [] // unitTest flags to control output
       };
       var moveCounter = 0; //sendaction counts as a move (also player change)
@@ -301,6 +323,9 @@
     <script>
       function startScript() {
         sendInit(player, gameloop, 4);
+        //player = "USSR";
+        //testEditModeCreateUnit();
+
         //testControlFlow(player);
         // testInitToEnd(player,4); //ok
         // testLoadToEnd('Axis','prod_complete'); //ok

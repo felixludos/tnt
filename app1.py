@@ -1,4 +1,5 @@
 from passive_backend import *
+from tnt_edit import *
 from flask import Flask, render_template, send_from_directory
 from flask_cors import CORS
 from flask import request
@@ -159,9 +160,26 @@ def get_status(faction):
 # action values are delimited by "+"
 @app.route('/action/<faction>/<action:vals>')
 def take_action(faction, vals):
-
+    print(vals)
     out = FORMAT_MSG(step(faction, vals), faction)
     return out
+
+#NO!!! edit/Axis means player Axis enters/exits edit mode (maybe not needed)
+#- edit/Axis/Germany+Berlin+Infantry means add unit
+#edit/Axis/1992 means remove unit 1992
+#edit/Axis/1992+2 means set cv of unit 1992 to 2
+#edit/Axis/1992+tile means move unit 1992 to tile
+#edit/Axis/action_44 means add|remove this card from Axis hand
+#edit/none/action_44 means add|remove to open cards (do we need that?)
+#edit/faction/IND+n (NEIN! or POP,RES, soll das gehen? aendert ja tile values) means change track 
+@app.route('/edit/<faction>/<action:vals>')
+def edit_action(faction, vals):
+    print('EDIT step wird aufgerufen')
+    print(vals)
+    out = FORMAT_MSG(edit_step(faction, vals), faction)
+    return out
+
+
 
 
 if __name__ == "__main__":
