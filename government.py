@@ -832,7 +832,7 @@ def government_post_phase(G, player=None, action=None):
 					G.players[inf.faction].diplomacy[diplvl[dipl.value]].remove(dipl.faction)
 			
 			faction = G.players[inf.faction]
-			faction.diplomacy[diplvl[val]].add(dipl.faction)
+			faction.diplomacy[diplvl[val]].add(nation)
 			
 			dipl.faction = inf.faction
 			dipl.value = val

@@ -253,26 +253,26 @@ def load(path):
 
 
 def render_format(raw):
-	if isinstance(raw, dict):
+	if isinstance(raw, set):
+		# return list(render_format(el) for el in raw)
+		itr = dict()
+		for i, el in enumerate(raw):
+			itr['s{}'.format(i)] = render_format(el)
+		return itr
+	elif isinstance(raw, dict):
 		return dict((str(k),render_format(v)) for k,v in raw.items())
 	elif isinstance(raw, list):
-		return list(render_format(el) for el in raw)
-	# 	itr = dict()
-	# 	for i, el in enumerate(raw):
-	# 		itr['l{}'.format(i)] = render_format(el)
-	# 	return itr
-	elif isinstance(raw, set):
-		return list(render_format(el) for el in raw)
-		# itr = dict()
-		# for i, el in enumerate(raw):
-		# 	itr['s{}'.format(i)] = render_format(el)
-		# return itr
+		# return list(render_format(el) for el in raw)
+		itr = dict()
+		for i, el in enumerate(raw):
+			itr['l{}'.format(i)] = render_format(el)
+		return itr
 	elif isinstance(raw, tuple):
-		return list(render_format(el) for el in raw)
-		# itr = dict()
-		# for i, el in enumerate(raw):
-		# 	itr['t{}'.format(i)] = render_format(el)
-		# return itr
+		# return list(render_format(el) for el in raw)
+		itr = dict()
+		for i, el in enumerate(raw):
+			itr['t{}'.format(i)] = render_format(el)
+		return itr
 	return str(raw)
 
 class render_dict(object):

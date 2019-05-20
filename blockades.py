@@ -7,8 +7,21 @@ from tnt_util import travel_options, eval_tile_control, present_powers
 from government import check_revealable, reveal_tech
 import random
 
+border_types = {
+	'Coast': 'sea',
+	'Forest': 'land',
+	'Plains': 'land',
+	'Sea': 'sea',
+	'Ocean': 'sea',
+	'Strait': None,
+	'Ocean-Africa': 'sea',
+	'Mountains':'land',
+	'River': 'land',
+}
+
 def find_path(G, loc, goals, player,
-              neutrals=False, peaceful=False, observed=None):
+              neutrals=False, peaceful=False, observed=None,
+              switch_limits=None, switch_current=None):
 	if loc in goals:
 		return True
 	
@@ -35,7 +48,7 @@ def find_path(G, loc, goals, player,
 				return False
 	
 	# recurse
-	for neighbor in tile.borders:
+	for neighbor, border in tile.borders.items():
 		if neighbor not in observed and find_path(G, loc, goals, player,
               neutrals=neutrals, peaceful=peaceful, observed=observed):
 			return True
@@ -43,10 +56,23 @@ def find_path(G, loc, goals, player,
 
 def blockade_phase(G):
 	
+	for player, faction in G.players:
+
+		if not faction.stats.at_war:
+			continue
+		
+		goals = xset()
+		goals.add(faction.stats.cities.MainCapital)
+		
+		for tilename in faction.territory:
+			
+			connected = find_path(G, tilename, goals=goals, player=player,
+			                      neutrals=True,)
+		
+		pass
 	
 	
 	
-	raise NotImplementedError
 
 def supply_phase(G):
 	
