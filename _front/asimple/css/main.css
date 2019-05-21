@@ -63,6 +63,11 @@ button {
   padding: 6px 6px 6px 8px;
   margin-top: 6px;
 }
+#command2_area button{
+  width:auto;
+  padding: 6px 6px 6px 8px;
+  margin-top: 6px;
+}
 
 button:hover {
   background-color: rgb(1, 48, 87);

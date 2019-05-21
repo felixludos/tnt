@@ -32,6 +32,9 @@
   grid-area: command;
   /* min-width: 150px; */
 }
+#command2_area {
+  grid-area: command2;
+}
 #chat_area {
   grid-area: chat;
 }
@@ -51,6 +54,21 @@
   grid-area: invest;
   height: 200px;
 }
+.grid_game_select {
+  display: grid;
+  grid-template-columns: 280px 1190px auto;
+  grid-template-rows: auto 760px auto auto;
+  grid-template-areas:
+    "status status status"
+    "select map  log"
+    "command cards command2"
+    "command openCard command2";
+    /* "invest invest invest"; */
+  grid-gap: 8px;
+  background-color: #2196f3;
+  padding: 8px;
+}
+
 .grid_game {
   display: grid;
   grid-template-columns: 60px 1190px auto;
@@ -65,21 +83,6 @@
   background-color: #2196f3;
   padding: 8px;
 }
-.grid_game_select {
-  display: grid;
-  grid-template-columns: 280px 1190px auto;
-  grid-template-rows: auto 760px auto auto;
-  grid-template-areas:
-    "status status status"
-    "select map  log"
-    "command cards cards"
-    "command openCard openCard";
-    /* "invest invest invest"; */
-  grid-gap: 8px;
-  background-color: #2196f3;
-  padding: 8px;
-}
-
 .grid_game_no_reserve {
   display: grid;
   grid-template-columns: 1190px auto;
@@ -114,7 +117,7 @@
   padding: 8px;
 }
 
-.grid_edit {
+.grid_edit_old {
   display: grid;
   grid-template-columns: 60px 1190px auto;
   grid-template-rows: auto auto 200px 760px auto auto auto;

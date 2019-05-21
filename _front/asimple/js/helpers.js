@@ -1892,6 +1892,15 @@ function sendAction(player, tuple, callback, ms = 30) {
     sender.chainSend(chain, player, callback);
   }, ms);
 }
+function sendEditAction(player, tuple, callback, ms = 30) {
+  setTimeout(() => {
+    testOutput({1: "sending action:" + player + tuple + callback.name});
+    testOutput({0: player + " selects:" + tuple});
+    sender.send("edit/" + player + "/" + tuple.join("+"),callback);
+    //let chain = ["edit/" + player + "/" + tuple.join("+"), "info/" + player, "status/" + player];
+    //sender.chainSend(chain, player, callback);
+  }, ms);
+}
 function sendChangeToPlayer(nextPlayer, callback) {
   let chain = ["info/" + nextPlayer, "status/" + nextPlayer];
   sender.chainSend(chain, nextPlayer, callback);
@@ -1917,13 +1926,13 @@ function sendLoading(filename, player, callback, outputOption = "none") {
   execOptions.output = outputOption;
   var sData = {};
   sender.send("myload/" + filename + ".json", data => {
-    //console.log("myload response:", data);
+    console.log("myload response:", data);
     sender.send("refresh/" + player, data => {
-      //console.log("refresh response:", data);
+      console.log("refresh response:", data);
       sData.created = data;
       let chain = ["info/" + player, "status/" + player];
       sender.chainSend(chain, player, data => {
-        //console.log("info+status response:", data);
+        console.log("info+status response:", data);
         sData = augment(sData, data);
         sData.created = augment(sData.created, sData.updated);
         if ("waiting_for" in data && empty(getSet(data, "waiting_for"))) {

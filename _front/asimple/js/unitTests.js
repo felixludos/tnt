@@ -1,7 +1,6 @@
 //#region test globals
 var unitTestId = 0;
 //#endregion
-
 //#region generators
 function generateCard(hasOwner = true, hasContent = true, visibleToN = 1) {
   let id = "action_" + unitTestId;
@@ -102,7 +101,7 @@ function generateUnitList() {
 }
 //#endregion
 
-//#region tests for cards
+//#region cards tests for cards
 function testCreateOneCard() {
   let c = generateCard();
   let cman = new ACards(assets);
@@ -127,7 +126,80 @@ function testIntegrationCards(filename = "prod_complete", player = "Axis") {
 }
 //#endregion
 
-//#region tests for map: influence, tracks, tiles, nations
+//#region communication tests for server communication
+function testInitToEnd(player = "USSR", seed = 0) {
+  hide(bStop);
+  sendInit(player, d => testRunToEnd(d, player), seed);
+}
+function testLoadToEnd(player = "Axis", filename = "setup_complete") {
+  hide(bStop);
+  sendLoading(filename, player, d => testRunToEnd(d, player), "raw");
+}
+function testRunToEnd(data, player) {
+  let tuples = getTuples(data);
+  if (empty(tuples)) {
+    let waitingSet = getSet(data, "waiting_for");
+    if (empty(waitingSet)) {
+      error("NO ACTIONS AND EMPTY WAITING SET... sending empty action!!!");
+      sendAction(player, ["none"], d => testRunToEnd(d, player));
+    } else {
+      let nextPlayer = waitingSet[0];
+      sendChangeToPlayer(nextPlayer, d1 => {
+        testRunToEnd(d1, nextPlayer);
+      });
+    }
+  } else {
+    decider.pickTuple(tuples, t => {
+      console.log(player + " chooses " + t.toString());
+      sendAction(player, t, d => testRunToEnd(d, player));
+    });
+  }
+}
+//#endregion
+
+//#region control flow
+function testControlFlow(player = "USSR", filename = "", seed = 4) {
+  execOptions.output = "none";
+  addIf("control", execOptions.activatedTests);
+
+  if (empty(filename)) {
+    sendInit(player, gameloop, seed);
+  } else {
+    sendLoading(filename, player, gameloop);
+  }
+}
+//#endregion
+
+//#region edit mode
+function testEditModeCreateUnit() {
+  player = "USSR";
+  sendLoading("setup_complete", player, dInit => {
+    console.log("nach setup data:", dInit);
+    // gameloop(dInit);
+    sender.send("edit/" + player + "/USSR+Moscow+Infantry", dEdit => {
+      let newUnit = Object.values(dEdit.created)[0];
+      let newId = Object.keys(dEdit.created)[0];
+      dInit.created[newId] = newUnit;
+      gameloop(dInit);
+    });
+  });
+}
+function testEditModeCreateUnit_trial1() {
+  sendInit(player, dInit => {
+    console.log("init data:", dInit);
+    gameloop(dInit);
+    // sender.send('edit/Axis/Germany+Berlin+Infantry',dEdit=>{
+    //   let newUnit = Object.values(dEdit.created)[0];
+    //   let newId = Object.keys(dEdit.created)[0];
+    //   dInit.created[newId]=newUnit;
+    //   gameloop(dInit);
+    // });
+  });
+}
+
+//#endregion
+
+//#region map tests for map: influence, tracks, tiles, nations
 function testIntegrationMap(filename = "prod_complete", player = "Axis") {
   execOptions.output = "none";
   addIf("map", execOptions.activatedTests);
@@ -139,7 +211,7 @@ function testIntegrationMap(filename = "prod_complete", player = "Axis") {
 }
 //#endregion
 
-//#region tests for units
+//#region units tests for units
 function testCreateSingleUnit() {
   execOptions.output = "none";
   addIf("units", execOptions.activatedTests);
@@ -184,75 +256,26 @@ function testIntegrationUnits(filename = "", player = "USSR", seed = 4) {
 }
 //#endregion
 
-//#region tests for server communication
-function testInitToEnd(player = "USSR", seed = 0) {
-  hide(bStop);
-  sendInit(player, d => testRunToEnd(d, player), seed);
-}
-function testLoadToEnd(player = "Axis", filename = "setup_complete") {
-  hide(bStop);
-  sendLoading(filename, player, d => testRunToEnd(d, player), "raw");
-}
-function testRunToEnd(data, player) {
-  let tuples = getTuples(data);
-  if (empty(tuples)) {
-    let waitingSet = getSet(data, "waiting_for");
-    if (empty(waitingSet)) {
-      error("NO ACTIONS AND EMPTY WAITING SET... sending empty action!!!");
-      sendAction(player, ["none"], d => testRunToEnd(d, player));
-    } else {
-      let nextPlayer = waitingSet[0];
-      sendChangeToPlayer(nextPlayer, d1 => {
-        testRunToEnd(d1, nextPlayer);
-      });
-    }
-  } else {
-    decider.pickTuple(tuples, t => {
-      console.log(player + " chooses " + t.toString());
-      sendAction(player, t, d => testRunToEnd(d, player));
-    });
-  }
-}
-//#endregion
-
-//#region test control flow
-function testControlFlow(player = "USSR", filename = "", seed = 4){
+//#region save and load tests
+function testEdit(origData, player = "USSR", filename = "test1", seed = 0) {
   execOptions.output = "none";
-  addIf("control", execOptions.activatedTests);
-
-  if (empty(filename)) {
-    sendInit(player, gameloop, seed);
-  } else {
-    sendLoading(filename, player, gameloop);
-  }
-
-}
-//#endregion
-
-//#region tests for edit mode
-function testEditModeCreateUnit(){
-  player = 'USSR';
-  sendLoading('setup_complete', player, dInit=>{
-    console.log('nach setup data:',dInit);
-    // gameloop(dInit);
-    sender.send('edit/'+player+'/USSR+Moscow+Infantry',dEdit=>{
-      let newUnit = Object.values(dEdit.created)[0];
-      let newId = Object.keys(dEdit.created)[0];
-      dInit.created[newId]=newUnit;
-      gameloop(dInit);
+  //addIf("saveLoad", execOptions.activatedTests);
+  sendInit(player, d1 => {
+    console.log(d1);
+    freezeUI();
+    let tuples = getTuples(d1);
+    sendEditAction(player, ["France", "Vienna", "Fleet"], d2 => {
+      console.log("back from edit", d2);
+      gameloop(origData);
+      // // hier muss save senden!
+      // sender.send("savetest1", dSave => {
+      //   console.log(dSave);
+      //   sendLoading("test1", player, dLoad => {
+      //     console.log(dLoad);
+      //     gameloop(dLoad);
+      //   });
+      // });
     });
-  });
-}
-function testEditModeCreateUnit_trial1(){
-  sendInit(player, dInit=>{
-    console.log('init data:',dInit);
-    gameloop(dInit);
-    // sender.send('edit/Axis/Germany+Berlin+Infantry',dEdit=>{
-    //   let newUnit = Object.values(dEdit.created)[0];
-    //   let newId = Object.keys(dEdit.created)[0];
-    //   dInit.created[newId]=newUnit;
-    //   gameloop(dInit);
-    // });
   });
 }
 

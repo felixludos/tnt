@@ -8,16 +8,20 @@ function testOutput(o) {
     }
   }
 }
+
 function unitTestCards() {
   if (execOptions.activatedTests.includes("cards")) console.log(...arguments);
+}
+function unitTestControl(){
+  if (execOptions.activatedTests.includes("control")) console.log(...arguments);
 }
 function unitTestMap(){
   if (execOptions.activatedTests.includes("map")) console.log(...arguments);
 }
+function unitTestSaveLoad(){
+  if (execOptions.activatedTests.includes("saveLoad")) console.log(...arguments);
+}
 function unitTestUnits(){
   if (execOptions.activatedTests.includes("units")) console.log(...arguments);
-}
-function unitTestControl(){
-  if (execOptions.activatedTests.includes("control")) console.log(...arguments);
 }
 //#endregion

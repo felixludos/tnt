@@ -10,148 +10,66 @@ import tnt_setup as setup
 from tnt_cards import load_card_decks, draw_cards
 from collections import namedtuple
 import traceback
-from passive_backend import step, get_G, process_actions, evaluate_action
+from passive_backend import WAITING_OBJS, WAITING_ACTIONS, REPEATS, step, get_G, get_waiting, process_actions, evaluate_action
 from production import production_phase, encode_production_actions
 from tnt_errors import ActionError
 from tnt_units import load_unit_rules, add_unit
 import json
 import random
 
-
 def edit_step(player, action):
-	# global G #geht nicht!!!!
-	# print('G zum zeitpunkt edit_step ist:',G) #None geht nicht!!!
-	print('_____________________________')
-	print(get_G())
-	g = get_G()
-	g.objects.created = tdict()
-	g.objects.updated = tdict()
-	g.objects.removed = tdict()
+	G = get_G()
+	global WAITING_ACTIONS
+	global WAITING_OBJS
+	global REPEATS
+	G.objects.created = tdict()
+	G.objects.updated = tdict()
+	G.objects.removed = tdict()
+	G.begin()
+	response = e_evaluate_action(G, player, action)
+	G.commit()
+	print('---------------\n',G.players)
+	#WAITING_OBJS, WAITING_ACTIONS = get_waiting()
+	for name in G.players.keys():
+		print('name:',name)
+		if name not in WAITING_OBJS:
+			print('***player: ',player,'not in WAITING_OBJS')
+			WAITING_OBJS[name] = adict()
+			WAITING_OBJS[name].created = adict()
+			WAITING_OBJS[name].updated = adict()
+			WAITING_OBJS[name].removed = adict()
+		WAITING_OBJS[name].created.update(G.objects.created)
+		#print('waiting_obj[name]',WAITING_OBJS[name].created)
+		WAITING_OBJS[name].updated.update(G.objects.updated)
+		WAITING_OBJS[name].removed.update(G.objects.removed)
+	WAITING_ACTIONS = response
+	#print('waiting_actions',WAITING_ACTIONS)
 
-	g.begin()
-	global PHASE_DONE
-
-	try:
-		all_actions = evaluate_edit_action(g, player, action)
-
-	except Exception as e:
-		print('ERROR has happened in edit_step',e)
-		g.abort()
-
-		return process_actions('error', sys.exc_info(), player)
-
+	if player not in WAITING_OBJS:
+		print('*REPEATS**player: ',player,'not in WAITING_OBJS')	
+		out = REPEATS[player]
+	out = WAITING_OBJS[player]
+	del WAITING_OBJS[player]
+	if player in WAITING_ACTIONS:
+		out.actions = WAITING_ACTIONS[player]
 	else:
-		g.commit()
-		print('vor return process_actions ende')
-		print('***********************************')
-		print(all_actions)
-		return process_actions('actions', all_actions, player)
-	#return step(player,action)
-
-def evaluate_edit_action(G, player=None, action=None):  # keeps going through phases until actions are returned
-	
-	out = None
-	
-	while out is None:
-		try:
-			#phase = G.game.sequence[G.game.index]
-			#out = PHASES[phase](G, player=player, action=action)
-			#geht! out = setup.setup_phase(G, player=player, action=action)
-			out = production_edit_phase(G, player=player, action=action)
-			player, action = None, None
-		except PhaseComplete:
-			G.game.index += 1
-			
-			G.logger.write('Beginning phase: {}'.format(G.game.sequence[G.game.index]))
-			
-			# maybe save G to file
-			save_gamestate('temp.json')
-			
-			player, action = None, None
-			if DEBUG:
-				out = adict()
-				global PHASE_DONE
-				PHASE_DONE = True
-		except PhaseInterrupt as e:
-			switch_phase(G, e.phase)
-			player, action = e.player, e.action
-		else:
-			assert out is not None, 'Phase {} did not complete'.format(phase)
-	
+		out.waiting_for = xset(WAITING_ACTIONS.keys())
+	out.log = G.logger.pull(player)
+	REPEATS[player] = out
 	return out
 
-def production_edit_phase(G, player, action):
-	
-	if action is None:
-		
-		if 'temp' in G:
-			del G.temp
-		
-		G.temp = tdict()
-		
-		G.temp.active_idx = 0
-		G.temp.prod = tdict()
-		
-		# TODO: update blockades
-		
-		for player, faction in G.players.items():
-			G.temp.prod[player] = tdict()
-			G.temp.prod[player].production_remaining = compute_production_level(faction)
-			
-			G.temp.prod[player].upgraded_units = tset()
-			
-			G.temp.prod[player].action_cards_drawn = 0
-			G.temp.prod[player].invest_cards_drawn = 0
-		
-		# remove all blockades (not unsupplied markers)
-		
-		active_player = G.game.turn_order[G.temp.active_idx]
-		G.logger.write(
-			'{} may spend {} production points'.format(active_player, G.temp.prod[active_player].production_remaining))
-		
-		return encode_production_actions(G)
-	
-	if len(action) == 1: # card or upgrade unit
-		
-		if action == ('action_card',):
-			G.temp.prod[player].action_cards_drawn += 1
-			effect = 'drawing an action card'
-		
-		elif action == ('investment_card', ):
-			G.temp.prod[player].invest_cards_drawn += 1
-			effect = 'drawing an investment card'
-			
-		elif action == ('pass',):
-			effect = 'passing'
-		
-		else:
-			ID, = action
-			
-			#G.temp.prod[player].upgraded_units.add(ID)
-			
-			unit = G.objects.table[ID]
-			unit.cv += 1
-			G.objects.updated[ID] = unit
-			
-			effect = 'upgrading a unit in {}'.format(G.objects.table[ID].tile)
-		
-	else: # create new unit
-		nationality, tilename, unit_type = action
-		
-		unit = adict()
-		unit.nationality = nationality
-		unit.tile = tilename
-		unit.type = unit_type
-		
-		unit = add_unit(G, unit)
-		
-		#G.temp.prod[player].upgraded_units.add(unit._id)
-		
-		effect = 'building a new cadre in {}'.format(unit.tile)
-	
-	return encode_edit_actions(G, player)
-
-def encode_edit_actions(G, player):
-	code = adict()
-	return code
+def e_evaluate_action(G, player=None, action=None):  # keeps going through phases until actions are returned
+	nationality, tilename, unit_type = action
+	unit = adict()
+	unit.nationality = nationality
+	unit.tile = tilename
+	unit.type = unit_type
+	unit.cv = 1
+	unit = add_unit(G, unit)
+	response = adict()
+	#response.created = G.objects.created
+	#print('unit',unit)
+	#print('response vor format',response)
+	player, action = None, None
+	return response
 

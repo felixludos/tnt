@@ -2,7 +2,9 @@
 <html>
   <head>
     <title>a94</title>
-    <link rel="shortcut icon" href="#" />
+    <link rel="shortcut icon" href="">
+    <!-- <link rel="shortcut icon" href="/a/assets/palmtree.ico"> -->
+    <!-- <link rel="shortcut icon" href="#" /> -->
     <link rel="stylesheet" type="text/css" href="/a/css/selectStyle.css" />
     <link rel="stylesheet" type="text/css" href="/a/css/autocomp.css" />
     <link rel="stylesheet" type="text/css" href="/a/css/main.css" />
@@ -63,6 +65,12 @@
         </div>
       </div>
       <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
+      <div id="command2_area" class="grid_div">
+        <div id="ui2Buttons">
+          <button id="bSave" onclick="onClickSave()">save</button>
+          <button id="bLoad" onclick="onClickLoad()">load</button>
+        </div>
+      </div>
       <div id="hand_area" class="grid_div" style="height:200px">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
           <g id="handG_Axis" style="visibility:hidden"><text x="10" y="25" fill="grey">Axis</text></g>
@@ -123,13 +131,31 @@
           error("NO NEXT ACTION!!!!!!!");
         }
       }
+      function freezeUI(){
+        decider.clear();
+        activateWaitingForServer();
+      }
+      function onClickEditTest() {
+        //enter edit mode
+        // in edit mode, all units are visible
+        if (execOptions.mode != "edit") {
+          execOptions.mode = "edit";
+        }
+        //decider.cancel();
+        testEdit(serverData);
+        //sender.send('edit/'+player+'/USSR+Moscow+Infantry',dEdit=>{
+        //  let newUnit = Object.values(dEdit.created)[0];
+        //  let newId = Object.keys(dEdit.created)[0];
+        //  dInit.created[newId]=newUnit;
+        //  gameloop(dInit);
+        //});
+        //restart with random player, do NOT change role!
+        //let pl = chooseRandom(assets.factionNames);
+        //console.log("restarting with", pl, assets.factionNames.toString());
+        //restart(pl);
+      }
       function onClickNextPlayer() {
         callNextAction();
-      }
-      function onClickRunToEnd() {
-        STOP = false;
-        execOptions.manualPlay = []; //skipCond = () => true;
-        decider.onClickStep();
       }
       function onClickPlay(b) {
         // do not restart, just change role: execOptions.skipCond
@@ -162,23 +188,13 @@
         console.log("restarting with", pl, assets.factionNames.toString());
         restart(pl);
       }
-      function onClickEditTest() {
-        //enter edit mode
-        // in edit mode, all units are visible
-        if (execOptions.mode != "edit") {
-          execOptions.mode = "edit";
-
-        }
-        //sender.send('edit/'+player+'/USSR+Moscow+Infantry',dEdit=>{
-        //  let newUnit = Object.values(dEdit.created)[0];
-        //  let newId = Object.keys(dEdit.created)[0];
-        //  dInit.created[newId]=newUnit;
-        //  gameloop(dInit);
-        //});
-        //restart with random player, do NOT change role!
-        //let pl = chooseRandom(assets.factionNames);
-        //console.log("restarting with", pl, assets.factionNames.toString());
-        //restart(pl);
+      function onClickRunToEnd() {
+        STOP = false;
+        execOptions.manualPlay = []; //skipCond = () => true;
+        decider.onClickStep();
+      }
+      function onClickSave(){
+        console.log('save not implemented!')
       }
       function onClickStop() {
         unitTestControl("*** onClickStop!!! ***");
@@ -196,7 +212,9 @@
     <script>
       function gameloop(data) {
         //update
+        serverData = data;
         unitTestControl("*** gameloop: updating ***");
+
         updateStepPlayerPhaseYear(data);
         updateLog(data);
         mergeCreatedAndUpdated(data);
@@ -252,6 +270,7 @@
       }
       function updateStepPlayerPhaseYear(data) {
         moveCounter += 1;
+        console.log(moveCounter,": gameloop")
         if ("game" in data) {
           year = Number(data.game.year);
           phase = data.game.phase;
@@ -263,7 +282,7 @@
 
           statusMessage();
         } else {
-          console.log("editing mode");
+          console.log("data:",data);
           statusMessage("EDIT MODE!");
           //error("updateStepPlayerPhaseYear: MISSING GAME DATA!!!");
         }
@@ -287,6 +306,7 @@
       var phase = "Setup";
       var gameObjects = {}; //all created objects in play, ids same as server ids
       var nextAction = null;
+      var serverData = null;
 
       //control flow and console output flags
       var execOptions = {

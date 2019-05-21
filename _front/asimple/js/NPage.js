@@ -13,6 +13,7 @@ class NPage {
 
     show(this.select_area);
     show(this.command_area);
+    show(this.command2_area);
 
     show(this.map_area);
 
@@ -41,6 +42,7 @@ class NPage {
 
     this.log_area = document.getElementById("log_area");
     this.command_area = document.getElementById("command_area");
+    this.command2_area = document.getElementById("command2_area");
 
     this.hand_area = document.getElementById("hand_area");
     this.cards2_area = document.getElementById("cards2_area");
