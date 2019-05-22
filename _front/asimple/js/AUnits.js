@@ -163,6 +163,7 @@ class AUnits {
   }
   removeUnit(id) {
     //just remove from units of current owner,tile
+    //do NOT remove from UI! new position will be set after this in moveUnit
     let ms = this.uis[id].ms;
     let owner = ms.getTag("owner");
     let tile = ms.getTag("tile");
@@ -229,23 +230,23 @@ class AUnits {
       msHidden.show();
     }
   }
-  update(data, G, player, visibleForAll = false) {
+  update(data, gObjects, player, visibleForAll = false) {
     if ("created" in data) {
       for (const id in data.created) {
         let o_new = data.created[id];
         if (o_new.obj_type != "unit") continue;
 
-        if (!(id in G)) {
+        if (!(id in gObjects)) {
           this.createUnit(id, o_new, player, visibleForAll);
           if (id in this.uis) {
-            G[id] = o_new;
+            gObjects[id] = o_new;
           } else {
             unitTestUnits(":::::::UNIT WAS NOT CREATED!!!");
           }
         } else {
           //this unit has already been created,
           //check for propDiff
-          let o_old = G[id];
+          let o_old = gObjects[id];
           console.assert(id in this.uis, "unit in G but not in uis", id, o_new);
           let d = propDiff(o_old, o_new);
           if (d.hasChanged) {
@@ -258,11 +259,28 @@ class AUnits {
             } else if (d.summary.includes("cv")) {
               unitTestUnits("cv change!!!!! " + o_old.cv + " " + o_new.cv);
               this.updateCv(this.uis[id].ms, o_new.cv);
-              G[id] = o_new;
+              gObjects[id] = o_new;
             } else if (d.summary.includes("tile")) {
               //move unit!!!
               alert("tile change!");
             }
+          }
+        }
+      }
+    }
+
+    if ("removed" in data) {
+      //remove influence or some chip (blockade... not implemented)
+      for (const id in data.removed) {
+        if (id in gObjects) {
+          let o = gObjects[id];
+          if (o.obj_type == "unit") {
+            this.removeUnit(id);
+            let ms = this.uis[id].ms; //o.nation];
+            ms.removeFromUI();
+            this.updateUnitCounter(o.owner, o.tile);
+            delete this.uis[id];
+            delete gObjects[id];
           }
         }
       }

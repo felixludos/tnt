@@ -42,9 +42,9 @@ class ASender {
   send(url, callback) {
     url = this.backendUrl + url;
     this.msgCounter += 1;
-    if (this.options.output == "fine") {
-      testOutput({1:this.msgCounter + ": request sent: " + url});
-    }
+    //if (this.options.output == "fine") {
+    testOutput({0: [this.msgCounter + ": request sent: " + url]});
+    //}
 
     $.ajax({
       url: url,
@@ -54,6 +54,13 @@ class ASender {
           callback(JSON.parse('{"response":"' + response + '"}'));
         } else {
           this.serverData = JSON.parse(response);
+          if ("removed" in this.serverData) {
+            for (const id in this.serverData.removed) {
+              unitTestRemoved(this.serverData.removed.toString());
+              alert("removed data!!!");
+              break;
+            }
+          }
           if ("error" in this.serverData) {
             error(response);
           } else {

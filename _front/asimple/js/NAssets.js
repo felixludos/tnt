@@ -37,10 +37,29 @@ class NAssets {
       chip: 40,
       influence: 100
     };
-    this.uid2id={};
-    this.id2uid={};
+    this.uid2id = {};
+    this.id2uid = {};
+    this.phaseNames = [
+      "Setup",
+      "New_Year",
+      "Production",
+      "Government",
+      "Spring",
+      "Summer",
+      "Blockade",
+      "Fall",
+      "Winter",
+      "Satellite",
+      "Movement",
+      "Combat",
+      "Supply",
+      "Retreat",
+      "Land_Battle",
+      "Naval_Battle",
+      "Scoring"
+    ];
   }
-  initAssets(map,callback) {
+  initAssets(map, callback) {
     //console.log("loading...");
     this.calculateTrackPositions();
     loadYML("/a/assets/config/map_pos.yml", data => {
@@ -116,5 +135,4 @@ class NAssets {
     this.id2uid[id] = uid;
     return uid;
   }
-
 }

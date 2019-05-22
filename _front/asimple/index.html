@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>a94</title>
-    <link rel="shortcut icon" href="">
+    <link rel="shortcut icon" href="" />
     <!-- <link rel="shortcut icon" href="/a/assets/palmtree.ico"> -->
     <!-- <link rel="shortcut icon" href="#" /> -->
     <link rel="stylesheet" type="text/css" href="/a/css/selectStyle.css" />
@@ -17,6 +17,7 @@
     <script src="/a/js/NAssets.js"></script>
     <script src="/a/js/unitTestIOHelpers.js"></script>
     <script src="/a/js/helpers.js"></script>
+    <script src="/a/js/helpersTnt.js"></script>
     <script src="/a/js/panzoom.js"></script>
     <script src="/a/js/MS.js"></script>
     <script src="/a/js/NPage.js"></script>
@@ -24,6 +25,7 @@
     <script src="/a/js/AHand.js"></script>
     <script src="/a/js/ACards.js"></script>
     <script src="/a/js/AUnits.js"></script>
+    <script src="/a/js/AStrategy.js"></script>
     <script src="/a/js/ADecisiongen.js"></script>
     <script src="/a/js/unitTests.js"></script>
   </head>
@@ -57,11 +59,21 @@
         <div id="uiActiveButtons" class="hidden">
           <button id="bStep" onclick="decider.onClickStep()">step</button>
           <button id="bRunToEnd" onclick="onClickRunToEnd()">run to end</button>
+          <button id="bRunToSpring" onclick="onClickRunToSpring()">run to Spring</button>
           <!-- <button id="bPlayWest" onclick="onClickPlay(this)">play West</button>
           <button id="bPlayUSSR" onclick="onClickPlay(this)">play USSR</button>
           <button id="bPlayAxis" onclick="onClickPlay(this)">play Axis</button> -->
           <button id="bRestart" style="margin-top:24px;background-color:orangered;" onclick="onClickRestart(this)">restart</button>
-          <button id="bEditTest" style="margin-top:24px;background-color:green;" onclick="onClickEditTest(this)">edit test</button>
+          <button id="bEditTest" class="hidden" style="margin-top:24px;background-color:green;" onclick="onClickEditTest(this)">
+            edit test
+          </button>
+          <button id="bAddUnit" class="hidden" style="background-color:green;" onclick="onClickAddUnit(this)">add unit</button>
+          <button id="bAddInfluence" style="background-color:green;" onclick="onClickAddInfluence(this)">
+            add influence
+          </button>
+          <button id="bRemoveInfluence" style="background-color:green;" onclick="onClickRemoveInfluence(this)">
+            remove influence
+          </button>
         </div>
       </div>
       <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
@@ -131,9 +143,57 @@
           error("NO NEXT ACTION!!!!!!!");
         }
       }
-      function freezeUI(){
+      function freezeUI() {
         decider.clear();
         activateWaitingForServer();
+      }
+      function unfreezeUI() {
+        //decider.clear();
+        activateUserSelection();
+      }
+      function printActions(data) {
+        if ("actions" in data) {
+          console.log(data.actions);
+          // if ('set' in data.actions){
+          //   console.log(data.actions.set.toString());
+          // }else{
+          //   console.log(data.created.toString());
+          // }
+        } else {
+          console.log("... no actions ...");
+        }
+      }
+      function printCreatedUnits(data) {
+        console.log("...created:");
+        if ("created" in data) {
+          for (const id in data.created) {
+            let o = data.created[id];
+            if (o.obj_type != "unit") continue;
+            console.log(id, o.nationality, o.tile, o.type);
+          }
+        }
+      }
+      function onClickAddUnit() {
+        freezeUI();
+        let dOrig = serverData;
+        console.log(dOrig);
+        let tuple = randomUnitTuple();
+        sendEditAction(player, tuple, dEdit => {
+          console.log("back from edit", dEdit);
+          if ("created" in dEdit) {
+            dOrig = extend(true, dOrig, dEdit);
+            console.log("nach extend und edit", dOrig);
+            printCreatedUnits(dOrig);
+            printActions(dOrig);
+          }
+          gameloop(dOrig);
+        });
+      }
+      function onClickAddInfluence() {
+        testAddInfluence(map, gameObjects);
+      }
+      function onClickRemoveInfluence() {
+        testRemoveInfluence(map, gameObjects);
       }
       function onClickEditTest() {
         //enter edit mode
@@ -193,8 +253,20 @@
         execOptions.manualPlay = []; //skipCond = () => true;
         decider.onClickStep();
       }
-      function onClickSave(){
-        console.log('save not implemented!')
+      function onClickRunToSpring() {
+        STOP = false;
+        execOptions.skipCond = () => phase != "Spring";
+        decider.onClickStep();
+      }
+      function onClickSave() {
+        freezeUI();
+        let dOrig = serverData;
+        sender.send("savetest1", d => {
+          sender.send("status/" + player, d1 => {
+            unfreezeUI();
+            gameloop(dOrig);
+          });
+        });
       }
       function onClickStop() {
         unitTestControl("*** onClickStop!!! ***");
@@ -213,7 +285,15 @@
       function gameloop(data) {
         //update
         serverData = data;
-        unitTestControl("*** gameloop: updating ***");
+        if ("removed" in data) {
+          for (const key in data.removed) {
+            STOP = true;
+            break;
+          }
+        }
+
+        unitTestControl("*** gameloop: updating ***", data);
+        testOutput({0: [moveCounter + "gameloop:", data]});
 
         updateStepPlayerPhaseYear(data);
         updateLog(data);
@@ -223,7 +303,9 @@
         units.update(data, gameObjects, player, execOptions.mode == "edit");
 
         //next action
-        let tuples = getTuples(data);
+        tuples = getTuples(data);
+
+        make_G();
 
         //player change if no actions OR decide next action
         if (empty(tuples)) {
@@ -243,12 +325,23 @@
           //actions: decider generates a move:
           let autoplay = execOptions.skipCond() && !STOP;
           if (autoplay) activateAutoplay();
-          else activateUserSelection();
+          else {
+            execOptions.skipCond = defaultSkipCond;
+            activateUserSelection();
+          }
           unitTestControl("*** gameloop: calling decider.genMove ***");
           unitTestControl("autoplay:", autoplay, "player", player);
-          decider.genMove(tuples, t => sendAction(player, t, gameloop), autoplay);
+          decider.genMove(G, t => sendAction(player, t, gameloop), autoplay);
         }
         window.scrollTo(0, 0);
+      }
+      function make_G() {
+        G.player = player;
+        G.phase = phase;
+        G.year = year;
+        G.tuples = tuples;
+        G.objects = gameObjects;
+        G.serverData = serverData;
       }
       function restart(pl, filename = "") {
         player = pl;
@@ -270,7 +363,7 @@
       }
       function updateStepPlayerPhaseYear(data) {
         moveCounter += 1;
-        console.log(moveCounter,": gameloop")
+        //console.log(moveCounter, ": gameloop");
         if ("game" in data) {
           year = Number(data.game.year);
           phase = data.game.phase;
@@ -282,7 +375,7 @@
 
           statusMessage();
         } else {
-          console.log("data:",data);
+          console.log("data:", data);
           statusMessage("EDIT MODE!");
           //error("updateStepPlayerPhaseYear: MISSING GAME DATA!!!");
         }
@@ -301,19 +394,22 @@
 
     <!-- #region globals -->
     <script>
-      var player = "Axis"; //22 steps
+      var G = {}; //package up all game state info
+      var player; //22 steps
       var year = 1935;
       var phase = "Setup";
       var gameObjects = {}; //all created objects in play, ids same as server ids
       var nextAction = null;
       var serverData = null;
+      var tuples = [];
 
       //control flow and console output flags
+      var defaultSkipCond = () => !execOptions.manualPlay.includes(player);
       var execOptions = {
         mode: "game", // 'game' || 'edit'
         outputLevel: 0, // (see testOutput: )
         playerChange: "auto", // 'auto' | 'manual'
-        skipCond: () => !execOptions.manualPlay.includes(player), // predicate func evaluating to cond for autoplay
+        skipCond: defaultSkipCond, //!execOptions.manualPlay.includes(player), // predicate func evaluating to cond for autoplay
         manualPlay: ["Axis", "West", "USSR"],
         activatedTests: [] // unitTest flags to control output
       };
@@ -342,7 +438,17 @@
     <!-- #region execution starts here! -->
     <script>
       function startScript() {
-        sendInit(player, gameloop, 4);
+        //addIf("control", execOptions.activatedTests);
+        //addIf("units", execOptions.activatedTests);
+        //addIf("strategy", execOptions.activatedTests);
+        addIf("removed", execOptions.activatedTests);
+        player = "Axis";
+        sendInit(player, gameloop, 5);
+        //bei seed = 4: kommt nur influence von <= 2 zustande!
+        //bei seed = 1: geht nicht, in gov phase kommt fehler: USA cannot become satellite of Axis
+        //try seed = 2: nur <= 2
+        //try seed = 3: usa becoming satellite of Axis! mit West kommt nicht ueber 1
+
         //player = "USSR";
         //testEditModeCreateUnit();
 

@@ -209,6 +209,111 @@ function testIntegrationMap(filename = "prod_complete", player = "Axis") {
     sendLoading(filename, player, gameloop);
   }
 }
+function testAddInfluence(mapController, gObjects) {
+  let data = {};
+  addIf("map", execOptions.activatedTests);
+  data.created = {
+    "507565": {
+      value: 1,
+      nation: "Baltic_States",
+      faction: "Axis",
+      obj_type: "influence",
+      visible: {
+        xset: ["Axis", "USSR", "West"]
+      },
+      _id: 507565
+    },
+    "531772": {
+      value: 2,
+      nation: "Poland",
+      faction: "Axis",
+      obj_type: "influence",
+      visible: {
+        xset: ["Axis", "USSR", "West"]
+      },
+      _id: 531772
+    },
+    "531773": {
+      value: 1,
+      nation: "Portugal",
+      faction: "Axis",
+      obj_type: "influence",
+      visible: {
+        xset: ["Axis", "USSR", "West"]
+      },
+      _id: 531773
+    },
+    "531774": {
+      value: 2,
+      nation: "Norway",
+      faction: "Axis",
+      obj_type: "influence",
+      visible: {
+        xset: ["Axis", "USSR", "West"]
+      },
+      _id: 531774
+    },
+    "531775": {
+      value: 4,
+      nation: "Latin_America",
+      faction: "Axis",
+      obj_type: "influence",
+      visible: {
+        xset: ["Axis", "USSR", "West"]
+      },
+      _id: 531775
+    }
+  };
+  mapController.update(data, gObjects);
+}
+function testRemoveInfluence(mapController, gObjects) {
+  let data = {};
+  addIf("map", execOptions.activatedTests);
+  data.removed = {
+    "507565": {
+      obj_type: "influence",
+      visible: {
+        xset: ["Axis", "USSR", "West"]
+      },
+      _id: 507565
+    },
+    "531772": {
+      obj_type: "influence",
+      visible: {
+        xset: ["Axis", "USSR", "West"]
+      },
+      _id: 531772
+    },
+    "531773": {
+      obj_type: "influence",
+      visible: {
+        xset: ["Axis", "USSR", "West"]
+      },
+      _id: 531773
+    },
+    "531774": {
+      value: 2,
+      nation: "Norway",
+      faction: "Axis",
+      obj_type: "influence",
+      visible: {
+        xset: ["Axis", "USSR", "West"]
+      },
+      _id: 531774
+    },
+    "531775": {
+      value: 4,
+      nation: "Latin_America",
+      faction: "Axis",
+      obj_type: "influence",
+      visible: {
+        xset: ["Axis", "USSR", "West"]
+      },
+      _id: 531775
+    }
+  };
+  mapController.update(data, gObjects);
+}
 //#endregion
 
 //#region units tests for units
@@ -257,6 +362,9 @@ function testIntegrationUnits(filename = "", player = "USSR", seed = 4) {
 //#endregion
 
 //#region save and load tests
+function testEditAddRandomUnit() {
+  let tuple = randomUnitTuple();
+}
 function testEdit(origData, player = "USSR", filename = "test1", seed = 0) {
   execOptions.output = "none";
   //addIf("saveLoad", execOptions.activatedTests);

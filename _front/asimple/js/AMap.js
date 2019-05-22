@@ -5,7 +5,7 @@ class AMap {
     this.tiles = {};
     this.nations = {};
     this.chips = {};
-    this.influences = {};
+    this.influences = {}; //ms by id
     this.vpts = {Axis: [], West: [], USSR: []};
     this.calculateStatsPositions();
   }
@@ -58,10 +58,10 @@ class AMap {
     return ms;
   }
   createInfluence(id, nation, faction, value) {
-    unitTestMap('createInfluence',id,nation,faction,value);
+    unitTestMap("createInfluence", id, nation, faction, value);
     let ms = new MS(id, assets.getUniqueId(id), "mapG");
     this.drawInfluence(ms, nation, faction, value);
-    this.influences[nation] = ms;
+    //this.influences[nation] = ms;
 
     let pos = this.assets.nationPositions[nation];
 
@@ -81,7 +81,9 @@ class AMap {
     return ms;
   }
   drawInfluence(ms, nation, faction, level) {
-    if (faction === undefined){alert();}
+    if (faction === undefined) {
+      alert();
+    }
     let imagePath = "/a/assets/images/" + faction + ".svg";
     let color = this.assets.troopColors[faction];
     //console.log('COLOR:',color)
@@ -147,14 +149,14 @@ class AMap {
     ms.setPos(pos.x, pos.y);
   }
   updateInfluence(id, nation, faction, value) {
-    unitTestMap('updateInfluence',id,nation,faction,value);
+    unitTestMap("updateInfluence", id, nation, faction, value);
 
     let ms = this.influences[id];
     ms.show();
     ms.removeFromChildIndex(1);
     this.drawInfluence(ms, nation, faction, value);
   }
-  update(data, G) {
+  update(data, gameObjs) {
     if ("created" in data) {
       for (const id in data.created) {
         let o_new = data.created[id];
@@ -163,22 +165,40 @@ class AMap {
         if (o_new.obj_type == "tile") {
           if (id in this.tiles) continue; //tiles created once only, never updated
           this.tiles[id] = this.createTile(id, o_new);
-          G[id] = o_new;
+          gameObjs[id] = o_new;
 
-        //influences
+          //influences
         } else if (o_new.obj_type == "influence" && "nation" in o_new && "faction" in o_new) {
+          unitTestMap("map update", id, this.influences);
           if (id in this.influences) {
-            let o_old = G[id];
+            unitTestMap(id, "is in this.influences");
+            let o_old = gameObjs[id];
             // property change check! only value should ever change for existing influence!
-            let d = propDiff(o_old,o_new);
+            unitTestMap("vor propDiff", o_old, o_new);
+            let d = propDiff(o_old, o_new);
             if (d.hasChanged) {
-              unitTestMap('influence has changed props:',d.summary.toString());
+              unitTestMap("influence has changed props:", d.summary.toString());
               this.updateInfluence(id, o_new.nation, o_new.faction, o_new.value);
             }
           } else {
             this.influences[id] = this.createInfluence(id, o_new.nation, o_new.faction, o_new.value);
           }
-          G[id] = o_new;
+          gameObjs[id] = o_new;
+        }
+      }
+    }
+
+    if ("removed" in data) {
+      //remove influence or some chip (blockade... not implemented)
+      for (const id in data.removed) {
+        if (id in gameObjs) {
+          let o = gameObjs[id];
+          if (o.obj_type == "influence") {
+            let ms = this.influences[id]; //o.nation];
+            ms.removeFromUI();
+            delete gameObjs[id];
+            delete this.influences[id]; //o.nation];
+          }
         }
       }
     }

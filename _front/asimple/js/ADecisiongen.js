@@ -1,61 +1,39 @@
 class ADecisiongen {
   constructor(assets) {
     this.assets = assets;
-    this.choiceIndex = 0;
-    this.choiceModulo = 5;
     this.callback = null;
     this.autoplay = true;
     this.tuples = [];
     this.selectionDone = false;
     this.bAuto = document.getElementById("bAuto");
-  }
-  chooseDeterministicRandomNonPassTuple(tuples) {
-    let n = this.choiceIndex;
-    this.choiceIndex = (this.choiceIndex + 1) % this.choiceModulo;
+    this.playerStrategy = {};
 
-    if (tuples.length == 1) return tuples[0];
-    else if (tuples.length <= n) {
-      return firstCond(tuples, t => !t.includes("pass"));
-    } else {
-      return firstCond(tuples.slice(n - 1), t => !t.includes("pass"));
-    }
-  }
-  chooseRandomNonPassTuple(tuples) {
-    if (tuples.length == 1) return tuples[0];
-    else {
-      let tuple = chooseRandomElement(tuples, t => !t.includes("pass"));
-      return tuple;
-    }
-  }
-  chooseFavIfPossible(tuples,fav) {
-    if (tuples.length == 1) return tuples[0];
-    else {
-      let favTuples = tuples.filter(t => t.includes(fav));
-      console.log('favTuples:',favTuples);
-      let tuple=empty(favTuples)?chooseRandomElement(tuples, t => !t.includes("pass")):favTuples[0];
-      console.log('chooseFavIfPossible outcome:',tuple);
-      
-      return tuple;
-    }
+    //init strategies
+    this.playerStrategy["Axis"] = new AStrategy(this.assets, {Government: t => anyStartsWith(t, "action_")});
+    this.playerStrategy["West"] = new AStrategy(this.assets, {Government: t => t.includes("pass")});
+    this.playerStrategy["USSR"] = new AStrategy(this.assets, {Government: t => t.includes("pass")});
   }
   clear() {
     let d = document.getElementById("divSelect");
     clearElement(d);
   }
-  genMove(tuples, callback, autoplay = true) {
+  genMove(G, callback, autoplay = true) {
     this.selectionDone = false;
     this.autoplay = autoplay;
     this.callback = callback;
-    this.tuples = tuples;
-    this.presentTuples(tuples);
+    this.tuples = G.tuples;
+    this.presentTuples(this.tuples);
     if (autoplay) {
-      let tuple = this.chooseRandomNonPassTuple(tuples); //this.chooseFavIfPossible(tuples,'investment_card'); //tuples[tuples.length - 1]; // this.chooseDeterministicRandomNonPassTuple(tuples);
-      let index = tuples.indexOf(tuple);
+      let tuple = this.playerStrategy[G.player].chooseTuple(G);
+      // if (G.phase == "Government") {
+      //   alert(G.player + " chooses " + tuple.toString());
+      // }
+      let index = this.tuples.indexOf(tuple);
       let msecs = 0;
       this.highlightTuple(index, msecs);
       setTimeout(() => callback(tuple), msecs + 30); // leave user time to see what happened!
 
-      // callback(tuples[0]);
+      // callback(this.tuples[0]);
     }
   }
   highlightTuple(index, msecs = 30) {
