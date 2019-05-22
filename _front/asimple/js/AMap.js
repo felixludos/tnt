@@ -82,7 +82,7 @@ class AMap {
   }
   drawInfluence(ms, nation, faction, level) {
     if (faction === undefined) {
-      alert();
+      alert("drawInfluence faction undefined!!!");
     }
     let imagePath = "/a/assets/images/" + faction + ".svg";
     let color = this.assets.troopColors[faction];

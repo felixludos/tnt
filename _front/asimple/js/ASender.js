@@ -58,7 +58,7 @@ class ASender {
           if ("removed" in this.serverData) {
             for (const id in this.serverData.removed) {
               unitTestRemoved(this.serverData.removed.toString());
-              alert("removed data!!!");
+              //alert("removed data!!!");
               break;
             }
           }

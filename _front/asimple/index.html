@@ -53,17 +53,19 @@
         </svg>
       </div>
       <div id="edit_area" class="grid_div">
-        <div id="uiEditButtons" class="hidden">
-          <button id="bEditTest" class="hidden" style="margin-top:24px;background-color:green;" onclick="onClickEditTest(this)">
-            edit test
-          </button>
-          <button id="bAddUnit" class="hidden" style="background-color:green;" onclick="onClickAddUnit(this)">add unit</button>
+        <div id="uiEditButtons">
+          <p style="margin-bottom:0px;font-size:14pt;">front ONLY:</p>
           <button id="bAddInfluence" style="background-color:green;" onclick="onClickAddInfluence(this)">
             add influence
           </button>
           <button id="bRemoveInfluence" style="background-color:green;" onclick="onClickRemoveInfluence(this)">
             remove influence
           </button>
+          <p style="margin-bottom:0px;font-size:14pt;">front+back:</p>
+          <button id="bEditTest" class="hidden" style="margin-top:24px;background-color:green;" onclick="onClickEditTest(this)">
+            edit test
+          </button>
+          <button id="bAddUnit" class="hidden" style="background-color:green;" onclick="onClickAddUnit(this)">add unit</button>
         </div>
       </div>
       <div id="select_area" class="grid_div">
@@ -116,6 +118,7 @@
         hide(document.getElementById("dAutoplay"));
         hide(document.getElementById("dActive"));
         hide(document.getElementById("uiActiveButtons"));
+        hide(document.getElementById("uiEditButtons"));
         hide(document.getElementById("bNextPlayer"));
       }
       function activateNextPlayerButton() {
@@ -123,6 +126,7 @@
         hide(document.getElementById("dAutoplay"));
         hide(document.getElementById("dActive"));
         hide(document.getElementById("uiActiveButtons"));
+        hide(document.getElementById("uiEditButtons"));
         show(document.getElementById("bNextPlayer"));
       }
       function activateUserSelection() {
@@ -130,6 +134,7 @@
         hide(document.getElementById("dAutoplay"));
         show(document.getElementById("dActive"));
         show(document.getElementById("uiActiveButtons"));
+        show(document.getElementById("uiEditButtons"));
         hide(document.getElementById("bNextPlayer"));
       }
       function activateAutoplay() {
@@ -137,6 +142,7 @@
         show(document.getElementById("dAutoplay"));
         hide(document.getElementById("dActive"));
         hide(document.getElementById("uiActiveButtons"));
+        hide(document.getElementById("uiEditButtons"));
         hide(document.getElementById("bNextPlayer"));
       }
       function callNextAction() {
