@@ -80,7 +80,7 @@ def becomes_satellite(G, player, nation):
 	
 		inf = G.diplomacy.influence[nation]
 		
-		decrement_influence(G, inf.faction, inf.value)
+		decrement_influence(G, nation, inf.value)
 		
 		if inf.faction != player:
 			pop, res = compute_tracks(G.nations.territories[nation], G.tiles)

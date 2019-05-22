@@ -1,16 +1,17 @@
 class NPage {
   constructor() {}
-  clearAllObjects(){
-    clearElementFromChildIndex(document.getElementById('mapG'),1);
-    clearElementFromChildIndex(document.getElementById('handG_West'),1);
-    clearElementFromChildIndex(document.getElementById('handG_Axis'),1);
-    clearElementFromChildIndex(document.getElementById('handG_USSR'),1);
-    clearElementFromChildIndex(document.getElementById('openCardG'),1);
-    clearElement(document.getElementById('divSelect'));
+  clearAllObjects() {
+    clearElementFromChildIndex(document.getElementById("mapG"), 1);
+    clearElementFromChildIndex(document.getElementById("handG_West"), 1);
+    clearElementFromChildIndex(document.getElementById("handG_Axis"), 1);
+    clearElementFromChildIndex(document.getElementById("handG_USSR"), 1);
+    clearElementFromChildIndex(document.getElementById("openCardG"), 1);
+    clearElement(document.getElementById("divSelect"));
   }
   selectView() {
     show(this.status_area);
 
+    show(this.edit_area);
     show(this.select_area);
     show(this.command_area);
     show(this.command2_area);
@@ -36,6 +37,7 @@ class NPage {
 
     this.status_area = document.getElementById("status_area");
 
+    this.edit_area = document.getElementById("edit_area");
     this.select_area = document.getElementById("select_area");
 
     this.map_area = document.getElementById("map_area");

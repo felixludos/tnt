@@ -35,6 +35,7 @@ class ASender {
       //console.log('sending:',msgChain[0]);
       this.send(msgChain[0], d => this.chainSendRec(d, msgChain.slice(1), callback));
     } else {
+      testOutput({0: ["sender akku:", this.akku]});
       callback(this.akku);
       //console.log("done chainSend");
     }

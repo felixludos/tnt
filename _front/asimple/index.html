@@ -52,6 +52,20 @@
           </g>
         </svg>
       </div>
+      <div id="edit_area" class="grid_div">
+        <div id="uiEditButtons" class="hidden">
+          <button id="bEditTest" class="hidden" style="margin-top:24px;background-color:green;" onclick="onClickEditTest(this)">
+            edit test
+          </button>
+          <button id="bAddUnit" class="hidden" style="background-color:green;" onclick="onClickAddUnit(this)">add unit</button>
+          <button id="bAddInfluence" style="background-color:green;" onclick="onClickAddInfluence(this)">
+            add influence
+          </button>
+          <button id="bRemoveInfluence" style="background-color:green;" onclick="onClickRemoveInfluence(this)">
+            remove influence
+          </button>
+        </div>
+      </div>
       <div id="select_area" class="grid_div">
         <div id="divSelect" class="sidenav"></div>
       </div>
@@ -64,16 +78,6 @@
           <button id="bPlayUSSR" onclick="onClickPlay(this)">play USSR</button>
           <button id="bPlayAxis" onclick="onClickPlay(this)">play Axis</button> -->
           <button id="bRestart" style="margin-top:24px;background-color:orangered;" onclick="onClickRestart(this)">restart</button>
-          <button id="bEditTest" class="hidden" style="margin-top:24px;background-color:green;" onclick="onClickEditTest(this)">
-            edit test
-          </button>
-          <button id="bAddUnit" class="hidden" style="background-color:green;" onclick="onClickAddUnit(this)">add unit</button>
-          <button id="bAddInfluence" style="background-color:green;" onclick="onClickAddInfluence(this)">
-            add influence
-          </button>
-          <button id="bRemoveInfluence" style="background-color:green;" onclick="onClickRemoveInfluence(this)">
-            remove influence
-          </button>
         </div>
       </div>
       <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
@@ -293,7 +297,7 @@
         }
 
         unitTestControl("*** gameloop: updating ***", data);
-        testOutput({0: [moveCounter + "gameloop:", data]});
+        testOutput({0: [moveCounter + " gameloop:", data]});
 
         updateStepPlayerPhaseYear(data);
         updateLog(data);
