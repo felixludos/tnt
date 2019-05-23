@@ -54,24 +54,24 @@
       </div>
       <div id="edit_area" class="grid_div">
         <div id="uiEditButtons">
-          <button id="bSpringStart" style="background-color:green;" onclick="onClickScenario(this,'string_start')">
+          <button id="bSpringStart" onclick="onClickScenario(this,'string_start')">
             spring start
           </button>
-          <button id="bMovement" style="background-color:green;" onclick="onClickScenario(this,'test_movement')">
+          <button id="bMovement" onclick="onClickScenario(this,'test_movement')">
             movement
           </button>
           <!-- <p style="margin-bottom:0px;font-size:14pt;">front ONLY:</p>
-          <button id="bAddInfluence" style="background-color:green;" onclick="onClickAddInfluence(this)">
+          <button id="bAddInfluence" onclick="onClickAddInfluence(this)">
             add influence
           </button>
-          <button id="bRemoveInfluence" style="background-color:green;" onclick="onClickRemoveInfluence(this)">
+          <button id="bRemoveInfluence" onclick="onClickRemoveInfluence(this)">
             remove influence
           </button>
           <p style="margin-bottom:0px;font-size:14pt;">front+back:</p>
-          <button id="bEditTest" class="hidden" style="margin-top:24px;background-color:green;" onclick="onClickEditTest(this)">
+          <button id="bEditTest" class="hidden" style="margin-top:24px;" onclick="onClickEditTest(this)">
             edit test
           </button>
-          <button id="bAddUnit" class="hidden" style="background-color:green;" onclick="onClickAddUnit(this)">add unit</button> -->
+          <button id="bAddUnit" class="hidden" onclick="onClickAddUnit(this)">add unit</button> -->
         </div>
       </div>
       <div id="select_area" class="grid_div">
@@ -93,6 +93,9 @@
         <div id="ui2Buttons">
           <button id="bSave" onclick="onClickSave()">save</button>
           <button id="bLoad" onclick="onClickLoad()">load</button>
+
+          <button id="bSave" onclick="onClickSaveAs()">save as</button>
+          <button id="bLoad" onclick="onClickLoadAs()">load as</button>
         </div>
       </div>
       <div id="hand_area" class="grid_div" style="height:200px">
@@ -300,6 +303,22 @@
         freezeUI();
         let dOrig = serverData;
         sender.send("savetest1", d => {
+          sender.send("status/" + player, d1 => {
+            unfreezeUI();
+            gameloop(dOrig);
+          });
+        });
+      }
+      function onClickLoadAs() {
+        fname = prompt("filename no ext.:");
+        freezeUI();
+        restart("West", fname);
+      }
+      function onClickSaveAs() {
+        fname = prompt("filename no ext.:");
+        freezeUI();
+        let dOrig = serverData;
+        sender.send("mysave/" + fname, d => {
           sender.send("status/" + player, d1 => {
             unfreezeUI();
             gameloop(dOrig);

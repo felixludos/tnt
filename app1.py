@@ -24,6 +24,10 @@ def loadTest():
 def savetest1():
 	return save_gamestate('test1.json')
 
+@app.route('/mysave/<fname>')
+def mysave(fname):
+	return save_gamestate(fname+'.json')
+
 @app.route('/loadtest1')
 def loadtest1():
 	load_gamestate('saves/test1.json')
