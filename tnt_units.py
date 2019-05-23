@@ -17,17 +17,17 @@ def load_unit_rules(G, unit_rules_path='config/units.yml', unit_count_path='conf
 
 	G.units.reserves = unit_count
 
-def check_unsupplied(G, player, tile):
-	if 'unsupplied' not in tile or player not in tile.unsupplied:
-		return
-
-	for uid in tile.units:
-		unit = G.objects.table[uid]
-		if unit.type != 'Fortress' and G.units.rules[unit.type].type:
-
-			pass
-			if G.nations.designations[unit.nationality] == player:
-				pass
+# def check_unsupplied(G, player, tile):
+# 	if 'unsupplied' not in tile or player not in tile.unsupplied:
+# 		return
+#
+# 	for uid in tile.units:
+# 		unit = G.objects.table[uid]
+# 		if unit.type != 'Fortress' and G.units.rules[unit.type].type:
+#
+# 			pass
+# 			if G.nations.designations[unit.nationality] == player:
+# 				pass
 
 def move_unit(G, unit, to_tilename):
 
@@ -35,10 +35,10 @@ def move_unit(G, unit, to_tilename):
 	check_for_convoy(unit, G.tiles[to_tilename])
 
 	tile = G.tiles[unit.tile]
-	tile.units.remove(unit._id)
+	tile.units.discard(unit._id)
 	G.objects.updated[unit.tile] = tile
 
-	check_unsupplied(G, G.nations.designations[unit.nationality], tile)
+	# check_unsupplied(G, G.nations.designations[unit.nationality], tile)
 
 	unit.tile = to_tilename
 	tile = G.tiles[unit.tile]

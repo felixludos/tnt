@@ -77,86 +77,7 @@ def contains_fortress(G, tile):
 # Diplomacy
 ######################
 
-def present_powers(G, tile):
-	powers = xset()
-	for uid in tile.units:
-		unit = G.objects.table[uid]
-		powers.add(G.nations.designations[unit.nationality])
 
-	disputed = False
-	if len(powers) > 1:
-		for p1 in powers:
-			if p1 not in G.players:
-				disputed = True
-			else:
-				wars = G.players[p1].stats.at_war_with
-				for p2 in powers:
-					if p2 in wars and wars[p2]:
-						disputed = True
-						break
-			if disputed:
-				break
-
-	return powers, disputed
-
-def check_issue(G, player, other):
-	if player == other:
-		return False
-	if other not in G.players:
-		return True
-	return G.players[player].stats.at_war_with[other]
-
-def make_disputed(G, tile, aggressor):
-	tile.disputed = True
-	tile.aggressors = tlist()
-	tile.aggressors.append(aggressor)
-	G.objects.updated[tile._id] = tile
-
-def make_undisputed(G, tile):
-	# remove disputed
-	del tile.disputed
-	del tile.aggressors
-	G.objects.updated[tile._id] = tile
-
-# check for new battle and update disputed/aggressor flags
-def eval_tile_control(G, tile, unit=None): # usually done when a unit leaves a tile
-	
-	# TODO: Axis entering Canada -> USA becomes West satellite
-	# TODO: Interventions
-
-	owner = None
-	if 'alligence' in tile:
-		owner = tile.owner
-
-	player = None
-	if unit is not None:
-		player = G.nations.designations[unit.nationality]
-
-	powers, conflict = present_powers(G, tile)
-	
-	new_battle = False
-	
-	if 'disputed' not in tile and player is not None and player not in powers:
-		
-		make_disputed(G, tile, player)
-		new_battle = True
-	
-	elif 'disputed' in tile \
-		and (player is None and len(powers)<=1):
-		pass
-	
-	# update aggressors
-	
-	# change ownership
-	
-		
-	if player == 'Axis' and tile._id == 'Canada' and 'USA' not in G.players.West.satellites:
-		pass # USA becomes a West satellite
-		
-	
-	# interventions
-	
-	
 
 ######################
 # Game Actions
@@ -244,7 +165,7 @@ def tile_hostile(G, player, tile, decl=None):
 
 	elif check_occupied(G, tile, player, wars, enemy=True):
 		return True
-	return False
+	return None
 
 # def tile_hostile(G, player, tile, decl=None):
 #
@@ -292,6 +213,8 @@ def fill_movement(G,
                   friendly_only=False,
                   hidden_movement=False,
                   disengaging=None):
+	
+	# TODO: make sure movement through straits is working
 
 	# crossings tracks the currently available border crossings (for limited borders)
 	# borders tracks the past crossings that have been made
@@ -310,6 +233,9 @@ def fill_movement(G,
 	fuel -= 1
 
 	for name, border in tile.borders.items():
+		
+		# if name == 'Malta':
+		# 	print('Malta')
 
 		if name in destinations:  # neighbor already processed
 			if disengaging is None or disengaging in crossings[name]:  # this crossing option has been processed
@@ -318,7 +244,6 @@ def fill_movement(G,
 		neighbor = G.tiles[name]
 		remaining = fuel
 
-		#@@@ replaced neighbor.name by neighbor._id in this file
 		brd = (tile._id, neighbor._id) if tile._id < neighbor._id else (neighbor._id, tile._id)
 
 		# is access physically possible
@@ -347,7 +272,7 @@ def fill_movement(G,
 			if fuel < 0:
 				continue
 
-		if crossings is not None:
+		if crossings is not None and border in border_limits:
 			past = 0
 			if brd in borders:
 				past = borders[brd]
@@ -439,6 +364,8 @@ def travel_options(G, unit):
 	disengaging = () if 'disputed' in tile else None
 
 	for defensive in range(2):  # gen all steps once with strategic movement and once without
+		
+		defensive = (defensive+1)%2
 
 		if defensive and ('emergency' in cmd or disengaging is not None):
 			continue
@@ -464,6 +391,8 @@ def travel_options(G, unit):
 			    disengaging=disengaging,
 			    friendly_only=defensive,
 			    hidden_movement=hidden_movement)
+			
+			# print(destinations)
 
 		if cls == 'G':  # land movement
 
@@ -501,6 +430,8 @@ def travel_options(G, unit):
 
 			if tile.type in {'Sea', 'Ocean'}:
 				break
+
+	destinations.discard(unit.tile)
 
 	for dest in destinations:
 		if dest in crossings:

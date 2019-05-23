@@ -1,7 +1,7 @@
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete, PhaseInterrupt
 from tnt_cards import discard_cards
 from tnt_units import add_unit, move_unit, remove_unit
-from tnt_util import travel_options, eval_tile_control, placeable_units, compute_tracks
+from tnt_util import travel_options, placeable_units, compute_tracks
 from tnt_cards import draw_cards
 import random
 
@@ -236,24 +236,31 @@ def violation_of_neutrality(G, declarer, nation):  # including world reaction an
 
 		G.logger.write('{} loses {} influence in {} (losing POP={}, RES={})'.format(inf.faction, inf.value, nation, pop,
 		                                                                            res))
-
-	del G.diplomacy.neutrals[nation]
+		
+		convert_to_armed_minor(G, nation)
+		
+def convert_to_armed_minor(G, nation):
+	if nation in G.diplomacy.neutrals:
+		del G.diplomacy.neutrals[nation]
 	G.nations.status[nation].is_armed = 1
-
+	
 	desig = G.nations.designations[nation]
-
+	
 	# arming the minor
 	for tilename in G.nations.territories[nation]:
 		tile = G.tiles[tilename]
 		tile.owner = desig
-
+		
 		if tile.muster > 0:
 			unit = adict()
 			unit.nationality = nation
 			unit.type = 'Fortress'
 			unit.tile = tilename
 			unit.cv = tile.muster
-			add_unit(G, unit)
+			unit = add_unit(G, unit)
+			
+			G.nations.status[nation].units[unit._id] = unit
+			
 			G.logger.write('A Fortress of {} appears in {} with cv={}'.format(nation, unit.tile, unit.cv))
 
 def encode_garrison_options(G):

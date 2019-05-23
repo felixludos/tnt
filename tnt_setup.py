@@ -61,6 +61,10 @@ def load_players_and_minors(G):
 	G.nations.designations = designations
 	G.nations.territories = territories
 	G.nations.capitals = capitals
+	
+	for nation, tilename in capitals.items():
+		G.tiles[tilename].capital = True
+	
 	G.nations.groups = tdict()
 	
 	# load factions/players

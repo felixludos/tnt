@@ -94,9 +94,12 @@ def production_phase(G, player, action):
 		G.temp.active_idx = 0
 		G.temp.prod = tdict()
 		
-		# TODO: update blockades
+		# TODO: update/evaluate blockades
 		
 		for player, faction in G.players.items():
+			
+			# TODO: check if production is zero because MainCapital is lost -> faction.stats.fallen flag
+			
 			G.temp.prod[player] = tdict()
 			G.temp.prod[player].production_remaining = compute_production_level(faction)
 			

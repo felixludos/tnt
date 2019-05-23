@@ -1,11 +1,11 @@
 
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete, PhaseInterrupt
 from tnt_cards import discard_cards
-from tnt_units import add_unit, move_unit
-from tnt_util import travel_options, eval_tile_control, add_next_phase, switch_phase
+from tnt_units import add_unit, move_unit, remove_unit
+from tnt_util import travel_options, add_next_phase, switch_phase
 from government import check_revealable, reveal_tech
 import random
-from diplomacy import declaration_of_war, violation_of_neutrality
+from diplomacy import declaration_of_war, violation_of_neutrality, convert_to_armed_minor, USA_becomes_satellite
 
 
 def encode_command_card_phase(G):
@@ -167,6 +167,243 @@ def planning_phase(G, player, action):
 #################
 # Movement phase
 
+def powers_present(G, tile):
+	powers = xset()
+	for uid in tile.units:
+		unit = G.objects.table[uid]
+		owner = G.nations.designations[unit.nationality]
+		powers.add(owner)
+	return powers
+	
+def get_enemies(G, player):
+	enemies = xset(['Minor', 'Major'])
+	wars = G.players[player].stats.at_war_with
+	enemies.update([p for p in wars if wars[p]])
+	return enemies
+
+def conflict_present(G, tile):
+	powers = powers_present(G, tile)
+	
+	disputed = False
+	if len(powers) > 1:
+		for p1 in powers:
+			if p1 not in G.players:
+				disputed = True
+			else:
+				wars = G.players[p1].stats.at_war_with
+				for p2 in powers:
+					if p2 in wars and wars[p2]:
+						disputed = True
+						break
+			if disputed:
+				break
+	return disputed
+	
+def check_issue(G, player, other):
+	if player == other:
+		return False
+	if other not in G.players:
+		return True
+	return G.players[player].stats.at_war_with[other]
+
+def make_disputed(G, tile, aggressor):
+	tile.disputed = True
+	tile.aggressors = tlist()
+	tile.aggressors.append(aggressor)
+	G.objects.updated[tile._id] = tile
+
+def make_undisputed(G, tile):
+	# remove disputed
+	del tile.disputed
+	del tile.aggressors
+	G.objects.updated[tile._id] = tile
+
+def switch_ownership(G, tile, owner):
+	
+	G.objects.updated[tile._id] = tile
+	
+	if 'disputed' in tile:
+		
+		if owner in tile.aggressors:
+			tile.aggressors.remove(owner)
+			
+		if len(tile.aggressors) == 0:
+			make_undisputed(G, tile)
+	
+	pop = tile['pop']
+	res = tile['res']
+	msg = ''
+	
+	if 'owner' in tile and tile.owner in G.players:
+		G.players[tile.owner].territory.remove(tile._id)
+		
+		G.players[tile.owner].tracks.POP -= pop
+		G.players[tile.owner].tracks.RES -= res
+	
+	if pop > 0 or res > 0:
+		msg = ' (gaining POP={} RES={})'.format(pop, res)
+	
+	G.logger.write('{} has taken control of {}{}'.format(owner, tile._id, msg))
+	
+	if 'blockaded' in tile:
+		del tile.blockaded
+	
+	if 'unsupplied' in tile:
+		del tile.unsupplied
+	
+	G.players[owner].territory.add(tile._id)
+
+	if 'capital' in tile:
+		
+		owner_info = G.players[owner]
+		
+		nation = tile.alligence
+		
+		# take control of all unoccupied tiles in nation
+		for tilename in G.nations.territories[nation]:
+			other = G.tiles[tilename]
+			if other._id != tile._id and len(other.units) == 0:
+				switch_ownership(G, other, owner)
+		
+		if nation in G.nations.status: # minor switches side
+			
+			if tile.owner in G.players:
+				G.players[tile.owner].satellites.remove(nation)
+			owner_info.diplomacy.satellites.add(nation)
+			
+			G.nations.groups[G.nations.designations[nation]].remove(nation)
+			G.nations.designations[nation] = owner
+			G.nations.groups[owner].add(nation)
+		
+		else: # something bigger -> major/great power
+			for rival, faction in G.players:
+				if nation in faction.members:
+					if nation == faction.stats.great_power:
+						# MainCapital
+						
+						if rival == owner:
+							del faction.stats.fallen
+							G.logger.write('{} has been liberated!'.format(tile._id))
+						
+						else:
+							G.logger.write('{} has fallen! ({} production is zero)'.format(tile._id, tile.owner))
+							faction.stats.fallen = owner
+					
+							# TODO: maybe add conquered great power to satellites?
+					
+					else:
+						# SubCapital from MajorPower
+						
+						# TODO: liberating Great Powers or satellites adds them back properly (not just satellite)
+						
+						assert rival != owner, 'regaining great powers is not supported currently'
+						
+						G.logger.write('{} has fallen.'.format(nation))
+						
+						# wipe out all major power units (nation)
+						for uid, unit in faction.units.items():
+							if unit.nationality == nation:
+								remove_unit(G, unit)
+						
+						# turn all colonies into armed minors
+						for colony in faction.members[nation]:
+							if colony != nation:
+								G.nations.status[colony] = tdict()
+								G.nations.status[colony].units = tdict()
+								
+								convert_to_armed_minor(G, colony)
+						
+						# add major power as satellite
+						del faction.homeland[nation]
+						G.nations.groups[rival].remove(nation)
+						G.nations.designations[nation] = owner
+						G.nations.groups[owner].add(nation)
+					
+				else:
+					flag = False
+					for member, states in faction.members:
+						if nation in states: # colony
+							flag = True
+							# colony becomes a satellite
+							
+							states.remove(nation)
+							G.logger.write('{} captures {}'.format(owner, nation))
+							
+							owner_info.diplomacy.satellites.add(nation)
+							G.nations.groups[G.nations.designations[nation]].remove(nation)
+							G.nations.designations[nation] = owner
+							G.nations.groups[owner].add(nation)
+							
+							break
+							
+					assert flag, 'No nation was captured: {}'.format(nation, tile._id)
+		
+		tile.owner = owner
+		
+		
+	
+
+# check for new battle and update disputed/aggressor flags
+def eval_movement(G, source, unit, dest):  # usually done when a unit leaves a tile
+	
+	player = G.nations.designations[unit.nationality]
+	
+	new_battle, engaging, disengaging = False, False, False
+	
+	# update source
+	
+	enemies = get_enemies(G, player)
+	
+	source_powers = powers_present(G, source)
+	
+	if 'disputed' in source and len(enemies.intersection(source_powers)): # there were enemies in source
+		disengaging = True
+		
+		if not conflict_present(G, source): # there is still a conflict
+			make_undisputed(G, source)
+			
+			G.logger.write('{} is no longer disputed'.format(source._id))
+			
+		elif player not in source_powers and player in source.aggressors: # player no longer present
+			source.aggressors.remove(player)
+			G.objects.updated[source._id] = source
+			
+			G.logger.write('{} has left {}'.format(player, source._id))
+		
+		if 'owner' in source and source.owner not in source_powers: # owner no longer present
+			new_owner = source.aggressors[0]
+			
+			switch_ownership(G, source, new_owner)
+			
+	
+	dest_powers = powers_present(G, dest)
+	
+	if len(enemies.intersection(dest_powers)): # enemy in destination -> engaging
+		engaging = True
+		
+		if 'disputed' not in dest:
+			new_battle = True
+			
+			make_disputed(G, dest, player)
+			
+		elif player not in dest.aggressors:
+			dest.aggressors.append(player)
+			
+	elif 'owner' in dest and dest.owner != player: # unoccupied enemy territory
+		
+		switch_ownership(G, dest, player)
+	
+	# TODO: interventions
+	
+	
+	
+	# Axis entering Canada -> USA becomes West satellite
+	if player == 'Axis' and dest._id == 'Ottawa' and 'USA' not in G.player.West.members:
+		USA_becomes_satellite(G, 'West')
+	
+	return new_battle, engaging, disengaging
+
+
 def encode_movement(G):
 	player = G.temp.order[G.temp.active_idx]
 	faction = G.players[player]
@@ -195,7 +432,7 @@ def encode_movement(G):
 	return code
 
 def new_movement(G):
-	G.temp.battles = tset()  # track new battles due to engaging
+	G.temp.battles = tdict()  # track new battles due to engaging
 	G.temp.has_moved = tset()  # units can only move once per movement phase
 	
 	active = G.temp.order[G.temp.active_idx]
@@ -217,10 +454,10 @@ def movement_phase(G, player=None, action=None):
 	if head in faction.secret_vault:
 		reveal_tech(G, player, head)
 		
-	elif head in faction.stats.rivals: # declaration of war
+	elif head in faction.stats.rivals: # TODO: use lazy threats - declarations only take effect when aggressing
 		declaration_of_war(G, player, head)
 		
-	elif head in G.diplomacy.neutrals:
+	elif head in G.diplomacy.neutrals: # TODO: use lazy threats - declarations only take effect when aggressing
 		violation_of_neutrality(G, player, head)
 	
 	elif head in faction.units:
@@ -236,8 +473,18 @@ def movement_phase(G, player=None, action=None):
 		
 		G.temp.has_moved.add(head)
 		
-		# update disputed, add battles
-		eval_tile_control(G, G.tiles[unit.tile])
+		source = G.tiles[unit.tile]
+		source.remove(unit._id)
+		
+		new_battle, engaging, disengaging = eval_movement(G, source, unit, G.tiles[destination])
+		
+		if new_battle:
+			G.temp.battles[destination] = player
+			
+		if engaging or disengaging:
+			assert len(border), 'no border was tracked, but unit is {}'.format('engaging' if engaging else 'disengaging')
+			
+		move_unit(G, unit, destination)
 		
 		# decrement command points
 		cmd.value -= 1
@@ -245,8 +492,6 @@ def movement_phase(G, player=None, action=None):
 		G.logger.write('{} moves a unit from {} to {} ({} comand points remaining)'.format(
 			player, unit.tile, destination, cmd.value))
 		
-		move_unit(G, unit, destination)
-		eval_tile_control(G, G.tiles[destination], unit)
 	
 	elif head == 'pass':
 		cmd.value -= 1
