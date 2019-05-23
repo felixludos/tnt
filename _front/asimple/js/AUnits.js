@@ -153,6 +153,10 @@ class AUnits {
     //unitTestUnits("getPosition", pos);
     return pos;
   }
+  getUnit(id) {
+    //unitTestFilter('getUnit',this.uis,id)
+    return id in this.uis ? this.uis[id] : null;
+  }
   placeUnit(ms, tile) {
     let faction = ms.getTag("owner");
     let isNeutral = ms.getTag("neutral");
@@ -240,7 +244,7 @@ class AUnits {
       msHidden.hide();
     } else {
       if (ms) ms.hide();
-      msHidden.show();
+      if (msHidden.getTag("count") > 0) msHidden.show();
     }
   }
   update(data, gObjects, player) {

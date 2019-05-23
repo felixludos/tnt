@@ -1,7 +1,6 @@
-
 class MS {
   constructor(id, uid, parentName) {
-    this.id = id; 
+    this.id = id;
     this.parent = document.getElementById(parentName);
     //console.log('MS: parent',parentName, parent, id, uid)
     this.elem = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -17,6 +16,7 @@ class MS {
     this.bounds = {l: 0, t: 0, r: 0, b: 0};
     this.overlay = null; //this is the overlay element for highlighting and selecting
     this.data = {};
+    this.clickHandler = null;
     this.elem.addEventListener("click", this.onClick.bind(this));
   }
   addClass(clName) {
@@ -88,7 +88,12 @@ class MS {
     }
     return null;
   }
-  getPos(){return {x:this.x,y:this.y};}
+  // getId(){
+  // 	// from elem id get real id
+  // }
+  getPos() {
+    return {x: this.x, y: this.y};
+  }
   hide() {
     //if (!this.isVisible) return;
     this.elem.setAttribute("style", "visibility:hidden;display:none");
@@ -103,7 +108,7 @@ class MS {
     //<image xlink:href="firefox.jpg" x="0" y="0" height="50px" width="50px"/>
     let r = document.createElementNS("http://www.w3.org/2000/svg", "image");
     r.setAttribute("href", path);
-    
+
     r.setAttribute("width", w);
     r.setAttribute("height", h);
     r.setAttribute("x", -w / 2 + x);
@@ -160,14 +165,14 @@ class MS {
 
     let cl = el.getAttribute("class");
     if (cl && cl.includes(clName)) {
-      let newClass = cl.replace(clName,'').trim();
+      let newClass = cl.replace(clName, "").trim();
       //console.log("remove result:", newClass);
       el.setAttribute("class", newClass);
     }
     //console.log("am ende:", this.overlay, cl, this.overlay.getAttribute("class"));
     return this;
   }
-  removeForever(){
+  removeForever() {
     this.removeFromUI();
     this.clickHandler = null; //no need probably
     this.elem.removeEventListener("click", this.onClick.bind(this));

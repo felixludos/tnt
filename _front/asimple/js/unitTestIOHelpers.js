@@ -15,6 +15,9 @@ function unitTestCards() {
 function unitTestControl() {
   if (execOptions.activatedTests.includes("control")) console.log(...arguments);
 }
+function unitTestFilter() {
+  if (execOptions.activatedTests.includes("filter")) console.log(...arguments);
+}
 function unitTestMap() {
   if (execOptions.activatedTests.includes("map")) console.log(...arguments);
 }

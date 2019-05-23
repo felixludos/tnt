@@ -462,7 +462,7 @@ def movement_phase(G, player=None, action=None):
 	
 	elif head in faction.units:
 		
-		destination, *border = tail
+		destination, *border = tail #is there a case for tail to have more than 1 element?
 		
 		if len(border):
 			if border not in G.temp.borders[player]:
@@ -481,16 +481,19 @@ def movement_phase(G, player=None, action=None):
 		if new_battle:
 			G.temp.battles[destination] = player
 			
-		if engaging or disengaging:
-			assert len(border), 'no border was tracked, but unit is {}'.format('engaging' if engaging else 'disengaging')
+		#if engaging or disengaging: #@@@@ is this still relevant?
+			#assert len(border), 'no border was tracked, but unit is {}'.format('engaging' if engaging else 'disengaging')
 			
 		move_unit(G, unit, destination)
 		
 		# decrement command points
 		cmd.value -= 1
 		
+		#@@@@
+		# G.logger.write('{} moves a unit from {} to {} ({} comand points remaining)'.format(
+		# 	player, unit.tile, destination, cmd.value))
 		G.logger.write('{} moves a unit from {} to {} ({} comand points remaining)'.format(
-			player, unit.tile, destination, cmd.value))
+			player, source._id, destination, cmd.value))
 		
 	
 	elif head == 'pass':

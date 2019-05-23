@@ -74,7 +74,7 @@ class AMap {
   createTile(id, o) {
     let pos = this.assets.tilePositions[id];
     let sz = this.assets.SZ.tile;
-    let ms = new MS(id, assets.getUniqueId(id), "mapG")
+    let ms = new MS(id, this.assets.getUniqueId(id), "mapG")
       .circle({className: "overlay region", sz: sz})
       .setPos(pos.x, pos.y)
       .draw();

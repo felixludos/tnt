@@ -829,7 +829,8 @@ def government_post_phase(G, player=None, action=None):
 				elif dipl.value == val: # no change required
 					continue
 				else: # value has changed
-					G.players[inf.faction].diplomacy[diplvl[dipl.value]].remove(dipl.faction)
+					#G.players[inf.faction].diplomacy[diplvl[dipl.value]].remove(dipl.faction) #@@@@
+					G.players[inf.faction].diplomacy[diplvl[dipl.value]].remove(nation)
 			
 			faction = G.players[inf.faction]
 			faction.diplomacy[diplvl[val]].add(nation)
