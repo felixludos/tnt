@@ -54,24 +54,24 @@
       </div>
       <div id="edit_area" class="grid_div">
         <div id="uiEditButtons">
-          <button id="bSpringStart" style="background-color:green;" onclick="onClickScenario(this,'string_start')">
+          <button id="bSpringStart" onclick="onClickScenario(this,'string_start')">
             spring start
           </button>
-          <button id="bMovement" style="background-color:green;" onclick="onClickScenario(this,'test_movement')">
+          <button id="bMovement" onclick="onClickScenario(this,'test_movement')">
             movement
           </button>
           <!-- <p style="margin-bottom:0px;font-size:14pt;">front ONLY:</p>
-          <button id="bAddInfluence" style="background-color:green;" onclick="onClickAddInfluence(this)">
+          <button id="bAddInfluence" onclick="onClickAddInfluence(this)">
             add influence
           </button>
-          <button id="bRemoveInfluence" style="background-color:green;" onclick="onClickRemoveInfluence(this)">
+          <button id="bRemoveInfluence" onclick="onClickRemoveInfluence(this)">
             remove influence
           </button>
           <p style="margin-bottom:0px;font-size:14pt;">front+back:</p>
-          <button id="bEditTest" class="hidden" style="margin-top:24px;background-color:green;" onclick="onClickEditTest(this)">
+          <button id="bEditTest" class="hidden" style="margin-top:24px;" onclick="onClickEditTest(this)">
             edit test
           </button>
-          <button id="bAddUnit" class="hidden" style="background-color:green;" onclick="onClickAddUnit(this)">add unit</button> -->
+          <button id="bAddUnit" class="hidden" onclick="onClickAddUnit(this)">add unit</button> -->
         </div>
       </div>
       <div id="select_area" class="grid_div">
@@ -81,11 +81,14 @@
         <div id="uiActiveButtons" class="hidden">
           <button id="bStep" onclick="decider.onClickStep()">step</button>
           <button id="bRunToEnd" onclick="onClickRunToEnd()">run to end</button>
-          <button id="bRunToSpring" onclick="onClickRunToSpring()">run to Spring</button>
+          <button id="bRunToSpring" onclick="onClickRunToSpring()">run to spring</button>
           <!-- <button id="bPlayWest" onclick="onClickPlay(this)">play West</button>
           <button id="bPlayUSSR" onclick="onClickPlay(this)">play USSR</button>
           <button id="bPlayAxis" onclick="onClickPlay(this)">play Axis</button> -->
           <button id="bRestart" style="margin-top:24px;background-color:orangered;" onclick="onClickRestart(this)">restart</button>
+          <button id="bRestartParams" style="background-color:orangered;" onclick="onClickRestartParams(this)">
+            restart params
+          </button>
         </div>
       </div>
       <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
@@ -93,6 +96,9 @@
         <div id="ui2Buttons">
           <button id="bSave" onclick="onClickSave()">save</button>
           <button id="bLoad" onclick="onClickLoad()">load</button>
+
+          <button id="bSave" onclick="onClickSaveAs()">save as</button>
+          <button id="bLoad" onclick="onClickLoadAs()">load as</button>
         </div>
       </div>
       <div id="hand_area" class="grid_div" style="height:200px">
@@ -282,6 +288,14 @@
         console.log("restarting with", pl, assets.factionNames.toString());
         restart(pl);
       }
+      function onClickRestartParams() {
+        params = prompt("enter player [seed]:");
+        let pl = capitalize(stringBefore(params, " "));
+        let seed = firstNumber(params);
+        if (seed < 0) seed = randomNumber();
+        console.log("restarting with player", pl, "and seed", seed);
+        restart(pl, "", seed);
+      }
       function onClickRunToEnd() {
         STOP = false;
         execOptions.manualPlay = []; //skipCond = () => true;
@@ -300,6 +314,22 @@
         freezeUI();
         let dOrig = serverData;
         sender.send("savetest1", d => {
+          sender.send("status/" + player, d1 => {
+            unfreezeUI();
+            gameloop(dOrig);
+          });
+        });
+      }
+      function onClickLoadAs() {
+        fname = prompt("filename no ext.:");
+        freezeUI();
+        restart("West", fname);
+      }
+      function onClickSaveAs() {
+        fname = prompt("filename no ext.:");
+        freezeUI();
+        let dOrig = serverData;
+        sender.send("mysave/" + fname, d => {
           sender.send("status/" + player, d1 => {
             unfreezeUI();
             gameloop(dOrig);
@@ -327,7 +357,7 @@
         // STOP = unitTestRemovedCheck(data);
 
         unitTestControl("*** gameloop: updating ***", data);
-        testOutput({0: [moveCounter + " gameloop:", data]});
+        testOutput({0: ["gameloop:", data]});
 
         updateStepPlayerPhaseYear(data);
         updateLog(data);
@@ -338,8 +368,6 @@
 
         //next action
         tuples = getTuples(data);
-
-        console.log(tuples);
 
         make_G();
 
