@@ -362,6 +362,25 @@ function testIntegrationUnits(filename = "", player = "USSR", seed = 4) {
 //#endregion
 
 //#region save and load tests
+function testLoadSpring(filename = "spring_start", player = "Axis") {
+  execOptions.output = "none";
+  //addIf("cards", execOptions.activatedTests);
+  if (empty(filename)) {
+    sendInit(player, gameloop, 5);
+  } else {
+    sendLoading(filename, player, gameloop);
+  }
+}
+function testMovement(filename = "test_movement", player = "Axis") {
+  execOptions.output = "none";
+  //addIf("cards", execOptions.activatedTests);
+  if (empty(filename)) {
+    sendInit(player, gameloop, 5);
+  } else {
+    sendLoading(filename, player, gameloop);
+  }
+}
+
 function testEditAddRandomUnit() {
   let tuple = randomUnitTuple();
 }

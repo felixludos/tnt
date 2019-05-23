@@ -29,6 +29,11 @@ def loadtest1():
 	load_gamestate('saves/test1.json')
 	return ('loaded: saves/test1.json')
 
+@app.route('/spring_start')
+def spring_start():
+	load_gamestate('saves/spring_start.json')
+	return ('loaded saves/spring_start.json')
+
 @app.route('/myload/<data>')
 def myload(data):
 	load_gamestate('saves/' + data)
@@ -77,13 +82,15 @@ def hide_objects(objects, player=None, cond=None):
 		if cond(obj, player):
 			for k in list(obj.keys()):
 				if k in obj and k not in {'visible', 'obj_type'} and \
-                (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
+                    (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
 					del obj[k]
 
 def format_msg_for_frontend(msg, player=None):
 	msg = convert_jsonable(msg)
+
 	def cond(obj, player):
 		return player not in obj['visible']['set']
+
 	if 'created' in msg:
 		hide_objects(msg['created'], player=player, cond=cond)
 	if 'updated' in msg:

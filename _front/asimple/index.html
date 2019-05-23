@@ -268,6 +268,10 @@
         execOptions.skipCond = () => phase != "Spring";
         decider.onClickStep();
       }
+      function onClickLoad() {
+        freezeUI();
+        sendLoading("sprint_start", player, gameloop);
+      }
       function onClickSave() {
         freezeUI();
         let dOrig = serverData;
@@ -314,6 +318,8 @@
 
         //next action
         tuples = getTuples(data);
+
+        console.log(tuples);
 
         make_G();
 
@@ -449,11 +455,14 @@
     <script>
       function startScript() {
         //addIf("control", execOptions.activatedTests);
-        //addIf("units", execOptions.activatedTests);
+        addIf("units", execOptions.activatedTests);
         //addIf("strategy", execOptions.activatedTests);
-        addIf("removed", execOptions.activatedTests);
-        player = "Axis";
-        sendInit(player, gameloop, 5);
+
+        testMovement();
+        // addIf("removed", execOptions.activatedTests);
+        // player = "Axis";
+        // sendInit(player, gameloop, 5);
+
         //bei seed = 4: kommt nur influence von <= 2 zustande!
         //bei seed = 1: geht nicht, in gov phase kommt fehler: USA cannot become satellite of Axis
         //try seed = 2: nur <= 2
