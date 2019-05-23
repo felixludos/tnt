@@ -60,6 +60,9 @@
           <button id="bMovement" onclick="onClickScenario(this,'test_movement')">
             movement
           </button>
+          <button id="bMovement2" onclick="onClickScenario(this,'move2')">
+            move 2
+          </button>
           <!-- <p style="margin-bottom:0px;font-size:14pt;">front ONLY:</p>
           <button id="bAddInfluence" onclick="onClickAddInfluence(this)">
             add influence
@@ -197,21 +200,23 @@
       }
       function onClickScenario(btn, filename) {
         freezeUI();
-        switch (btn.id) {
-          case "bSpringStart":
-            restart("West", "spring_start");
-            break;
-          case "bMovement":
-            restart("West", "test_movement");
-            break;
-          // case bProduction: restart('West','spring_start',seed); break;
-          // case bSpringStart: restart('West','spring_start',seed); break;
-          // case bSpringStart: restart('West','spring_start',seed); break;
-          default:
-            let pl = chooseRandom(assets.factionNames);
-            console.log("restarting with", pl, assets.factionNames.toString());
-            restart(pl, filename, seed);
-        }
+        restart("West", filename);
+        // switch (btn.id) {
+        //   case "bSpringStart":
+        //     restart("West", "spring_start");
+        //     break;
+        //   case "bMovement":
+        //     restart("West", "test_movement");
+        //     break;
+        //   // case bProduction: restart('West','spring_start',seed); break;
+        //   // case bSpringStart: restart('West','spring_start',seed); break;
+        //   // case bSpringStart: restart('West','spring_start',seed); break;
+        //   default:
+        // 		let pl = chooseRandom(assets.factionNames);
+        // 		let seed = randomNumber();
+        //     console.log("restarting with", pl, assets.factionNames.toString());
+        //     restart(pl, filename, seed);
+        // }
       }
       function onClickAddUnit() {
         freezeUI();
@@ -504,7 +509,7 @@
       function startScript() {
         //addIf("control", execOptions.activatedTests);
         //addIf("units", execOptions.activatedTests);
-        //addIf("strategy", execOptions.activatedTests);
+        addIf("moving", execOptions.activatedTests);
 
         testMovement();
         // addIf("removed", execOptions.activatedTests);

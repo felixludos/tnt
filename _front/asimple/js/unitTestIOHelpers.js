@@ -18,6 +18,10 @@ function unitTestControl() {
 function unitTestMap() {
   if (execOptions.activatedTests.includes("map")) console.log(...arguments);
 }
+function unitTestMoving() {
+  if (execOptions.activatedTests.includes("moving")) console.log(...arguments);
+}
+
 function unitTestRemoved() {
   if (execOptions.activatedTests.includes("removed")) console.log(...arguments);
 }

@@ -18,7 +18,7 @@ class AUnits {
     //   unitTestUnits("PROBLEM: adding existing unit!!!", id);
     //   alert("PROBLEM: adding existing unit!!!", id);
     // }
-    let tile = ms.getTag("tile");
+    let tile = o.tile; //ms.getTag("tile");
     let owner = ms.getTag("owner");
     let neutral = ms.getTag("neutral");
     if (!(tile in this.units[owner])) {
@@ -28,6 +28,7 @@ class AUnits {
     }
     this.uis[id] = {o: jsCopy(o), ms: ms};
     unitTestUnits("added", id, ms, o, owner, tile);
+    unitTestMoving("added", id, ms, o, owner, tile, this.units[owner]);
   }
   addHiddenUnit(msHidden) {
     console.assert(msHidden != null, "addHiddenUnit ms == NULL!!!!!!!!!!");
@@ -178,6 +179,7 @@ class AUnits {
     let ms = this.uis[id].ms;
     let owner = ms.getTag("owner");
     let tile = ms.getTag("tile");
+    unitTestMoving("vor removeUnit", id, owner, tile, this.units[owner]);
     removeInPlace(this.units[owner][tile], id);
   }
   updateUnitCounter(owner, tile) {

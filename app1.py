@@ -26,7 +26,8 @@ def savetest1():
 
 @app.route('/mysave/<fname>')
 def mysave(fname):
-	return save_gamestate(fname+'.json')
+	save_gamestate(fname + '.json')
+	return ('saved saves/' + fname + '.json')
 
 @app.route('/loadtest1')
 def loadtest1():
@@ -86,7 +87,7 @@ def hide_objects(objects, player=None, cond=None):
 		if cond(obj, player):
 			for k in list(obj.keys()):
 				if k in obj and k not in {'visible', 'obj_type'} and \
-                    (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
+                        (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
 					del obj[k]
 
 def format_msg_for_frontend(msg, player=None):

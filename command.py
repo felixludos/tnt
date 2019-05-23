@@ -474,7 +474,7 @@ def movement_phase(G, player=None, action=None):
 		G.temp.has_moved.add(head)
 		
 		source = G.tiles[unit.tile]
-		source.remove(unit._id)
+		#source.remove(unit._id) #@@@@
 		
 		new_battle, engaging, disengaging = eval_movement(G, source, unit, G.tiles[destination])
 		
