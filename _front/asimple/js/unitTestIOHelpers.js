@@ -21,6 +21,9 @@ function unitTestMap() {
 function unitTestRemoved() {
   if (execOptions.activatedTests.includes("removed")) console.log(...arguments);
 }
+function unitTestRemovedCheck(data) {
+  return execOptions.activatedTests.includes("removed") && "removed" in data && !empty(Object.keys(data.removed));
+}
 function unitTestSaveLoad() {
   if (execOptions.activatedTests.includes("saveLoad")) console.log(...arguments);
 }

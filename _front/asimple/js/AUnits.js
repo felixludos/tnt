@@ -14,10 +14,10 @@ class AUnits {
   }
   addUnit(id, ms, o) {
     //add unit id to units dictionary
-    if (id in this.uis) {
-      unitTestUnits("PROBLEM: adding existing unit!!!", id);
-      alert("PROBLEM: adding existing unit!!!", id);
-    }
+    // if (id in this.units[owner][tile]) {
+    //   unitTestUnits("PROBLEM: adding existing unit!!!", id);
+    //   alert("PROBLEM: adding existing unit!!!", id);
+    // }
     let tile = ms.getTag("tile");
     let owner = ms.getTag("owner");
     let neutral = ms.getTag("neutral");
@@ -45,22 +45,22 @@ class AUnits {
   moveUnit(id, o_old, o_new) {
     if (!(id in this.uis)) {
       unitTestUnits("PROBLEM: moveUnit", id, " NOT in uis!");
-      alert();
+      alert("PROBLEM: moveUnit " + id + " NOT in uis!");
     }
-    removeUnit(id);
+    this.removeUnit(id);
     let ms = this.uis[id].ms;
     let owner = ms.getTag("owner");
     let tile_old = o_old.tile;
     let tile_new = o_new.tile;
 
-    addUnit(id, ms, o_new);
+    this.addUnit(id, ms, o_new);
     this.placeUnit(ms, tile_new);
 
     this.updateUnitCounter(owner, tile_old);
 
     let idHiddenNew = this.getHiddenId(owner, tile_new);
     if (!(idHiddenNew in this.uis)) {
-      let msHidden_new = createHiddenUnit(idHiddenNew, owner, tile_new);
+      let msHidden_new = this.createHiddenUnit(idHiddenNew, owner, tile_new);
       this.addHiddenUnit(msHidden_new);
       unitTestUnits("moveUnit: created hidden unit", idHiddenNew);
     } else {
@@ -97,7 +97,7 @@ class AUnits {
 
     return ms;
   }
-  createUnit(id, o, player, visibleForAll = false) {
+  createUnit(id, o, player) {
     let nationality = o.nationality;
     let owner = getUnitOwner(nationality);
     let isNeutral = owner == "Neutral";
@@ -241,7 +241,7 @@ class AUnits {
       msHidden.show();
     }
   }
-  update(data, gObjects, player, visibleForAll = false) {
+  update(data, gObjects, player) {
     if ("created" in data) {
       for (const id in data.created) {
         let o_new = data.created[id];
@@ -249,7 +249,7 @@ class AUnits {
 
         if (!(id in gObjects)) {
           unitTestUnits("about to create unit", id, o_new);
-          this.createUnit(id, o_new, player, visibleForAll);
+          this.createUnit(id, o_new, player);
           if (id in this.uis) {
             gObjects[id] = o_new;
           } else {
@@ -274,7 +274,9 @@ class AUnits {
               gObjects[id] = o_new;
             } else if (d.summary.includes("tile")) {
               //move unit!!!
-              alert("tile change!");
+              //alert("tile change!");
+              this.moveUnit(id, o_old, o_new);
+              unitTestUnits("unit", id, "has moved from", o_old.tile, "to", o_new.tile);
             }
           }
         }
@@ -299,31 +301,29 @@ class AUnits {
       }
     }
 
-    if (!visibleForAll) {
-      //update visibility!
-      unitTestUnits("...visibility is updated for all units!");
-      for (const id in this.uis) {
-        const ms = this.uis[id].ms;
-        const owner = ms.getTag("owner");
-        const o = this.uis[id].o;
-        const isHidden = o.obj_type == "hidden_unit";
+    //update visibility!
+    unitTestUnits("...visibility is updated for all units!");
+    for (const id in this.uis) {
+      const ms = this.uis[id].ms;
+      const owner = ms.getTag("owner");
+      const o = this.uis[id].o;
+      const isHidden = o.obj_type == "hidden_unit";
 
-        if (owner == player || owner == "Neutral") {
-          if (isHidden) {
-            ms.hide();
-          } else {
-            ms.show();
-          }
+      if (owner == player || owner == "Neutral") {
+        if (isHidden) {
+          ms.hide();
         } else {
-          if (isHidden) {
-            ms.show();
-          } else {
-            ms.hide();
-          }
+          ms.show();
+        }
+      } else {
+        if (isHidden) {
+          ms.show();
+        } else {
+          ms.hide();
         }
       }
-      unitTestUnits("player", player, "previousPlayer:", this.previousPlayer);
     }
+    unitTestUnits("player", player, "previousPlayer:", this.previousPlayer);
     this.previousPlayer = player;
 
     //show player's units!

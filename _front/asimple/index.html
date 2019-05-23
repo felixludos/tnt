@@ -54,7 +54,13 @@
       </div>
       <div id="edit_area" class="grid_div">
         <div id="uiEditButtons">
-          <p style="margin-bottom:0px;font-size:14pt;">front ONLY:</p>
+          <button id="bSpringStart" style="background-color:green;" onclick="onClickScenario(this,'string_start')">
+            spring start
+          </button>
+          <button id="bMovement" style="background-color:green;" onclick="onClickScenario(this,'test_movement')">
+            movement
+          </button>
+          <!-- <p style="margin-bottom:0px;font-size:14pt;">front ONLY:</p>
           <button id="bAddInfluence" style="background-color:green;" onclick="onClickAddInfluence(this)">
             add influence
           </button>
@@ -65,7 +71,7 @@
           <button id="bEditTest" class="hidden" style="margin-top:24px;background-color:green;" onclick="onClickEditTest(this)">
             edit test
           </button>
-          <button id="bAddUnit" class="hidden" style="background-color:green;" onclick="onClickAddUnit(this)">add unit</button>
+          <button id="bAddUnit" class="hidden" style="background-color:green;" onclick="onClickAddUnit(this)">add unit</button> -->
         </div>
       </div>
       <div id="select_area" class="grid_div">
@@ -183,6 +189,24 @@
           }
         }
       }
+      function onClickScenario(btn, filename) {
+        freezeUI();
+        switch (btn.id) {
+          case "bSpringStart":
+            restart("West", "spring_start");
+            break;
+          case "bMovement":
+            restart("West", "test_movement");
+            break;
+          // case bProduction: restart('West','spring_start',seed); break;
+          // case bSpringStart: restart('West','spring_start',seed); break;
+          // case bSpringStart: restart('West','spring_start',seed); break;
+          default:
+            let pl = chooseRandom(assets.factionNames);
+            console.log("restarting with", pl, assets.factionNames.toString());
+            restart(pl, filename, seed);
+        }
+      }
       function onClickAddUnit() {
         freezeUI();
         let dOrig = serverData;
@@ -270,7 +294,7 @@
       }
       function onClickLoad() {
         freezeUI();
-        sendLoading("sprint_start", player, gameloop);
+        restart(player, "test1");
       }
       function onClickSave() {
         freezeUI();
@@ -299,12 +323,8 @@
       function gameloop(data) {
         //update
         serverData = data;
-        if ("removed" in data) {
-          for (const key in data.removed) {
-            STOP = true;
-            break;
-          }
-        }
+
+        STOP = unitTestRemovedCheck(data);
 
         unitTestControl("*** gameloop: updating ***", data);
         testOutput({0: [moveCounter + " gameloop:", data]});
@@ -314,7 +334,7 @@
         mergeCreatedAndUpdated(data);
         cards.update(player, data, gameObjects);
         map.update(data, gameObjects);
-        units.update(data, gameObjects, player, execOptions.mode == "edit");
+        units.update(data, gameObjects, player);
 
         //next action
         tuples = getTuples(data);
@@ -359,7 +379,7 @@
         G.objects = gameObjects;
         G.serverData = serverData;
       }
-      function restart(pl, filename = "") {
+      function restart(pl, filename = "", seed = 5) {
         player = pl;
         year = 1935;
         phase = "Setup";
@@ -374,7 +394,7 @@
         cards = new ACards(assets);
         units = new AUnits(assets);
         decider = new ADecisiongen(assets);
-        if (empty(filename)) sendInit(player, gameloop, 0);
+        if (empty(filename)) sendInit(player, gameloop, seed);
         else sendLoading(filename, player, gameloop);
       }
       function updateStepPlayerPhaseYear(data) {
@@ -455,7 +475,7 @@
     <script>
       function startScript() {
         //addIf("control", execOptions.activatedTests);
-        addIf("units", execOptions.activatedTests);
+        //addIf("units", execOptions.activatedTests);
         //addIf("strategy", execOptions.activatedTests);
 
         testMovement();
