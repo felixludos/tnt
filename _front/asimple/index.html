@@ -81,11 +81,14 @@
         <div id="uiActiveButtons" class="hidden">
           <button id="bStep" onclick="decider.onClickStep()">step</button>
           <button id="bRunToEnd" onclick="onClickRunToEnd()">run to end</button>
-          <button id="bRunToSpring" onclick="onClickRunToSpring()">run to Spring</button>
+          <button id="bRunToSpring" onclick="onClickRunToSpring()">run to spring</button>
           <!-- <button id="bPlayWest" onclick="onClickPlay(this)">play West</button>
           <button id="bPlayUSSR" onclick="onClickPlay(this)">play USSR</button>
           <button id="bPlayAxis" onclick="onClickPlay(this)">play Axis</button> -->
           <button id="bRestart" style="margin-top:24px;background-color:orangered;" onclick="onClickRestart(this)">restart</button>
+          <button id="bRestartParams" style="background-color:orangered;" onclick="onClickRestartParams(this)">
+            restart params
+          </button>
         </div>
       </div>
       <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
@@ -285,6 +288,14 @@
         console.log("restarting with", pl, assets.factionNames.toString());
         restart(pl);
       }
+      function onClickRestartParams() {
+        params = prompt("enter player [seed]:");
+        let pl = capitalize(stringBefore(params, " "));
+        let seed = firstNumber(params);
+        if (seed < 0) seed = randomNumber();
+        console.log("restarting with player", pl, "and seed", seed);
+        restart(pl, "", seed);
+      }
       function onClickRunToEnd() {
         STOP = false;
         execOptions.manualPlay = []; //skipCond = () => true;
@@ -346,7 +357,7 @@
         // STOP = unitTestRemovedCheck(data);
 
         unitTestControl("*** gameloop: updating ***", data);
-        testOutput({0: [moveCounter + " gameloop:", data]});
+        testOutput({0: ["gameloop:", data]});
 
         updateStepPlayerPhaseYear(data);
         updateLog(data);
@@ -357,8 +368,6 @@
 
         //next action
         tuples = getTuples(data);
-
-        console.log(tuples);
 
         make_G();
 

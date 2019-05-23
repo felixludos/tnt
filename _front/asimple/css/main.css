@@ -58,7 +58,11 @@ button {
   border-radius: 12px;
 }
 
-#command_area button,
+#command_area button {
+  width: 200px;
+  padding: 6px 6px 6px 8px;
+  margin-top: 6px;
+}
 #edit_area button {
   width: 150px;
   padding: 6px 6px 6px 8px;

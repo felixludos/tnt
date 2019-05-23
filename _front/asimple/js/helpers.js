@@ -1540,6 +1540,9 @@ var countries = [
 function intDiv(n, q) {
   return Math.floor(n / q);
 }
+function randomNumber(min = 0, max = 100) {
+  return Math.floor(Math.random() * (max - min + 1)) + min; //min and max inclusive!
+}
 //#endregion
 
 //#region object and dictionary helpers
@@ -1715,7 +1718,10 @@ function allNumbers(s) {
     return +v;
   });
 }
-
+function capitalize(s) {
+  if (typeof s !== "string") return "";
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 function eraseSpaces(s) {
   let i = 0;
   while (s.includes("  ")) {
