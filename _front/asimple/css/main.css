@@ -4,12 +4,12 @@ html {
   margin: 0px;
 }
 body {
-  min-width: 1416px; 
+  min-width: 1416px;
   /* min-width: 1366px; */
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.lstTuples{
+.lstTuples {
   font-family: Arial;
 }
 
@@ -31,11 +31,11 @@ body {
   width: 100%;
 }
 
-.flex >div {
+.flex > div {
   flex: 0 1 auto;
   margin: 10px;
 }
-.flex >button {
+.flex > button {
   flex: 0 1 auto;
   /* margin: 10px; */
 }
@@ -45,9 +45,9 @@ button {
   margin: 2px;
   padding: 0px;
   font-size: 18pt;
-  font-family:Verdana;
+  font-family: Verdana;
   /* height:30px; */
-  width:100px;
+  width: 100px;
   cursor: pointer;
   text-align: center;
   text-decoration: none;
@@ -58,13 +58,14 @@ button {
   border-radius: 12px;
 }
 
-#command_area button{
-  width:150px;
+#command_area button,
+#edit_area button {
+  width: 150px;
   padding: 6px 6px 6px 8px;
   margin-top: 6px;
 }
-#command2_area button{
-  width:auto;
+#command2_area button {
+  width: auto;
   padding: 6px 6px 6px 8px;
   margin-top: 6px;
 }
@@ -77,41 +78,41 @@ button:active {
   background-color: rgb(233, 138, 134);
 }
 
-.toggleSelected{
+.toggleSelected {
   background-color: #1bb84a;
 }
 
-.columnDiv{
-  float:left;    
-  width:150px;
-  height:100%;
+.columnDiv {
+  float: left;
+  width: 150px;
+  height: 100%;
   /* background-color:red; */
 }
-.chrome{
+.chrome {
   /* display: inline-block; */
   /* display:block; */
   margin: 2px;
   padding: 1px;
-  width:140px;
+  width: 140px;
 }
-label.chrome{
-  text-align:left;
-  font-size:14pt;
-  height:25px;
-  color:grey;
-  margin-top:3px;
+label.chrome {
+  text-align: left;
+  font-size: 14pt;
+  height: 25px;
+  color: grey;
+  margin-top: 3px;
 }
-button.chrome{
+button.chrome {
   font-size: 18pt;
-  font-family:Arial;
-  height:32px;
-  border:none;
+  font-family: Arial;
+  height: 32px;
+  border: none;
 }
-input.chrome{
-  text-align:center;
+input.chrome {
+  text-align: center;
   font-size: 18pt;
-  font-family:Verdana;
-  height:30px;
-  border:none;
+  font-family: Verdana;
+  height: 30px;
+  border: none;
   cursor: pointer;
 }

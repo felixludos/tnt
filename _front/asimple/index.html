@@ -52,6 +52,22 @@
           </g>
         </svg>
       </div>
+      <div id="edit_area" class="grid_div">
+        <div id="uiEditButtons">
+          <p style="margin-bottom:0px;font-size:14pt;">front ONLY:</p>
+          <button id="bAddInfluence" style="background-color:green;" onclick="onClickAddInfluence(this)">
+            add influence
+          </button>
+          <button id="bRemoveInfluence" style="background-color:green;" onclick="onClickRemoveInfluence(this)">
+            remove influence
+          </button>
+          <p style="margin-bottom:0px;font-size:14pt;">front+back:</p>
+          <button id="bEditTest" class="hidden" style="margin-top:24px;background-color:green;" onclick="onClickEditTest(this)">
+            edit test
+          </button>
+          <button id="bAddUnit" class="hidden" style="background-color:green;" onclick="onClickAddUnit(this)">add unit</button>
+        </div>
+      </div>
       <div id="select_area" class="grid_div">
         <div id="divSelect" class="sidenav"></div>
       </div>
@@ -64,16 +80,6 @@
           <button id="bPlayUSSR" onclick="onClickPlay(this)">play USSR</button>
           <button id="bPlayAxis" onclick="onClickPlay(this)">play Axis</button> -->
           <button id="bRestart" style="margin-top:24px;background-color:orangered;" onclick="onClickRestart(this)">restart</button>
-          <button id="bEditTest" class="hidden" style="margin-top:24px;background-color:green;" onclick="onClickEditTest(this)">
-            edit test
-          </button>
-          <button id="bAddUnit" class="hidden" style="background-color:green;" onclick="onClickAddUnit(this)">add unit</button>
-          <button id="bAddInfluence" style="background-color:green;" onclick="onClickAddInfluence(this)">
-            add influence
-          </button>
-          <button id="bRemoveInfluence" style="background-color:green;" onclick="onClickRemoveInfluence(this)">
-            remove influence
-          </button>
         </div>
       </div>
       <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
@@ -112,6 +118,7 @@
         hide(document.getElementById("dAutoplay"));
         hide(document.getElementById("dActive"));
         hide(document.getElementById("uiActiveButtons"));
+        hide(document.getElementById("uiEditButtons"));
         hide(document.getElementById("bNextPlayer"));
       }
       function activateNextPlayerButton() {
@@ -119,6 +126,7 @@
         hide(document.getElementById("dAutoplay"));
         hide(document.getElementById("dActive"));
         hide(document.getElementById("uiActiveButtons"));
+        hide(document.getElementById("uiEditButtons"));
         show(document.getElementById("bNextPlayer"));
       }
       function activateUserSelection() {
@@ -126,6 +134,7 @@
         hide(document.getElementById("dAutoplay"));
         show(document.getElementById("dActive"));
         show(document.getElementById("uiActiveButtons"));
+        show(document.getElementById("uiEditButtons"));
         hide(document.getElementById("bNextPlayer"));
       }
       function activateAutoplay() {
@@ -133,6 +142,7 @@
         show(document.getElementById("dAutoplay"));
         hide(document.getElementById("dActive"));
         hide(document.getElementById("uiActiveButtons"));
+        hide(document.getElementById("uiEditButtons"));
         hide(document.getElementById("bNextPlayer"));
       }
       function callNextAction() {
@@ -258,6 +268,10 @@
         execOptions.skipCond = () => phase != "Spring";
         decider.onClickStep();
       }
+      function onClickLoad() {
+        freezeUI();
+        sendLoading("sprint_start", player, gameloop);
+      }
       function onClickSave() {
         freezeUI();
         let dOrig = serverData;
@@ -293,7 +307,7 @@
         }
 
         unitTestControl("*** gameloop: updating ***", data);
-        testOutput({0: [moveCounter + "gameloop:", data]});
+        testOutput({0: [moveCounter + " gameloop:", data]});
 
         updateStepPlayerPhaseYear(data);
         updateLog(data);
@@ -304,6 +318,8 @@
 
         //next action
         tuples = getTuples(data);
+
+        console.log(tuples);
 
         make_G();
 
@@ -439,11 +455,14 @@
     <script>
       function startScript() {
         //addIf("control", execOptions.activatedTests);
-        //addIf("units", execOptions.activatedTests);
+        addIf("units", execOptions.activatedTests);
         //addIf("strategy", execOptions.activatedTests);
-        addIf("removed", execOptions.activatedTests);
-        player = "Axis";
-        sendInit(player, gameloop, 5);
+
+        testMovement();
+        // addIf("removed", execOptions.activatedTests);
+        // player = "Axis";
+        // sendInit(player, gameloop, 5);
+
         //bei seed = 4: kommt nur influence von <= 2 zustande!
         //bei seed = 1: geht nicht, in gov phase kommt fehler: USA cannot become satellite of Axis
         //try seed = 2: nur <= 2

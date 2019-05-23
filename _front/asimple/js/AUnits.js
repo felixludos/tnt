@@ -4,7 +4,7 @@ class AUnits {
     this.SZ = this.assets.SZ;
     this.snailPos = calcSnailPositions(0, 0, this.SZ.cadreDetail, 25);
 
-    this.units = {Axis: {}, West: {}, USSR: {}}; //idlist by [owner][tile]
+    this.units = {Axis: {}, West: {}, USSR: {}, Neutral: {}}; //idlist by [owner][tile]
 
     this.uis = {}; //id:{ms:ms,o:o} //including hiddenUnits, o={obj_type:hidden_unit}
 
@@ -20,6 +20,7 @@ class AUnits {
     }
     let tile = ms.getTag("tile");
     let owner = ms.getTag("owner");
+    let neutral = ms.getTag("neutral");
     if (!(tile in this.units[owner])) {
       this.units[owner][tile] = [id];
     } else {
@@ -67,8 +68,10 @@ class AUnits {
     }
   }
   calcStartPos(tile, faction) {
-    let pFaction = this.SZ["p" + faction];
     let pTile = this.getPosition(tile);
+    if (faction == "Neutral") return {x: pTile.x, y: pTile.y};
+
+    let pFaction = this.SZ["p" + faction];
     return {x: pTile.x + pFaction.x, y: pTile.y + pFaction.y};
   }
   createHiddenUnit(id, owner, tile) {
@@ -97,6 +100,7 @@ class AUnits {
   createUnit(id, o, player, visibleForAll = false) {
     let nationality = o.nationality;
     let owner = getUnitOwner(nationality);
+    let isNeutral = owner == "Neutral";
     let type = o.type;
 
     if (type === undefined) {
@@ -106,7 +110,7 @@ class AUnits {
     } else {
       unitTestUnits("create unit", id, o, "...player is", player);
       let imagePath = "/a/assets/images/" + type + ".svg";
-      let color = this.assets.troopColors[nationality];
+      let color = isNeutral ? this.assets.troopColors["Neutral"] : this.assets.troopColors[nationality];
       let darker = darkerColor(color[0], color[1], color[2]);
       let sz = this.SZ.cadreDetail;
       let sz80 = sz * 0.86;
@@ -120,6 +124,7 @@ class AUnits {
       ms.tag("type", "unit");
       ms.tag("owner", owner);
       ms.tag("nationality", nationality);
+      ms.tag("neutral", isNeutral);
 
       this.placeUnit(ms, o.tile);
       this.addUnit(id, ms, o);
@@ -128,6 +133,7 @@ class AUnits {
       }
     }
 
+    if (isNeutral) return; //don't need hidden unit
     let idHidden = this.getHiddenId(owner, o.tile);
     if (!(idHidden in this.uis)) {
       this.createHiddenUnit(idHidden, owner, o.tile);
@@ -146,16 +152,21 @@ class AUnits {
     //unitTestUnits("getPosition", pos);
     return pos;
   }
-  placeUnit(msUnit, tile) {
-    let faction = msUnit.getTag("owner");
-    let iUnit = tile in this.units[faction] ? this.units[faction][tile].length : 0;
+  placeUnit(ms, tile) {
+    let faction = ms.getTag("owner");
+    let isNeutral = ms.getTag("neutral");
     let pStart = this.calcStartPos(tile, faction);
-    let pSnailOffset = this.snailPos[iUnit];
-    let x = pStart.x + pSnailOffset.x;
-    let y = pStart.y + pSnailOffset.y;
-    unitTestUnits("index of this unit", iUnit, "pos", x, y);
-    msUnit.setPos(x, y).draw();
-    msUnit.tag("tile", tile);
+    let x = pStart.x;
+    let y = pStart.y;
+    if (!isNeutral) {
+      let iUnit = tile in this.units[faction] ? this.units[faction][tile].length : 0;
+      let pSnailOffset = this.snailPos[iUnit];
+      x = pStart.x + pSnailOffset.x;
+      y = pStart.y + pSnailOffset.y;
+      unitTestUnits("index of this unit", iUnit, "pos", x, y);
+    }
+    ms.setPos(x, y).draw();
+    ms.tag("tile", tile);
   }
   placeHiddenUnit(msHidden, faction, tile) {
     let p = this.calcStartPos(tile, faction);
@@ -237,6 +248,7 @@ class AUnits {
         if (o_new.obj_type != "unit") continue;
 
         if (!(id in gObjects)) {
+          unitTestUnits("about to create unit", id, o_new);
           this.createUnit(id, o_new, player, visibleForAll);
           if (id in this.uis) {
             gObjects[id] = o_new;
@@ -277,8 +289,9 @@ class AUnits {
           if (o.obj_type == "unit") {
             this.removeUnit(id);
             let ms = this.uis[id].ms; //o.nation];
+            let neutral = ms.getTag("neutral");
             ms.removeFromUI();
-            this.updateUnitCounter(o.owner, o.tile);
+            if (!neutral) this.updateUnitCounter(o.owner, o.tile);
             delete this.uis[id];
             delete gObjects[id];
           }
@@ -294,7 +307,8 @@ class AUnits {
         const owner = ms.getTag("owner");
         const o = this.uis[id].o;
         const isHidden = o.obj_type == "hidden_unit";
-        if (owner == player) {
+
+        if (owner == player || owner == "Neutral") {
           if (isHidden) {
             ms.hide();
           } else {
