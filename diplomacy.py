@@ -82,9 +82,14 @@ def becomes_satellite(G, player, nation):
 			pop, res = compute_tracks(G.nations.territories[nation], G.tiles)
 			G.players[inf.faction].trans.resources -= pop
 			G.players[inf.faction].trans.resources -= res
-			G.logger.write('{} loses {} influence in {} (losing POP={}, RES={})'.format(inf.faction, inf.value, nation, pop,
-			                                                                            res))
-
+			G.logger.write(
+				'{} loses {} influence in {} (losing POP={}, RES={})'.format(inf.faction, inf.value, nation, pop, res))
+			
+			faction.tracks.POP += pop
+			faction.tracks.RES += res
+			
+			G.logger.write('{} gains POP={}, RES={}'.format(player, pop, res))
+	
 	else:
 		pop, res = compute_tracks(G.nations.territories[nation], G.tiles)
 		faction.tracks.POP += pop

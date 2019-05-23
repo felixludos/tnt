@@ -77,15 +77,6 @@ def contains_fortress(G, tile):
 # Diplomacy
 ######################
 
-def eval_unit_entry(G, player, tile):
-
-	# TODO: Axis entering Canada -> USA becomes West satellite
-	# TODO: Interventions
-
-	# player = G.nations.designations[unit.nationality]
-
-	pass
-
 def present_powers(G, tile):
 	powers = xset()
 	for uid in tile.units:
@@ -108,92 +99,64 @@ def present_powers(G, tile):
 
 	return powers, disputed
 
-# check for new battle
-def eval_tile_control(G, tile, unit=None):  # usually done when a unit leaves a tile
+def check_issue(G, player, other):
+	if player == other:
+		return False
+	if other not in G.players:
+		return True
+	return G.players[player].stats.at_war_with[other]
 
+def make_disputed(G, tile, aggressor):
+	tile.disputed = True
+	tile.aggressors = tlist()
+	tile.aggressors.append(aggressor)
+	G.objects.updated[tile._id] = tile
+
+def make_undisputed(G, tile):
+	# remove disputed
+	del tile.disputed
+	del tile.aggressors
+	G.objects.updated[tile._id] = tile
+
+# check for new battle and update disputed/aggressor flags
+def eval_tile_control(G, tile, unit=None): # usually done when a unit leaves a tile
+	
 	# TODO: Axis entering Canada -> USA becomes West satellite
 	# TODO: Interventions
 
 	owner = None
 	if 'alligence' in tile:
-		owner = tile.owner if 'owner' in tile else G.nations.designations[tile.alligence]
+		owner = tile.owner
 
 	player = None
 	if unit is not None:
 		player = G.nations.designations[unit.nationality]
 
 	powers, conflict = present_powers(G, tile)
-
-	if not conflict:  # no conflict based on units already there
-		if (player is None  # noone trying to enter
-		    or player in powers):  # player entering is already present
-
-			if 'disputed' in tile:
-				del tile.disputed
-				del tile.aggressors
-		elif player is not None:
-			if len(powers) == 0:
-				pass
-			pass
-
-	# there is a conflict
-	elif player is not None:  # noone trying to enter
+	
+	new_battle = False
+	
+	if 'disputed' not in tile and player is not None and player not in powers:
+		
+		make_disputed(G, tile, player)
+		new_battle = True
+	
+	elif 'disputed' in tile \
+		and (player is None and len(powers)<=1):
 		pass
-	else:
-		pass
-
-	# if no unit, just update disputed
-	if unit is None:
-
-		if owner is None:  # sea/ocean
-			if len(powers) <= 1:
-				if 'disputed' in tile:
-					del tile.disputed
-					del tile.aggressors
-			elif not 'disputed' in tile:
-				raise Exception('')
-
-				pass
-
-		pass
-	else:
-		player = G.nations.designations[unit.nationality]
-
-	if 'alligence' in tile:  # land tile
-
-		if player == owner:  # or player inside
-			return False
-
-		if len(powers) == 1:  # only a single power on the island
-
-			new = powers.pop()
-
-			if new != owner:
-				if new in G.players:
-					tile.owner = new
-					G.objects.updated[tile._id] = tile
-					G.players[new].territory.add(tile._id)
-					G.logger.write('{} takes control of {}'.format(new, tile._id))
-				elif 'owner' in tile:
-
-					del tile.owner
-					G.objects.updated[tile._id] = tile
-
-				return False
-			else:
-
-				return True
-			pass
-
-		elif unit is not None:
-			if len(powers) == 0:
-				pass  # unit enters an empty tile
-			else:
-				pass  # unit enters non empty tile - may cause battle
-		else:
-			pass  # multiple powers present
-
-	pass
+	
+	# update aggressors
+	
+	# change ownership
+	
+		
+	if player == 'Axis' and tile._id == 'Canada' and 'USA' not in G.players.West.satellites:
+		pass # USA becomes a West satellite
+		
+	
+	# interventions
+	
+	
 
 ######################
 # Game Actions
