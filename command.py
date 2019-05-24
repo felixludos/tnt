@@ -417,7 +417,7 @@ def new_movement(G):
 	active = G.temp.order[G.temp.active_idx]
 	G.logger.write('{} has {} command points for movement'.format(active, G.temp.commands[active].value))
 
-def movement_phase(G, player=None, action=None):
+def movement_phase(G, player=None, action=None):#@@@@@
 	
 	if 'battles' not in G.temp: # pseudo prephase
 		new_movement(G)
@@ -448,6 +448,15 @@ def movement_phase(G, player=None, action=None):
 	elif head in faction.units:
 		
 		destination, *border = tail #is there a case for tail to have more than 1 element?
+		#@@@@@
+		if len(tail)>1: 
+			print('>>>>>>>>>>>>>>ja, kann > 1 sein!!!',tail)
+		elif 'crossings' in G.temp:
+			print(G.temp.crossings)
+		elif 'borders' in G.temp:
+			print(G.temp.borders)
+		else:
+			print('no crossings, no borders!')
 		
 		if len(border):
 			if border not in G.temp.borders[player]:
@@ -459,11 +468,13 @@ def movement_phase(G, player=None, action=None):
 		G.temp.has_moved.add(head)
 		
 		source = G.tiles[unit.tile]
-		source.remove(unit._id) #@@@@ eval_movement requires the unit moving no longer be on source
+		#source.remove(unit._id) #@@@@@ eval_movement requires the unit moving no longer be on source
+		source.units.remove(unit._id) #@@@@ eval_movement requires the unit moving no longer be on source
 		
 		dest = G.tiles[destination]
 		
-		if 'alligence' in dest:
+		#if 'alligence' in dest: #@@@@@
+		if 'alligence' in dest and 'threats' in G.temp:
 			owner = dest.owner #G.nations.designations[dest.alligence]
 			if owner in G.temp.threats: # controlled by player
 				assert owner in G.players, 'how can {} be in threats'.format(owner)
@@ -485,7 +496,7 @@ def movement_phase(G, player=None, action=None):
 		if new_battle:
 			G.temp.battles[destination] = player
 			
-		if engaging or disengaging: #@@@@ is this still relevant? yes for debugging, if this happens theres something wrong in movement generation code
+		if engaging or disengaging: #@@@@@ hier hauts ihn auf! is this still relevant? yes for debugging, if this happens theres something wrong in movement generation code
 			assert len(border), 'no border was tracked, but unit is {}'.format('engaging' if engaging else 'disengaging')
 			
 		move_unit(G, unit, destination)
@@ -496,7 +507,7 @@ def movement_phase(G, player=None, action=None):
 		#@@@@
 		# G.logger.write('{} moves a unit from {} to {} ({} comand points remaining)'.format(
 		# 	player, unit.tile, destination, cmd.value))
-		G.logger.write('{} moves a unit from {} to {} ({} comand points remaining)'.format(
+		G.logger.write('{} moves a unit from {} to {} ({} command points remaining)'.format(
 			player, source._id, destination, cmd.value))
 		
 	
