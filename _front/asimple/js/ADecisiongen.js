@@ -133,8 +133,10 @@ class ADecisiongen {
 
     //highlight objects on map or hand
   }
-  onClickStep() {
-    this.callback(this.tuples[0]);
+  onClickStep(G) {
+    let tuple = this.playerStrategy[G.player].chooseTuple(G);
+    this.highlightTuple(tuple);
+    this.callback(tuple);
   }
   onSelected(ev) {
     if (!this.selectionDone) {

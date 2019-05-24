@@ -1,144 +1,144 @@
-Canada: 
+Canada:
   capital: Ottawa
-  x: 271 
+  x: 271
   y: 503
-USA: 
+USA:
   capital: Washington
-  x: 109 
+  x: 109
   y: 654
-Latin America: 
-  capital: Latin America
-  x: 151 
+Latin America:
+  capital: Rio de Janeiro
+  x: 151
   y: 1914
-French North Africa: 
+French North Africa:
   capital: Algiers
-  x: 866 
+  x: 866
   y: 1849
-Gibraltar: 
+Gibraltar:
   capital: Gibraltar
-  x: 537 
+  x: 537
   y: 1734
-Portugal: 
+Portugal:
   capital: Lisbon
-  x: 457 
+  x: 457
   y: 1617
-Spain: 
+Spain:
   capital: Madrid
-  x: 766 
+  x: 766
   y: 1514
-Ireland: 
+Ireland:
   capital: Dublin
-  x: 626 
+  x: 626
   y: 754
-Denmark: 
+Denmark:
   capital: Copenhagen
-  x: 1243 
+  x: 1243
   y: 771
-Britain: 
+Britain:
   capital: London
-  x: 860 
+  x: 860
   y: 854
-France: 
+France:
   capital: Paris
-  x: 907 
+  x: 907
   y: 1232
-Italy: 
+Italy:
   capital: Rome
-  x: 1371 
+  x: 1371
   y: 1497
-Malta: 
+Malta:
   capital: Malta
-  x: 1276 
+  x: 1276
   y: 1813
-Libya: 
+Libya:
   capital: Tripoli
-  x: 1520 
+  x: 1520
   y: 2014
-Low Countries: 
+Low Countries:
   capital: Amsterdam
-  x: 1109 
+  x: 1109
   y: 886
-Austria: 
+Austria:
   capital: Vienna
-  x: 1323 
+  x: 1323
   y: 1203
-Germany: 
+Germany:
   capital: Berlin
-  x: 1254 
+  x: 1254
   y: 989
-Norway: 
+Norway:
   capital: Oslo
-  x: 1314 
+  x: 1314
   y: 397
-Sweden: 
+Sweden:
   capital: Stockholm
-  x: 1443 
+  x: 1443
   y: 400
-Finland: 
+Finland:
   capital: Helsinki
-  x: 1760 
+  x: 1760
   y: 283
-Baltic States: 
+Baltic States:
   capital: Riga
-  x: 1717 
+  x: 1717
   y: 723
-Poland: 
+Poland:
   capital: Warsaw
-  x: 1663 
+  x: 1663
   y: 911
-Czechoslovakia: 
+Czechoslovakia:
   capital: Prague
-  x: 1420 
+  x: 1420
   y: 1060
-Hungary: 
+Hungary:
   capital: Budapest
-  x: 1546 
+  x: 1546
   y: 1214
-Yugoslavia: 
+Yugoslavia:
   capital: Belgrade
-  x: 1614 
+  x: 1614
   y: 1311
-Albania: 
+Albania:
   capital: Albania
-  x: 1617 
+  x: 1617
   y: 1497
-Greece: 
+Greece:
   capital: Athens
-  x: 1729 
+  x: 1729
   y: 1569
-Rumania: 
+Rumania:
   capital: Bucharest
-  x: 1920 
+  x: 1920
   y: 1251
-Bulgaria: 
+Bulgaria:
   capital: Sofia
-  x: 1860 
+  x: 1860
   y: 1406
-Middle East: 
+Middle East:
   capital: Suez
-  x: 2386 
+  x: 2386
   y: 1877
-Syria: 
+Syria:
   capital: Damascus
-  x: 2409 
+  x: 2409
   y: 1729
-India: 
+India:
   capital: Delhi
-  x: 3303 
+  x: 3303
   y: 1477
-Afghanistan: 
+Afghanistan:
   capital: Kabul
-  x: 2734 
+  x: 2734
   y: 1663
-Persia: 
+Persia:
   capital: Tehran
-  x: 2943 
+  x: 2943
   y: 1489
-Turkey: 
+Turkey:
   capital: Ankara
-  x: 2266 
+  x: 2266
   y: 1366
-USSR: 
+USSR:
   capital: Moscow
-  x: 2123 
+  x: 2123
   y: 611
