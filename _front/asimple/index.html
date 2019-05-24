@@ -291,7 +291,7 @@
       }
       function onClickRunToPhase(ph) {
         STOP = false;
-        execOptions.skipCond = () => phase != "ph";
+        execOptions.skipCond = () => phase != ph;
         decider.onClickStep();
       }
       function onClickLoad() {
@@ -376,6 +376,7 @@
         } else {
           //actions: decider generates a move:
           let autoplay = execOptions.skipCond() && !STOP;
+          unitTestAutoplay("***check autoplay:", execOptions.skipCond, autoplay);
           if (autoplay) activateAutoplay();
           else {
             execOptions.skipCond = defaultSkipCond;
@@ -493,7 +494,7 @@
         //addIf("control", execOptions.activatedTests);
         //addIf("units", execOptions.activatedTests);
         //addIf("moving", execOptions.activatedTests);
-        //addIf("filter", execOptions.activatedTests);
+        addIf("autoplay", execOptions.activatedTests);
 
         testMovement("violationImminent", "USSR");
         // addIf("removed", execOptions.activatedTests);

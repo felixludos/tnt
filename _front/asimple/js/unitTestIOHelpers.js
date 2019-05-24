@@ -9,6 +9,9 @@ function testOutput(o) {
   }
 }
 
+function unitTestAutoplay() {
+  if (execOptions.activatedTests.includes("autoplay")) console.log(...arguments);
+}
 function unitTestCards() {
   if (execOptions.activatedTests.includes("cards")) console.log(...arguments);
 }
