@@ -449,14 +449,14 @@ def movement_phase(G, player=None, action=None):#@@@@@
 		
 		destination, *border = tail #is there a case for tail to have more than 1 element?
 		#@@@@@
-		if len(tail)>1: 
-			print('>>>>>>>>>>>>>>ja, kann > 1 sein!!!',tail)
-		elif 'crossings' in G.temp:
-			print(G.temp.crossings)
-		elif 'borders' in G.temp:
-			print(G.temp.borders)
-		else:
-			print('no crossings, no borders!')
+		# if len(tail)>1: 
+		# 	print('>>>>>>>>>>>>>>ja, kann > 1 sein!!!',tail)
+		# elif 'crossings' in G.temp:
+		# 	print(G.temp.crossings)
+		# elif 'borders' in G.temp:
+		# 	print(G.temp.borders)
+		# else:
+		# 	print('no crossings, no borders!')
 		
 		if len(border):
 			if border not in G.temp.borders[player]:
