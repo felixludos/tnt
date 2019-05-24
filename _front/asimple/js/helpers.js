@@ -296,6 +296,146 @@ function without(arr, elementToRemove) {
 //#endregion array helpers
 
 //#region color helpers
+function colorArrToString(r, g, b) {
+	return "rgb(" + r + "," + g + "," + b + ")";
+}
+const pSBC = (p, c0, c1, l) => {
+  let r,
+    g,
+    b,
+    P,
+    f,
+    t,
+    h,
+    i = parseInt,
+    m = Math.round,
+    a = typeof c1 == "string";
+  if (typeof p != "number" || p < -1 || p > 1 || typeof c0 != "string" || (c0[0] != "r" && c0[0] != "#") || (c1 && !a)) return null;
+  if (!this.pSBCr)
+    this.pSBCr = d => {
+      let n = d.length,
+        x = {};
+      if (n > 9) {
+        ([r, g, b, a] = d = d.split(",")), (n = d.length);
+        if (n < 3 || n > 4) return null;
+        (x.r = i(r[3] == "a" ? r.slice(5) : r.slice(4))), (x.g = i(g)), (x.b = i(b)), (x.a = a ? parseFloat(a) : -1);
+      } else {
+        if (n == 8 || n == 6 || n < 4) return null;
+        if (n < 6) d = "#" + d[1] + d[1] + d[2] + d[2] + d[3] + d[3] + (n > 4 ? d[4] + d[4] : "");
+        d = i(d.slice(1), 16);
+        if (n == 9 || n == 5) (x.r = (d >> 24) & 255), (x.g = (d >> 16) & 255), (x.b = (d >> 8) & 255), (x.a = m((d & 255) / 0.255) / 1000);
+        else (x.r = d >> 16), (x.g = (d >> 8) & 255), (x.b = d & 255), (x.a = -1);
+      }
+      return x;
+    };
+  (h = c0.length > 9),
+    (h = a ? (c1.length > 9 ? true : c1 == "c" ? !h : false) : h),
+    (f = pSBCr(c0)),
+    (P = p < 0),
+    (t = c1 && c1 != "c" ? pSBCr(c1) : P ? {r: 0, g: 0, b: 0, a: -1} : {r: 255, g: 255, b: 255, a: -1}),
+    (p = P ? p * -1 : p),
+    (P = 1 - p);
+  if (!f || !t) return null;
+  if (l) (r = m(P * f.r + p * t.r)), (g = m(P * f.g + p * t.g)), (b = m(P * f.b + p * t.b));
+  else
+    (r = m((P * f.r ** 2 + p * t.r ** 2) ** 0.5)),
+      (g = m((P * f.g ** 2 + p * t.g ** 2) ** 0.5)),
+      (b = m((P * f.b ** 2 + p * t.b ** 2) ** 0.5));
+  (a = f.a), (t = t.a), (f = a >= 0 || t >= 0), (a = f ? (a < 0 ? t : t < 0 ? a : a * P + t * p) : 0);
+  if (h) return "rgb" + (f ? "a(" : "(") + r + "," + g + "," + b + (f ? "," + m(a * 1000) / 1000 : "") + ")";
+  else return "#" + (4294967296 + r * 16777216 + g * 65536 + b * 256 + (f ? m(a * 255) : 0)).toString(16).slice(1, f ? undefined : -2);
+};
+function rgbToHsl(r, g, b) {
+  (r /= 255), (g /= 255), (b /= 255);
+
+  var max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  var h,
+    s,
+    l = (max + min) / 2;
+
+  if (max == min) {
+    h = s = 0; // achromatic
+  } else {
+    var d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
+    }
+
+    h /= 6;
+  }
+
+  return [h, s, l];
+}
+function hsv2hsl(hue, sat, val) {
+  return [
+    //[hue, saturation, lightness]
+    //Range should be between 0 - 1
+    hue, //Hue stays the same
+
+    //Saturation is very different between the two color spaces
+    //If (2-sat)*val < 1 set it to sat*val/((2-sat)*val)
+    //Otherwise sat*val/(2-(2-sat)*val)
+    //Conditional is not operating with hue, it is reassigned!
+    (sat * val) / ((hue = (2 - sat) * val) < 1 ? hue : 2 - hue),
+
+    hue / 2 //Lightness is (2-sat)*val/2
+    //See reassignment of hue above
+  ];
+}
+function hsl2hsv(hue, sat, light) {
+  sat *= light < 0.5 ? light : 1 - light;
+
+  return [
+    //[hue, saturation, value]
+    //Range should be between 0 - 1
+
+    hue, //Hue stays the same
+    (2 * sat) / (light + sat), //Saturation
+    light + sat //Value
+  ];
+}
+function dlColor(factor, r, g, b) {
+  //console.log(r, g, b);
+  let hsl = rgbToHsl(r, g, b);
+  let hsv = hsl2hsv(...hsl);
+
+  let h = hsv[0];
+  let s = hsv[1];
+  let v = hsv[2];
+
+  v *= factor;
+
+  hsl = hsv2hsl(h, s, v);
+  let l = hsl[2];
+
+  let sperc = s * 100;
+  let lperc = l * 100;
+
+  // let hsv = rgbToHsv(r, g, b);
+  // let h = hsv.h;
+  // let s = hsv.s;
+  // let v = hsv.v / 2;
+  // console.log("hsv", h, s, v);
+  // let hsl = hsv2hsl(h, s, v); //hsvToHsl(h, s, v);
+  // let h = hsl[0];
+  // let s = hsl[1] * 100;
+  // let l = hsl[2] * 100;
+  // let v = hsv[2];
+  //console.log("h,s,l,v:", h, s, l, v); //hsl[0], hsl[1], hsl[2]);
+  return hslToHslaString(h, sperc, lperc); //hsl[0], hsl[1], hsl[2]);
+}
+
 function blackOrWhite(cssHSLA, maxLumForWhite = 88) {
   //returns 'black' or 'white' depending on hue and luminosity
   let l = getLuminosity(cssHSLA);

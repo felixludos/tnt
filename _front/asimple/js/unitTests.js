@@ -215,7 +215,7 @@ function testAddInfluence(mapController, gObjects) {
   data.created = {
     "507565": {
       value: 1,
-      nation: "Baltic_States",
+      nation: "Canada",
       faction: "Axis",
       obj_type: "influence",
       visible: {
@@ -225,8 +225,8 @@ function testAddInfluence(mapController, gObjects) {
     },
     "531772": {
       value: 2,
-      nation: "Poland",
-      faction: "Axis",
+      nation: "Ireland",
+      faction: "West",
       obj_type: "influence",
       visible: {
         xset: ["Axis", "USSR", "West"]
@@ -234,9 +234,9 @@ function testAddInfluence(mapController, gObjects) {
       _id: 531772
     },
     "531773": {
-      value: 1,
+      value: 3,
       nation: "Portugal",
-      faction: "Axis",
+      faction: "USSR",
       obj_type: "influence",
       visible: {
         xset: ["Axis", "USSR", "West"]

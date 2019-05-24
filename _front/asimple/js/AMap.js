@@ -85,30 +85,54 @@ class AMap {
       alert("drawInfluence faction undefined!!!");
     }
     let imagePath = "/a/assets/images/" + faction + ".svg";
-    let color = this.assets.troopColors[faction];
-    //console.log('COLOR:',color)
-    let darker = darkerColor(color[0], color[1], color[2]);
-    let szBase = this.assets.SZ.influence / 1.5;
-    let szRest = this.assets.SZ.influence - szBase;
-    let sz = szBase + (szBase * (level - 1)) / 2; //influence grows with level!
-    let sz90 = sz * 0.96;
-    let sz80 = sz * 0.86;
-    let szImage = 40; //sz / 1.5;
+
+    let color = colorArrToString(...this.assets.troopColors[faction]);
+
+    let darker = pSBC(-0.4, color);
+    let lighter = pSBC(0.4, color);
+    let sz = this.assets.SZ.influence + 10 * level; //this.assets.SZ.influence;
+    let szOuter = sz + 10;
+    let szFrame = szOuter + 10;
+    let szImage = sz;
     let y = szImage / 6;
     let text = level;
-    let fontColor = level == 1 ? "black" : level == 2 ? "red" : darker;
-    ms.circle({fill: "yellow", alpha: 1, sz: sz})
-      .circle({fill: darker, sz: szImage + 6})
-      .circle({fill: color, sz: szImage + 4})
-      .image({path: imagePath, w: szImage, h: szImage})
+    let rd = dlColor(0.5, 255, 0, 0);
+    let fontColor = level != 2 ? "black" : rd;
+    ms.circle({fill: darker, alpha: 1, sz: szFrame})
+      .circle({fill: color, alpha: 1, sz: szOuter})
+      .image({path: imagePath, w: szImage, h: sz})
       .text({txt: text, fill: fontColor, fz: szImage - 5, weight: "bold"})
-      .circle({className: "overlay", sz: sz});
-    //ms.tag("ttext", ttext); //for tooltip, not yet used
+      .circle({className: "overlay", sz: szOuter});
     ms.tag("nation", nation);
     ms.tag("faction", faction);
     ms.tag("level", level);
     ms.tag("type", "influence");
     return ms;
+
+    // let color = this.assets.troopColors[faction];
+    // //console.log('COLOR:',color)
+    // let darker = darkerColor(color[0], color[1], color[2]);
+    // let szMain = this.assets.SZ.influence;
+    // let sz = szMain + 10 * level;
+    // //let sz = szMain + (szMain * (level - 1)) / 2; //influence grows with level!
+    // let sz90 = sz * 0.96;
+    // let sz80 = sz * 0.86;
+    // let szImage = szMain - 20; //sz / 1.5;
+    // let y = szImage / 6;
+    // let text = level;
+    // let fontColor = level == 1 ? "black" : level == 2 ? "red" : darker;
+    // ms.circle({fill: "yellow", alpha: 1, sz: sz})
+    //   .circle({fill: darker, sz: szImage + 6})
+    //   .circle({fill: color, sz: szImage + 4})
+    //   .image({path: imagePath, w: szImage, h: szImage})
+    //   .text({txt: text, fill: fontColor, fz: szImage - 5, weight: "bold"})
+    //   .circle({className: "overlay", sz: sz});
+    // //ms.tag("ttext", ttext); //for tooltip, not yet used
+    // ms.tag("nation", nation);
+    // ms.tag("faction", faction);
+    // ms.tag("level", level);
+    // ms.tag("type", "influence");
+    // return ms;
   }
   drawNationPositions() {
     for (const id in this.assets.nationPositions) {
@@ -133,6 +157,10 @@ class AMap {
   }
   setChip(prefix, text, faction, n, color) {
     let pts = this.vpts[faction];
+    if (n < 0 || n >= pts.length) {
+      alert(text + " out of range!!!! " + n);
+      n = (n + pts.length) % pts.length;
+    }
     let pos = pts[n - 1];
     let offset = 7;
     let yOffset = text == "P" ? -offset : text == "I" ? 0 : offset;

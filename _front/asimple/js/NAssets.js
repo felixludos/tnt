@@ -37,7 +37,7 @@ class NAssets {
       cardHeight: 150,
       gap: 10,
       chip: 40,
-      influence: 100
+      influence: 40
     };
     this.uid2id = {};
     this.id2uid = {};
