@@ -88,9 +88,6 @@ class MS {
     }
     return null;
   }
-  // getId(){
-  // 	// from elem id get real id
-  // }
   getPos() {
     return {x: this.x, y: this.y};
   }

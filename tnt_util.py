@@ -228,7 +228,7 @@ def fill_movement(G,
 		# is access physically possible
 
 		if move_type in movement_restrictions \
-                 and neighbor.type not in movement_restrictions[move_type]: # invalid neighbor for move_type
+                   and neighbor.type not in movement_restrictions[move_type]: # invalid neighbor for move_type
 			continue
 
 		if move_type == 'sea' and neighbor.type == 'Coast':  # stop when reaching coast

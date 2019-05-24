@@ -55,6 +55,7 @@
       <div id="edit_area" class="grid_div">
         <div id="uiEditButtons">
           <button onclick="onClickScenario('West','spring_start')">spring start</button>
+          <button onclick="onClickViolation1()">violation</button>
           <!-- <button onclick="onClickScenario('USSR','test_movement')">movement</button>
           <button onclick="onClickScenario('West','move2')">move 2</button>
           <button onclick="onClickScenario('USSR','winter1')">winter36</button>
@@ -202,6 +203,33 @@
         freezeUI();
         restart(pl, filename, seed);
       }
+      function onClickViolation1() {
+        freezeUI();
+        resetState();
+        let data = {};
+        let chain = ["action/West/pass", "action/Axis/pass", "action/USSR/action_13", "action/West/pass", "action/Axis/pass"];
+        sendLoading("spring_start", "West", d0 => {
+          updateCycle(d0);
+          sendAction("West", ["pass"], d1 => {
+            updateCycle(d1);
+            sendAction("Axis", ["pass"], d2 => {
+              updateCycle(d2);
+              sendAction("USSR", ["action_13"], d3 => {
+                updateCycle(d3);
+                sendAction("West", ["pass"], d4 => {
+                  updateCycle(d4);
+                  sendAction("Axis", ["pass"], gameloop);
+                });
+              });
+            });
+          });
+
+          // sender.chainSend(chain, "West", d1 => {
+          //   data = extend(true, data, d1);
+          //   gameloop(data);
+          // });
+        });
+      }
       function onClickAddUnit() {
         freezeUI();
         let dOrig = serverData;
@@ -341,24 +369,13 @@
     <script>
       function gameloop(data) {
         //update
-        serverData = data;
 
         // STOP = unitTestRemovedCheck(data);
 
         unitTestControl("*** gameloop: updating ***", data);
         testOutput({0: ["gameloop:", data]});
 
-        updateStepPlayerPhaseYear(data);
-        updateLog(data);
-        mergeCreatedAndUpdated(data);
-        cards.update(player, data, gameObjects);
-        map.update(data, gameObjects);
-        units.update(data, gameObjects, player);
-
-        //next action
-        tuples = getTuples(data);
-
-        make_G();
+        updateCycle(data);
 
         //player change if no actions OR decide next action
         if (empty(tuples)) {
@@ -389,16 +406,8 @@
         }
         window.scrollTo(0, 0);
       }
-      function make_G() {
-        G.player = player;
-        G.phase = phase;
-        G.year = year;
-        G.tuples = tuples;
-        G.objects = gameObjects;
-        G.serverData = serverData;
-      }
-      function restart(pl, filename = "", seed = 5) {
-        player = pl;
+      function resetState() {
+        player = null;
         year = 1935;
         phase = "Setup";
         gameObjects = {};
@@ -412,8 +421,28 @@
         cards = new ACards(assets);
         units = new AUnits(assets);
         decider = new ADecisiongen(assets, map, cards, units);
+      }
+      function restart(pl, filename = "", seed = 5) {
+        resetState();
+        player = pl;
         if (empty(filename)) sendInit(player, gameloop, seed);
         else sendLoading(filename, player, gameloop);
+      }
+      function updateCycle(data) {
+        serverData = data;
+        updateStepPlayerPhaseYear(data);
+        updateLog(data);
+        mergeCreatedAndUpdated(data);
+        cards.update(player, data, gameObjects);
+        map.update(data, gameObjects);
+        units.update(data, gameObjects, player);
+        tuples = getTuples(data);
+        G.player = player;
+        G.phase = phase;
+        G.year = year;
+        G.tuples = tuples;
+        G.objects = gameObjects;
+        G.serverData = serverData;
       }
       function updateStepPlayerPhaseYear(data) {
         moveCounter += 1;
@@ -497,7 +526,7 @@
         //addIf("moving", execOptions.activatedTests);
         addIf("autoplay", execOptions.activatedTests);
 
-        testMovement("violationImminent", "USSR");
+        testMovement("", "USSR");
         // addIf("removed", execOptions.activatedTests);
         // player = "Axis";
         // sendInit(player, gameloop, 5);
