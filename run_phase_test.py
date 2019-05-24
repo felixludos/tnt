@@ -22,7 +22,7 @@ from nb_backend import *
 
 print(ping())
 
-if False:
+if True:
 	out = format_msg_to_python(init_game(debug=True, player='Axis', seed=seed))
 	
 	G = get_G()

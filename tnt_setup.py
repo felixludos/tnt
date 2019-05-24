@@ -28,7 +28,7 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 		tile.__dict__['_id'] = name
 		# tile.name = name
 		tile.units = tset()
-		if tile.type != 'Sea' and tile.type != 'Ocean':
+		if tile.type not in {'Sea', 'Ocean', 'Strait'}:
 			for neighbor in tile.borders.keys():
 				if G.tiles[neighbor].type == 'Sea' or G.tiles[neighbor].type == 'Ocean':
 					tile.type = 'Coast'

@@ -32,39 +32,12 @@ def check_declarations(G, player):
 	
 	# neutral
 	
-	nations = xset(G.diplomacy.neutrals.keys())
-	nations -= G.players[player].diplomacy.violations
+	nations = xset(nat for nat, info in G.nations.status.items() if not info.is_armed)
+	# nations -= G.players[player].diplomacy.violations
 	
 	options.add((nations,))
 	
 	return options
-
-
-
-
-# def command_phase(G, player, action):
-#
-# 	if 'commands' not in G.temp: # choose command cards or pass
-# 		code = planning_phase(G, player, action)
-#
-# 		if code is not None:
-# 			return code
-#
-# 	if 'order' in G.temp: # use command cards for movement etc
-# 		code = movement_phase(G, player, action)
-#
-# 		if code is not None:
-# 			return code
-#
-# 	if len(G.temp.battles): # choose battles and resolve
-# 		code = combat_phase(G, player, action)
-#
-# 		if code is not None:
-# 			return code
-#
-# 	G.logger.write('{} is complete'.format(G.temp.season))
-#
-# 	end_phase(G)
 
 
 def planning_phase(G, player, action):
@@ -395,7 +368,11 @@ def eval_movement(G, source, unit, dest):  # usually done when a unit leaves a t
 	
 	# TODO: interventions
 	
+	# TODO: track battle groups
 	
+	# TODO: Sea Invasions -> unit can't fight in current battle
+	
+	# TODO: Check for realizations of threats (violations)
 	
 	# Axis entering Canada -> USA becomes West satellite
 	if player == 'Axis' and dest._id == 'Ottawa' and 'USA' not in G.player.West.members:
@@ -434,6 +411,8 @@ def encode_movement(G):
 def new_movement(G):
 	G.temp.battles = tdict()  # track new battles due to engaging
 	G.temp.has_moved = tset()  # units can only move once per movement phase
+	G.temp.threats = tset()
+	G.temp.battle_groups = tdict()
 	
 	active = G.temp.order[G.temp.active_idx]
 	G.logger.write('{} has {} command points for movement'.format(active, G.temp.commands[active].value))
@@ -455,10 +434,16 @@ def movement_phase(G, player=None, action=None):
 		reveal_tech(G, player, head)
 		
 	elif head in faction.stats.rivals: # TODO: use lazy threats - declarations only take effect when aggressing
-		declaration_of_war(G, player, head)
+		# declaration_of_war(G, player, head)
+		G.temp.threats.add(head)
+		
+		G.logger.write('{} has threatened to declare war on {}'.format(player, head))
 		
 	elif head in G.diplomacy.neutrals: # TODO: use lazy threats - declarations only take effect when aggressing
-		violation_of_neutrality(G, player, head)
+		# violation_of_neutrality(G, player, head)
+		G.temp.threats.add(head)
+		
+		G.logger.write('{} has threatened to violate the neutrality of {}'.format(player, head))
 	
 	elif head in faction.units:
 		
@@ -474,15 +459,34 @@ def movement_phase(G, player=None, action=None):
 		G.temp.has_moved.add(head)
 		
 		source = G.tiles[unit.tile]
-		#source.remove(unit._id) #@@@@
+		source.remove(unit._id) #@@@@ eval_movement requires the unit moving no longer be on source
 		
-		new_battle, engaging, disengaging = eval_movement(G, source, unit, G.tiles[destination])
+		dest = G.tiles[destination]
+		
+		if 'alligence' in dest:
+			owner = dest.owner #G.nations.designations[dest.alligence]
+			if owner in G.temp.threats: # controlled by player
+				assert owner in G.players, 'how can {} be in threats'.format(owner)
+				
+				declaration_of_war(G, player, owner)
+				
+				G.temp.threats.remove(owner)
+				
+			owner = dest.alligence
+			if owner in G.temp.threats: # nation
+				assert owner in G.nations.status, '{} mistaken as minor/major'.format(owner)
+				
+				violation_of_neutrality(G, player, owner)
+				
+				G.temp.threats.remove(owner)
+		
+		new_battle, engaging, disengaging = eval_movement(G, source, unit, dest)
 		
 		if new_battle:
 			G.temp.battles[destination] = player
 			
-		#if engaging or disengaging: #@@@@ is this still relevant?
-			#assert len(border), 'no border was tracked, but unit is {}'.format('engaging' if engaging else 'disengaging')
+		if engaging or disengaging: #@@@@ is this still relevant? yes for debugging, if this happens theres something wrong in movement generation code
+			assert len(border), 'no border was tracked, but unit is {}'.format('engaging' if engaging else 'disengaging')
 			
 		move_unit(G, unit, destination)
 		

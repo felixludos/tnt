@@ -143,9 +143,7 @@ def check_occupied(G, tile, player, wars, enemy=True):  # meant to check if riva
 
 	return False
 
-def tile_hostile(G, player, tile, decl=None):
-	if decl is None:
-		decl = G.players[player].diplomacy.violations
+def tile_hostile(G, player, tile):
 
 	wars = G.players[player].stats.at_war_with
 
@@ -158,38 +156,21 @@ def tile_hostile(G, player, tile, decl=None):
 				return True
 			return None
 		elif owner in G.players:
-			if not wars[owner]:
+			if not (wars[owner] or owner in G.temp.threats):
 				return False
-		elif not G.nations.status[tile.alligence].is_armed:  #@@@ Major or Minor
+			elif check_occupied(G, tile, player, wars, enemy=True):
+				return True
+			return None
+		elif tile.alligence in G.temp.threats: # potential violation
+			return True if tile.muster > 0 else None
+		elif G.nations.status[tile.alligence].is_armed: # entering armed minor
+			return True if check_occupied(G, tile, player, wars, enemy=True) else None
+		else:
 			return False  # owner in decl # no access if occupied by nonenemy
 
 	elif check_occupied(G, tile, player, wars, enemy=True):
 		return True
 	return None
-
-# def tile_hostile(G, player, tile, decl=None):
-#
-# 	if decl is None:
-# 		decl = G.players[player].diplomacy.violations
-#
-# 	wars = G.players[player].stats.at_war_with
-#
-# 	if 'alligence' in tile:
-# 		if check_occupied(G, tile, player, wars, enemy=False): # cant occupy same land tile as rival
-# 			return False
-# 		owner = G.nations.designations[tile.alligence]
-# 		if owner == player:
-# 			if 'disputed' in tile:
-# 				return True
-# 			return None
-# 		elif owner in G.players:
-# 			return wars[owner]
-# 		else: # Major or Minor
-# 			return owner in decl # no access if occupied by nonenemy
-#
-# 	elif check_occupied(G, tile, player, wars, enemy=True):
-# 		return True
-# 	return False
 
 movement_restrictions = {'land': {'Land', 'Coast', 'Strait'}, 'sea': {'Coast', 'Strait', 'Sea', 'Ocean'}}
 
@@ -213,8 +194,6 @@ def fill_movement(G,
                   friendly_only=False,
                   hidden_movement=False,
                   disengaging=None):
-	
-	# TODO: make sure movement through straits is working
 
 	# crossings tracks the currently available border crossings (for limited borders)
 	# borders tracks the past crossings that have been made
@@ -234,15 +213,17 @@ def fill_movement(G,
 
 	for name, border in tile.borders.items():
 		
-		# if name == 'Malta':
-		# 	print('Malta')
+		# if border == 'Strait':
+		# 	1+1
 
-		if name in destinations:  # neighbor already processed
-			if disengaging is None or disengaging in crossings[name]:  # this crossing option has been processed
-				continue
+		# if name in destinations:  # neighbor already processed
+		# 	if disengaging is None or disengaging in crossings[name]:  # this crossing option has been processed
+		# 		continue
 
 		neighbor = G.tiles[name]
 		remaining = fuel
+		
+		# print(remaining)
 
 		brd = (tile._id, neighbor._id) if tile._id < neighbor._id else (neighbor._id, tile._id)
 
@@ -269,7 +250,7 @@ def fill_movement(G,
 
 		if neighbor.type == 'Ocean':  # costs an additional movement point
 			remaining -= 1
-			if fuel < 0:
+			if remaining < 0:
 				continue
 
 		if crossings is not None and border in border_limits:
@@ -284,8 +265,6 @@ def fill_movement(G,
 				continue
 
 		# is access politically possible
-
-		# TODO: make sure passing through straits is possible - recurse without adding
 
 		engaging = tile_hostile(G, player, neighbor)
 
@@ -340,6 +319,23 @@ def fill_movement(G,
 				    friendly_only=friendly_only,
 				    hidden_movement=hidden_movement,
 				    disengaging=disengaging)
+				
+		elif border == 'Strait': # can move through rival/neutral straits
+			
+			# recurse without adding
+			
+			fill_movement(
+				G,
+				player,
+				neighbor,
+				destinations,
+				crossings=crossings,
+				move_type=move_type,
+				fuel=remaining,
+				borders=borders,
+				friendly_only=friendly_only,
+				hidden_movement=hidden_movement,
+				disengaging=disengaging)
 
 def travel_options(G, unit):
 	pts = G.units.rules[unit.type].move
@@ -365,8 +361,6 @@ def travel_options(G, unit):
 
 	for defensive in range(2):  # gen all steps once with strategic movement and once without
 		
-		defensive = (defensive+1)%2
-
 		if defensive and ('emergency' in cmd or disengaging is not None):
 			continue
 
@@ -377,13 +371,18 @@ def travel_options(G, unit):
 
 		xing = crossings if cls == 'G' and (not defensive or disengaging is not None) else None
 
+		# if defensive:
+		# 	1+1
+			
+		current = xset()
+
 		if cls in 'NS' or (cls == 'G' and tile.type in movement_restrictions['sea']):  # sea movement
 
 			fill_movement(
 			    G,
 			    player,
 			    tile,
-			    destinations,
+				current,
 			    crossings=xing,
 			    borders=borders,
 			    move_type='sea',
@@ -393,6 +392,9 @@ def travel_options(G, unit):
 			    hidden_movement=hidden_movement)
 			
 			# print(destinations)
+
+		destinations.update(current)
+		current = xset()
 
 		if cls == 'G':  # land movement
 
@@ -408,6 +410,9 @@ def travel_options(G, unit):
 			    disengaging=disengaging,
 			    friendly_only=defensive,
 			    hidden_movement=hidden_movement)
+		
+		destinations.update(current)
+		current = xset()
 
 		if cls == 'A':
 
@@ -430,6 +435,8 @@ def travel_options(G, unit):
 
 			if tile.type in {'Sea', 'Ocean'}:
 				break
+		
+		destinations.update(current)
 
 	destinations.discard(unit.tile)
 

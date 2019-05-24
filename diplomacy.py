@@ -222,7 +222,8 @@ def violation_of_neutrality(G, declarer, nation):  # including world reaction an
 			sats[nation] = inf.faction
 
 			G.temp.new_sats = sats
-			raise PhaseInterrupt('Satellite')
+			raise NotImplementedError
+			# raise PhaseInterrupt('Satellite') # TODO: no hard interrupt, may be in the middle of evaluating movement
 
 		lvl = diplvl[inf.value]
 
