@@ -4,7 +4,7 @@ function testOutput(o) {
     //console.log(key,execOptions.outputLevel,isNumber(key),typeof(key))
     const arg = o[key];
     if (isNumber(key) && key <= execOptions.outputLevel) {
-      console.log(moveCounter + ":", ...arg);
+      console.log(H.moveCounter + ":", ...arg);
     }
   }
 }

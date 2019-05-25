@@ -8,6 +8,12 @@ import json
 app = Flask(__name__)  # , static_folder='_front/front_console')
 CORS(app)
 
+@app.route('/randint/<max>')
+def randint(max):
+	n = get_G().random.randint(0, int(max))
+	print('random int:', n)
+	return '{"int":"' + str(n) + '"}'
+
 @app.route('/postTest', methods=['POST'])
 def postTest():
 	data = request.json
@@ -87,7 +93,7 @@ def hide_objects(objects, player=None, cond=None):
 		if cond(obj, player):
 			for k in list(obj.keys()):
 				if k in obj and k not in {'visible', 'obj_type'} and \
-                        (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
+                                            (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
 					del obj[k]
 
 def format_msg_for_frontend(msg, player=None):

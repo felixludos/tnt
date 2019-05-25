@@ -94,6 +94,10 @@ function randomUnitTuple() {
   // let faction = getUnitOwner(nationality);
   return [nationality, tile, unitType, 2];
 }
+function saveToDownloads(data, fname) {
+  json_str = JSON.stringify(data);
+  saveFile(fname + ".json", "data:application/json", new Blob([json_str], {type: ""}));
+}
 function sendEmptyAction(player, callback) {
   testOutput({1: ["sending empty action!!!"]});
   sendAction(player, ["none"], callback);

@@ -1,13 +1,16 @@
 class ADecisiongen {
-  constructor(assets, map, cards, units) {
+  constructor(assets, map, cards, units, sender) {
+    this.selectionMode = "server";
     this.map = map;
     this.cards = cards;
     this.units = units;
     this.assets = assets;
     this.callback = null;
     this.autoplay = true;
+    this.tuple = null;
     this.tuples = [];
     this.selectionDone = false;
+    this.selectedTuples = [];
     this.bAuto = document.getElementById("bAuto");
 
     this.msList = {};
@@ -24,13 +27,6 @@ class ADecisiongen {
   clear() {
     let d = document.getElementById("divSelect");
     clearElement(d);
-    // for (const id in this.msLastSelection) {
-    //   let ms = this.msLastSelection[id];
-    //   ms.unhighlight();
-    //   ms.unselect();
-    //   ms.clickHandler = null;
-    //   this.tuples = [];
-    // }
     for (const id in this.msList) {
       let ms = this.msList[id];
       ms.unhighlight();
@@ -38,7 +34,6 @@ class ADecisiongen {
       ms.clickHandler == null;
       ms.disable();
     }
-    // this.msLastSelection = {};
     this.msList = {};
     this.msSelected = null;
   }
@@ -47,6 +42,26 @@ class ADecisiongen {
       let ms = this.msList[id];
       ms.unhighlight();
       ms.unselect();
+    }
+  }
+  decideAutoplay(G) {
+    unitTestStrategy("decideAutoplay", G, this.tuples);
+    this.selectionDone = true;
+    if (this.selectionMode == "server") {
+      sender.send("randint/" + (this.tuples.length - 1), d => {
+        console.log("index:", d.int);
+        let n = d.int;
+        this.tuple = this.tuples[n];
+        this.selectedTuples.push(this.tuple);
+        this.highlightTuple(this.tuple);
+        setTimeout(() => this.callback(this.tuple), 10); // leave user time to see what happened!
+      });
+    } else {
+      this.tuple = this.playerStrategy[G.player].chooseTuple(G);
+      this.selectedTuples.push(this.tuple);
+      this.highlightTuple(this.tuple);
+      setTimeout(() => this.callback(this.tuple), 30); // leave user time to see what happened!
+      // callback(this.tuples[0]);
     }
   }
   filterList(ev) {
@@ -97,16 +112,15 @@ class ADecisiongen {
     }
   }
   genMove(G, callback, autoplay = true) {
-    this.selectionDone = false;
     this.autoplay = autoplay;
     this.callback = callback;
     this.tuples = G.tuples;
+    this.tuple = null;
     this.presentTuples(this.tuples);
     if (autoplay) {
-      let tuple = this.playerStrategy[G.player].chooseTuple(G);
-      this.highlightTuple(tuple);
-      setTimeout(() => callback(tuple), 30); // leave user time to see what happened!
-      // callback(this.tuples[0]);
+      this.decideAutoplay(G);
+    } else {
+      this.selectionDone = false; //manual selection
     }
   }
   highlightTiles() {
@@ -134,19 +148,25 @@ class ADecisiongen {
     //highlight objects on map or hand
   }
   onClickStep(G) {
-    let tuple = this.playerStrategy[G.player].chooseTuple(G);
-    this.highlightTuple(tuple);
-    this.callback(tuple);
+    if (!this.selectionDone) {
+      //hier sollte this.tuples gesetzt sein! und genau gleich wie G.tuples
+      if (!sameList(this.tuples, G.tuples)) {
+        alert("onClickStep: this.tuples not same as G.tuples!");
+      }
+      //this.tuples = G.tuples;
+      this.decideAutoplay(G);
+    }
   }
   onSelected(ev) {
     if (!this.selectionDone) {
       this.selectionDone = true;
       let id = evToId(ev);
       let idx = firstNumber(id);
-      let tuple = this.tuples[idx];
       this.clearHighlighting();
-      this.highlightTuple(tuple);
-      this.callback(tuple);
+      this.tuple = this.tuples[idx];
+      this.selectedTuples.push(this.tuple);
+      this.highlightTuple(this.tuple);
+      this.callback(this.tuple);
     }
   }
   onSelectedUnit(ev) {
@@ -157,6 +177,8 @@ class ADecisiongen {
         if (t.includes(this.msSelected.id) && t.includes(idUnit)) {
           this.selectionDone = true;
           this.clearHighlighting();
+          this.tuple = t;
+          this.selectedTuples.push(this.tuple);
           this.highlightTuple(t);
           this.callback(t);
         }

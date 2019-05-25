@@ -130,6 +130,11 @@ class NAssets {
     }
     this.trackPositions.USSR = arr;
   }
+  clear() {
+    this.uid2id = {};
+    this.id2uid = {};
+    this.uniqueIdCounter = 0;
+  }
   getUniqueId(id) {
     let uid = this.uniqueIdCounter + "_" + id;
     this.uniqueIdCounter += 1;

@@ -297,7 +297,7 @@ function without(arr, elementToRemove) {
 
 //#region color helpers
 function colorArrToString(r, g, b) {
-	return "rgb(" + r + "," + g + "," + b + ")";
+  return "rgb(" + r + "," + g + "," + b + ")";
 }
 const pSBC = (p, c0, c1, l) => {
   let r,
@@ -1242,6 +1242,10 @@ function loadYML(path, callback) {
 }
 function saveFile(name, type, data) {
   // Function to download data to a file
+  //usage:
+  // json_str = JSON.stringify(G);
+  // saveFile("yourfilename.json", "data:application/json", new Blob([json_str], {type: ""}));
+
   if (data != null && navigator.msSaveBlob) return navigator.msSaveBlob(new Blob([data], {type: type}), name);
 
   var a = $("<a style='display: none;'/>");
