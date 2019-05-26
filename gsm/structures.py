@@ -1,6 +1,8 @@
 
 import sys, os, time
 import random
+from collections import OrderedDict
+from ..structures import TransactionableObject
 
 
 _global_id = 0
@@ -10,17 +12,20 @@ _primitives = (str, int, float, bool)
 class UnknownObject(Exception):
 	pass
 
-class Container(object):
+class Container(TransactionableObject):
+	def __init__(self, iterations=None):
+		self.data = OrderedDict()
+		if iterations is None:
+			iterations = lambda x: x.values()
+		super().__init__(self, iterations=iterations)
 	
 	def __setattr__(self, key, item):
-		if isinstance(item, Container):
+		if isinstance(item, Container) or isinstance(item, _primitives):
 			super().__setattr__(key, item)
-		elif isinstance(item, _primitives):
-			super().__setattr__(key, item)
-		raise UnknownObject(key, item)
+		else:
+			raise UnknownObject(key, item)
 	
 	def __setstate__(self, state):
-		
 		for key, value in state.items():
 			if isinstance(value, dict) and '_type' in value:
 				info = value
@@ -44,23 +49,22 @@ class Container(object):
 		copy.__setstate__(self.__getstate__())
 		return copy
 
-class GameObject(object):
+
+class GameObject(Container):
 	
-	def __init__(self, name=None, obj_type=None):
+	def __init__(self, name=None, obj_type=None, **kwargs):
+		super().__init__()
 		self.name = name
 		self.obj_type = obj_type
+		self.__dict__.update(kwargs)
 		
 		global _global_id
 		self._id = _global_id
 		_global_id += 1
 	
-	def
-	
-	def state_dict(self):
-		pass
-	
-	def load_state_dict(self):
-		pass
+	def __repr__(self):
+		return 'GameObject({})'.format(', '.join(['{}={}'.format(k, type(v).__name__ if isinstance(v,Container) else v)
+		                                          for k,v in self.__dict__.items()]))
 	
 	def __str__(self):
 		return self.name
