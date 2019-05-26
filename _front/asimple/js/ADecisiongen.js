@@ -10,7 +10,7 @@ class ADecisiongen {
     this.tuple = null;
     this.tuples = [];
     this.selectionDone = false;
-    this.selectedTuples = [];
+    this.selectedTuples = {};
     this.bAuto = document.getElementById("bAuto");
 
     this.msList = {};
@@ -52,13 +52,11 @@ class ADecisiongen {
         console.log("index:", d.int);
         let n = d.int;
         this.tuple = this.tuples[n];
-        this.selectedTuples.push(this.tuple);
         this.highlightTuple(this.tuple);
         setTimeout(() => this.callback(this.tuple), 10); // leave user time to see what happened!
       });
     } else {
       this.tuple = this.playerStrategy[G.player].chooseTuple(G);
-      this.selectedTuples.push(this.tuple);
       this.highlightTuple(this.tuple);
       setTimeout(() => this.callback(this.tuple), 30); // leave user time to see what happened!
       // callback(this.tuples[0]);
@@ -139,6 +137,10 @@ class ADecisiongen {
   highlightTuple(tuple, msecs = 30) {
     // highlight element in selection list
     let index = this.tuples.indexOf(tuple);
+    let i = Object.keys(this.selectedTuples).length;
+    let s = "" + index + ":" + tuple.toString();
+    unitTestStrategy("added tuple", i, "" + index + ":" + tuple.toString());
+    this.selectedTuples[i] = s;
     let d = document.getElementById("divSelect");
     let els = document.getElementsByTagName("a");
     let el = els[index];
@@ -164,7 +166,6 @@ class ADecisiongen {
       let idx = firstNumber(id);
       this.clearHighlighting();
       this.tuple = this.tuples[idx];
-      this.selectedTuples.push(this.tuple);
       this.highlightTuple(this.tuple);
       this.callback(this.tuple);
     }
@@ -178,7 +179,6 @@ class ADecisiongen {
           this.selectionDone = true;
           this.clearHighlighting();
           this.tuple = t;
-          this.selectedTuples.push(this.tuple);
           this.highlightTuple(t);
           this.callback(t);
         }

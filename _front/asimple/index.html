@@ -356,7 +356,7 @@
         });
       }
       function onClickSaveActions() {
-        saveToDownloads(decider.selectedTuples, "_actions");
+        saveToDownloads(decider.selectedTuples, "_actions_" + H.filename);
       }
       function onClickStop() {
         unitTestControl("*** onClickStop!!! ***");
@@ -471,7 +471,7 @@
         H.serverData = null;
         H.moveCounter = 0;
         H.seed = 0;
-        H.filename = "";
+        H.filename = "_" + H.player + "_" + H.seed;
         STOP = false;
 
         sender = new ASender(execOptions);
@@ -488,8 +488,10 @@
         H.filename = fname;
         H.seed = seed;
 
-        if (empty(H.filename)) sendInit(H.player, gameloop, H.seed);
-        else sendLoading(H.filename, H.player, gameloop);
+        if (empty(H.filename)) {
+          H.filename = "_" + H.player + "_" + H.seed;
+          sendInit(H.player, gameloop, H.seed);
+        } else sendLoading(H.filename, H.player, gameloop);
       }
     </script>
     <!-- #endregion init and restart -->
