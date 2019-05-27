@@ -4,19 +4,6 @@ from tnt_errors import ActionError
 class OutOfReservesError(ActionError):
 	pass
 
-def load_unit_rules(G, unit_rules_path='config/units.yml', unit_count_path='config/unit_count.yml'):
-
-	unit_rules = load(unit_rules_path)
-	unit_count = load(unit_count_path)
-
-	G.units = adict()
-
-	G.units.rules = unit_rules
-	G.units.placeable = xset(name for name, rules in unit_rules.items() if 'not_placeable' not in rules)
-	G.units.priorities = [n for n, _ in sorted(unit_rules.items(), key=lambda x: x[1].priority)]
-
-	G.units.reserves = unit_count
-
 # def check_unsupplied(G, player, tile):
 # 	if 'unsupplied' not in tile or player not in tile.unsupplied:
 # 		return

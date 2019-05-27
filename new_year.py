@@ -1,5 +1,5 @@
 
-from tnt_util import compute_tracks, count_victory_points
+from util.tnt_util import compute_tracks, count_victory_points
 from util import adict, xset, tdict, tlist, tset, PhaseComplete
 import random
 from tnt_cards import shuffle

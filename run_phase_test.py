@@ -13,7 +13,7 @@ from tnt_setup import init_gamestate, setup_phase
 from tnt_cards import load_card_decks, draw_cards
 from collections import namedtuple
 from itertools import chain, product
-from tnt_units import load_unit_rules
+from util.tnt_units import load_unit_rules
 import tnt_setup as setup
 
 from flask_app import *

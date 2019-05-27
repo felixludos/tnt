@@ -1,49 +1,6 @@
 import random
 from util import tdict, tlist, tset, adict, idict, xset, load
 
-def load_card_decks(G, action_path='config/cards/action_cards.yml',
-                    investment_path='config/cards/investment_cards.yml',
-                    info_path='config/cards/card_info.yml'):
-	
-	cinfo = load(info_path)
-	caction = load(action_path)
-	cinvest = load(investment_path)
-	
-	action_cards = tdict()
-	action_cards.deck = tlist()
-	
-	for ID, card in caction.items():
-		card = idict(card)
-		card.obj_type = 'action_card'
-		card.visible = tset()
-		card.__dict__['_id'] = 'action_{}'.format(ID)
-		action_cards.deck.append(card._id)
-		G.objects.table[card._id] = card
-	
-	investment_cards = tdict()
-	investment_cards.deck = tlist()
-	
-	for ID, card in cinvest.items():
-		card = idict(card)
-		card.obj_type = 'investment_card'
-		card.visible = tset()
-		card.__dict__['_id'] = 'invest_{}'.format(ID)
-		investment_cards.deck.append(card._id)
-		G.objects.table[card._id] = card
-	
-	G.cards = tdict()
-	
-	G.cards.action = action_cards
-	G.cards.action.discard_pile = tlist()
-	
-	G.cards.investment = investment_cards
-	G.cards.investment.discard_pile = tlist()
-	
-	G.cards.info = cinfo
-	
-	shuffle(G.random, G.cards.investment)
-	shuffle(G.random, G.cards.action)
-
 
 def shuffle(rng, stack):
 	

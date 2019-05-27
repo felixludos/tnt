@@ -7,7 +7,7 @@ import random
 import util
 from util import adict, idict, iddict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete, PhaseInterrupt
 from tnt_setup import init_gamestate, setup_phase
-from tnt_util import count_victory_points, switch_phase, add_next_phase
+from util.tnt_util import count_victory_points, switch_phase, add_next_phase
 import tnt_setup as setup
 from tnt_cards import load_card_decks, draw_cards
 from collections import namedtuple

@@ -3,20 +3,16 @@ import pickle
 import networkx as nx
 import random
 import util
-from util import adict, idict, iddict, tdict, tlist, tset, xset, collate, uncollate, load, seq_iterate, render_dict, save, Logger, PhaseComplete, PhaseInterrupt
+from util import adict, idict, iddict, tdict, tlist, tset, xset, collate, load, seq_iterate, render_dict, save, Logger
 from tnt_setup import init_gamestate, setup_phase
-from tnt_util import count_victory_points, switch_phase, add_next_phase, compute_tracks, placeable_units
 import tnt_setup as setup
-from tnt_cards import load_card_decks, draw_cards
 from collections import namedtuple
 import traceback
 from passive_backend import WAITING_OBJS, WAITING_ACTIONS, REPEATS, step, get_G, get_waiting, process_actions, evaluate_action
 from production import production_phase, encode_production_actions
 from tnt_errors import ActionError
-from tnt_units import load_unit_rules, add_unit
-from diplomacy import increment_influence, decrement_influence, diplvl, dipname
 import json
-import random
+
 
 def edit_step(player, action):
 	G = get_G()

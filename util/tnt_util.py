@@ -1,6 +1,6 @@
 from util import adict, tdict, tset, tlist, xset, idict
 from tnt_cards import draw_cards
-from tnt_units import add_unit
+from util.tnt_units import add_unit
 
 ######################
 # Game Processing

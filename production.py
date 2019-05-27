@@ -1,9 +1,9 @@
 
 
 from util import adict, xset, tdict, tlist, tset, PhaseComplete
-from tnt_util import placeable_units, contains_fortress, compute_production_level
+from util.tnt_util import placeable_units, contains_fortress, compute_production_level
 from tnt_cards import draw_cards
-from tnt_units import add_unit
+from util.tnt_units import add_unit
 import random
 
 

@@ -1,7 +1,7 @@
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete, PhaseInterrupt
 from tnt_cards import discard_cards
-from tnt_units import add_unit, move_unit, remove_unit
-from tnt_util import travel_options, eval_tile_control, placeable_units, compute_tracks
+from util.tnt_units import add_unit, move_unit, remove_unit
+from util.tnt_util import travel_options, eval_tile_control, placeable_units, compute_tracks
 from tnt_cards import draw_cards
 import random
 

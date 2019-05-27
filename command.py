@@ -1,7 +1,7 @@
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete, PhaseInterrupt
 from tnt_cards import discard_cards
-from tnt_units import add_unit, move_unit, remove_unit
-from tnt_util import travel_options, add_next_phase, switch_phase
+from util.tnt_units import add_unit, move_unit, remove_unit
+from util.tnt_util import travel_options, add_next_phase, switch_phase
 from government import check_revealable, reveal_tech
 import random
 from diplomacy import declaration_of_war, violation_of_neutrality, convert_to_armed_minor, USA_becomes_satellite

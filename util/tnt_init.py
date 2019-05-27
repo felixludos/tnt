@@ -1,12 +1,9 @@
-from util import tdict, tset, adict, tlist, idict, load, save, collate, uncollate, xset, seq_iterate, PhaseComplete
-from tnt_util import compute_tracks, placeable_units
-from tnt_cards import load_card_decks, draw_cards
-from tnt_errors import ActionError
-from tnt_units import load_unit_rules, add_unit
+from util import tdict, tset, adict, tlist, idict, load, GamePhase, save, collate, uncollate, xset, seq_iterate, PhaseComplete
+from util.tnt_util import compute_tracks, placeable_units
 import random
 
+
 def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
-	
 	tiles = load(tiles)
 	borders = load(borders)
 	
@@ -22,7 +19,7 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 			tiles[n2].borders = tdict()
 		tiles[n2].borders[n1] = t
 	
-	G.tiles = tdict({name:idict(tile) for name, tile in tiles.items()})
+	G.tiles = tdict({name: idict(tile) for name, tile in tiles.items()})
 	
 	for name, tile in G.tiles.items():
 		tile.__dict__['_id'] = name
@@ -38,7 +35,6 @@ def load_map(G, tiles='config/tiles.yml', borders='config/borders.yml'):
 		tile.obj_type = 'tile'
 		tile.visible = tset({'Axis', 'West', 'USSR'})
 		G.objects.table[name] = tile
-
 
 
 def load_players_and_minors(G):
@@ -90,9 +86,9 @@ def load_players_and_minors(G):
 		
 		faction.stats.rivals = rivals[name]
 		
-		faction.stats.DoW = tdict({r:False for r in rivals[name]})
+		faction.stats.DoW = tdict({r: False for r in rivals[name]})
 		
-		faction.stats.at_war_with = tdict({r:False for r in rivals[name]})
+		faction.stats.at_war_with = tdict({r: False for r in rivals[name]})
 		faction.stats.at_war = False
 		
 		faction.stats.aggressed = False
@@ -119,13 +115,13 @@ def load_players_and_minors(G):
 		for member in full_cast:
 			G.nations.designations[member] = name
 		
-		faction.homeland = tdict({member:tset() for member in faction.members.keys()})
+		faction.homeland = tdict({member: tset() for member in faction.members.keys()})
 		faction.territory = tset()
 		
 		for tile_name, tile in G.tiles.items():
 			if 'alligence' not in tile:
 				continue
-			if tile.alligence in faction.members: # homeland
+			if tile.alligence in faction.members:  # homeland
 				faction.homeland[tile.alligence].add(tile_name)
 			if tile.alligence in full_cast:
 				faction.territory.add(tile_name)
@@ -138,7 +134,7 @@ def load_players_and_minors(G):
 		faction.tracks.IND = config.initial_ind
 		
 		faction.units = tdict()
-		faction.hand = tset() # for cards
+		faction.hand = tset()  # for cards
 		faction.technologies = tset()
 		faction.secret_vault = tset()
 		faction.influence = tset()
@@ -167,15 +163,15 @@ def load_players_and_minors(G):
 			status[name].is_armed = False
 			status[name].units = tdict()
 		
-		if team == minor_designation: # only minors
+		if team == minor_designation:  # only minors
 			minor = tdict()
 			
 			minor.faction = None
 			minor.value = 0
 			
 			minors[name] = minor
-			
-		if team == 'Major': # only includes neutral majors
+		
+		if team == 'Major':  # only includes neutral majors
 			major = tdict()
 			
 			major.faction = None
@@ -191,6 +187,7 @@ def load_players_and_minors(G):
 	G.diplomacy.influence = tdict()
 	G.nations.status = status
 
+
 def load_game_info(G, seed=None, path='config/game_info.yml'):
 	info = load(path)
 	
@@ -199,18 +196,18 @@ def load_game_info(G, seed=None, path='config/game_info.yml'):
 	game.seed = seed
 	G.random = random.Random(seed)
 	# G.random = TestRandom(seed)
-
-	game.year = info.first_year - 1 # zero based
+	
+	game.year = info.first_year - 1  # zero based
 	game.last_year = info.last_year
 	num_rounds = game.last_year - game.year
 	
 	game.turn_order_options = info.turn_order_options
 	
-	game.sequence = ['Setup'] + num_rounds*info.year_order + ['Scoring']
-	game.index = 0 # start below 0, so after increment in next_phase() it starts at 0
-	#game.action_phases = tset(x for x in info.phases if info.phases[x]) # no need for action phases anymore (all action phases have a pre phase)
+	game.sequence = ['Setup'] + num_rounds * info.year_order + ['Scoring']
+	game.index = 0  # start below 0, so after increment in next_phase() it starts at 0
+	# game.action_phases = tset(x for x in info.phases if info.phases[x]) # no need for action phases anymore (all action phases have a pre phase)
 	
-	game.peace_dividends = tlist(sum([[v]*n for v,n in info.peace_dividends.items()], []))
+	game.peace_dividends = tlist(sum([[v] * n for v, n in info.peace_dividends.items()], []))
 	G.random.shuffle(game.peace_dividends)
 	
 	game.victory = info.victory
@@ -220,8 +217,65 @@ def load_game_info(G, seed=None, path='config/game_info.yml'):
 	G.objects = tdict()
 	G.objects.table = tdict()
 
-def init_gamestate(seed=None):
+
+def load_unit_rules(G, unit_rules_path='config/units.yml', unit_count_path='config/unit_count.yml'):
+
+	unit_rules = load(unit_rules_path)
+	unit_count = load(unit_count_path)
+
+	G.units = adict()
+
+	G.units.rules = unit_rules
+	G.units.placeable = xset(name for name, rules in unit_rules.items() if 'not_placeable' not in rules)
+	G.units.priorities = [n for n, _ in sorted(unit_rules.items(), key=lambda x: x[1].priority)]
+
+	G.units.reserves = unit_count
+
+
+def load_card_decks(G, action_path='config/cards/action_cards.yml',
+                    investment_path='config/cards/investment_cards.yml',
+                    info_path='config/cards/card_info.yml'):
+	cinfo = load(info_path)
+	caction = load(action_path)
+	cinvest = load(investment_path)
 	
+	action_cards = tdict()
+	action_cards.deck = tlist()
+	
+	for ID, card in caction.items():
+		card = idict(card)
+		card.obj_type = 'action_card'
+		card.visible = tset()
+		card.__dict__['_id'] = 'action_{}'.format(ID)
+		action_cards.deck.append(card._id)
+		G.objects.table[card._id] = card
+	
+	investment_cards = tdict()
+	investment_cards.deck = tlist()
+	
+	for ID, card in cinvest.items():
+		card = idict(card)
+		card.obj_type = 'investment_card'
+		card.visible = tset()
+		card.__dict__['_id'] = 'invest_{}'.format(ID)
+		investment_cards.deck.append(card._id)
+		G.objects.table[card._id] = card
+	
+	G.cards = tdict()
+	
+	G.cards.action = action_cards
+	G.cards.action.discard_pile = tlist()
+	
+	G.cards.investment = investment_cards
+	G.cards.investment.discard_pile = tlist()
+	
+	G.cards.info = cinfo
+	
+	shuffle(G.random, G.cards.investment)
+	shuffle(G.random, G.cards.action)
+
+
+def init_gamestate(seed=None):
 	if seed is None:
 		seed = random.getrandbits(64)
 	
@@ -237,142 +291,3 @@ def init_gamestate(seed=None):
 	load_unit_rules(G)
 	
 	return G
-
-def encode_setup_actions(G):
-	
-	code = adict()
-	
-	for faction, nationality, tilenames in seq_iterate(G.temp.setup, [None, 'cadres', None], end=True):
-		# if player is not None and faction != player:
-		# 	continue
-		
-		options = placeable_units(G, faction, nationality, tilenames)
-		
-		# print(nationality, tilenames)
-		
-		if len(options) == 0:
-			continue
-			
-		if faction not in code:
-			code[faction] = xset()
-			
-		code[faction].add((nationality, options))
-		
-	if len(code) == 0:
-		raise PhaseComplete
-		
-	return code
-
-player_setup_path='config/faction_setup.yml'
-
-def setup_phase(G, player, action): # player, nationality, tilename, unit_type
-	# place user chosen units
-	
-	if action is None: # pre phase
-		
-		player_setup = load(player_setup_path)
-		
-		# prep temp info - phase specific data
-		
-		temp = tdict()
-		temp.setup = tdict()
-		
-		for name, faction in player_setup.items():
-			
-			if 'units' in faction.setup:
-				
-				for unit in faction.setup.units:
-					add_unit(G, unit)
-				
-				del faction.setup.units
-			
-			temp.setup[name] = faction.setup
-		
-		G.temp = temp
-		
-		# return action adict(faction: (action_keys, action_options))
-		return encode_setup_actions(G)
-	
-	nationality, tilename, unit_type = action
-	
-	unit = adict()
-	unit.nationality = nationality
-	unit.tile = tilename
-	unit.type = unit_type
-	
-	#print(unit)
-	
-	add_unit(G, unit)
-	
-	G.temp.setup[player].cadres[nationality][tilename] -= 1
-	if G.temp.setup[player].cadres[nationality][tilename] == 0:
-		del G.temp.setup[player].cadres[nationality][tilename]
-		
-	if len(G.temp.setup[player].cadres[nationality]) == 0:
-		del G.temp.setup[player].cadres[nationality]
-	
-	if len(G.temp.setup[player].cadres) == 0: # all cadres are placed
-		del G.temp.setup[player].cadres
-		
-		if 'action_cards' in G.temp.setup[player]:
-			draw_cards(G, 'action', player, N=G.temp.setup[player].action_cards)
-			del G.temp.setup[player].action_cards
-			
-		if 'investment_cards' in G.temp.setup[player]:
-			draw_cards(G, 'action', player, N=G.temp.setup[player].action_cards)
-			del G.temp.setup[player].investment_cards
-		
-	return encode_setup_actions(G)
-	
-
-# def encode_setup_actions(G, player=None):
-# 	#keys = ('nationality', 'tile', 'unit_type')
-# 	code = adict()
-#
-# 	for faction, setups in G.temp.setup.items():
-# 		nationalities = xset()
-# 		if 'cadres' not in setups:
-# 			continue
-# 		for nationality, tiles in setups.cadres.items():
-#
-# 			available_units = {ut:rules for ut, rules in G.units.rules.items() if ut in  G.units.reserves[nationality] and G.units.reserves[nationality][ut]>0}
-#
-# 			groups = [
-# 				xset({ut for ut, rules in available_units.items() if 'not_placeable' not in rules}),
-# 				xset({ut for ut, rules in available_units.items() if 'not_placeable' not in rules and ut != 'Fortress'}),
-# 				xset({ut for ut, rules in available_units.items() if
-# 				      'not_placeable' not in rules and rules.type not in {'N', 'S'}}),
-# 				xset({ut for ut, rules in available_units.items() if
-# 				      'not_placeable' not in rules and rules.type not in {'N', 'S'} and ut != 'Fortress'}),
-# 			]
-#
-#
-# 			group_names = [xset() for _ in groups]
-# 			for tilename in tiles:
-# 				tile = G.tiles[tilename]
-# 				has_fortress = False
-# 				if 'units' in tile:
-# 					for ID in tile.units:
-# 						if G.objects.table[ID].type == 'Fortress':
-# 							has_fortress = True
-# 							break
-#
-# 				if tile.type == 'Land': # no coast
-# 					group_names[2].add(tilename)
-# 				elif has_fortress:
-# 					group_names[1].add(tilename)
-# 				elif has_fortress and tile.type == 'Land':
-# 					group_names[3].add(tilename)
-# 				else:
-# 					group_names[0].add(tilename)
-#
-# 			options = xset((gn, g) for gn, g in zip(group_names, groups) if len(gn) > 0 and len(g) > 0)
-# 			nationalities.add((nationality, options))
-# 		code[faction] = nationalities
-#
-# 	if player is not None and player in code:
-# 		return code[player]
-# 	elif player is not None:
-# 		return None
-#
-# 	return code
