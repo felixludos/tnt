@@ -3,7 +3,6 @@
 }
 #status_area {
   grid-area: status;
-  height: 36px;
 }
 #menu_area {
   grid-area: menu1;
@@ -21,6 +20,15 @@
   grid-area: select;
   width: 280px;
   height: 760px;
+}
+#lwait_area {
+  grid-area: lwait;
+  width: 180px;
+}
+
+#lselect_area {
+  grid-area: lselect;
+  width: 280px;
 }
 
 #map_area {
@@ -62,9 +70,9 @@
 .grid_game_select {
   display: grid;
   grid-template-columns: 180px 280px 1190px auto;
-  grid-template-rows: auto 760px auto auto;
+  grid-template-rows: 30px 760px auto auto;
   grid-template-areas:
-    "status status status status"
+    "lwait lselect status status"
     "edit select map  log"
     "edit command cards command2"
     "edit command openCard command2";

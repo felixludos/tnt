@@ -32,18 +32,16 @@
   <body>
     <!-- #region HTML -->
     <div id="mainDiv" class="grid_game">
-      <div id="status_area" class="grid_div">
-        <div id="status_info" style="float:right;margin-right:10px;"></div>
-        <div id="ui_control" style="float:left;text-align:left;margin-left:10px;">
-          <div id="dFrozen" style="color:darkviolet;">wait...</div>
-          <div id="dAutoplay" class="hidden" style="color:red;">
-            autoplay...
-            <button id="bStop" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
-          </div>
-          <div id="dActive" class="hidden" style="color:rgb(0, 104, 0);">Select Action:</div>
-          <button id="bNextPlayer" class="hidden" style="color:green;" onclick="onClickNextPlayer()">Next Player</button>
-        </div>
-        <div id="status_message"></div>
+      <div id="lwait_area" class="grid_div" style="text-align:left">
+        <span id="dFrozen" class="hidden" style="margin-left:10px;color:red;">...</span>
+        <button id="bNextPlayer" class="hidden" style="margin-left:10px;color:green;" onclick="onClickNextPlayer()">Next Player</button>
+      </div>
+      <div id="lselect_area" class="grid_div" style="text-align:left">
+        <span id="dActive" class="hidden" style="margin-left:10px;color:rgb(0, 104, 0);">Select Action:</span>
+      </div>
+      <div id="status_area" class="grid_div" style="text-align:left">
+        <div style="float:left;margin-left:10px;" id="status_info"></div>
+        <div style="float:right;margin-right:10px;" id="status_message"></div>
       </div>
       <div id="map_area" class="grid_div" style="background-color:rgba(86, 182, 222);">
         <svg width="100%" height="100%" style="box-sizing:border-box;">
@@ -54,10 +52,16 @@
       </div>
       <div id="edit_area" class="grid_div">
         <div id="uiEditButtons">
-          <button onclick="decider.onClickStep(H)">step</button>
-          <button onclick="onClickRestart(this)">restart</button>
+          <button id="bStep" onclick="onClickStep()">step</button>
+          <button id="bStop" class="hidden" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
 
           <button onclick="onClickRunToPlayerChange(H.player)">run to next player</button>
+
+          <button onclick="onClickRunToPhase('Production')">run to prod</button>
+          <button onclick="onClickRunToPhase('Government')">run to gov</button>
+          <button onclick="onClickRunToPhase('Spring')">run to spring</button>
+          <button onclick="onClickRunToPhase('Movement')">run to movement</button>
+          <button onclick="onClickRunToEnd()">run to end</button>
 
           <button onclick="onClickSaveActions()">save actions</button>
 
@@ -88,6 +92,8 @@
       </div>
       <div id="command_area" class="grid_div">
         <div id="uiActiveButtons" class="hidden">
+          <button onclick="onClickRestart(this)">restart</button>
+
           <!-- <button onclick="decider.onClickStep(H)">step</button>
           <button onclick="onClickRunToEnd()">run to end</button>
           <button onclick="onClickRunToPhase('Government')">run to gov</button>
@@ -136,14 +142,28 @@
     </div>
     <!-- #endregion HTML -->
 
-    <!-- #region NEW UI / handlers, helpers TODO: cleanup -->
+    <!-- #region UI / handlers -->
     <script>
       function onClickRestart() {
         console.log("restarting with", H.player, H.seed);
+        STOP = false;
         restart(H.player, H.seed, "");
       }
+      function onClickRunToEnd() {
+        STOP = false;
+        showStop();
+        execOptions.skipCond = () => true;
+        decider.onClickStep(H);
+      }
+      function onClickRunToPhase(ph) {
+        STOP = false;
+        showStop();
+        execOptions.skipCond = () => H.phase != ph;
+        decider.onClickStep(H);
+      }
       function onClickRunToPlayerChange(player) {
-        //console.log("onClickRunToPlayerChange", player, H.player);
+        STOP = false;
+        showStop();
         execOptions.skipCond = () => H.player == player;
         decider.onClickStep(H);
       }
@@ -151,19 +171,64 @@
         saveToDownloads(decider.selectedTuples, "a_" + H.start.player + "_" + H.start.seed);
         unitTestSave(H);
       }
+      function onClickStep() {
+        STOP = false;
+        execOptions.skipCond = () => false;
+        decider.onClickStep(H);
+      }
+      function onClickStop() {
+        unitTestControl("*** clicked STOP!!! ***");
+        STOP = true;
+        showStep();
+      }
+      function showStep() {
+        hide(document.getElementById("bStop"));
+        show(document.getElementById("bStep"));
+      }
+      function showStop() {
+        hide(document.getElementById("bStep"));
+        show(document.getElementById("bStop"));
+      }
+      function activateUserSelection() {
+        hide(document.getElementById("dFrozen"));
+        show(document.getElementById("dActive"));
+        hide(document.getElementById("bNextPlayer"));
+        show(document.getElementById("uiActiveButtons"));
+        show(document.getElementById("ui2Buttons"));
+      }
+      function activateWaitingForServer() {
+        show(document.getElementById("dFrozen"));
+        hide(document.getElementById("dActive"));
+        hide(document.getElementById("bNextPlayer"));
+        hide(document.getElementById("uiActiveButtons"));
+        hide(document.getElementById("ui2Buttons"));
+      }
+      function freezeUI() {
+        activateWaitingForServer();
+      }
+      function unfreezeUI() {
+        STOP = false;
+        activateUserSelection();
+      }
+      function statusMessage(msg = "") {
+        //let s = "Phase:" + H.phase + ", Year:" + H.year + ", Player:" + H.player;
+        let s = H.phase + ", " + H.year + ", " + H.player;
+        document.getElementById("status_info").innerHTML = s;
+        if (!empty(msg)) document.getElementById("status_message").innerHTML = msg;
+      }
     </script>
-    <!-- #endregion NEW handlers -->
+    <!-- #endregion UI / handlers -->
 
     <!-- #region old handlers -->
     <script>
       //____________________________________________old
 
-      function activateWaitingForServer() {
-        show(document.getElementById("dFrozen"));
-        hide(document.getElementById("dAutoplay"));
+      function activateAutoplay() {
+        hide(document.getElementById("dFrozen"));
+        show(document.getElementById("dAutoplay"));
         hide(document.getElementById("dActive"));
         hide(document.getElementById("uiActiveButtons"));
-        hide(document.getElementById("uiEditButtons"));
+        hide(document.getElementById("ui2Buttons"));
         hide(document.getElementById("bNextPlayer"));
       }
       function activateNextPlayerButton() {
@@ -171,24 +236,8 @@
         hide(document.getElementById("dAutoplay"));
         hide(document.getElementById("dActive"));
         hide(document.getElementById("uiActiveButtons"));
-        hide(document.getElementById("uiEditButtons"));
+        hide(document.getElementById("ui2Buttons"));
         show(document.getElementById("bNextPlayer"));
-      }
-      function activateUserSelection() {
-        hide(document.getElementById("dFrozen"));
-        hide(document.getElementById("dAutoplay"));
-        show(document.getElementById("dActive"));
-        show(document.getElementById("uiActiveButtons"));
-        show(document.getElementById("uiEditButtons"));
-        hide(document.getElementById("bNextPlayer"));
-      }
-      function activateAutoplay() {
-        hide(document.getElementById("dFrozen"));
-        show(document.getElementById("dAutoplay"));
-        hide(document.getElementById("dActive"));
-        hide(document.getElementById("uiActiveButtons"));
-        hide(document.getElementById("uiEditButtons"));
-        hide(document.getElementById("bNextPlayer"));
       }
       function callNextAction() {
         if (H.nextAction) {
@@ -197,14 +246,6 @@
         } else {
           error("NO NEXT ACTION!!!!!!!");
         }
-      }
-      function freezeUI() {
-        decider.clear();
-        activateWaitingForServer();
-      }
-      function unfreezeUI() {
-        //decider.clear();
-        activateUserSelection();
       }
       function printActions(data) {
         if ("actions" in data) {
@@ -336,16 +377,6 @@
         //console.log("restarting with player", pl, "and seed", sd);
         restart(pl, sd, "");
       }
-      function onClickRunToEnd() {
-        STOP = false;
-        execOptions.manualPlay = []; //skipCond = () => true;
-        decider.onClickStep(H);
-      }
-      function onClickRunToPhase(ph) {
-        STOP = false;
-        execOptions.skipCond = () => H.phase != ph;
-        decider.onClickStep(H);
-      }
       function onClickLoad() {
         freezeUI();
         restart(H.player, 0, "test1");
@@ -376,19 +407,10 @@
           });
         });
       }
-      function onClickStop() {
-        unitTestControl("*** onClickStop!!! ***");
-        STOP = true;
-      }
-      function statusMessage(msg = "") {
-        let s = "Phase:" + H.phase + ", Year:" + H.year + ", Player:" + H.player;
-        document.getElementById("status_info").innerHTML = s;
-        if (!empty(msg)) document.getElementById("status_message").innerHTML = msg;
-      }
     </script>
     <!-- #endregion handlers -->
 
-    <!-- #region NEW control flow -->
+    <!-- #region control flow -->
     <script>
       function startScript() {
         addIf("choice", execOptions.activatedTests);
@@ -397,16 +419,22 @@
 
         initH("West", 0);
         autoplay = false;
+        freezeUI();
         sendInitSeed(H.player, H.seed, gameloop);
       }
       function gameloop(data) {
         updateCycle(data);
-        //console.log(H.tuples);
 
-        autoplay = execOptions.skipCond();
-        decider.genMove(H, t => sendAction(H.player, t, gameloop), autoplay);
-        //if (H.moveCounter > 2) autoplay = false;
-        //console.log("DONE");
+        autoplay = !STOP && execOptions.skipCond();
+        if (!autoplay) unfreezeUI();
+        decider.genMove(
+          H,
+          t => {
+            freezeUI();
+            sendAction(H.player, t, gameloop);
+          },
+          autoplay
+        );
 
         window.scrollTo(0, 0);
       }
@@ -433,86 +461,6 @@
         } else {
           //console.log("data:", data);
           statusMessage("INFO DATA MISSING IN DATA!!!!");
-        }
-      }
-    </script>
-    <!-- #endregion control flow -->
-
-    <!-- #region old control flow -->
-    <script>
-      function gameloop_old(data) {
-        //testing
-        // STOP = unitTestRemovedCheck(data);
-        unitTestControl("*** gameloop: updating ***", data);
-        testOutput({0: ["gameloop:", data]});
-
-        //update
-        updateCycle(data);
-
-        //player change if no actions OR decide next action
-        if (empty(H.tuples)) {
-          let waitingSet = getSet(data, "waiting_for");
-          if (empty(waitingSet)) {
-            unitTestControl("*** gameloop: sending empty action ***");
-            sendEmptyAction(H.player, gameloop);
-          } else {
-            unitTestControl("*** gameloop: setting nextAction to sendChangeToPlayer ***");
-            H.nextAction = () => sendChangeToPlayer(waitingSet[0], gameloop);
-
-            //player change manual or automatic:
-            if (execOptions.playerChange == "auto") callNextAction();
-            else show(bNextPlayer);
-          }
-        } else {
-          //autoplay, testing
-          let autoplay = execOptions.skipCond() && !STOP;
-          unitTestAutoplay("***check autoplay:", execOptions.skipCond, autoplay);
-          if (autoplay) activateAutoplay();
-          else {
-            execOptions.skipCond = defaultSkipCond;
-            activateUserSelection();
-          }
-          unitTestControl("*** gameloop: calling decider.genMove ***");
-          unitTestControl("autoplay:", autoplay, "player", H.player);
-
-          //actions: decider generates a move:
-          decider.genMove(H, t => sendAction(H.player, t, gameloop), autoplay);
-        }
-        window.scrollTo(0, 0);
-      }
-      function updateCycle_old(data) {
-        //TODO: get rid of global variables, consolidate to G
-        H.serverData = data;
-        updateStepPlayerPhaseYear(data);
-        updateLog(data);
-        mergeCreatedAndUpdated(data);
-        cards.update(H.player, data, H.objects);
-        map.update(data, H.objects);
-        units.update(data, H.objects, H.player);
-        H.tuples = getTuples(data);
-        H.phase = H.phase;
-        H.year = H.year;
-        H.tuples = H.tuples;
-        H.objects = H.objects;
-        H.serverData = H.serverData;
-      }
-      function updateStepPlayerPhaseYear_old(data) {
-        H.moveCounter += 1;
-        //console.log(moveCounter, ": gameloop");
-        if ("game" in data) {
-          H.year = Number(data.game.year);
-          H.phase = data.game.phase;
-
-          //handle player change
-          if (data.game.player != H.player) {
-            H.player = data.game.player;
-          }
-
-          statusMessage();
-        } else {
-          //console.log("data:", data);
-          statusMessage("EDIT MODE!");
-          //error("updateStepPlayerPhaseYear: MISSING GAME DATA!!!");
         }
       }
       function updateLog(data) {
@@ -563,6 +511,7 @@
         assets.clear();
         initManagers();
         initH(player, seed, fname);
+        execOptions.skipCond = defaultSkipCond;
 
         unitTestInit("sending initSeed with ", H.player, H.seed);
 

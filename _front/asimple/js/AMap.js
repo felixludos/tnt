@@ -232,11 +232,11 @@ class AMap {
     }
 
     //tracks
-    if ("players" in data) {
+    if ("players" in data.info) {
       for (const faction of this.assets.factionNames) {
-        this.setPopulation(faction, data.players[faction].tracks.POP);
-        this.setResource(faction, data.players[faction].tracks.RES);
-        this.setIndustry(faction, data.players[faction].tracks.IND);
+        this.setPopulation(faction, data.info.players[faction].tracks.POP);
+        this.setResource(faction, data.info.players[faction].tracks.RES);
+        this.setIndustry(faction, data.info.players[faction].tracks.IND);
       }
     }
   }
