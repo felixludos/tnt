@@ -426,7 +426,7 @@ function dlColor(factor, r, g, b) {
   // let h = hsv.h;
   // let s = hsv.s;
   // let v = hsv.v / 2;
-  // console.log("hsv", h, s, v);
+  // //console.log("hsv", h, s, v);
   // let hsl = hsv2hsl(h, s, v); //hsvToHsl(h, s, v);
   // let h = hsl[0];
   // let s = hsl[1] * 100;

@@ -150,7 +150,7 @@ function testRunToEnd(data, player) {
     }
   } else {
     decider.pickTuple(tuples, t => {
-      console.log(player + " chooses " + t.toString());
+      //console.log(player + " chooses " + t.toString());
       sendAction(player, t, d => testRunToEnd(d, player));
     });
   }
@@ -174,7 +174,7 @@ function testControlFlow(player = "USSR", filename = "", seed = 4) {
 function testEditModeCreateUnit() {
   player = "USSR";
   sendLoading("setup_complete", player, dInit => {
-    console.log("nach setup data:", dInit);
+    //console.log("nach setup data:", dInit);
     // gameloop(dInit);
     sender.send("edit/" + player + "/USSR+Moscow+Infantry", dEdit => {
       let newUnit = Object.values(dEdit.created)[0];
@@ -186,7 +186,7 @@ function testEditModeCreateUnit() {
 }
 function testEditModeCreateUnit_trial1() {
   sendInit(player, dInit => {
-    console.log("init data:", dInit);
+    //console.log("init data:", dInit);
     gameloop(dInit);
     // sender.send('edit/Axis/Germany+Berlin+Infantry',dEdit=>{
     //   let newUnit = Object.values(dEdit.created)[0];
@@ -316,6 +316,118 @@ function testRemoveInfluence(mapController, gObjects) {
 }
 //#endregion
 
+//#region random number generation tests
+function sendRandom(G, n, callback) {}
+function testRandomSeriesRec(lst, dInit, G, n, callback) {
+  sender.send("randint/" + 100, di => {
+    let x = di.int;
+    //console.log(x);
+    lst.push(x);
+    if (n > 0) {
+      testRandomSeriesRec(lst, dInit, G, n - 1, callback);
+    } else {
+      //console.log(lst);
+      callback(dInit);
+    }
+  });
+}
+function testRandomSeries(G, n, callback) {
+  sender.send("init/hotseat/Axis/1", dInit => {
+    //console.log(dInit);
+    testRandomSeriesRec([], dInit, G, n, callback);
+  });
+}
+
+function testRandomSeries_sendInit(lst, G, n, callback) {
+  sendInit(
+    G.player,
+    dInit => {
+      //console.log(dInit);
+      lst.push();
+      testRandomSeriesRec(dInit, G, n - 1, callback);
+    },
+    G.seed
+  );
+}
+//#endregion
+
+//#region save and load tests
+function testLoadSpring(filename = "spring_start", player = "Axis") {
+  execOptions.output = "none";
+  //addIf("cards", execOptions.activatedTests);
+  if (empty(filename)) {
+    sendInit(player, gameloop, 5);
+  } else {
+    sendLoading(filename, player, gameloop);
+  }
+}
+function testMovement(filename = "test_movement", player = "Axis") {
+  execOptions.output = "none";
+  //addIf("cards", execOptions.activatedTests);
+  if (empty(filename)) {
+    sendInit(player, gameloop, 5);
+  } else {
+    sendLoading(filename, player, gameloop);
+  }
+}
+
+function testEditAddRandomUnit() {
+  let tuple = randomUnitTuple();
+}
+function testEdit(origData, player = "USSR", filename = "test1", seed = 0) {
+  execOptions.output = "none";
+  //addIf("saveLoad", execOptions.activatedTests);
+  sendInit(player, d1 => {
+    //console.log(d1);
+    freezeUI();
+    let tuples = getTuples(d1);
+    sendEditAction(player, ["France", "Vienna", "Fleet"], d2 => {
+      //console.log("back from edit", d2);
+      gameloop(origData);
+      // // hier muss save senden!
+      // sender.send("savetest1", dSave => {
+      //   //console.log(dSave);
+      //   sendLoading("test1", player, dLoad => {
+      //     //console.log(dLoad);
+      //     gameloop(dLoad);
+      //   });
+      // });
+    });
+  });
+}
+
+//#endregion
+
+//#region tests for server communication - not sure if work!
+function testStepByStep(player = "Axis", filename = "gov_complete") {
+  sendLoading(filename, player, d => testStep(d, player), "raw");
+}
+function testStep(data, player) {
+  //doesn't work!!!???
+  let tuples = getTuples(data);
+  if (empty(tuples)) {
+    let waitingSet = getSet(data, "waiting_for");
+    if (empty(waitingSet)) {
+      error("NO ACTIONS AND EMPTY WAITING SET... sending empty action!!!");
+      nextAction = () => sendAction(player, ["none"], d => testStep(d, player));
+    } else {
+      let nextPlayer = waitingSet[0];
+      nextAction = () =>
+        sendChangeToPlayer(nextPlayer, d1 => {
+          testStep(d1, nextPlayer);
+        });
+    }
+  } else {
+    decider.pickTuple(tuples, t => {
+      //console.log(player + " chooses " + t.toString());
+      sendAction(player, t, d => testStep(d, player));
+    });
+  }
+  show(bStep);
+}
+
+//#endregion
+
 //#region units tests for units
 function testCreateSingleUnit() {
   execOptions.output = "none";
@@ -359,81 +471,4 @@ function testIntegrationUnits(filename = "", player = "USSR", seed = 4) {
     sendLoading(filename, player, gameloop);
   }
 }
-//#endregion
-
-//#region save and load tests
-function testLoadSpring(filename = "spring_start", player = "Axis") {
-  execOptions.output = "none";
-  //addIf("cards", execOptions.activatedTests);
-  if (empty(filename)) {
-    sendInit(player, gameloop, 5);
-  } else {
-    sendLoading(filename, player, gameloop);
-  }
-}
-function testMovement(filename = "test_movement", player = "Axis") {
-  execOptions.output = "none";
-  //addIf("cards", execOptions.activatedTests);
-  if (empty(filename)) {
-    sendInit(player, gameloop, 5);
-  } else {
-    sendLoading(filename, player, gameloop);
-  }
-}
-
-function testEditAddRandomUnit() {
-  let tuple = randomUnitTuple();
-}
-function testEdit(origData, player = "USSR", filename = "test1", seed = 0) {
-  execOptions.output = "none";
-  //addIf("saveLoad", execOptions.activatedTests);
-  sendInit(player, d1 => {
-    console.log(d1);
-    freezeUI();
-    let tuples = getTuples(d1);
-    sendEditAction(player, ["France", "Vienna", "Fleet"], d2 => {
-      console.log("back from edit", d2);
-      gameloop(origData);
-      // // hier muss save senden!
-      // sender.send("savetest1", dSave => {
-      //   console.log(dSave);
-      //   sendLoading("test1", player, dLoad => {
-      //     console.log(dLoad);
-      //     gameloop(dLoad);
-      //   });
-      // });
-    });
-  });
-}
-
-//#endregion
-
-//#region tests for server communication - not sure if work!
-function testStepByStep(player = "Axis", filename = "gov_complete") {
-  sendLoading(filename, player, d => testStep(d, player), "raw");
-}
-function testStep(data, player) {
-  //doesn't work!!!???
-  let tuples = getTuples(data);
-  if (empty(tuples)) {
-    let waitingSet = getSet(data, "waiting_for");
-    if (empty(waitingSet)) {
-      error("NO ACTIONS AND EMPTY WAITING SET... sending empty action!!!");
-      nextAction = () => sendAction(player, ["none"], d => testStep(d, player));
-    } else {
-      let nextPlayer = waitingSet[0];
-      nextAction = () =>
-        sendChangeToPlayer(nextPlayer, d1 => {
-          testStep(d1, nextPlayer);
-        });
-    }
-  } else {
-    decider.pickTuple(tuples, t => {
-      console.log(player + " chooses " + t.toString());
-      sendAction(player, t, d => testStep(d, player));
-    });
-  }
-  show(bStep);
-}
-
 //#endregion

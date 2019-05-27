@@ -8,7 +8,6 @@ CORS(app)
 
 app.url_map.converters['action'] = ActionConverter
 
-
 def convert_jsonable(msg):
 
 	if isinstance(msg, dict):
@@ -38,29 +37,31 @@ def convert_jsonable(msg):
 
 
 _visible_attrs = {  # attributes seen by all players even if obj isn't visible to the player
-	'unit': {'nationality', 'tile', },
-	'card': {'owner'},
+    'unit': {'nationality', 'tile', },
+    'card': {'owner'},
 }
-
 
 def hide_objects(objects, player=None, cond=None):
 	if cond is None:
-		def cond(obj, player): return player not in obj.visible
+
+		def cond(obj, player):
+			return player not in obj.visible
+
 	if player is None:
 		return
 	for obj in objects.values():
 		if cond(obj, player):
 			for k in list(obj.keys()):
 				if k in obj and k not in {'visible', 'obj_type'} and \
-						(obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
+          (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
 					del obj[k]
-
 
 def format_msg_for_frontend(msg, player=None):
 
 	msg = convert_jsonable(msg)
 
-	def cond(obj, player): return player not in obj['visible']['set']
+	def cond(obj, player):
+		return player not in obj['visible']['set']
 
 	if 'created' in msg:
 		hide_objects(msg['created'], player=player, cond=cond)
@@ -73,7 +74,6 @@ def format_msg_for_frontend(msg, player=None):
 
 	return msg
 
-
 def unjsonify(msg):
 	if isinstance(msg, dict):
 		if len(msg) == 1 and 'set' in msg:
@@ -85,11 +85,9 @@ def unjsonify(msg):
 	# 	return str(msg)
 	return msg
 
-
 def format_msg_to_python(msg):
 	msg = unjsonify(json.loads(msg))
 	return msg
-
 
 FORMAT_MSG = format_msg_for_frontend
 
@@ -107,8 +105,8 @@ def load(data):
 
 @app.route('/testload/<data>')
 def testload(data):
-	load_gamestate('./saves/'+data)
-	return './saves/'+data
+	load_gamestate('./saves/' + data)
+	return './saves/' + data
 
 @app.route('/refresh/<player>')
 def refresh(player):
@@ -117,10 +115,13 @@ def refresh(player):
 @app.route('/init/<game_type>/<player>')
 @app.route('/init/<game_type>/<player>/<seed>')
 def init_game(game_type='hotseat', player='Axis', debug=False, seed=None):
-	
 	if not game_type == 'hotseat':
 		return 'Error: Game type must be hotseat'
-	out = FORMAT_MSG(start_new_game(player, debug=debug, seed=seed), player)
+	if seed != None:  #@@
+		sd = int(seed)
+		out = FORMAT_MSG(start_new_game(player, debug=debug, seed=sd), player)
+	else:
+		out = FORMAT_MSG(start_new_game(player, debug=debug, seed=seed), player)
 	return out
 
 @app.route('/info/<faction>')
@@ -135,9 +136,9 @@ def get_status(faction):
 # action values are delimited by "+"
 @app.route('/action/<faction>/<action:vals>')
 def take_action(faction, vals):
-	
+
 	out = FORMAT_MSG(step(faction, vals), faction)
 	return out
 
 if __name__ == "__main__":
-	app.run(host='localhost',port=5000)
+	app.run(host='localhost', port=5000)

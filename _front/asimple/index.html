@@ -54,8 +54,11 @@
       </div>
       <div id="edit_area" class="grid_div">
         <div id="uiEditButtons">
-          <button onclick="onClickScenario('West','spring_start')">spring start</button>
-          <button onclick="onClickViolation1()">violation</button>
+          <button onclick="decider.onClickStep(H)">step</button>
+          <button onclick="onClickRestart(this)">restart</button>
+
+          <!-- <button onclick="onClickScenario('West','spring_start')">spring start</button>
+          <button onclick="onClickViolation1()">violation</button> -->
           <!-- <button onclick="onClickScenario('USSR','test_movement')">movement</button>
           <button onclick="onClickScenario('West','move2')">move 2</button>
           <button onclick="onClickScenario('USSR','winter1')">winter36</button>
@@ -81,16 +84,16 @@
       </div>
       <div id="command_area" class="grid_div">
         <div id="uiActiveButtons" class="hidden">
-          <button id="bStep" onclick="decider.onClickStep(H)">step</button>
-          <button id="bRunToEnd" onclick="onClickRunToEnd()">run to end</button>
+          <button onclick="decider.onClickStep(H)">step</button>
+          <button onclick="onClickRunToEnd()">run to end</button>
           <button onclick="onClickRunToPhase('Government')">run to gov</button>
           <button onclick="onClickRunToPhase('Spring')">run to spring</button>
           <button onclick="onClickRunToPhase('Movement')">run to move</button>
           <!-- <button id="bPlayWest" onclick="onClickPlay(this)">play West</button>
           <button id="bPlayUSSR" onclick="onClickPlay(this)">play USSR</button>
           <button id="bPlayAxis" onclick="onClickPlay(this)">play Axis</button> -->
-          <button id="bRestart" style="margin-top:24px;background-color:orangered;" onclick="onClickRestart(this)">restart</button>
-          <button id="bRestartParams" style="background-color:orangered;" onclick="onClickRestartParams(this)">
+          <button style="margin-top:24px;background-color:orangered;" onclick="onClickRestart(this)">restart</button>
+          <button style="background-color:orangered;" onclick="onClickRestartParams(this)">
             restart params
           </button>
         </div>
@@ -131,6 +134,13 @@
 
     <!-- #region UI / handlers, helpers TODO: cleanup -->
     <script>
+      function onClickRestart() {
+        //restart with random player, do NOT change role!
+        //let pl = chooseRandom(assets.factionNames);
+        console.log("restarting with", H.player, H.seed);
+        restart(H.player, "", H.seed);
+      }
+
       function activateWaitingForServer() {
         show(document.getElementById("dFrozen"));
         hide(document.getElementById("dAutoplay"));
@@ -181,23 +191,23 @@
       }
       function printActions(data) {
         if ("actions" in data) {
-          console.log(data.actions);
+          //console.log(data.actions);
           // if ('set' in data.actions){
-          //   console.log(data.actions.set.toString());
+          //   //console.log(data.actions.set.toString());
           // }else{
-          //   console.log(data.created.toString());
+          //   //console.log(data.created.toString());
           // }
         } else {
-          console.log("... no actions ...");
+          //console.log("... no actions ...");
         }
       }
       function printCreatedUnits(data) {
-        console.log("...created:");
+        //console.log("...created:");
         if ("created" in data) {
           for (const id in data.created) {
             let o = data.created[id];
             if (o.obj_type != "unit") continue;
-            console.log(id, o.nationality, o.tile, o.type);
+            //console.log(id, o.nationality, o.tile, o.type);
           }
         }
       }
@@ -235,13 +245,13 @@
       function onClickAddUnit() {
         freezeUI();
         let dOrig = H.serverData;
-        console.log(dOrig);
+        //console.log(dOrig);
         let tuple = randomUnitTuple();
         sendEditAction(H.player, tuple, dEdit => {
-          console.log("back from edit", dEdit);
+          //console.log("back from edit", dEdit);
           if ("created" in dEdit) {
             dOrig = extend(true, dOrig, dEdit);
-            console.log("nach extend und edit", dOrig);
+            //console.log("nach extend und edit", dOrig);
             printCreatedUnits(dOrig);
             printActions(dOrig);
           }
@@ -284,35 +294,29 @@
 
         let pl = stringAfter(b.id, "Play");
         //toggle this player
-        console.log("before toggle", execOptions.manualPlay.toString());
-        console.log(execOptions.skipCond);
+        //console.log("before toggle", execOptions.manualPlay.toString());
+        //console.log(execOptions.skipCond);
         if (execOptions.manualPlay.includes(pl)) {
-          console.log("player", pl, "is in manualPlay!");
+          //console.log("player", pl, "is in manualPlay!");
           removeInPlace(execOptions.manualPlay, pl);
-          console.log(execOptions.manualPlay);
+          //console.log(execOptions.manualPlay);
           b.classList.remove("toggleSelected");
         } else {
-          console.log("player", pl, "is NOT in manualPlay!");
+          //console.log("player", pl, "is NOT in manualPlay!");
           execOptions.manualPlay.push(pl);
           b.classList.add("toggleSelected");
         }
-        console.log("after toggle", execOptions.manualPlay.toString());
-        console.log(execOptions.skipCond, H.player);
+        //console.log("after toggle", execOptions.manualPlay.toString());
+        //console.log(execOptions.skipCond, H.player);
         STOP = false;
         decider.onClickStep(H);
-      }
-      function onClickRestart() {
-        //restart with random player, do NOT change role!
-        let pl = chooseRandom(assets.factionNames);
-        console.log("restarting with", pl, assets.factionNames.toString());
-        restart(pl);
       }
       function onClickRestartParams() {
         params = prompt("enter player [seed]:");
         let pl = capitalize(stringBefore(params, " "));
         let sd = firstNumber(params);
         if (sd < 0) sd = randomNumber();
-        console.log("restarting with player", pl, "and seed", sd);
+        //console.log("restarting with player", pl, "and seed", sd);
         restart(pl, "", sd);
       }
       function onClickRunToEnd() {
@@ -372,7 +376,52 @@
 
     <!-- #region control flow -->
     <script>
+      function startScript() {
+        H.player = "West";
+        H.seed = 0;
+        autoplay = false;
+        addIf("choice", execOptions.activatedTests);
+        sendInitSeed(H.player, H.seed, gameloop);
+      }
       function gameloop(data) {
+        updateCycle(data);
+        //console.log(H.tuples);
+
+        decider.genMove(H, t => sendAction(H.player, t, gameloop), autoplay);
+        //if (H.moveCounter > 2) autoplay = false;
+        //console.log("DONE");
+
+        window.scrollTo(0, 0);
+      }
+      function updateCycle(data) {
+        //TODO: get rid of global variables, consolidate to G
+        H.serverData = data;
+        updateMovePlayerPhaseYear(data);
+        updateLog(data);
+        mergeCreatedAndUpdated(data);
+        cards.update(H.player, data, H.objects);
+        map.update(data, H.objects);
+        units.update(data, H.objects, H.player);
+        H.tuples = getTuples(data);
+      }
+      function updateMovePlayerPhaseYear(data) {
+        H.moveCounter += 1;
+        if ("game" in data) {
+          H.year = Number(data.game.year);
+          H.phase = data.game.phase;
+          H.player = data.game.player;
+          statusMessage();
+        } else {
+          //console.log("data:", data);
+          statusMessage("INFO DATA MISSING IN DATA!!!!");
+        }
+      }
+    </script>
+    <!-- #endregion control flow -->
+
+    <!-- #region WRONG CODE!!!!!!!!!!! -->
+    <script>
+      function gameloop_old(data) {
         //testing
         // STOP = unitTestRemovedCheck(data);
         unitTestControl("*** gameloop: updating ***", data);
@@ -412,7 +461,7 @@
         }
         window.scrollTo(0, 0);
       }
-      function updateCycle(data) {
+      function updateCycle_old(data) {
         //TODO: get rid of global variables, consolidate to G
         H.serverData = data;
         updateStepPlayerPhaseYear(data);
@@ -428,7 +477,7 @@
         H.objects = H.objects;
         H.serverData = H.serverData;
       }
-      function updateStepPlayerPhaseYear(data) {
+      function updateStepPlayerPhaseYear_old(data) {
         H.moveCounter += 1;
         //console.log(moveCounter, ": gameloop");
         if ("game" in data) {
@@ -442,7 +491,7 @@
 
           statusMessage();
         } else {
-          console.log("data:", data);
+          //console.log("data:", data);
           statusMessage("EDIT MODE!");
           //error("updateStepPlayerPhaseYear: MISSING GAME DATA!!!");
         }
@@ -500,7 +549,7 @@
     <script>
       var H = {}; //package up all game info
 
-      //control flow and console output flags
+      //control flow and //console output flags
       var STOP; //to interrupt autoplay
       const defaultSkipCond = () => !execOptions.manualPlay.includes(H.player);
       var execOptions = {
@@ -532,16 +581,19 @@
 
     <!-- #region execution starts here! -->
     <script>
-      function startScript() {
+      function startScript_old() {
         //addIf("control", execOptions.activatedTests);
         //addIf("units", execOptions.activatedTests);
         //addIf("moving", execOptions.activatedTests);
-        addIf("strategy", execOptions.activatedTests);
-
-        //testMovement("", "USSR");
         // addIf("removed", execOptions.activatedTests);
+        // addIf("strategy", execOptions.activatedTests);
+
         // H.player = "Axis";
-        sendInit(H.player, gameloop, H.seed);
+
+        //testRandomSeries(H, 25, gameloop);
+        H.player = "West";
+        H.seed = 0;
+        sendInitSeed(H.player, H.seed, gameloop);
 
         //beiH.seed = 4: kommt nur influence von <= 2 zustande!
         //beiH.seed = 1: geht nicht, in gov phase kommt fehler: USA cannot become satellite of Axis

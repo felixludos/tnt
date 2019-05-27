@@ -45,13 +45,14 @@ class ADecisiongen {
     }
   }
   decideAutoplay(G) {
-    unitTestStrategy("decideAutoplay", G, this.tuples);
+    this.tuples.sort();
+    //unitTestChoice("decideAutoplay", this.tuples.length, this.tuples.slice(0, 15));
     this.selectionDone = true;
     if (this.selectionMode == "server") {
       sender.send("randint/" + (this.tuples.length - 1), d => {
-        console.log("index:", d.int);
         let n = d.int;
         this.tuple = this.tuples[n];
+        unitTestChoice("choice", n, "of", this.tuples.length, ":", this.tuple.toString());
         this.highlightTuple(this.tuple);
         setTimeout(() => this.callback(this.tuple), 10); // leave user time to see what happened!
       });
@@ -139,7 +140,7 @@ class ADecisiongen {
     let index = this.tuples.indexOf(tuple);
     let i = Object.keys(this.selectedTuples).length;
     let s = "" + index + ":" + tuple.toString();
-    unitTestStrategy("added tuple", i, "" + index + ":" + tuple.toString());
+    //unitTestChoice("added tuple", i, "" + index + ":" + tuple.toString());
     this.selectedTuples[i] = s;
     let d = document.getElementById("divSelect");
     let els = document.getElementsByTagName("a");

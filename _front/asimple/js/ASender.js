@@ -51,7 +51,7 @@ class ASender {
       url: url,
       type: "GET",
       success: response => {
-        console.log("server:", response.substring(0, 200));
+        //console.log("server:", response.substring(0, 200));
         if (response[0] != "{") {
           callback(JSON.parse('{"response":"' + response + '"}'));
         } else {

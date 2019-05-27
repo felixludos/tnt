@@ -2,9 +2,12 @@
 
 function getTuples(data) {
   let tuples = [];
+  //console.log(data);
   //console.log("getTuples", tuples);
   if ("actions" in data) {
-    tuples = expand(data.actions);
+    // tuples = data.actions;
+    // tuples = expand(data.actions);
+    tuples = "set" in data.actions ? expand(data.actions) : data.actions;
 
     if (!empty(tuples) && tuples.length == 1 && !Array.isArray(tuples[0])) {
       //console.log("tuple correction", tuples);
@@ -98,11 +101,66 @@ function saveToDownloads(data, fname) {
   json_str = JSON.stringify(data);
   saveFile(fname + ".json", "data:application/json", new Blob([json_str], {type: ""}));
 }
+//#endregion
+
+//#region send
+function sendInitSeed(player, seed, callback) {
+  sender.send("init/hotseat/" + player + "/" + seed, dInit => {
+    sender.send("info/" + player, dInfo => {
+      dInit = extend(true, dInit, dInfo);
+      dInit.game.player = player;
+      //console.log(dInit);
+      callback(dInit);
+    });
+  });
+}
+function sendInit(player, callback) {
+  sender.send("init/hotseat/" + player, dInit => {
+    sender.send("info/" + player, dInfo => {
+      dInit = extend(true, dInit, dInfo);
+      dInit.game.player = player;
+      callback(dInit);
+    });
+  });
+}
+function sendAction(player, actionTuple, callback) {
+  sender.send("action/" + player + "/" + actionTuple.join("+"), dAction => {
+    sender.send("info/" + player, dInfo => {
+      dAction = extend(true, dAction, dInfo);
+      if ("actions" in dAction) {
+        dAction.game.player = player;
+        //console.log(dAction);
+        callback(dAction);
+      } else if ("waiting_for" in dAction) {
+        let waiting = getSet(dAction, "waiting_for");
+        console.log("PLAYER CHANGE!!!!!!!!!!!!", waiting);
+        if (!empty(waiting)) {
+          let newPlayer = waiting[0];
+          dAction.game.player = newPlayer;
+          sender.send("status/" + newPlayer, dNewPlayer => {
+            sender.send("info/" + newPlayer, dNewInfo => {
+              dNewPlayer = extend(true, dNewPlayer, dNewInfo);
+              dNewPlayer.game.player = newPlayer;
+              callback(dNewPlayer);
+            });
+            //throw away old player,
+          });
+        } else {
+          //got empty waitingfor set!!!
+          alert("empty waiting_for and no actions!!!");
+        }
+      } else {
+        sendAction(player, ["pass"], callback);
+      }
+    });
+  });
+}
+
 function sendEmptyAction(player, callback) {
   testOutput({1: ["sending empty action!!!"]});
   sendAction(player, ["none"], callback);
 }
-function sendAction(player, tuple, callback, ms = 30) {
+function sendAction_old(player, tuple, callback, ms = 30) {
   setTimeout(() => {
     testOutput({1: ["sending action:" + player + tuple + callback.name]});
     testOutput({0: [player + " selects:" + tuple]});
@@ -135,7 +193,7 @@ function sendChangePlayer(data, callback) {
     sender.chainSend(chain, player, callback);
   }
 }
-function sendInit(player, callback, seed = 1) {
+function sendInit_old(player, callback, seed = 1) {
   var chain = ["init/hotseat/" + player + "/" + seed, "info/" + player, "status/" + player];
   sender.chainSend(chain, player, callback);
 }
@@ -168,4 +226,4 @@ function sendLoading(filename, player, callback, outputOption = "none") {
   });
 }
 
-//#endregion tnt helpers
+//#endregion send

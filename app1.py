@@ -8,13 +8,65 @@ import json
 app = Flask(__name__)  # , static_folder='_front/front_console')
 CORS(app)
 
+app.url_map.converters['action'] = ActionConverter
+
+# action values are delimited by "+"
+# action values are delimited by "+"
+# @app.route('/action/<faction>/<action:vals>')
+# def take_action(faction, vals):
+# 	print(vals)
+# 	out = FORMAT_MSG(step(faction, vals), faction)
+# 	return out
+def expandedActions(faction, result):
+	out = format_msg_to_python(result)
+	if 'actions' in out:
+		lst = list(util.decode_actions(out.actions))
+		out.actions = lst
+		print(lst)
+	out = FORMAT_MSG(out, faction)
+	print(type(out))
+	return out
+
+@app.route('/action_tuples/<faction>/<action:vals>')
+def take_action_tuples(faction, vals):
+	print(vals)
+	out = expandedActions(faction, take_action(faction, vals))
+	return out
+
+# @app.route('/init_tuples/<game_type>/<player>')
+# @app.route('/init_tuples/<game_type>/<player>/<seed>')
+# def init_game_tuples(game_type='hotseat', player='Axis', debug=False, seed=None):
+# 	if not game_type == 'hotseat':
+# 		return 'Error: Game type must be hotseat'
+# 	if seed != None:  #@@
+# 		sd = int(seed)
+# 		out = expandedActions(player, start_new_game(player, debug=debug, seed=sd))
+# 	else:
+# 		out = expandedActions(player, start_new_game(player, debug=debug, seed=seed))
+# 	return out
+
+@app.route('/randTester1/<player>/<seed>')
+def randTester1(player, seed):
+	sd = int(seed)
+	out = FORMAT_MSG(start_new_game(player=player, debug=False, seed=sd), player)
+	lst = []
+	for _ in range(5):
+		lst.append(randint1(100))
+	return str(lst)
+
+@app.route('/randTester')
+def randTester():
+	player = 'Axis'
+	out = FORMAT_MSG(start_new_game(player, debug=False, seed=1), player)
+	return str(randint1(100))
+
 @app.route('/randint/<max>')
 def randintStr(max):
 	n = get_G().random.randint(0, int(max))
 	print('random int:', n, 'max:', max)
 	return '{"int":"' + str(n) + '"}'
 
-def randint(max):
+def randint1(max):
 	n = get_G().random.randint(0, int(max))
 	print('random int:', n, 'max:', max)
 	return n
@@ -66,10 +118,7 @@ def rootsim():
 def rootsimPath(path):
 	return send_from_directory(statfold_sim, path)
 
-app.url_map.converters['action'] = ActionConverter
-
 def convert_jsonable(msg):
-
 	if isinstance(msg, dict):
 		return {convert_jsonable(k): convert_jsonable(v) for k, v in msg.items()}
 	if isinstance(msg, (list, tuple)):
@@ -98,10 +147,11 @@ def hide_objects(objects, player=None, cond=None):
 		if cond(obj, player):
 			for k in list(obj.keys()):
 				if k in obj and k not in {'visible', 'obj_type'} and \
-                                                (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
+                                                                                                                                                            (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
 					del obj[k]
 
 def format_msg_for_frontend(msg, player=None):
+	print('type of msg is', type(msg))
 	msg = convert_jsonable(msg)
 
 	def cond(obj, player):
@@ -153,11 +203,16 @@ def refresh(player):
 def reset(player):
 	return FORMAT_MSG(get_object_table(), player)
 
+@app.route('/init/<game_type>/<player>')
 @app.route('/init/<game_type>/<player>/<seed>')
-def init_game(game_type='hotseat', player='Axis', debug=False, seed=0):
+def init_game(game_type='hotseat', player='Axis', debug=False, seed=None):
 	if not game_type == 'hotseat':
 		return 'Error: Game type must be hotseat'
-	out = FORMAT_MSG(start_new_game(player, debug=debug, seed=seed), player)
+	if seed != None:  #@@
+		sd = int(seed)
+		out = FORMAT_MSG(start_new_game(player, debug=debug, seed=sd), player)
+	else:
+		out = FORMAT_MSG(start_new_game(player, debug=debug, seed=seed), player)
 	return out
 
 @app.route('/info/<faction>')

@@ -1,5 +1,6 @@
 //#region unit test i/o helpers
 function testOutput(o) {
+  return;
   for (const key in o) {
     //console.log(key,execOptions.outputLevel,isNumber(key),typeof(key))
     const arg = o[key];
@@ -14,6 +15,9 @@ function unitTestAutoplay() {
 }
 function unitTestCards() {
   if (execOptions.activatedTests.includes("cards")) console.log(...arguments);
+}
+function unitTestChoice() {
+  if (execOptions.activatedTests.includes("choice")) console.log(...arguments);
 }
 function unitTestControl() {
   if (execOptions.activatedTests.includes("control")) console.log(...arguments);
