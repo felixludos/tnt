@@ -57,6 +57,10 @@
           <button onclick="decider.onClickStep(H)">step</button>
           <button onclick="onClickRestart(this)">restart</button>
 
+          <button onclick="onClickRunToPlayerChange(H.player)">run to next player</button>
+
+          <button onclick="onClickSaveActions()">save actions</button>
+
           <!-- <button onclick="onClickScenario('West','spring_start')">spring start</button>
           <button onclick="onClickViolation1()">violation</button> -->
           <!-- <button onclick="onClickScenario('USSR','test_movement')">movement</button>
@@ -84,30 +88,30 @@
       </div>
       <div id="command_area" class="grid_div">
         <div id="uiActiveButtons" class="hidden">
-          <button onclick="decider.onClickStep(H)">step</button>
+          <!-- <button onclick="decider.onClickStep(H)">step</button>
           <button onclick="onClickRunToEnd()">run to end</button>
           <button onclick="onClickRunToPhase('Government')">run to gov</button>
           <button onclick="onClickRunToPhase('Spring')">run to spring</button>
-          <button onclick="onClickRunToPhase('Movement')">run to move</button>
+          <button onclick="onClickRunToPhase('Movement')">run to move</button> -->
           <!-- <button id="bPlayWest" onclick="onClickPlay(this)">play West</button>
           <button id="bPlayUSSR" onclick="onClickPlay(this)">play USSR</button>
           <button id="bPlayAxis" onclick="onClickPlay(this)">play Axis</button> -->
-          <button style="margin-top:24px;background-color:orangered;" onclick="onClickRestart(this)">restart</button>
+          <!-- <button style="margin-top:24px;background-color:orangered;" onclick="onClickRestart(this)">restart</button>
           <button style="background-color:orangered;" onclick="onClickRestartParams(this)">
             restart params
-          </button>
+          </button> -->
         </div>
       </div>
       <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
       <div id="command2_area" class="grid_div">
         <div id="ui2Buttons">
-          <button id="bSave" onclick="onClickSave()">save</button>
-          <button id="bLoad" onclick="onClickLoad()">load</button>
+          <!-- <button id="bSave" onclick="onClickSave()">save</button>
+          <button id="bLoad" onclick="onClickLoad()">load</button> -->
 
-          <button id="bSaveAs" style="margin-top:24px" onclick="onClickSaveAs()">save as</button>
-          <button id="bLoadAs" onclick="onClickLoadAs()">load as</button>
+          <!-- <button id="bSaveAs" style="margin-top:24px" onclick="onClickSaveAs()">save as</button>
+          <button id="bLoadAs" onclick="onClickLoadAs()">load as</button> -->
 
-          <button id="bSaveActions" style="margin-top:24px" onclick="onClickSaveActions()">save actions</button>
+          <!-- <button id="bSaveActions" style="margin-top:24px" onclick="onClickSaveActions()">save actions</button> -->
         </div>
       </div>
       <div id="hand_area" class="grid_div" style="height:200px">
@@ -132,14 +136,27 @@
     </div>
     <!-- #endregion HTML -->
 
-    <!-- #region UI / handlers, helpers TODO: cleanup -->
+    <!-- #region NEW UI / handlers, helpers TODO: cleanup -->
     <script>
       function onClickRestart() {
-        //restart with random player, do NOT change role!
-        //let pl = chooseRandom(assets.factionNames);
         console.log("restarting with", H.player, H.seed);
-        restart(H.player, "", H.seed);
+        restart(H.player, H.seed, "");
       }
+      function onClickRunToPlayerChange(player) {
+        //console.log("onClickRunToPlayerChange", player, H.player);
+        execOptions.skipCond = () => H.player == player;
+        decider.onClickStep(H);
+      }
+      function onClickSaveActions() {
+        saveToDownloads(decider.selectedTuples, "a_" + H.start.player + "_" + H.start.seed);
+        unitTestSave(H);
+      }
+    </script>
+    <!-- #endregion NEW handlers -->
+
+    <!-- #region old handlers -->
+    <script>
+      //____________________________________________old
 
       function activateWaitingForServer() {
         show(document.getElementById("dFrozen"));
@@ -213,7 +230,7 @@
       }
       function onClickScenario(player, fname, seed = 0) {
         freezeUI();
-        restart(player, fname, seed);
+        restart(player, seed, fname);
       }
       function onClickViolation1() {
         freezeUI();
@@ -317,7 +334,7 @@
         let sd = firstNumber(params);
         if (sd < 0) sd = randomNumber();
         //console.log("restarting with player", pl, "and seed", sd);
-        restart(pl, "", sd);
+        restart(pl, sd, "");
       }
       function onClickRunToEnd() {
         STOP = false;
@@ -331,7 +348,7 @@
       }
       function onClickLoad() {
         freezeUI();
-        restart(H.player, "test1");
+        restart(H.player, 0, "test1");
       }
       function onClickSave() {
         freezeUI();
@@ -346,7 +363,7 @@
       function onClickLoadAs() {
         fname = prompt("filename no ext.:");
         freezeUI();
-        restart("West", fname);
+        restart("West", 0, fname);
       }
       function onClickSaveAs() {
         fname = prompt("filename no ext.:");
@@ -358,9 +375,6 @@
             gameloop(dOrig);
           });
         });
-      }
-      function onClickSaveActions() {
-        saveToDownloads(decider.selectedTuples, "_actions_" + H.filename);
       }
       function onClickStop() {
         unitTestControl("*** onClickStop!!! ***");
@@ -374,19 +388,22 @@
     </script>
     <!-- #endregion handlers -->
 
-    <!-- #region control flow -->
+    <!-- #region NEW control flow -->
     <script>
       function startScript() {
-        H.player = "West";
-        H.seed = 0;
-        autoplay = false;
         addIf("choice", execOptions.activatedTests);
+        addIf("init", execOptions.activatedTests);
+        // addIf("sender", execOptions.activatedTests);
+
+        initH("West", 0);
+        autoplay = false;
         sendInitSeed(H.player, H.seed, gameloop);
       }
       function gameloop(data) {
         updateCycle(data);
         //console.log(H.tuples);
 
+        autoplay = execOptions.skipCond();
         decider.genMove(H, t => sendAction(H.player, t, gameloop), autoplay);
         //if (H.moveCounter > 2) autoplay = false;
         //console.log("DONE");
@@ -399,6 +416,7 @@
         updateMovePlayerPhaseYear(data);
         updateLog(data);
         mergeCreatedAndUpdated(data);
+        //console.log("update vor cards:", data, H.player, H.objects);
         cards.update(H.player, data, H.objects);
         map.update(data, H.objects);
         units.update(data, H.objects, H.player);
@@ -406,10 +424,11 @@
       }
       function updateMovePlayerPhaseYear(data) {
         H.moveCounter += 1;
-        if ("game" in data) {
-          H.year = Number(data.game.year);
-          H.phase = data.game.phase;
-          H.player = data.game.player;
+        if ("info" in data) {
+          let info = data.info.game;
+          H.year = Number(info.year);
+          H.phase = info.phase;
+          H.player = info.player;
           statusMessage();
         } else {
           //console.log("data:", data);
@@ -419,7 +438,7 @@
     </script>
     <!-- #endregion control flow -->
 
-    <!-- #region WRONG CODE!!!!!!!!!!! -->
+    <!-- #region old control flow -->
     <script>
       function gameloop_old(data) {
         //testing
@@ -510,111 +529,78 @@
 
     <!-- #region init and restart -->
     <script>
-      function initState() {
-        H.player = "Axis"; //default
+      function initH(player, seed, fname) {
+        H = {};
+        H.player = player != undefined ? player : "Axis";
+        H.seed = seed != null && seed != undefined ? seed : 0;
         H.year = 1935;
         H.phase = "Setup";
+
+        H.start = {};
+        H.start.player = H.player;
+        H.start.seed = H.seed;
+        H.start.filename = fname;
+
+        unitTestInit("initH", player, seed, fname);
+        unitTestInit(H);
+
         H.objects = {};
 
         H.nextAction = null;
         H.serverData = null;
         H.moveCounter = 0;
-        H.seed = 0;
-        H.filename = "_" + H.player + "_" + H.seed;
         STOP = false;
-
+      }
+      function initManagers() {
         sender = new ASender(execOptions);
         map = new AMap(assets);
         cards = new ACards(assets);
         units = new AUnits(assets);
         decider = new ADecisiongen(assets, map, cards, units, sender);
       }
-      function restart(player = "Axis", fname = "", seed = 0) {
+      function restart(player, seed, fname) {
         page.clearAllObjects();
         assets.clear();
-        initState();
-        H.player = player;
-        H.filename = fname;
-        H.seed = seed;
+        initManagers();
+        initH(player, seed, fname);
 
-        if (empty(H.filename)) {
-          H.filename = "_" + H.player + "_" + H.seed;
-          sendInit(H.player, gameloop, H.seed);
-        } else sendLoading(H.filename, H.player, gameloop);
+        unitTestInit("sending initSeed with ", H.player, H.seed);
+
+        if (empty(fname)) {
+          sendInitSeed(H.player, H.seed, gameloop);
+        } else sendLoading(fname, H.player, gameloop);
       }
     </script>
     <!-- #endregion init and restart -->
 
-    <!-- #region globals -->
+    <!-- #region globals >>execution -->
     <script>
-      var H = {}; //package up all game info
-
-      //control flow and //console output flags
+      //control flow
       var STOP; //to interrupt autoplay
-      const defaultSkipCond = () => !execOptions.manualPlay.includes(H.player);
+      const defaultSkipCond = () => false; //manual play or step by step, !execOptions.manualPlay.includes(H.player);
       var execOptions = {
-        mode: "game", // 'game' || 'edit' not used
-        outputLevel: 0, // (see testOutput: )
-        playerChange: "auto", // 'auto' | 'manual'
         skipCond: defaultSkipCond, //!execOptions.manualPlay.includes(player), // predicate func evaluating to cond for autoplay
-        manualPlay: ["Axis", "West", "USSR"],
         activatedTests: [] // unitTest flags to control output
       };
 
-      var page = new NPage().initView().selectView();
-      panzoom("mapG"); //handles pan zoom on map
-      var assets = new NAssets();
+      var H = {}; //package up all game data
 
       // controllers responsible for different aspects of game
+      var page; //responsible for layout
+      var assets;
       var sender;
       var map; //responsible for tile influence nation chip
       var cards;
       var units;
       var decider; //responsible for move generation
 
-      $(document).ready(function() {
-        initState();
-        assets.initAssets(map, startScript);
-      });
+      //execution starts here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      page = new NPage().initView().selectView();
+      panzoom("mapG"); //handles pan zoom on map
+      assets = new NAssets();
+      initManagers();
+      assets.initAssets(map, startScript);
     </script>
     <!-- #endregion globals -->
-
-    <!-- #region execution starts here! -->
-    <script>
-      function startScript_old() {
-        //addIf("control", execOptions.activatedTests);
-        //addIf("units", execOptions.activatedTests);
-        //addIf("moving", execOptions.activatedTests);
-        // addIf("removed", execOptions.activatedTests);
-        // addIf("strategy", execOptions.activatedTests);
-
-        // H.player = "Axis";
-
-        //testRandomSeries(H, 25, gameloop);
-        H.player = "West";
-        H.seed = 0;
-        sendInitSeed(H.player, H.seed, gameloop);
-
-        //beiH.seed = 4: kommt nur influence von <= 2 zustande!
-        //beiH.seed = 1: geht nicht, in gov phase kommt fehler: USA cannot become satellite of Axis
-        //tryH.seed = 2: nur <= 2
-        //tryH.seed = 3: usa becoming satellite of Axis! mit West kommt nicht ueber 1
-
-        //H.player = "USSR";
-        //testEditModeCreateUnit();
-
-        //testControlFlow(H.player);
-        // testInitToEnd(H.player,4); //ok
-        // testLoadToEnd('Axis','prod_complete'); //ok
-        // testCreateSingleUnit(); //ok
-        // testCreateMultipleUnitsOnSameTile(); //ok
-        // testIntegrationUnits(); //ok
-        // testIntegrationMap(); //ok
-        // testCreateOneCard(); //ok
-        // testCreateNCards(); //ok
-        // testIntegrationCards(); //ok
-      }
-    </script>
-    <!-- #endregion execution -->
   </body>
 </html>

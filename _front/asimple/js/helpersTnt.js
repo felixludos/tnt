@@ -6,8 +6,9 @@ function getTuples(data) {
   //console.log("getTuples", tuples);
   if ("actions" in data) {
     // tuples = data.actions;
-    // tuples = expand(data.actions);
-    tuples = "set" in data.actions ? expand(data.actions) : data.actions;
+    tuples = expand(data.actions);
+    tuples.sort();
+    //tuples = "set" in data.actions ? expand(data.actions) : data.actions;
 
     if (!empty(tuples) && tuples.length == 1 && !Array.isArray(tuples[0])) {
       //console.log("tuple correction", tuples);
@@ -104,7 +105,48 @@ function saveToDownloads(data, fname) {
 //#endregion
 
 //#region send
+function sendAction(player, actionTuple, callback) {
+  sender.send("action_test/" + player + "/" + actionTuple.join("+"), dAction => {
+    unitTestSender(dAction);
+    if ("actions" in dAction) {
+      dAction.info.game.player = player;
+      //console.log(dAction);
+      callback(dAction);
+    } else if ("waiting_for" in dAction) {
+      let waiting = getSet(dAction, "waiting_for");
+      unitTestSender("PLAYER CHANGE!!!!!!!!!!!!", waiting);
+      if (!empty(waiting)) {
+        let newPlayer = waiting[0];
+        sender.send("status_test/" + newPlayer, dNewPlayer => {
+          unitTestSender("status data for", newPlayer, dNewPlayer);
+          dNewPlayer.info.game.player = newPlayer;
+          callback(dNewPlayer);
+        });
+      } else {
+        //got empty waitingfor set!!!
+        alert("empty waiting_for and no actions!!!");
+      }
+    } else {
+      sendAction(player, ["pass"], callback); //recurse
+    }
+  });
+}
+function sendInit(player, callback) {
+  sendInitSeed(player, null, callback);
+}
 function sendInitSeed(player, seed, callback) {
+  let url = "init_test/hotseat/" + player;
+  if (seed != null) url += "/" + seed;
+  unitTestSender("url:", url);
+  sender.send(url, dInit => {
+    unitTestSender("dInit:", dInit);
+    dInit.info.game.player = player;
+    callback(dInit);
+  });
+}
+
+//_____________________________________________________trash
+function sendInitSeed_old(player, seed, callback) {
   sender.send("init/hotseat/" + player + "/" + seed, dInit => {
     sender.send("info/" + player, dInfo => {
       dInit = extend(true, dInit, dInfo);
@@ -114,7 +156,7 @@ function sendInitSeed(player, seed, callback) {
     });
   });
 }
-function sendInit(player, callback) {
+function sendInit_old(player, callback) {
   sender.send("init/hotseat/" + player, dInit => {
     sender.send("info/" + player, dInfo => {
       dInit = extend(true, dInit, dInfo);
@@ -123,8 +165,9 @@ function sendInit(player, callback) {
     });
   });
 }
-function sendAction(player, actionTuple, callback) {
-  sender.send("action/" + player + "/" + actionTuple.join("+"), dAction => {
+function sendAction_old(player, actionTuple, callback) {
+  sender.send("action_test/" + player + "/" + actionTuple.join("+"), dAction => {
+    console.log(dAction);
     sender.send("info/" + player, dInfo => {
       dAction = extend(true, dAction, dInfo);
       if ("actions" in dAction) {

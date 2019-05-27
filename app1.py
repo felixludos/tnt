@@ -10,40 +10,57 @@ CORS(app)
 
 app.url_map.converters['action'] = ActionConverter
 
-# action values are delimited by "+"
-# action values are delimited by "+"
-# @app.route('/action/<faction>/<action:vals>')
-# def take_action(faction, vals):
-# 	print(vals)
-# 	out = FORMAT_MSG(step(faction, vals), faction)
-# 	return out
-def expandedActions(faction, result):
-	out = format_msg_to_python(result)
-	if 'actions' in out:
-		lst = list(util.decode_actions(out.actions))
-		out.actions = lst
+def convertToStringList(l):
+	if (isinstance(l, str)):
+		return [l]
+	return [str(x) for x in l]
+
+def addChoiceInfo(res, faction):
+	# print('result', res)
+	# print('type of result:', type(res))
+	if ('actions' in res):
+		lst = list(util.decode_actions(res.actions))
+		lst = [convertToStringList(x) for x in lst]
 		print(lst)
-	out = FORMAT_MSG(out, faction)
-	print(type(out))
+		lst.sort()
+		n = randint1(len(lst) - 1)
+		print('choice:', n, 'of', len(lst), ':', lst[n])
+		res.choice = adict()
+		res.choice.random = n
+		res.choice.count = len(lst)
+		res.choice.tuple = lst[n]
+	res.info = get_game_info(faction)
+
+@app.route('/status_test/<faction>')
+def get_status_test(faction):
+	res = pull_msg(faction)
+	addChoiceInfo(res, faction)
+	out = FORMAT_MSG(res, faction)
 	return out
 
-@app.route('/action_tuples/<faction>/<action:vals>')
-def take_action_tuples(faction, vals):
-	print(vals)
-	out = expandedActions(faction, take_action(faction, vals))
+@app.route('/action_test/<faction>/<action:vals>')
+def take_action_test(faction, vals):
+	res = step(faction, vals)
+	print('vals', vals)
+	addChoiceInfo(res, faction)
+	out = FORMAT_MSG(res, faction)
 	return out
 
-# @app.route('/init_tuples/<game_type>/<player>')
-# @app.route('/init_tuples/<game_type>/<player>/<seed>')
-# def init_game_tuples(game_type='hotseat', player='Axis', debug=False, seed=None):
-# 	if not game_type == 'hotseat':
-# 		return 'Error: Game type must be hotseat'
-# 	if seed != None:  #@@
-# 		sd = int(seed)
-# 		out = expandedActions(player, start_new_game(player, debug=debug, seed=sd))
-# 	else:
-# 		out = expandedActions(player, start_new_game(player, debug=debug, seed=seed))
-# 	return out
+@app.route('/init_test/<game_type>/<faction>')
+@app.route('/init_test/<game_type>/<faction>/<seed>')
+def init_test(game_type='hotseat', faction='Axis', debug=False, seed=None):
+	if not game_type == 'hotseat':
+		return '{"error": "Game type must be hotseat"}'
+	if seed != None:
+		sd = int(seed)
+		res = start_new_game(faction, debug=debug, seed=sd)
+	else:
+		res = start_new_game(faction, debug=debug, seed=seed)
+	addChoiceInfo(res, faction)
+	out = FORMAT_MSG(res, faction)
+	return out
+
+#___________________________________________________________________
 
 @app.route('/randTester1/<player>/<seed>')
 def randTester1(player, seed):
@@ -147,7 +164,7 @@ def hide_objects(objects, player=None, cond=None):
 		if cond(obj, player):
 			for k in list(obj.keys()):
 				if k in obj and k not in {'visible', 'obj_type'} and \
-                                                                                                                                                            (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
+                                                                                                                                                                                                                    (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
 					del obj[k]
 
 def format_msg_for_frontend(msg, player=None):
@@ -227,7 +244,6 @@ def get_status(faction):
 # action values are delimited by "+"
 @app.route('/action/<faction>/<action:vals>')
 def take_action(faction, vals):
-	print(vals)
 	out = FORMAT_MSG(step(faction, vals), faction)
 	return out
 

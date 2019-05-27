@@ -57,11 +57,14 @@ button {
   border: none;
   border-radius: 12px;
 }
-
-#command_area button {
-  width: 200px;
-  padding: 6px 6px 6px 8px;
-  margin-top: 6px;
+button:hover {
+  background-color: rgb(1, 48, 87);
+}
+button:focus {
+  background-color: rgb(207, 181, 35);
+}
+button:active {
+  background-color: rgb(233, 138, 134);
 }
 #edit_area button {
   width: 150px;
@@ -69,18 +72,25 @@ button {
   margin-top: 6px;
   background-color: green;
 }
+#edit_area button:hover {
+  background-color: rgb(1, 48, 87);
+}
+/* #edit_area button:focus {
+  background-color: rgb(207, 181, 35);
+} */
+#edit_area button:active {
+  background-color: rgb(233, 138, 134);
+}
+
+#command_area button {
+  width: 200px;
+  padding: 6px 6px 6px 8px;
+  margin-top: 6px;
+}
 #command2_area button {
   width: 90%;
   padding: 6px 6px 6px 8px;
   margin-top: 6px;
-}
-
-button:hover {
-  background-color: rgb(1, 48, 87);
-}
-
-button:active {
-  background-color: rgb(233, 138, 134);
 }
 
 .toggleSelected {

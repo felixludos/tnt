@@ -45,22 +45,37 @@ class ADecisiongen {
     }
   }
   decideAutoplay(G) {
-    this.tuples.sort();
-    //unitTestChoice("decideAutoplay", this.tuples.length, this.tuples.slice(0, 15));
-    this.selectionDone = true;
-    if (this.selectionMode == "server") {
-      sender.send("randint/" + (this.tuples.length - 1), d => {
-        let n = d.int;
+    if (!this.selectionDone) {
+      //unitTestChoice("decideAutoplay", this.tuples.length, this.tuples.slice(0, 15));
+      this.selectionDone = true;
+      if (this.selectionMode == "server") {
+        let info = G.serverData.choice;
+        if (info.count != this.tuples.length) {
+          alert("decideAutoplay: wrong tuple count!!!! " + this.tuples.length + " should be " + info.count);
+        }
+        let n = info.random;
         this.tuple = this.tuples[n];
+        if (!sameList(this.tuple, info.tuple)) {
+          alert("decideAutoplay: tuple incorrect!!! " + this.tuple.toString() + " should be " + info.tuples.toString());
+        }
         unitTestChoice("choice", n, "of", this.tuples.length, ":", this.tuple.toString());
         this.highlightTuple(this.tuple);
         setTimeout(() => this.callback(this.tuple), 10); // leave user time to see what happened!
-      });
+        // sender.send("randint/" + (this.tuples.length - 1), d => {
+        //   let n = d.int;
+        //   this.tuple = this.tuples[n];
+        //   unitTestChoice("choice", n, "of", this.tuples.length, ":", this.tuple.toString());
+        //   this.highlightTuple(this.tuple);
+        //   setTimeout(() => this.callback(this.tuple), 10); // leave user time to see what happened!
+        // });
+      } else {
+        this.tuple = this.playerStrategy[G.player].chooseTuple(G);
+        this.highlightTuple(this.tuple);
+        setTimeout(() => this.callback(this.tuple), 30); // leave user time to see what happened!
+        // callback(this.tuples[0]);
+      }
     } else {
-      this.tuple = this.playerStrategy[G.player].chooseTuple(G);
-      this.highlightTuple(this.tuple);
-      setTimeout(() => this.callback(this.tuple), 30); // leave user time to see what happened!
-      // callback(this.tuples[0]);
+      alert("decideAutoplay: already selected!!!");
     }
   }
   filterList(ev) {
@@ -116,10 +131,9 @@ class ADecisiongen {
     this.tuples = G.tuples;
     this.tuple = null;
     this.presentTuples(this.tuples);
+    this.selectionDone = false; //manual selection
     if (autoplay) {
       this.decideAutoplay(G);
-    } else {
-      this.selectionDone = false; //manual selection
     }
   }
   highlightTiles() {
