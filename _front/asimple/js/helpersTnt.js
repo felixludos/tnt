@@ -109,30 +109,38 @@ function sendAction(player, actionTuple, callback) {
   sender.send("action_test/" + player + "/" + actionTuple.join("+"), dAction => {
     unitTestSender(dAction);
 
-    if ("actions" in dAction) {
-      dAction.info.game.player = player;
-      callback(dAction);
-    } else if ("waiting_for" in dAction) {
-      let waiting = getSet(dAction, "waiting_for");
-      unitTestSender("PLAYER CHANGE!!!!!!!!!!!!", waiting);
-      if (!empty(waiting)) {
-        let newPlayer = waiting[0];
-        sender.send("status_test/" + newPlayer, dNewPlayer => {
-          //merge new data into dAction
-          dAction = extend(true, dAction, dNewPlayer);
-          unitTestSender("action+status data for", newPlayer, dAction);
-          dAction.info.game.player = newPlayer;
-          callback(dAction);
-        });
-      } else {
-        //got empty waitingfor set!!!
-        alert("empty waiting_for and no actions!!!");
-      }
-    } else {
-      alert("sending empty action!!!", player);
-      sendAction(player, ["pass"], callback); //recurse
-    }
+    actionOrWaiting(player, dAction, callback);
   });
+}
+function actionOrWaiting(player, dAction, callback) {
+  if ("actions" in dAction) {
+    unitTestSender("found actions for", player);
+    dAction.info.game.player = player;
+    callback(dAction);
+  } else if ("waiting_for" in dAction) {
+    let waiting = getSet(dAction, "waiting_for");
+    unitTestSender("NEED PLAYER CHANGE!!!!!!!!!!!!", waiting);
+    if (!empty(waiting)) {
+      let newPlayer = waiting[0];
+      sender.send("status_test/" + newPlayer, dNewPlayer => {
+        //merge new data into dAction
+        dAction = extend(true, dAction, dNewPlayer);
+        unitTestSender("action+status data for", newPlayer, dAction);
+        dAction.info.game.player = newPlayer;
+        callback(dAction);
+      });
+    } else {
+      //got empty waitingfor set!!!
+      alert("empty waiting_for and no actions!!!");
+    }
+  } else {
+    unitTestSender("NEED TO SEND EMPTY ACTION!!!!!!!!!!!!!", player);
+    alert("sending empty action!!!", player);
+    sendAction(player, ["pass"], dEMpty => {
+      dAction = extend(true, dAction, dEmpty);
+      callback(dAction);
+    }); //recurse
+  }
 }
 function sendInit(player, callback) {
   sendInitSeed(player, null, callback);
@@ -159,34 +167,37 @@ function sendLoading(player, filename, callback) {
         unitTestSender("status_test response:", d3);
         sData = augment(sData, d3);
 
-        if ("actions" in sData) {
-          sData.info.game.player = player;
-          callback(sData);
-        } else if ("waiting_for" in sData) {
-          let waiting = getSet(sData, "waiting_for");
-          unitTestSender("PLAYER CHANGE!!!!!!!!!!!!", waiting);
-          if (!empty(waiting)) {
-            let newPlayer = waiting[0];
-            sender.send("status_test/" + newPlayer, dNewPlayer => {
-              //merge new data into dAction
-              sData = extend(true, sData, dNewPlayer);
-              unitTestSender("action+status data for", newPlayer, sData);
-              sData.info.game.player = newPlayer;
-              callback(sData);
-            });
-          } else {
-            //got empty waitingfor set!!!
-            alert("empty waiting_for and no actions!!!");
-          }
-        } else {
-          alert("sending empty action!!!", player);
-          sendAction(player, ["pass"], callback); //recurse
-        }
+        actionOrWaiting(player, sData, callback);
+        // if ("actions" in sData) {
+        //   sData.info.game.player = player;
+        //   callback(sData);
+        // } else if ("waiting_for" in sData) {
+        //   let waiting = getSet(sData, "waiting_for");
+        //   unitTestSender("PLAYER CHANGE!!!!!!!!!!!!", waiting);
+        //   if (!empty(waiting)) {
+        //     let newPlayer = waiting[0];
+        //     sender.send("status_test/" + newPlayer, dNewPlayer => {
+        //       //merge new data into dAction
+        //       sData = extend(true, sData, dNewPlayer);
+        //       unitTestSender("action+status data for", newPlayer, sData);
+        //       sData.info.game.player = newPlayer;
+        //       callback(sData);
+        //     });
+        //   } else {
+        //     //got empty waitingfor set!!!
+        //     alert("empty waiting_for and no actions!!!");
+        //   }
+        // } else {
+        //   alert("sending empty action!!!", player);
+        //   sendAction(player, ["pass"], d4 => {
+        //     sData = extend(true, sData, d4);
+        //     callback(sData);
+        //   });
+        // }
       });
     });
   });
 }
-
 //_____________________________________________________trash
 function sendInitSeed_old(player, seed, callback) {
   sender.send("init/hotseat/" + player + "/" + seed, dInit => {

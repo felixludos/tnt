@@ -66,9 +66,12 @@
           <button onclick="onClickRunToEnd()">run to end</button>
           <br />
           <br />
-          <button onclick="onClickSave()">save</button>
-          <button onclick="onClickLoad()">load</button>
+          <button onclick="onClickSave('test1')">save</button>
+          <button onclick="onClickLoad('test1')">load</button>
+          <button onclick="onClickSaveAs()">save as</button>
+          <button onclick="onClickLoadAs()">load as</button>
           <button onclick="onClickSaveActions()">save actions</button>
+          <button onclick="onClickSaveH()">save H</button>
 
           <!-- <button onclick="onClickScenario('West','spring_start')">spring start</button>
           <button onclick="onClickViolation1()">violation</button> -->
@@ -150,9 +153,9 @@
     <!-- #region UI / handlers -->
     <script>
       function onClickRestart() {
-        console.log("restarting with", H.player, H.seed);
+        console.log("restarting with", H.start.player, H.start.seed);
         STOP = false;
-        restart(H.player, H.seed, "");
+        restartFromScratch(H.start.player, H.start.seed);
       }
       function onClickRunToEnd() {
         STOP = false;
@@ -170,37 +173,49 @@
         STOP = false;
         showStop();
         execOptions.skipCond = () => H.player == player;
+        //console.log(H);
         decider.onClickStep(H);
       }
-      function onClickLoad() {
+      function onClickLoad(fname) {
         freezeUI();
-        restart(H.player, 0, "test1");
+        restartFromFile(fname);
       }
-      function onClickSave() {
+      function onClickSave(fname) {
+        console.log("click save", fname);
         freezeUI();
-        // let dOrig = H.serverData;
-        sender.send("savetest1", d => {
+        sender.send("mysave/" + fname, d => {
+          //hier mach das localStorage ding!
+          console.log("saved", d);
+          let info = {
+            choiceList: decider.selectedTuples,
+            startPlayer: H.start.player,
+            startSeed: H.start.seed,
+            currentPlayer: H.player
+          };
+          //console.log("info vorher:", info);
+          localStorage[fname] = JSON.stringify(info);
+          // if (fname in localStorage) {
+          //   let i1 = localStorage.getItem(fname);
+          //   let j1 = JSON.parse(localStorage[fname]);
+          //   //console.log("info nachher:", j1);
+          //   //console.log("saved", localStorage[fname], i1);
+          // } else {
+          //   //console.log("not in localStorage!!!");
+          // }
           if (!autoplay) unfreezeUI();
-          // sender.send("status/" + H.player, d1 => {
-          //   gameloop(dOrig);
-          // });
         });
+      }
+      function onClickSaveH() {
+        freezeUI();
+        download(H, "_h");
       }
       function onClickLoadAs() {
         fname = prompt("filename no ext.:");
-        freezeUI();
-        restart("West", 0, fname);
+        onClickLoad(fname);
       }
       function onClickSaveAs() {
         fname = prompt("filename no ext.:");
-        freezeUI();
-        let dOrig = H.serverData;
-        sender.send("mysave/" + fname, d => {
-          sender.send("status/" + H.player, d1 => {
-            unfreezeUI();
-            gameloop(dOrig);
-          });
-        });
+        onClickSave(fname);
       }
       function onClickSaveActions() {
         saveToDownloads(decider.selectedTuples, "a_" + H.start.player + "_" + H.start.seed);
@@ -416,36 +431,6 @@
         //console.log("restarting with player", pl, "and seed", sd);
         restart(pl, sd, "");
       }
-      function onClickLoad() {
-        freezeUI();
-        restart(H.player, 0, "test1");
-      }
-      function onClickSave() {
-        freezeUI();
-        let dOrig = H.serverData;
-        sender.send("savetest1", d => {
-          sender.send("status/" + H.player, d1 => {
-            unfreezeUI();
-            gameloop(dOrig);
-          });
-        });
-      }
-      function onClickLoadAs() {
-        fname = prompt("filename no ext.:");
-        freezeUI();
-        restart("West", 0, fname);
-      }
-      function onClickSaveAs() {
-        fname = prompt("filename no ext.:");
-        freezeUI();
-        let dOrig = H.serverData;
-        sender.send("mysave/" + fname, d => {
-          sender.send("status/" + H.player, d1 => {
-            unfreezeUI();
-            gameloop(dOrig);
-          });
-        });
-      }
     </script>
     <!-- #endregion handlers -->
 
@@ -453,13 +438,15 @@
     <script>
       function startScript() {
         //addIf("cardsNew", execOptions.activatedTests);
-        //addIf("init", execOptions.activatedTests);
+        //addIf("init", execOptions.activatedTests); //choice,
+        addIf("load", execOptions.activatedTests);
         addIf("choice", execOptions.activatedTests);
+        addIf("sender", execOptions.activatedTests);
 
         initH("West", 0);
         autoplay = false;
         freezeUI();
-        sendInitSeed(H.player, H.seed, gameloop);
+        sendInitSeed(H.player, H.start.seed, gameloop);
       }
       function gameloop(data) {
         //console.log("gameloop", data);
@@ -530,27 +517,24 @@
 
     <!-- #region init and restart -->
     <script>
-      function initH(player, seed, fname) {
+      function initH(player = "Axis", seed = 0) {
         H = {};
-        H.player = player != undefined ? player : "Axis";
-        H.seed = seed != null && seed != undefined ? seed : 0;
+        //current info
+        H.player = player;
         H.year = 1935;
         H.phase = "Setup";
-
+        //start info
         H.start = {};
-        H.start.player = H.player;
-        H.start.seed = H.seed;
-        H.start.filename = fname;
-
-        unitTestInit("initH", player, seed, fname);
+        H.start.player = player;
+        H.start.seed = seed;
+        unitTestInit("initH", player, seed);
         unitTestInit(H);
-
+        //data
         H.objects = {};
-
-        H.nextAction = null;
         H.serverData = null;
         H.moveCounter = 0;
         STOP = false;
+        execOptions.skipCond = defaultSkipCond;
       }
       function initManagers() {
         sender = new ASender(execOptions);
@@ -559,17 +543,60 @@
         units = new AUnits(assets);
         decider = new ADecisiongen(assets, map, cards, units, sender);
       }
-      function restart(player, seed, fname) {
+      function resetAll() {
         page.clearAllObjects();
         assets.clear();
+      }
+      function startFromScratch(player, seed) {
         initManagers();
-        initH(player, seed, fname);
+        initH(player, seed);
+        unitTestInit("sending initSeed with ", player, seed);
+        sendInitSeed(player, seed, gameloop);
+      }
+      function restartFromScratch(player, seed) {
+        resetAll();
+        startFromScratch(player, seed);
+      }
+      function restartFromFile(fname) {
+        resetAll();
+        initManagers();
+
+        //get info for file if saved locally!
+        if (localStorage[fname]) {
+          let info = JSON.parse(localStorage[fname]);
+          unitTestLoad(fname, "info retrieved:", info);
+          initH(info.startPlayer, info.startSeed);
+          H.Player = info.currentPlayer;
+          //jetzt laden!
+          //schon mit richtigem player!
+          sendLoading(H.player, fname, data => {
+            //set selectedTuples
+            decider.selectedTuples = info.choiceList;
+            let randomIndex = Object.keys(info.choiceList).length;
+            //run random generator n times
+            for (let i = 0; i < randomIndex; i++) {
+              decider.nextRandom(info.choiceList[i]);
+            }
+            gameloop(data);
+          });
+        } else {
+          console.log("no info found!!!", fname, "using default info");
+          initH();
+          sendLoading(H.player, fname, gameloop);
+        }
+      }
+
+      //______________old
+      function restart_old(player, seed, fname) {
+        resetAll();
+        initManagers();
+        initH(player, seed);
         execOptions.skipCond = defaultSkipCond;
 
-        unitTestInit("sending initSeed with ", H.player, H.seed);
+        unitTestInit("sending initSeed with ", H.player, seed);
 
         if (empty(fname)) {
-          sendInitSeed(H.player, H.seed, gameloop);
+          sendInitSeed(H.player, seed, gameloop);
         } else {
           sendLoading(H.player, fname, gameloop);
         }

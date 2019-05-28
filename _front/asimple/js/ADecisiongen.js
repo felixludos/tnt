@@ -1,6 +1,6 @@
 class ADecisiongen {
   constructor(assets, map, cards, units, sender) {
-    this.selectionMode = "server";
+    this.selectionMode = "seed";
     this.map = map;
     this.cards = cards;
     this.units = units;
@@ -11,6 +11,7 @@ class ADecisiongen {
     this.tuples = [];
     this.selectionDone = false;
     this.selectedTuples = {};
+    this.seed = null;
     this.bAuto = document.getElementById("bAuto");
 
     this.msList = {};
@@ -45,9 +46,12 @@ class ADecisiongen {
     }
   }
   decideAutoplay(G) {
+    unitTestChoice("decideAutoplay", G, this.selectionMode);
     if (!this.selectionDone) {
       //unitTestChoice("decideAutoplay", this.tuples.length, this.tuples.slice(0, 15));
       this.selectionDone = true;
+
+      //set tuple
       if (this.selectionMode == "server") {
         let info = G.serverData.choice;
         if (info.count != this.tuples.length) {
@@ -58,22 +62,17 @@ class ADecisiongen {
         if (!sameList(this.tuple, info.tuple)) {
           alert("decideAutoplay: tuple incorrect!!! " + this.tuple.toString() + " should be " + info.tuples.toString());
         }
-        unitTestChoice("choice", n, "of", this.tuples.length, ":", this.tuple.toString());
-        this.highlightTuple(this.tuple);
-        setTimeout(() => this.callback(this.tuple), 10); // leave user time to see what happened!
-        // sender.send("randint/" + (this.tuples.length - 1), d => {
-        //   let n = d.int;
-        //   this.tuple = this.tuples[n];
-        //   unitTestChoice("choice", n, "of", this.tuples.length, ":", this.tuple.toString());
-        //   this.highlightTuple(this.tuple);
-        //   setTimeout(() => this.callback(this.tuple), 10); // leave user time to see what happened!
-        // });
+      } else if (this.selectionMode == "seed") {
+        let n = this.nextRandom(this.tuples.length);
+        this.tuple = this.tuples[n];
+        unitTestChoice("seed decision:", this.tuples, n, this.tuple);
       } else {
         this.tuple = this.playerStrategy[G.player].chooseTuple(G);
-        this.highlightTuple(this.tuple);
-        setTimeout(() => this.callback(this.tuple), 30); // leave user time to see what happened!
-        // callback(this.tuples[0]);
       }
+
+      // show, record in selectedTuples, callback
+      this.highlightTuple(this.tuple);
+      setTimeout(() => this.callback(this.tuple), 10); // leave user time to see what happened!
     } else {
       alert("decideAutoplay: already selected!!!");
     }
@@ -126,6 +125,9 @@ class ADecisiongen {
     }
   }
   genMove(G, callback, autoplay = true) {
+    if (this.seed == null) {
+      this.seed = G.start.seed;
+    }
     this.autoplay = autoplay;
     this.callback = callback;
     this.tuples = G.tuples;
@@ -154,8 +156,8 @@ class ADecisiongen {
     let index = this.tuples.indexOf(tuple);
     let i = Object.keys(this.selectedTuples).length;
     let s = "" + index + ":" + tuple.toString();
-    //unitTestChoice("added tuple", i, "" + index + ":" + tuple.toString());
-    this.selectedTuples[i] = s;
+    unitTestChoice(i, "th choice", index, "of", this.tuples.length, ":", this.tuple.toString());
+    this.selectedTuples[i] = {random: index, tuple: tuple};
     let d = document.getElementById("divSelect");
     let els = document.getElementsByTagName("a");
     let el = els[index];
@@ -171,6 +173,7 @@ class ADecisiongen {
         alert("onClickStep: this.tuples not same as G.tuples!");
       }
       //this.tuples = G.tuples;
+      console.log("onClickStep", G);
       this.decideAutoplay(G);
     }
   }
@@ -200,6 +203,13 @@ class ADecisiongen {
       }
     }
   }
+  nextRandom(max) {
+    unitTestChoice("nextRandom max =", max, ", this.seed =", this.seed);
+    var x = Math.sin(this.seed++) * 10000;
+    let res = Math.floor((x - Math.floor(x)) * max);
+    return res;
+  }
+
   presentTuples(tuples) {
     this.clear();
     let d = document.getElementById("divSelect");

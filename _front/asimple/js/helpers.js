@@ -1251,6 +1251,10 @@ function loadYML(path, callback) {
       callback(yml);
     });
 }
+function download(jsonObject, fname) {
+  json_str = JSON.stringify(jsonObject);
+  saveFile(fname + ".json", "data:application/json", new Blob([json_str], {type: ""}));
+}
 function saveFile(name, type, data) {
   // Function to download data to a file
   //usage:

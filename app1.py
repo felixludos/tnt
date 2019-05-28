@@ -5,7 +5,7 @@ from flask_cors import CORS
 from flask import request
 from flask_util import ActionConverter
 import json
-app = Flask(__name__)  # , static_folder='_front/front_console')
+app = Flask(__name__, static_folder='_front/asimple')
 CORS(app)
 
 app.url_map.converters['action'] = ActionConverter
