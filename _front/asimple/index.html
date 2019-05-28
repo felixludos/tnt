@@ -64,7 +64,10 @@
           <button onclick="onClickRunToPhase('Spring')">run to spring</button>
           <button onclick="onClickRunToPhase('Movement')">run to movement</button>
           <button onclick="onClickRunToEnd()">run to end</button>
-
+          <br />
+          <br />
+          <button onclick="onClickSave()">save</button>
+          <button onclick="onClickLoad()">load</button>
           <button onclick="onClickSaveActions()">save actions</button>
 
           <!-- <button onclick="onClickScenario('West','spring_start')">spring start</button>
@@ -168,6 +171,36 @@
         showStop();
         execOptions.skipCond = () => H.player == player;
         decider.onClickStep(H);
+      }
+      function onClickLoad() {
+        freezeUI();
+        restart(H.player, 0, "test1");
+      }
+      function onClickSave() {
+        freezeUI();
+        // let dOrig = H.serverData;
+        sender.send("savetest1", d => {
+          if (!autoplay) unfreezeUI();
+          // sender.send("status/" + H.player, d1 => {
+          //   gameloop(dOrig);
+          // });
+        });
+      }
+      function onClickLoadAs() {
+        fname = prompt("filename no ext.:");
+        freezeUI();
+        restart("West", 0, fname);
+      }
+      function onClickSaveAs() {
+        fname = prompt("filename no ext.:");
+        freezeUI();
+        let dOrig = H.serverData;
+        sender.send("mysave/" + fname, d => {
+          sender.send("status/" + H.player, d1 => {
+            unfreezeUI();
+            gameloop(dOrig);
+          });
+        });
       }
       function onClickSaveActions() {
         saveToDownloads(decider.selectedTuples, "a_" + H.start.player + "_" + H.start.seed);
@@ -537,7 +570,9 @@
 
         if (empty(fname)) {
           sendInitSeed(H.player, H.seed, gameloop);
-        } else sendLoading(fname, H.player, gameloop);
+        } else {
+          sendLoading(H.player, fname, gameloop);
+        }
       }
     </script>
     <!-- #endregion init and restart -->

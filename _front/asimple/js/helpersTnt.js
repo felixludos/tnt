@@ -108,9 +108,9 @@ function saveToDownloads(data, fname) {
 function sendAction(player, actionTuple, callback) {
   sender.send("action_test/" + player + "/" + actionTuple.join("+"), dAction => {
     unitTestSender(dAction);
+
     if ("actions" in dAction) {
       dAction.info.game.player = player;
-      //console.log(dAction);
       callback(dAction);
     } else if ("waiting_for" in dAction) {
       let waiting = getSet(dAction, "waiting_for");
@@ -129,6 +129,7 @@ function sendAction(player, actionTuple, callback) {
         alert("empty waiting_for and no actions!!!");
       }
     } else {
+      alert("sending empty action!!!", player);
       sendAction(player, ["pass"], callback); //recurse
     }
   });
@@ -144,6 +145,45 @@ function sendInitSeed(player, seed, callback) {
     unitTestSender("dInit:", dInit);
     dInit.info.game.player = player;
     callback(dInit);
+  });
+}
+function sendLoading(player, filename, callback) {
+  unitTestSender("loading", filename);
+  var sData = {};
+  sender.send("myload/" + filename + ".json", d1 => {
+    unitTestSender("myload response:", d1);
+    sender.send("refresh/" + player, d2 => {
+      unitTestSender("refresh response:", d2);
+      sData.created = d2;
+      sender.send("status_test/" + player, d3 => {
+        unitTestSender("status_test response:", d3);
+        sData = augment(sData, d3);
+
+        if ("actions" in sData) {
+          sData.info.game.player = player;
+          callback(sData);
+        } else if ("waiting_for" in sData) {
+          let waiting = getSet(sData, "waiting_for");
+          unitTestSender("PLAYER CHANGE!!!!!!!!!!!!", waiting);
+          if (!empty(waiting)) {
+            let newPlayer = waiting[0];
+            sender.send("status_test/" + newPlayer, dNewPlayer => {
+              //merge new data into dAction
+              sData = extend(true, sData, dNewPlayer);
+              unitTestSender("action+status data for", newPlayer, sData);
+              sData.info.game.player = newPlayer;
+              callback(sData);
+            });
+          } else {
+            //got empty waitingfor set!!!
+            alert("empty waiting_for and no actions!!!");
+          }
+        } else {
+          alert("sending empty action!!!", player);
+          sendAction(player, ["pass"], callback); //recurse
+        }
+      });
+    });
   });
 }
 
@@ -242,7 +282,7 @@ function sendInit_old(player, callback, seed = 1) {
   var chain = ["init/hotseat/" + player + "/" + seed, "info/" + player, "status/" + player];
   sender.chainSend(chain, player, callback);
 }
-function sendLoading(filename, player, callback, outputOption = "none") {
+function sendLoading_old(filename, player, callback, outputOption = "none") {
   console.log("loading", filename);
   execOptions.output = outputOption;
   var sData = {};

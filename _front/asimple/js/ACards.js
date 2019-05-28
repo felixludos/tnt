@@ -33,6 +33,7 @@ class ACards {
     }
   }
   update(player, data, G) {
+    //TODO: handle cards removed
     if (player != this.player) {
       this.updateHandView(player);
       this.player = player;
