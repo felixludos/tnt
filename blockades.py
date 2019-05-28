@@ -5,6 +5,7 @@ from util.tnt_util import travel_options
 from government import check_revealable, reveal_tech
 import random
 
+
 border_types = {
     'Coast': 'sea',
     'Forest': 'land',
