@@ -296,6 +296,17 @@ function without(arr, elementToRemove) {
 //#endregion array helpers
 
 //#region color helpers
+function fromArray(arr) {
+  return colorArrToString(...arr);
+}
+function fromArrayDarker(arr) {
+  let c = fromArray(arr);
+  return pSBC(-0.4, c);
+}
+function fromArrayLighter(arr) {
+  let c = fromArray(arr);
+  return pSBC(0.4, c);
+}
 function colorArrToString(r, g, b) {
   return "rgb(" + r + "," + g + "," + b + ")";
 }

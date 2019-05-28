@@ -17,6 +17,9 @@ function unitTestAutoplay() {
 function unitTestCards() {
   if (execOptions.activatedTests.includes("cards")) console.log(...arguments);
 }
+function unitTestCardsNew() {
+  if (execOptions.activatedTests.includes("cardsNew")) console.log(...arguments);
+}
 function unitTestChoice() {
   if (execOptions.activatedTests.includes("choice")) console.log(...arguments);
 }

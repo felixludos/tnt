@@ -56,6 +56,7 @@ class ASender {
           callback(JSON.parse('{"response":"' + response + '"}'));
         } else {
           this.serverData = JSON.parse(response);
+          unitTestSender(this.serverData);
           if ("removed" in this.serverData) {
             for (const id in this.serverData.removed) {
               unitTestRemoved(this.serverData.removed.toString());

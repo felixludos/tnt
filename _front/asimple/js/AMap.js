@@ -158,10 +158,10 @@ class AMap {
   setChip(prefix, text, faction, n, color) {
     let pts = this.vpts[faction];
     if (n < 0 || n >= pts.length) {
-      alert(text + " out of range!!!! " + n);
+      alert(text + " out of range (setChip)!!!! " + n);
       n = (n + pts.length) % pts.length;
     }
-    let pos = pts[n - 1];
+    let pos = pts[n];
     let offset = 7;
     let yOffset = text == "P" ? -offset : text == "I" ? 0 : offset;
     let xOffset = text == "P" ? -offset : text == "I" ? 0 : offset;

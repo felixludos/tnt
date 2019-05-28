@@ -37,39 +37,49 @@ class ACards {
       this.updateHandView(player);
       this.player = player;
     }
-    if (!("created" in data)) return;
+    if (!("created" in data)) {
+      unitTestCards("cards update: no created in data: nothing to create or update!");
+      return;
+    }
 
     for (const id in data.created) {
       const o_new = data.created[id];
-      if (!isCardType(o_new)) continue;
+      if (!isCardType(o_new)) {
+        unitTestCards("o_new not cardType:", o_new.obj_type);
+        continue;
+      }
 
       if (!(id in G)) {
-        if (!isVisibleToPlayer(o_new, player) && !("owner" in o_new)) continue;
+        if (!isVisibleToPlayer(o_new, player) && !("owner" in o_new)) {
+          unitTestCards("not visible and no owner", o_new);
+          continue;
+        }
 
         //create new card
         let hand = this.findCardHand(o_new);
         hand.addNew(id, o_new);
         G[id] = o_new;
-        unitTestCards('created card',id,'for hand',hand.id,o_new);
+        unitTestCards("created card", id, "for hand", hand.id, o_new);
       } else {
         let o_old = G[id];
         let d = propDiff(o_old, o_new);
         if (!d.hasChanged) continue;
 
-        unitTestCards('card change',id,d.summary.toString());
+        unitTestCards("card change", id, d.summary.toString());
 
-        //handle change of visibility 
+        //handle change of visibility
         //only remove card from owner if visible changes
-        if (d.summary.includes("visible")){  //|| d.summary.includes("owner")) {
+        if (d.summary.includes("visible")) {
+          //|| d.summary.includes("owner")) {
           let hand_new = this.findCardHand(o_new);
           let hand_old = this.findCardHand(o_old);
           let ms = hand_old.remove(id);
-          let title = ms.getTag('title');
-          unitTestCards("removed card", id,title, "from hand", hand_old.id);
+          let title = ms.getTag("title");
+          unitTestCards("removed card", id, title, "from hand", hand_old.id);
           if (hand_new) {
             hand_new.addExisting(id, o_new, ms);
             G[id] = o_new;
-            unitTestCards("added card", id,title, "to hand", hand_new.id);
+            unitTestCards("added card", id, title, "to hand", hand_new.id);
           } else {
             delete G[id];
             unitTestCards("DELETED card", id, title);

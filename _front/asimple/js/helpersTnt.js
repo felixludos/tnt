@@ -118,9 +118,11 @@ function sendAction(player, actionTuple, callback) {
       if (!empty(waiting)) {
         let newPlayer = waiting[0];
         sender.send("status_test/" + newPlayer, dNewPlayer => {
-          unitTestSender("status data for", newPlayer, dNewPlayer);
-          dNewPlayer.info.game.player = newPlayer;
-          callback(dNewPlayer);
+          //merge new data into dAction
+          dAction = extend(true, dAction, dNewPlayer);
+          unitTestSender("action+status data for", newPlayer, dAction);
+          dAction.info.game.player = newPlayer;
+          callback(dAction);
         });
       } else {
         //got empty waitingfor set!!!

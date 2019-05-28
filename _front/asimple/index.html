@@ -33,14 +33,16 @@
     <!-- #region HTML -->
     <div id="mainDiv" class="grid_game">
       <div id="lwait_area" class="grid_div" style="text-align:left">
-        <span id="dFrozen" class="hidden" style="margin-left:10px;color:red;">...</span>
+        <span id="dFrozen" class="hidden" style="margin-left:10px;color:red;">running...</span>
         <button id="bNextPlayer" class="hidden" style="margin-left:10px;color:green;" onclick="onClickNextPlayer()">Next Player</button>
       </div>
       <div id="lselect_area" class="grid_div" style="text-align:left">
         <span id="dActive" class="hidden" style="margin-left:10px;color:rgb(0, 104, 0);">Select Action:</span>
       </div>
       <div id="status_area" class="grid_div" style="text-align:left">
-        <div style="float:left;margin-left:10px;" id="status_info"></div>
+        <div style="width:80px;float:left;margin-left:10px;" id="status_player"></div>
+        <div style="width:180px;float:left;margin-left:10px;" id="status_phase"></div>
+        <div style="width:80px;float:left;margin-left:10px;" id="status_year"></div>
         <div style="float:right;margin-right:10px;" id="status_message"></div>
       </div>
       <div id="map_area" class="grid_div" style="background-color:rgba(86, 182, 222);">
@@ -208,12 +210,16 @@
       }
       function unfreezeUI() {
         STOP = false;
+        showStep();
         activateUserSelection();
       }
       function statusMessage(msg = "") {
         //let s = "Phase:" + H.phase + ", Year:" + H.year + ", Player:" + H.player;
-        let s = H.phase + ", " + H.year + ", " + H.player;
-        document.getElementById("status_info").innerHTML = s;
+        //let s = H.player + " " + H.phase + " " + H.year;
+        document.getElementById("status_player").innerHTML = H.player;
+        document.getElementById("status_player").style.color = fromArrayDarker(assets.troopColors[H.player]);
+        document.getElementById("status_phase").innerHTML = H.phase;
+        document.getElementById("status_year").innerHTML = H.year;
         if (!empty(msg)) document.getElementById("status_message").innerHTML = msg;
       }
     </script>
@@ -413,9 +419,9 @@
     <!-- #region control flow -->
     <script>
       function startScript() {
+        //addIf("cardsNew", execOptions.activatedTests);
+        //addIf("init", execOptions.activatedTests);
         addIf("choice", execOptions.activatedTests);
-        addIf("init", execOptions.activatedTests);
-        // addIf("sender", execOptions.activatedTests);
 
         initH("West", 0);
         autoplay = false;
@@ -423,6 +429,7 @@
         sendInitSeed(H.player, H.seed, gameloop);
       }
       function gameloop(data) {
+        //console.log("gameloop", data);
         updateCycle(data);
 
         autoplay = !STOP && execOptions.skipCond();
@@ -441,10 +448,23 @@
       function updateCycle(data) {
         //TODO: get rid of global variables, consolidate to G
         H.serverData = data;
+        if ("created" in H.serverData) {
+          for (const id in H.serverData.created) {
+            let o = H.serverData.created[id];
+            let otype = o.obj_type;
+            if (otype == "action_card" || otype == "investment_card") {
+              let vis = getVisibleSet(o);
+              if (!empty(vis)) {
+                unitTestCardsNew("should create visible card", id, o);
+              }
+            }
+          }
+        }
+        //console.log(H.serverData);
         updateMovePlayerPhaseYear(data);
         updateLog(data);
         mergeCreatedAndUpdated(data);
-        //console.log("update vor cards:", data, H.player, H.objects);
+        unitTestCards("update vor cards:", "player", H.player, "data", data, "H", H, "only objects");
         cards.update(H.player, data, H.objects);
         map.update(data, H.objects);
         units.update(data, H.objects, H.player);
