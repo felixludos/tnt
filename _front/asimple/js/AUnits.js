@@ -157,6 +157,13 @@ class AUnits {
     //unitTestFilter('getUnit',this.uis,id)
     return id in this.uis ? this.uis[id] : null;
   }
+  markAsConvoy(ms, o_old, o_new) {
+    if (o_new.type == "Convoy") {
+      ms.tag("isConvoy", true);
+    } else {
+      ms.tag("isConvoy", false);
+    }
+  }
   placeUnit(ms, tile) {
     let faction = ms.getTag("owner");
     let isNeutral = ms.getTag("neutral");
@@ -272,13 +279,22 @@ class AUnits {
             //unitTestUnits("changes:", d.summary.toString()); //type,cv, WHY TYPE???????
             if (d.summary.includes("type")) {
               let owner = getUnitOwner(o_old.nationality);
-              console.assert(player != owner, "type, cv change for VISIBLE unit!");
-              //unitTestUnits("type was " + o_old.type + " new=" + o_new.type);
-            } else if (d.summary.includes("cv")) {
+              //legaler fall: ground unit wird zu convoy!
+              //2. fall: type is ausgeblendet weil es nicht visible unit ist!
+              console.assert(player != owner || o_old.type == "Convoy" || o_new.type == "Convoy", "type change other than convoy!!!!");
+              if (player == owner) {
+                this.markAsConvoy(this.uis[id].ms, o_old, o_new);
+                unitTestUnits(id, "type was " + o_old.type + " new=" + o_new.type);
+              } else {
+                console.assert(!("type" in o_new) && "type" in o_old, "type change not just hiding and no convoy!!!");
+              }
+            }
+            if (d.summary.includes("cv")) {
               unitTestUnits("cv change!!!!! " + o_old.cv + " " + o_new.cv);
               this.updateCv(this.uis[id].ms, o_new.cv);
               gObjects[id] = o_new;
-            } else if (d.summary.includes("tile")) {
+            }
+            if (d.summary.includes("tile")) {
               //move unit!!!
               //alert("tile change!");
               this.moveUnit(id, o_old, o_new);

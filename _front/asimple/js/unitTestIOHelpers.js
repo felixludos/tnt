@@ -41,6 +41,9 @@ function unitTestMap() {
 function unitTestMoving() {
   if (execOptions.activatedTests.includes("moving")) console.log(...arguments);
 }
+function unitTestRandom() {
+  if (execOptions.activatedTests.includes("random")) console.log(...arguments);
+}
 function unitTestRemoved() {
   if (execOptions.activatedTests.includes("removed")) console.log(...arguments);
 }

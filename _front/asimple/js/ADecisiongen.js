@@ -204,7 +204,7 @@ class ADecisiongen {
     }
   }
   nextRandom(max) {
-    unitTestChoice("nextRandom max =", max, ", this.seed =", this.seed);
+    unitTestRandom("nextRandom max =", max, ", this.seed =", this.seed);
     var x = Math.sin(this.seed++) * 10000;
     let res = Math.floor((x - Math.floor(x)) * max);
     return res;

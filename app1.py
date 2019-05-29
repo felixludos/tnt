@@ -21,7 +21,7 @@ def addChoiceInfo(res, faction):
 	if ('actions' in res):
 		lst = list(util.decode_actions(res.actions))
 		lst = [convertToStringList(x) for x in lst]
-		print(lst)
+		#print(lst)
 		lst.sort()
 		n = randint1(len(lst) - 1)
 		print('choice:', n, 'of', len(lst), ':', lst[n])
@@ -41,7 +41,7 @@ def get_status_test(faction):
 @app.route('/action_test/<faction>/<action:vals>')
 def take_action_test(faction, vals):
 	res = step(faction, vals)
-	print('vals', vals)
+	#print('vals', vals)
 	addChoiceInfo(res, faction)
 	out = FORMAT_MSG(res, faction)
 	return out

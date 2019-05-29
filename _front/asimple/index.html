@@ -439,14 +439,14 @@
       function startScript() {
         //addIf("cardsNew", execOptions.activatedTests);
         //addIf("init", execOptions.activatedTests); //choice,
-        addIf("load", execOptions.activatedTests);
+        //addIf("load", execOptions.activatedTests);
         addIf("choice", execOptions.activatedTests);
         addIf("sender", execOptions.activatedTests);
 
-        initH("West", 0);
         autoplay = false;
         freezeUI();
-        sendInitSeed(H.player, H.start.seed, gameloop);
+        startFromFile("test2");
+        //sendInitSeed(H.player, H.start.seed, gameloop);
       }
       function gameloop(data) {
         //console.log("gameloop", data);
@@ -547,20 +547,7 @@
         page.clearAllObjects();
         assets.clear();
       }
-      function startFromScratch(player, seed) {
-        initManagers();
-        initH(player, seed);
-        unitTestInit("sending initSeed with ", player, seed);
-        sendInitSeed(player, seed, gameloop);
-      }
-      function restartFromScratch(player, seed) {
-        resetAll();
-        startFromScratch(player, seed);
-      }
-      function restartFromFile(fname) {
-        resetAll();
-        initManagers();
-
+      function startFromFile(fname) {
         //get info for file if saved locally!
         if (localStorage[fname]) {
           let info = JSON.parse(localStorage[fname]);
@@ -584,6 +571,22 @@
           initH();
           sendLoading(H.player, fname, gameloop);
         }
+      }
+      function startFromScratch(player, seed) {
+        initManagers();
+        initH(player, seed);
+        unitTestInit("sending initSeed with ", player, seed);
+        sendInitSeed(player, seed, gameloop);
+      }
+      function restartFromFile(fname) {
+        resetAll();
+        initManagers();
+
+        startFromFile(fname);
+      }
+      function restartFromScratch(player, seed) {
+        resetAll();
+        startFromScratch(player, seed);
       }
 
       //______________old
