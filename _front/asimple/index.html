@@ -102,6 +102,9 @@
         <div id="uiActiveButtons" class="hidden">
           <button onclick="onClickRestart(this)">restart</button>
 
+          <input type="text" id="inFilename" />
+          <button onclick="onClickReload()">reload</button>
+
           <!-- <button onclick="decider.onClickStep(H)">step</button>
           <button onclick="onClickRunToEnd()">run to end</button>
           <button onclick="onClickRunToPhase('Government')">run to gov</button>
@@ -179,6 +182,22 @@
       function onClickLoad(fname) {
         freezeUI();
         restartFromFile(fname);
+        document.getElementById("inFilename").value = fname;
+      }
+      function onClickLoadAs() {
+        fname = prompt("filename no ext.:");
+        onClickLoad(fname);
+      }
+      function onClickReload() {
+        let fname = document.getElementById("inFilename").value;
+        if (empty(fname)) {
+          //reload lastFile
+          fname = localStorage.getItem("lastFile");
+          if (empty(fname)) {
+            fname = "test1";
+          }
+        }
+        onClickLoad(fname);
       }
       function onClickSave(fname) {
         console.log("click save", fname);
@@ -208,10 +227,6 @@
       function onClickSaveH() {
         freezeUI();
         download(H, "_h");
-      }
-      function onClickLoadAs() {
-        fname = prompt("filename no ext.:");
-        onClickLoad(fname);
       }
       function onClickSaveAs() {
         fname = prompt("filename no ext.:");
@@ -437,15 +452,11 @@
     <!-- #region control flow -->
     <script>
       function startScript() {
-        //addIf("cardsNew", execOptions.activatedTests);
-        //addIf("init", execOptions.activatedTests); //choice,
+        // init, choice, sender, units, moving, load, cardsNew, cards
         //addIf("load", execOptions.activatedTests);
-        addIf("choice", execOptions.activatedTests);
-        addIf("sender", execOptions.activatedTests);
+        //addIf("choice", execOptions.activatedTests);
 
-        autoplay = false;
-        freezeUI();
-        startFromFile("test2");
+        onClickReload();
         //sendInitSeed(H.player, H.start.seed, gameloop);
       }
       function gameloop(data) {
@@ -549,6 +560,7 @@
       }
       function startFromFile(fname) {
         //get info for file if saved locally!
+        localStorage.setItem("lastFile", fname);
         if (localStorage[fname]) {
           let info = JSON.parse(localStorage[fname]);
           unitTestLoad(fname, "info retrieved:", info);

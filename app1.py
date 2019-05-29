@@ -16,8 +16,8 @@ def convertToStringList(l):
 	return [str(x) for x in l]
 
 def addChoiceInfo(res, faction):
-	# print('result', res)
-	# print('type of result:', type(res))
+	#print('result', res)
+	#print('type of result:', type(res))
 	if ('actions' in res):
 		lst = list(util.decode_actions(res.actions))
 		lst = [convertToStringList(x) for x in lst]
@@ -80,12 +80,12 @@ def randTester():
 @app.route('/randint/<max>')
 def randintStr(max):
 	n = get_G().random.randint(0, int(max))
-	print('random int:', n, 'max:', max)
+	#print('random int:', n, 'max:', max)
 	return '{"int":"' + str(n) + '"}'
 
 def randint1(max):
 	n = get_G().random.randint(0, int(max))
-	print('random int:', n, 'max:', max)
+	#print('random int:', n, 'max:', max)
 	return n
 
 @app.route('/postTest', methods=['POST'])
@@ -164,11 +164,11 @@ def hide_objects(objects, player=None, cond=None):
 		if cond(obj, player):
 			for k in list(obj.keys()):
 				if k in obj and k not in {'visible', 'obj_type'} and \
-                                                                                                                                                                                                                    (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
+                                                                                                                                                                                                                        (obj['obj_type'] not in _visible_attrs or k not in _visible_attrs[obj['obj_type']]):
 					del obj[k]
 
 def format_msg_for_frontend(msg, player=None):
-	print('type of msg is', type(msg))
+	#print('type of msg is', type(msg))
 	msg = convert_jsonable(msg)
 
 	def cond(obj, player):
@@ -262,8 +262,8 @@ def format_msg_for_editor(msg, player=None):
 
 @app.route('/edit/<faction>/<action:vals>')
 def edit_action(faction, vals):
-	print('EDIT step wird aufgerufen')
-	print(vals)
+	#print('EDIT step wird aufgerufen')
+	#print(vals)
 	out = format_msg_for_editor(edit_step(faction, vals), faction)
 	return out
 

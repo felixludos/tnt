@@ -65,7 +65,7 @@ class ASender {
             }
           }
           if ("error" in this.serverData) {
-            error(response);
+            error(this.serverData);
           } else {
             //console.log(this.serverData);
             callback(this.serverData);

@@ -87,6 +87,24 @@ button:active {
   padding: 6px 6px 6px 8px;
   margin-top: 6px;
 }
+#command_area input {
+  display: inline-block;
+  margin: 2px;
+  padding: 0px;
+  font-size: 18pt;
+  font-family: Verdana;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  background-color: #fff;
+  color: #2196f3;
+  border: none;
+  border-radius: 12px;
+  width: 200px;
+  padding: 6px 6px 6px 8px;
+  margin-top: 16px;
+}
+
 #command2_area button {
   width: 90%;
   padding: 6px 6px 6px 8px;

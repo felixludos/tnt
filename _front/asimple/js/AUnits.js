@@ -43,7 +43,7 @@ class AUnits {
     this.uis[idHidden] = {o: o, ms: msHidden};
     unitTestUnits("addHiddenUnit", idHidden, msHidden, o, owner, tile);
   }
-  moveUnit(id, o_old, o_new) {
+  moveUnit(id, tile_old, o_new) {
     if (!(id in this.uis)) {
       unitTestUnits("PROBLEM: moveUnit", id, " NOT in uis!");
       alert("PROBLEM: moveUnit " + id + " NOT in uis!");
@@ -51,7 +51,7 @@ class AUnits {
     this.removeUnit(id);
     let ms = this.uis[id].ms;
     let owner = ms.getTag("owner");
-    let tile_old = o_old.tile;
+
     let tile_new = o_new.tile;
 
     this.addUnit(id, ms, o_new);
@@ -110,6 +110,9 @@ class AUnits {
       //unitTestUnits("createUnit", id, owner, o.tile, o.type, player);
     } else {
       unitTestUnits("create unit", id, o, "...player is", player);
+      if (type == "Convoy") {
+        type = o.carrying;
+      }
       let imagePath = "/a/assets/images/" + type + ".svg";
       let color = isNeutral ? this.assets.troopColors["Neutral"] : this.assets.troopColors[nationality];
       let darker = darkerColor(color[0], color[1], color[2]);
@@ -275,30 +278,55 @@ class AUnits {
           console.assert(id in this.uis, "unit in G but not in uis", id, o_new);
           let d = propDiff(o_old, o_new);
           if (d.hasChanged) {
+            let owner = getUnitOwner(o_old.nationality);
             //unitTestUnits('________________________');
             //unitTestUnits("changes:", d.summary.toString()); //type,cv, WHY TYPE???????
+
+            // *** type change
             if (d.summary.includes("type")) {
-              let owner = getUnitOwner(o_old.nationality);
               //legaler fall: ground unit wird zu convoy!
               //2. fall: type is ausgeblendet weil es nicht visible unit ist!
               console.assert(player != owner || o_old.type == "Convoy" || o_new.type == "Convoy", "type change other than convoy!!!!");
-              if (player == owner) {
+              if ("type" in o_new) {
+                //player == owner) {
+                console.assert(o_old.type == "Convoy" || o_new.type == "Convoy", "type change other than convoy!!!!");
+                unitTestUnits("!!!!!!! for not this temp type change NOT reflected in G!!!!");
                 this.markAsConvoy(this.uis[id].ms, o_old, o_new);
+                unitTestUnits(">>>>>MARK AS CONVOY!!!!!!!!!!!!");
                 unitTestUnits(id, "type was " + o_old.type + " new=" + o_new.type);
-              } else {
-                console.assert(!("type" in o_new) && "type" in o_old, "type change not just hiding and no convoy!!!");
               }
+              // } else {
+              //   unitTestUnits("o_old", o_old, "o_new", o_new);
+              //   console.log(
+              //     "hallooooooooooooooo",
+              //     d,
+              //     o_old,
+              //     o_new,
+              //     "type" in o_old,
+              //     !("type" in o_new),
+              //     !("type" in o_new) && "type" in o_old
+              //   );
+              //   //console.assert(!("type" in o_new) && "type" in o_old, "type change not just hiding and no convoy!!!");
+              // }
             }
-            if (d.summary.includes("cv")) {
+
+            // *** cv change
+            if (d.summary.includes("cv") && o_new.cv != undefined) {
               unitTestUnits("cv change!!!!! " + o_old.cv + " " + o_new.cv);
               this.updateCv(this.uis[id].ms, o_new.cv);
               gObjects[id] = o_new;
             }
+
+            // *** tile change
             if (d.summary.includes("tile")) {
               //move unit!!!
               //alert("tile change!");
-              this.moveUnit(id, o_old, o_new);
-              unitTestUnits("unit", id, "has moved from", o_old.tile, "to", o_new.tile);
+              let oldTile = o_old.tile;
+              gObjects[id].tile = o_new.tile;
+              this.moveUnit(id, oldTile, gObjects[id]);
+
+              unitTestUnits("unit", id, "has moved from", oldTile, "to", gObjects[id].tile);
+              unitTestMoving("unit", id, "has moved from", oldTile, "to", gObjects[id].tile);
             }
           }
         }
