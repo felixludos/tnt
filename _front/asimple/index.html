@@ -1,87 +1,87 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>a94</title>
-    <!-- <link rel="shortcut icon" href="" /> -->
-    <link rel="shortcut icon" href="/a/assets/palmtree.ico" />
-    <!-- <link rel="shortcut icon" href="#" /> -->
-    <link rel="stylesheet" type="text/css" href="/a/css/selectStyle.css" />
-    <link rel="stylesheet" type="text/css" href="/a/css/autocomp.css" />
-    <link rel="stylesheet" type="text/css" href="/a/css/main.css" />
-    <link rel="stylesheet" type="text/css" href="/a/css/layout.css" />
-    <link rel="stylesheet" type="text/css" href="/a/css/msStyles.css" />
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.2/js-yaml.js"></script>
+	<head>
+		<title>a94</title>
+		<!-- <link rel="shortcut icon" href="" /> -->
+		<link rel="shortcut icon" href="/a/assets/palmtree.ico" />
+		<!-- <link rel="shortcut icon" href="#" /> -->
+		<link rel="stylesheet" type="text/css" href="/a/css/selectStyle.css" />
+		<link rel="stylesheet" type="text/css" href="/a/css/autocomp.css" />
+		<link rel="stylesheet" type="text/css" href="/a/css/main.css" />
+		<link rel="stylesheet" type="text/css" href="/a/css/layout.css" />
+		<link rel="stylesheet" type="text/css" href="/a/css/msStyles.css" />
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.2/js-yaml.js"></script>
 
-    <script src="/a/js/ASender.js"></script>
-    <script src="/a/js/NAssets.js"></script>
-    <script src="/a/js/unitTestIOHelpers.js"></script>
-    <script src="/a/js/helpers.js"></script>
-    <script src="/a/js/helpersTnt.js"></script>
-    <script src="/a/js/panzoom.js"></script>
-    <script src="/a/js/MS.js"></script>
-    <script src="/a/js/NPage.js"></script>
-    <script src="/a/js/AMap.js"></script>
-    <script src="/a/js/AHand.js"></script>
-    <script src="/a/js/ACards.js"></script>
-    <script src="/a/js/AUnits.js"></script>
-    <script src="/a/js/AStrategy.js"></script>
-    <script src="/a/js/ADecisiongen.js"></script>
-    <script src="/a/js/unitTests.js"></script>
-  </head>
-  <body>
-    <!-- #region HTML -->
-    <div id="mainDiv" class="grid_game">
-      <div id="lwait_area" class="grid_div" style="text-align:left">
-        <span id="dFrozen" class="hidden" style="margin-left:10px;color:red;">running...</span>
-        <button id="bNextPlayer" class="hidden" style="margin-left:10px;color:green;" onclick="onClickNextPlayer()">Next Player</button>
-      </div>
-      <div id="lselect_area" class="grid_div" style="text-align:left">
-        <span id="dActive" class="hidden" style="margin-left:10px;color:rgb(0, 104, 0);">Select Action:</span>
-      </div>
-      <div id="status_area" class="grid_div" style="text-align:left">
-        <div style="width:80px;float:left;margin-left:10px;" id="status_player"></div>
-        <div style="width:180px;float:left;margin-left:10px;" id="status_phase"></div>
-        <div style="width:80px;float:left;margin-left:10px;" id="status_year"></div>
-        <div style="float:right;margin-right:10px;" id="status_message"></div>
-      </div>
-      <div id="map_area" class="grid_div" style="background-color:rgba(86, 182, 222);">
-        <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="mapG" viewBox="0 0 3400 2200">
-            <image id="imgMap" width="3400" height="2200" href="/a/assets/TTmap.jpg" />
-          </g>
-        </svg>
-      </div>
-      <div id="edit_area" class="grid_div">
-        <div id="uiEditButtons">
-          <button id="bStep" onclick="onClickStep()">step</button>
-          <button id="bStop" class="hidden" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
+		<script src="/a/js/ASender.js"></script>
+		<script src="/a/js/NAssets.js"></script>
+		<script src="/a/js/unitTestIOHelpers.js"></script>
+		<script src="/a/js/helpers.js"></script>
+		<script src="/a/js/helpersTnt.js"></script>
+		<script src="/a/js/panzoom.js"></script>
+		<script src="/a/js/MS.js"></script>
+		<script src="/a/js/NPage.js"></script>
+		<script src="/a/js/AMap.js"></script>
+		<script src="/a/js/AHand.js"></script>
+		<script src="/a/js/ACards.js"></script>
+		<script src="/a/js/AUnits.js"></script>
+		<script src="/a/js/AStrategy.js"></script>
+		<script src="/a/js/ADecisiongen.js"></script>
+		<script src="/a/js/unitTests.js"></script>
+	</head>
+	<body>
+		<!-- #region HTML -->
+		<div id="mainDiv" class="grid_game">
+			<div id="lwait_area" class="grid_div" style="text-align:left">
+				<span id="dFrozen" class="hidden" style="margin-left:10px;color:red;">running...</span>
+				<button id="bNextPlayer" class="hidden" style="margin-left:10px;color:green;" onclick="onClickNextPlayer()">Next Player</button>
+			</div>
+			<div id="lselect_area" class="grid_div" style="text-align:left">
+				<span id="dActive" class="hidden" style="margin-left:10px;color:rgb(0, 104, 0);">Select Action:</span>
+			</div>
+			<div id="status_area" class="grid_div" style="text-align:left">
+				<div style="width:80px;float:left;margin-left:10px;" id="status_player"></div>
+				<div style="width:180px;float:left;margin-left:10px;" id="status_phase"></div>
+				<div style="width:80px;float:left;margin-left:10px;" id="status_year"></div>
+				<div style="float:right;margin-right:10px;" id="status_message"></div>
+			</div>
+			<div id="map_area" class="grid_div" style="background-color:rgba(86, 182, 222);">
+				<svg width="100%" height="100%" style="box-sizing:border-box;">
+					<g id="mapG" viewBox="0 0 3400 2200">
+						<image id="imgMap" width="3400" height="2200" href="/a/assets/TTmap.jpg" />
+					</g>
+				</svg>
+			</div>
+			<div id="edit_area" class="grid_div">
+				<div id="uiEditButtons">
+					<button id="bStep" onclick="onClickStep()">step</button>
+					<button id="bStop" class="hidden" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
 
-          <button onclick="onClickRunToPlayerChange(H.player)">run to next player</button>
+					<button onclick="onClickRunToPlayerChange(H.player)">run to next player</button>
 
-          <button onclick="onClickRunToPhase('Production')">run to prod</button>
-          <button onclick="onClickRunToPhase('Government')">run to gov</button>
-          <button onclick="onClickRunToPhase('Spring')">run to spring</button>
-          <button onclick="onClickRunToPhase('Movement')">run to movement</button>
-          <button onclick="onClickRunToEnd()">run to end</button>
-          <br />
-          <br />
-          <button onclick="onClickSave('test1')">save</button>
+					<button onclick="onClickRunToPhase('Production')">run to prod</button>
+					<button onclick="onClickRunToPhase('Government')">run to gov</button>
+					<button onclick="onClickRunToPhase('Spring')">run to spring</button>
+					<button onclick="onClickRunToPhase('Movement')">run to movement</button>
+					<button onclick="onClickRunToEnd()">run to end</button>
+					<br />
+					<br />
+					<!-- <button onclick="onClickSave('test1')">save</button>
           <button onclick="onClickLoad('test1')">load</button>
           <button onclick="onClickSaveAs()">save as</button>
           <button onclick="onClickLoadAs()">load as</button>
           <button onclick="onClickSaveActions()">save actions</button>
-          <button onclick="onClickSaveH()">save H</button>
+          <button onclick="onClickSaveH()">save H</button> -->
 
-          <!-- <button onclick="onClickScenario('West','spring_start')">spring start</button>
+					<!-- <button onclick="onClickScenario('West','spring_start')">spring start</button>
           <button onclick="onClickViolation1()">violation</button> -->
-          <!-- <button onclick="onClickScenario('USSR','test_movement')">movement</button>
+					<!-- <button onclick="onClickScenario('USSR','test_movement')">movement</button>
           <button onclick="onClickScenario('West','move2')">move 2</button>
           <button onclick="onClickScenario('USSR','winter1')">winter36</button>
           <button onclick="onClickScenario('USSR','violationImminent')">violation</button>
           <button onclick="onClickScenario('USSR','conflict1')">conflict</button> -->
 
-          <!-- <p style="margin-bottom:0px;font-size:14pt;">front ONLY:</p>
+					<!-- <p style="margin-bottom:0px;font-size:14pt;">front ONLY:</p>
           <button id="bAddInfluence" onclick="onClickAddInfluence(this)">
             add influence
           </button>
@@ -93,560 +93,638 @@
             edit test
           </button>
           <button id="bAddUnit" class="hidden" onclick="onClickAddUnit(this)">add unit</button> -->
-        </div>
-      </div>
-      <div id="select_area" class="grid_div">
-        <div id="divSelect" class="sidenav"></div>
-      </div>
-      <div id="command_area" class="grid_div">
-        <div id="uiActiveButtons" class="hidden">
-          <button onclick="onClickRestart(this)">restart</button>
+				</div>
+			</div>
+			<div id="select_area" class="grid_div">
+				<div id="divSelect" class="sidenav"></div>
+			</div>
+			<div id="command_area" class="grid_div">
+				<div id="uiActiveButtons" class="hidden">
+					<input type="text" id="inPlayerSeed" />
+					<button onclick="onClickRestart(this)">restart</button>
 
-          <input type="text" id="inFilename" />
-          <button onclick="onClickReload()">reload</button>
+					<input type="text" id="inFilename" />
+					<button onclick="onClickResave()">save</button>
+					<!-- <button onclick="onClickLoad('test1')">load</button> -->
+					<button onclick="onClickReload()">load</button>
 
-          <!-- <button onclick="decider.onClickStep(H)">step</button>
+					<!-- <button onclick="decider.onClickStep(H)">step</button>
           <button onclick="onClickRunToEnd()">run to end</button>
           <button onclick="onClickRunToPhase('Government')">run to gov</button>
           <button onclick="onClickRunToPhase('Spring')">run to spring</button>
           <button onclick="onClickRunToPhase('Movement')">run to move</button> -->
-          <!-- <button id="bPlayWest" onclick="onClickPlay(this)">play West</button>
+					<!-- <button id="bPlayWest" onclick="onClickPlay(this)">play West</button>
           <button id="bPlayUSSR" onclick="onClickPlay(this)">play USSR</button>
           <button id="bPlayAxis" onclick="onClickPlay(this)">play Axis</button> -->
-          <!-- <button style="margin-top:24px;background-color:orangered;" onclick="onClickRestart(this)">restart</button>
+					<!-- <button style="margin-top:24px;background-color:orangered;" onclick="onClickRestart(this)">restart</button>
           <button style="background-color:orangered;" onclick="onClickRestartParams(this)">
             restart params
           </button> -->
-        </div>
-      </div>
-      <div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
-      <div id="command2_area" class="grid_div">
-        <div id="ui2Buttons">
-          <!-- <button id="bSave" onclick="onClickSave()">save</button>
+				</div>
+			</div>
+			<div id="log_area" class="grid_div" style="max-height:760px;overflow-y:scroll"></div>
+			<div id="command2_area" class="grid_div">
+				<div id="ui2Buttons">
+					<!-- <button id="bSave" onclick="onClickSave()">save</button>
           <button id="bLoad" onclick="onClickLoad()">load</button> -->
 
-          <!-- <button id="bSaveAs" style="margin-top:24px" onclick="onClickSaveAs()">save as</button>
+					<!-- <button id="bSaveAs" style="margin-top:24px" onclick="onClickSaveAs()">save as</button>
           <button id="bLoadAs" onclick="onClickLoadAs()">load as</button> -->
 
-          <!-- <button id="bSaveActions" style="margin-top:24px" onclick="onClickSaveActions()">save actions</button> -->
-        </div>
-      </div>
-      <div id="hand_area" class="grid_div" style="height:200px">
-        <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="handG_Axis" style="visibility:hidden"><text x="10" y="25" fill="grey">Axis</text></g>
-          <g id="handG_USSR" style="visibility:hidden"><text x="10" y="25" fill="red">USSR</text></g>
-          <g id="handG_West" style="visibility:hidden"><text x="10" y="25" fill="blue">West</text></g>
-        </svg>
-      </div>
-      <div id="cards2_area" class="grid_div" style="height:200px">
-        <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="openCardG"><text x="10" y="25" fill="grey">open</text></g>
-          <g id="actionDeckG"><text x="10" y="25" fill="grey">action</text></g>
-        </svg>
-      </div>
-      <div id="cards3_area" class="grid_div" style="height:200px">
-        <svg width="100%" height="100%" style="box-sizing:border-box;">
-          <g id="discardedG"><text x="10" y="25" fill="grey">discarded</text></g>
-          <g id="investmentDeckG"><text x="10" y="25" fill="grey">investment</text></g>
-        </svg>
-      </div>
-    </div>
-    <!-- #endregion HTML -->
+					<!-- <button id="bSaveActions" style="margin-top:24px" onclick="onClickSaveActions()">save actions</button> -->
+				</div>
+			</div>
+			<div id="hand_area" class="grid_div" style="height:200px">
+				<svg width="100%" height="100%" style="box-sizing:border-box;">
+					<g id="handG_Axis" style="visibility:hidden"><text x="10" y="25" fill="grey">Axis</text></g>
+					<g id="handG_USSR" style="visibility:hidden"><text x="10" y="25" fill="red">USSR</text></g>
+					<g id="handG_West" style="visibility:hidden"><text x="10" y="25" fill="blue">West</text></g>
+				</svg>
+			</div>
+			<div id="cards2_area" class="grid_div" style="height:200px">
+				<svg width="100%" height="100%" style="box-sizing:border-box;">
+					<g id="openCardG"><text x="10" y="25" fill="grey">open</text></g>
+					<g id="actionDeckG"><text x="10" y="25" fill="grey">action</text></g>
+				</svg>
+			</div>
+			<div id="cards3_area" class="grid_div" style="height:200px">
+				<svg width="100%" height="100%" style="box-sizing:border-box;">
+					<g id="discardedG"><text x="10" y="25" fill="grey">discarded</text></g>
+					<g id="investmentDeckG"><text x="10" y="25" fill="grey">investment</text></g>
+				</svg>
+			</div>
+		</div>
+		<!-- #endregion HTML -->
 
-    <!-- #region UI / handlers -->
-    <script>
-      function onClickRestart() {
-        console.log("restarting with", H.start.player, H.start.seed);
-        STOP = false;
-        restartFromScratch(H.start.player, H.start.seed);
-      }
-      function onClickRunToEnd() {
-        STOP = false;
-        showStop();
-        execOptions.skipCond = () => true;
-        decider.onClickStep(H);
-      }
-      function onClickRunToPhase(ph) {
-        STOP = false;
-        showStop();
-        execOptions.skipCond = () => H.phase != ph;
-        decider.onClickStep(H);
-      }
-      function onClickRunToPlayerChange(player) {
-        STOP = false;
-        showStop();
-        execOptions.skipCond = () => H.player == player;
-        //console.log(H);
-        decider.onClickStep(H);
-      }
-      function onClickLoad(fname) {
-        freezeUI();
-        restartFromFile(fname);
-        document.getElementById("inFilename").value = fname;
-      }
-      function onClickLoadAs() {
-        fname = prompt("filename no ext.:");
-        onClickLoad(fname);
-      }
-      function onClickReload() {
-        let fname = document.getElementById("inFilename").value;
-        if (empty(fname)) {
-          //reload lastFile
-          fname = localStorage.getItem("lastFile");
-          if (empty(fname)) {
-            fname = "test1";
-          }
-        }
-        onClickLoad(fname);
-      }
-      function onClickSave(fname) {
-        console.log("click save", fname);
-        freezeUI();
-        sender.send("mysave/" + fname, d => {
-          //hier mach das localStorage ding!
-          console.log("saved", d);
-          let info = {
-            choiceList: decider.selectedTuples,
-            startPlayer: H.start.player,
-            startSeed: H.start.seed,
-            currentPlayer: H.player
-          };
-          //console.log("info vorher:", info);
-          localStorage[fname] = JSON.stringify(info);
-          // if (fname in localStorage) {
-          //   let i1 = localStorage.getItem(fname);
-          //   let j1 = JSON.parse(localStorage[fname]);
-          //   //console.log("info nachher:", j1);
-          //   //console.log("saved", localStorage[fname], i1);
-          // } else {
-          //   //console.log("not in localStorage!!!");
-          // }
-          if (!autoplay) unfreezeUI();
-        });
-      }
-      function onClickSaveH() {
-        freezeUI();
-        download(H, "_h");
-      }
-      function onClickSaveAs() {
-        fname = prompt("filename no ext.:");
-        onClickSave(fname);
-      }
-      function onClickSaveActions() {
-        saveToDownloads(decider.selectedTuples, "a_" + H.start.player + "_" + H.start.seed);
-        unitTestSave(H);
-      }
-      function onClickStep() {
-        STOP = false;
-        execOptions.skipCond = () => false;
-        decider.onClickStep(H);
-      }
-      function onClickStop() {
-        unitTestControl("*** clicked STOP!!! ***");
-        STOP = true;
-        showStep();
-      }
-      function showStep() {
-        hide(document.getElementById("bStop"));
-        show(document.getElementById("bStep"));
-      }
-      function showStop() {
-        hide(document.getElementById("bStep"));
-        show(document.getElementById("bStop"));
-      }
-      function activateUserSelection() {
-        hide(document.getElementById("dFrozen"));
-        show(document.getElementById("dActive"));
-        hide(document.getElementById("bNextPlayer"));
-        show(document.getElementById("uiActiveButtons"));
-        show(document.getElementById("ui2Buttons"));
-      }
-      function activateWaitingForServer() {
-        show(document.getElementById("dFrozen"));
-        hide(document.getElementById("dActive"));
-        hide(document.getElementById("bNextPlayer"));
-        hide(document.getElementById("uiActiveButtons"));
-        hide(document.getElementById("ui2Buttons"));
-      }
-      function freezeUI() {
-        activateWaitingForServer();
-      }
-      function unfreezeUI() {
-        STOP = false;
-        showStep();
-        activateUserSelection();
-      }
-      function statusMessage(msg = "") {
-        //let s = "Phase:" + H.phase + ", Year:" + H.year + ", Player:" + H.player;
-        //let s = H.player + " " + H.phase + " " + H.year;
-        document.getElementById("status_player").innerHTML = H.player;
-        document.getElementById("status_player").style.color = fromArrayDarker(assets.troopColors[H.player]);
-        document.getElementById("status_phase").innerHTML = H.phase;
-        document.getElementById("status_year").innerHTML = H.year;
-        if (!empty(msg)) document.getElementById("status_message").innerHTML = msg;
-      }
-    </script>
-    <!-- #endregion UI / handlers -->
+		<!-- #region UI / handlers -->
+		<script>
+			function onClickRestart() {
+				let params = document
+					.getElementById('inPlayerSeed')
+					.value.toString()
+					.trim();
+				if (!empty(params)) {
+					let seed = firstNumber(params);
+					let player = stringBefore(params, ' ');
+					if (seed != H.start.seed) {
+						H.start.seed = seed;
+					}
+					if (seed != H.start.player) {
+						H.start.player = player;
+					}
+				}
+				console.log('restarting with', H.start.player, H.start.seed);
+				STOP = false;
+				restartFromScratch(H.start.player, H.start.seed);
+			}
+			function onClickRunToEnd() {
+				STOP = false;
+				showStop();
+				execOptions.skipCond = () => true;
+				decider.onClickStep(H);
+			}
+			function onClickRunToPhase(ph) {
+				STOP = false;
+				showStop();
+				execOptions.skipCond = () => H.phase != ph;
+				decider.onClickStep(H);
+			}
+			function onClickRunToPlayerChange(player) {
+				STOP = false;
+				showStop();
+				execOptions.skipCond = () => H.player == player;
+				//console.log(H);
+				decider.onClickStep(H);
+			}
+			function FreezeAndUpdateLastFileAndInFilename(fname) {
+				if (empty(fname.trim())) {
+					alert('cannot load or save empty filename to !');
+					return false;
+				}
+				freezeUI();
+				localStorage.setItem('lastFile', fname);
+				document.getElementById('inFilename').value = fname;
+				return true;
+			}
+			function onClickLoad(fname) {
+				if (FreezeAndUpdateLastFileAndInFilename(fname)) restartFromFile(fname);
+				else {
+					if (!autoplay) unfreezeUI();
+				}
+			}
+			function onClickLoadAs() {
+				fname = prompt('filename no ext.:');
+				onClickLoad(fname);
+			}
+			function onClickReload() {
+				let fname = document.getElementById('inFilename').value;
+				if (empty(fname)) {
+					//reload lastFile
+					fname = localStorage.getItem('lastFile');
+					if (empty(fname)) {
+						fname = 'test1';
+					}
+				}
+				onClickLoad(fname);
+			}
+			function onClickResave() {
+				let fname = document.getElementById('inFilename').value;
+				if (empty(fname)) {
+					//reload lastFile
+					fname = localStorage.getItem('lastFile');
+					if (empty(fname)) {
+						fname = 'test1';
+					}
+				}
+				onClickSave(fname);
+			}
+			function onClickSave(fname) {
+				console.log('click save', fname);
+				if (FreezeAndUpdateLastFileAndInFilename(fname)) {
+					sender.send('mysave/' + fname, d => {
+						//hier mach das localStorage ding!
+						console.log('saved', d);
+						let info = {
+							choiceList: decider.selectedTuples,
+							startPlayer: H.start.player,
+							startSeed: H.start.seed,
+							currentPlayer: H.player
+						};
+						//console.log("info vorher:", info);
+						localStorage.setItem(fname, JSON.stringify(info));
+						// if (fname in localStorage) {
+						//   let i1 = localStorage.getItem(fname);
+						//   let j1 = JSON.parse(localStorage[fname]);
+						//   //console.log("info nachher:", j1);
+						//   //console.log("saved", localStorage[fname], i1);
+						// } else {
+						//   //console.log("not in localStorage!!!");
+						// }
+						if (!autoplay) unfreezeUI();
+					});
+				} else {
+					if (!autoplay) unfreezeUI();
+				}
+			}
+			function onClickSaveH() {
+				freezeUI();
+				download(H, '_h');
+			}
+			function onClickSaveAs() {
+				fname = prompt('filename no ext.:');
+				onClickSave(fname);
+			}
+			function onClickSaveActions() {
+				saveToDownloads(decider.selectedTuples, 'a_' + H.start.player + '_' + H.start.seed);
+				unitTestSave(H);
+			}
+			function onClickStep() {
+				STOP = false;
+				execOptions.skipCond = () => false;
+				decider.onClickStep(H);
+			}
+			function onClickStop() {
+				unitTestControl('*** clicked STOP!!! ***');
+				STOP = true;
+				showStep();
+			}
+			function showStep() {
+				hide(document.getElementById('bStop'));
+				show(document.getElementById('bStep'));
+			}
+			function showStop() {
+				hide(document.getElementById('bStep'));
+				show(document.getElementById('bStop'));
+			}
+			function activateUserSelection() {
+				hide(document.getElementById('dFrozen'));
+				show(document.getElementById('dActive'));
+				hide(document.getElementById('bNextPlayer'));
+				show(document.getElementById('uiActiveButtons'));
+				show(document.getElementById('ui2Buttons'));
+			}
+			function activateWaitingForServer() {
+				show(document.getElementById('dFrozen'));
+				hide(document.getElementById('dActive'));
+				hide(document.getElementById('bNextPlayer'));
+				hide(document.getElementById('uiActiveButtons'));
+				hide(document.getElementById('ui2Buttons'));
+			}
+			function freezeUI() {
+				activateWaitingForServer();
+			}
+			function unfreezeUI() {
+				STOP = false;
+				showStep();
+				activateUserSelection();
+			}
+			function statusMessage(msg = '') {
+				//let s = "Phase:" + H.phase + ", Year:" + H.year + ", Player:" + H.player;
+				//let s = H.player + " " + H.phase + " " + H.year;
+				document.getElementById('status_player').innerHTML = H.player;
+				document.getElementById('status_player').style.color = fromArrayDarker(assets.troopColors[H.player]);
+				document.getElementById('status_phase').innerHTML = H.phase;
+				document.getElementById('status_year').innerHTML = H.year;
+				if (!empty(msg)) document.getElementById('status_message').innerHTML = msg;
+			}
+		</script>
+		<!-- #endregion UI / handlers -->
 
-    <!-- #region old handlers -->
-    <script>
-      //____________________________________________old
+		<!-- #region old handlers -->
+		<script>
+			//____________________________________________old
 
-      function activateAutoplay() {
-        hide(document.getElementById("dFrozen"));
-        show(document.getElementById("dAutoplay"));
-        hide(document.getElementById("dActive"));
-        hide(document.getElementById("uiActiveButtons"));
-        hide(document.getElementById("ui2Buttons"));
-        hide(document.getElementById("bNextPlayer"));
-      }
-      function activateNextPlayerButton() {
-        hide(document.getElementById("dFrozen"));
-        hide(document.getElementById("dAutoplay"));
-        hide(document.getElementById("dActive"));
-        hide(document.getElementById("uiActiveButtons"));
-        hide(document.getElementById("ui2Buttons"));
-        show(document.getElementById("bNextPlayer"));
-      }
-      function callNextAction() {
-        if (H.nextAction) {
-          activateWaitingForServer();
-          H.nextAction();
-        } else {
-          error("NO NEXT ACTION!!!!!!!");
-        }
-      }
-      function printActions(data) {
-        if ("actions" in data) {
-          //console.log(data.actions);
-          // if ('set' in data.actions){
-          //   //console.log(data.actions.set.toString());
-          // }else{
-          //   //console.log(data.created.toString());
-          // }
-        } else {
-          //console.log("... no actions ...");
-        }
-      }
-      function printCreatedUnits(data) {
-        //console.log("...created:");
-        if ("created" in data) {
-          for (const id in data.created) {
-            let o = data.created[id];
-            if (o.obj_type != "unit") continue;
-            //console.log(id, o.nationality, o.tile, o.type);
-          }
-        }
-      }
-      function onClickScenario(player, fname, seed = 0) {
-        freezeUI();
-        restart(player, seed, fname);
-      }
-      function onClickViolation1() {
-        freezeUI();
-        initState();
-        let data = {};
-        let chain = ["action/West/pass", "action/Axis/pass", "action/USSR/action_13", "action/West/pass", "action/Axis/pass"];
-        sendLoading("spring_start", "West", d0 => {
-          updateCycle(d0);
-          sendAction("West", ["pass"], d1 => {
-            updateCycle(d1);
-            sendAction("Axis", ["pass"], d2 => {
-              updateCycle(d2);
-              sendAction("USSR", ["action_13"], d3 => {
-                updateCycle(d3);
-                sendAction("West", ["pass"], d4 => {
-                  updateCycle(d4);
-                  sendAction("Axis", ["pass"], gameloop);
-                });
-              });
-            });
-          });
+			function activateAutoplay() {
+				hide(document.getElementById('dFrozen'));
+				show(document.getElementById('dAutoplay'));
+				hide(document.getElementById('dActive'));
+				hide(document.getElementById('uiActiveButtons'));
+				hide(document.getElementById('ui2Buttons'));
+				hide(document.getElementById('bNextPlayer'));
+			}
+			function activateNextPlayerButton() {
+				hide(document.getElementById('dFrozen'));
+				hide(document.getElementById('dAutoplay'));
+				hide(document.getElementById('dActive'));
+				hide(document.getElementById('uiActiveButtons'));
+				hide(document.getElementById('ui2Buttons'));
+				show(document.getElementById('bNextPlayer'));
+			}
+			function callNextAction() {
+				if (H.nextAction) {
+					activateWaitingForServer();
+					H.nextAction();
+				} else {
+					error('NO NEXT ACTION!!!!!!!');
+				}
+			}
+			function printActions(data) {
+				if ('actions' in data) {
+					//console.log(data.actions);
+					// if ('set' in data.actions){
+					//   //console.log(data.actions.set.toString());
+					// }else{
+					//   //console.log(data.created.toString());
+					// }
+				} else {
+					//console.log("... no actions ...");
+				}
+			}
+			function printCreatedUnits(data) {
+				//console.log("...created:");
+				if ('created' in data) {
+					for (const id in data.created) {
+						let o = data.created[id];
+						if (o.obj_type != 'unit') continue;
+						//console.log(id, o.nationality, o.tile, o.type);
+					}
+				}
+			}
+			function onClickScenario(player, fname, seed = 0) {
+				freezeUI();
+				restart(player, seed, fname);
+			}
+			function onClickViolation1() {
+				freezeUI();
+				initState();
+				let data = {};
+				let chain = ['action/West/pass', 'action/Axis/pass', 'action/USSR/action_13', 'action/West/pass', 'action/Axis/pass'];
+				sendLoading('spring_start', 'West', d0 => {
+					updateCycle(d0);
+					sendAction('West', ['pass'], d1 => {
+						updateCycle(d1);
+						sendAction('Axis', ['pass'], d2 => {
+							updateCycle(d2);
+							sendAction('USSR', ['action_13'], d3 => {
+								updateCycle(d3);
+								sendAction('West', ['pass'], d4 => {
+									updateCycle(d4);
+									sendAction('Axis', ['pass'], gameloop);
+								});
+							});
+						});
+					});
 
-          // sender.chainSend(chain, "West", d1 => {
-          //   data = extend(true, data, d1);
-          //   gameloop(data);
-          // });
-        });
-      }
-      function onClickAddUnit() {
-        freezeUI();
-        let dOrig = H.serverData;
-        //console.log(dOrig);
-        let tuple = randomUnitTuple();
-        sendEditAction(H.player, tuple, dEdit => {
-          //console.log("back from edit", dEdit);
-          if ("created" in dEdit) {
-            dOrig = extend(true, dOrig, dEdit);
-            //console.log("nach extend und edit", dOrig);
-            printCreatedUnits(dOrig);
-            printActions(dOrig);
-          }
-          gameloop(dOrig);
-        });
-      }
-      function onClickAddInfluence() {
-        testAddInfluence(map, H.objects);
-      }
-      function onClickRemoveInfluence() {
-        testRemoveInfluence(map, H.objects);
-      }
-      function onClickEditTest() {
-        //enter edit mode
-        // in edit mode, all units are visible
-        if (execOptions.mode != "edit") {
-          execOptions.mode = "edit";
-        }
-        //decider.cancel();
-        testEdit(serverData);
-        //sender.send('edit/'+H.player+'/USSR+Moscow+Infantry',dEdit=>{
-        //  let newUnit = Object.values(dEdit.created)[0];
-        //  let newId = Object.keys(dEdit.created)[0];
-        //  dInit.created[newId]=newUnit;
-        //  gameloop(dInit);
-        //});
-        //restart with random H.player, do NOT change role!
-        //let pl = chooseRandom(assets.factionNames);
-        //console.log("restarting with", pl, assets.factionNames.toString());
-        //restart(pl);
-      }
-      function onClickNextPlayer() {
-        callNextAction();
-      }
-      function onClickPlay(b) {
-        // do not restart, just change role: execOptions.skipCond
-        //b.classList.add('selected')
-        //was ich will wenn einer auch playWest clicked:
-        //toggle
+					// sender.chainSend(chain, "West", d1 => {
+					//   data = extend(true, data, d1);
+					//   gameloop(data);
+					// });
+				});
+			}
+			function onClickAddUnit() {
+				freezeUI();
+				let dOrig = H.serverData;
+				//console.log(dOrig);
+				let tuple = randomUnitTuple();
+				sendEditAction(H.player, tuple, dEdit => {
+					//console.log("back from edit", dEdit);
+					if ('created' in dEdit) {
+						dOrig = extend(true, dOrig, dEdit);
+						//console.log("nach extend und edit", dOrig);
+						printCreatedUnits(dOrig);
+						printActions(dOrig);
+					}
+					gameloop(dOrig);
+				});
+			}
+			function onClickAddInfluence() {
+				testAddInfluence(map, H.objects);
+			}
+			function onClickRemoveInfluence() {
+				testRemoveInfluence(map, H.objects);
+			}
+			function onClickEditTest() {
+				//enter edit mode
+				// in edit mode, all units are visible
+				if (execOptions.mode != 'edit') {
+					execOptions.mode = 'edit';
+				}
+				//decider.cancel();
+				testEdit(serverData);
+				//sender.send('edit/'+H.player+'/USSR+Moscow+Infantry',dEdit=>{
+				//  let newUnit = Object.values(dEdit.created)[0];
+				//  let newId = Object.keys(dEdit.created)[0];
+				//  dInit.created[newId]=newUnit;
+				//  gameloop(dInit);
+				//});
+				//restart with random H.player, do NOT change role!
+				//let pl = chooseRandom(assets.factionNames);
+				//console.log("restarting with", pl, assets.factionNames.toString());
+				//restart(pl);
+			}
+			function onClickNextPlayer() {
+				callNextAction();
+			}
+			function onClickPlay(b) {
+				// do not restart, just change role: execOptions.skipCond
+				//b.classList.add('selected')
+				//was ich will wenn einer auch playWest clicked:
+				//toggle
 
-        let pl = stringAfter(b.id, "Play");
-        //toggle this player
-        //console.log("before toggle", execOptions.manualPlay.toString());
-        //console.log(execOptions.skipCond);
-        if (execOptions.manualPlay.includes(pl)) {
-          //console.log("player", pl, "is in manualPlay!");
-          removeInPlace(execOptions.manualPlay, pl);
-          //console.log(execOptions.manualPlay);
-          b.classList.remove("toggleSelected");
-        } else {
-          //console.log("player", pl, "is NOT in manualPlay!");
-          execOptions.manualPlay.push(pl);
-          b.classList.add("toggleSelected");
-        }
-        //console.log("after toggle", execOptions.manualPlay.toString());
-        //console.log(execOptions.skipCond, H.player);
-        STOP = false;
-        decider.onClickStep(H);
-      }
-      function onClickRestartParams() {
-        params = prompt("enter player [seed]:");
-        let pl = capitalize(stringBefore(params, " "));
-        let sd = firstNumber(params);
-        if (sd < 0) sd = randomNumber();
-        //console.log("restarting with player", pl, "and seed", sd);
-        restart(pl, sd, "");
-      }
-    </script>
-    <!-- #endregion handlers -->
+				let pl = stringAfter(b.id, 'Play');
+				//toggle this player
+				//console.log("before toggle", execOptions.manualPlay.toString());
+				//console.log(execOptions.skipCond);
+				if (execOptions.manualPlay.includes(pl)) {
+					//console.log("player", pl, "is in manualPlay!");
+					removeInPlace(execOptions.manualPlay, pl);
+					//console.log(execOptions.manualPlay);
+					b.classList.remove('toggleSelected');
+				} else {
+					//console.log("player", pl, "is NOT in manualPlay!");
+					execOptions.manualPlay.push(pl);
+					b.classList.add('toggleSelected');
+				}
+				//console.log("after toggle", execOptions.manualPlay.toString());
+				//console.log(execOptions.skipCond, H.player);
+				STOP = false;
+				decider.onClickStep(H);
+			}
+			function onClickRestartParams() {
+				params = prompt('enter player [seed]:');
+				let pl = capitalize(stringBefore(params, ' '));
+				let sd = firstNumber(params);
+				if (sd < 0) sd = randomNumber();
+				//console.log("restarting with player", pl, "and seed", sd);
+				restart(pl, sd, '');
+			}
+		</script>
+		<!-- #endregion handlers -->
 
-    <!-- #region control flow -->
-    <script>
-      function startScript() {
-        // init, choice, sender, units, moving, load, cardsNew, cards
-        //addIf("load", execOptions.activatedTests);
-        //addIf("choice", execOptions.activatedTests);
+		<!-- #region control flow -->
+		<script>
+			function startScript() {
+				// autoplay, cards, cardsNew, choice, choicemin, control, filter,
+				// init, load, log, map, moving, player, random, removed, request, response
+				// save, sender, skip, units, strategy
+				addIfComma('log, player, choicemin', execOptions.activatedTests);
 
-        onClickReload();
-        //sendInitSeed(H.player, H.start.seed, gameloop);
-      }
-      function gameloop(data) {
-        //console.log("gameloop", data);
-        updateCycle(data);
+				onClickReload();
+				//sendInitSeed(H.player, H.start.seed, gameloop);
+			}
+			function gameloop(data) {
+				//console.log("gameloop", data);
+				updateCycle(data);
 
-        autoplay = !STOP && execOptions.skipCond();
-        if (!autoplay) unfreezeUI();
-        decider.genMove(
-          H,
-          t => {
-            freezeUI();
-            sendAction(H.player, t, gameloop);
-          },
-          autoplay
-        );
+				autoplay = !STOP && execOptions.skipCond();
+				if (!autoplay) {
+					unfreezeUI();
+					execOptions.skipCond = defaultSkipCond;
+					//unitTestSkip('skipCond:', execOptions.skipCond);
+				}
+				decider.genMove(
+					H,
+					t => {
+						freezeUI();
+						sendAction(H.player, t, gameloop);
+					},
+					autoplay
+				);
 
-        window.scrollTo(0, 0);
-      }
-      function updateCycle(data) {
-        //TODO: get rid of global variables, consolidate to G
-        H.serverData = data;
-        if ("created" in H.serverData) {
-          for (const id in H.serverData.created) {
-            let o = H.serverData.created[id];
-            let otype = o.obj_type;
-            if (otype == "action_card" || otype == "investment_card") {
-              let vis = getVisibleSet(o);
-              if (!empty(vis)) {
-                unitTestCardsNew("should create visible card", id, o);
-              }
-            }
-          }
-        }
-        //console.log(H.serverData);
-        updateMovePlayerPhaseYear(data);
-        updateLog(data);
-        mergeCreatedAndUpdated(data);
-        unitTestCards("update vor cards:", "player", H.player, "data", data, "H", H, "only objects");
-        cards.update(H.player, data, H.objects);
-        map.update(data, H.objects);
-        units.update(data, H.objects, H.player);
-        H.tuples = getTuples(data);
-      }
-      function updateMovePlayerPhaseYear(data) {
-        H.moveCounter += 1;
-        if ("info" in data) {
-          let info = data.info.game;
-          H.year = Number(info.year);
-          H.phase = info.phase;
-          H.player = info.player;
-          statusMessage();
-        } else {
-          //console.log("data:", data);
-          statusMessage("INFO DATA MISSING IN DATA!!!!");
-        }
-      }
-      function updateLog(data) {
-        if ("log" in data && !empty(data.log)) {
-          let d = document.getElementById("log_area");
-          let para = document.createElement("p");
-          para.innerHTML = data.log;
-          d.appendChild(para);
-          para.scrollIntoView();
-        }
-      }
-    </script>
-    <!-- #endregion control flow -->
+				window.scrollTo(0, 0);
+			}
+			function updateCycle(data) {
+				//TODO: get rid of global variables, consolidate to G
+				H.serverData = data;
+				if ('created' in H.serverData) {
+					for (const id in H.serverData.created) {
+						let o = H.serverData.created[id];
+						let otype = o.obj_type;
+						if (otype == 'action_card' || otype == 'investment_card') {
+							let vis = getVisibleSet(o);
+							if (!empty(vis)) {
+								unitTestCardsNew('should create visible card', id, o);
+							}
+						}
+					}
+				}
+				//console.log(H.serverData);
+				updateMovePlayerPhaseYear(data);
+				updateLog(data);
+				mergeCreatedAndUpdated(data);
+				unitTestCards('update vor cards:', 'player', H.player, 'data', data, 'H', H, 'only objects');
+				cards.update(H.player, data, H.objects);
+				map.update(data, H.objects);
+				units.update(data, H.objects, H.player);
+				H.tuples = getTuples(data);
+			}
+			function updateMovePlayerPhaseYear(data) {
+				H.moveCounter += 1;
+				if ('info' in data) {
+					let info = data.info.game;
+					H.year = Number(info.year);
+					H.phase = info.phase;
+					if (info.player != H.player) {
+						unitTestPlayer('___ ', info.player, ':');
+					}
+					H.player = info.player;
+					statusMessage();
+				} else {
+					//console.log("data:", data);
+					statusMessage('INFO DATA MISSING IN DATA!!!!');
+				}
+			}
+			function updateLog(data) {
+				if ('log' in data && !empty(data.log)) {
+					let d = document.getElementById('log_area');
+					let para = document.createElement('p');
+					para.innerHTML = data.log;
+					d.appendChild(para);
+					para.scrollIntoView();
+					unitTestLog(data.log);
+				}
+			}
+		</script>
+		<!-- #endregion control flow -->
 
-    <!-- #region init and restart -->
-    <script>
-      function initH(player = "Axis", seed = 0) {
-        H = {};
-        //current info
-        H.player = player;
-        H.year = 1935;
-        H.phase = "Setup";
-        //start info
-        H.start = {};
-        H.start.player = player;
-        H.start.seed = seed;
-        unitTestInit("initH", player, seed);
-        unitTestInit(H);
-        //data
-        H.objects = {};
-        H.serverData = null;
-        H.moveCounter = 0;
-        STOP = false;
-        execOptions.skipCond = defaultSkipCond;
-      }
-      function initManagers() {
-        sender = new ASender(execOptions);
-        map = new AMap(assets);
-        cards = new ACards(assets);
-        units = new AUnits(assets);
-        decider = new ADecisiongen(assets, map, cards, units, sender);
-      }
-      function resetAll() {
-        page.clearAllObjects();
-        assets.clear();
-      }
-      function startFromFile(fname) {
-        //get info for file if saved locally!
-        localStorage.setItem("lastFile", fname);
-        if (localStorage[fname]) {
-          let info = JSON.parse(localStorage[fname]);
-          unitTestLoad(fname, "info retrieved:", info);
-          initH(info.startPlayer, info.startSeed);
-          H.Player = info.currentPlayer;
-          //jetzt laden!
-          //schon mit richtigem player!
-          sendLoading(H.player, fname, data => {
-            //set selectedTuples
-            decider.selectedTuples = info.choiceList;
-            let randomIndex = Object.keys(info.choiceList).length;
-            //run random generator n times
-            for (let i = 0; i < randomIndex; i++) {
-              decider.nextRandom(info.choiceList[i]);
-            }
-            gameloop(data);
-          });
-        } else {
-          console.log("no info found!!!", fname, "using default info");
-          initH();
-          sendLoading(H.player, fname, gameloop);
-        }
-      }
-      function startFromScratch(player, seed) {
-        initManagers();
-        initH(player, seed);
-        unitTestInit("sending initSeed with ", player, seed);
-        sendInitSeed(player, seed, gameloop);
-      }
-      function restartFromFile(fname) {
-        resetAll();
-        initManagers();
+		<!-- #region init and restart -->
+		<script>
+			function initH(player = 'Axis', seed = 0) {
+				H = {};
+				//current info
+				H.player = player;
+				H.year = 1935;
+				H.phase = 'Setup';
+				//start info
+				H.start = {};
+				H.start.player = player;
+				H.start.seed = seed;
 
-        startFromFile(fname);
-      }
-      function restartFromScratch(player, seed) {
-        resetAll();
-        startFromScratch(player, seed);
-      }
+				unitTestInit('initH', player, seed);
+				unitTestInit(H);
+				//data
+				H.objects = {};
+				H.serverData = null;
+				H.moveCounter = 0;
+				STOP = false;
+				execOptions.skipCond = defaultSkipCond;
+			}
+			function initManagers() {
+				sender = new ASender(execOptions);
+				map = new AMap(assets);
+				cards = new ACards(assets);
+				units = new AUnits(assets);
+				decider = new ADecisiongen(assets, map, cards, units, sender);
+			}
+			function resetAll() {
+				page.clearAllObjects();
+				assets.clear();
+			}
+			function startFromFile(fname) {
+				//get info for file if saved locally!
+				localStorage.setItem('lastFile', fname);
+				let fileInfoState = 'none';
+				let fnameInfo = {};
+				if (localStorage[fname]) {
+					fnameInfo = JSON.parse(localStorage.getItem(fname));
+					if ('choiceList' in fnameInfo) {
+						fileInfoState = 'complete';
+						initH(fnameInfo.startPlayer, fnameInfo.startSeed);
+						document.getElementById('inPlayerSeed').value = fnameInfo.startPlayer + ' ' + fnameInfo.startSeed;
 
-      //______________old
-      function restart_old(player, seed, fname) {
-        resetAll();
-        initManagers();
-        initH(player, seed);
-        execOptions.skipCond = defaultSkipCond;
+						unitTestLoad(fname, '!!!!!!!!!!complete info retrieved:', fnameInfo, 'H:', H);
+					} else {
+						fileInfoState = 'partial';
+						initH();
+						unitTestLoad(fname, 'partial info retrieved:', fnameInfo, 'H:', H);
+					}
+					H.player = fnameInfo.currentPlayer;
+				} else {
+					// did not find any info for fname
+					initH();
+					unitTestLoad(fname, 'no info for that file!', 'H', H);
+				}
+				unitTestLoad('call sendLoading witn', H.player, fname);
+				sendLoading(H.player, fname, data => {
+					unitTestLoad('back from sendLoading:', data);
+					//correct info if was wrong
+					if (fileInfoState != 'complete') {
+						if (data.info.game.player != H.player) {
+							fnameInfo.currentPlayer = data.info.game.player;
+							localStorage.setItem(fname, JSON.stringify(fnameInfo));
+						} else {
+							console.assert(data.info.game.player == H.player, 'wrong current player was saved in complete info!!!!');
+						}
+					} else {
+						//update selectedTuples and randomizer
+						decider.selectedTuples = fnameInfo.choiceList;
+						unitTestLoad('vor randomizer correction:', fnameInfo);
+						let randomIndex = Object.keys(fnameInfo.choiceList).length;
+						//run random generator n times
+						for (let i = 0; i < randomIndex; i++) {
+							decider.nextRandom(fnameInfo.choiceList[i]);
+						}
+					}
+					unitTestPlayer('____', H.player, ':');
 
-        unitTestInit("sending initSeed with ", H.player, seed);
+					gameloop(data);
+				});
+			}
+			function startFromScratch(player, seed) {
+				initManagers();
+				initH(player, seed);
+				unitTestInit('sending initSeed with ', player, seed);
+				unitTestPlayer('____', H.player, ':');
+				document.getElementById('inPlayerSeed').value = player + ' ' + seed;
+				sendInitSeed(player, seed, gameloop);
+			}
+			function restartFromFile(fname) {
+				resetAll();
+				initManagers();
 
-        if (empty(fname)) {
-          sendInitSeed(H.player, seed, gameloop);
-        } else {
-          sendLoading(H.player, fname, gameloop);
-        }
-      }
-    </script>
-    <!-- #endregion init and restart -->
+				startFromFile(fname);
+			}
+			function restartFromScratch(player, seed) {
+				resetAll();
+				startFromScratch(player, seed);
+			}
 
-    <!-- #region globals >>execution -->
-    <script>
-      //control flow
-      var STOP; //to interrupt autoplay
-      const defaultSkipCond = () => false; //manual play or step by step, !execOptions.manualPlay.includes(H.player);
-      var execOptions = {
-        skipCond: defaultSkipCond, //!execOptions.manualPlay.includes(player), // predicate func evaluating to cond for autoplay
-        activatedTests: [] // unitTest flags to control output
-      };
+			//______________old
+			function restart_old(player, seed, fname) {
+				resetAll();
+				initManagers();
+				initH(player, seed);
+				execOptions.skipCond = defaultSkipCond;
 
-      var H = {}; //package up all game data
+				unitTestInit('sending initSeed with ', H.player, seed);
 
-      // controllers responsible for different aspects of game
-      var page; //responsible for layout
-      var assets;
-      var sender;
-      var map; //responsible for tile influence nation chip
-      var cards;
-      var units;
-      var decider; //responsible for move generation
+				if (empty(fname)) {
+					sendInitSeed(H.player, seed, gameloop);
+				} else {
+					sendLoading(H.player, fname, gameloop);
+				}
+			}
+		</script>
+		<!-- #endregion init and restart -->
 
-      //execution starts here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      page = new NPage().initView().selectView();
-      panzoom("mapG"); //handles pan zoom on map
-      assets = new NAssets();
-      initManagers();
-      assets.initAssets(map, startScript);
-    </script>
-    <!-- #endregion globals -->
-  </body>
+		<!-- #region globals >>execution -->
+		<script>
+			//control flow
+			var STOP; //to interrupt autoplay
+			const defaultSkipCond = () => false; //manual play or step by step, !execOptions.manualPlay.includes(H.player);
+			var execOptions = {
+				skipCond: defaultSkipCond, //!execOptions.manualPlay.includes(player), // predicate func evaluating to cond for autoplay
+				activatedTests: [] // unitTest flags to control output
+			};
+
+			var H = {}; //package up all game data
+
+			// controllers responsible for different aspects of game
+			var page; //responsible for layout
+			var assets;
+			var sender;
+			var map; //responsible for tile influence nation chip
+			var cards;
+			var units;
+			var decider; //responsible for move generation
+
+			//execution starts here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			page = new NPage().initView().selectView();
+			panzoom('mapG'); //handles pan zoom on map
+			assets = new NAssets();
+			initManagers();
+			assets.initAssets(map, startScript);
+		</script>
+		<!-- #endregion globals -->
+	</body>
 </html>

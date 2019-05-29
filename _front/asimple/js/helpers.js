@@ -18,6 +18,12 @@ function addAll(akku, other) {
   }
   return akku;
 }
+function addIfComma(csv, arr) {
+  let strings = csv.split(",");
+  for (const s of strings) {
+    addIf(s.trim(), arr);
+  }
+}
 function addIf(el, arr) {
   if (!arr.includes(el)) arr.push(el);
 }

@@ -116,6 +116,7 @@ function actionOrWaiting(player, dAction, callback) {
   if ("actions" in dAction) {
     unitTestSender("found actions for", player);
     dAction.info.game.player = player;
+    //unitTestLoad("callback with", dAction);
     callback(dAction);
   } else if ("waiting_for" in dAction) {
     let waiting = getSet(dAction, "waiting_for");
@@ -156,16 +157,16 @@ function sendInitSeed(player, seed, callback) {
   });
 }
 function sendLoading(player, filename, callback) {
-  unitTestSender("loading", filename);
+  unitTestLoad("loading", filename);
   var sData = {};
   sender.send("myload/" + filename + ".json", d1 => {
-    unitTestSender("myload response:", d1);
+    unitTestLoad("myload response:", d1);
     sender.send("refresh/" + player, d2 => {
-      unitTestSender("refresh response:", d2);
+      unitTestLoad("refresh response:", d2);
       sData.created = d2;
       sender.send("status_test/" + player, d3 => {
-        unitTestSender("status_test response:", d3);
         sData = augment(sData, d3);
+        unitTestLoad("status_test response:", d3, "akku:", sData, "player", player);
 
         actionOrWaiting(player, sData, callback);
         // if ("actions" in sData) {

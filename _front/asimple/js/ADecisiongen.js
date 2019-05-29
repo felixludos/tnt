@@ -156,7 +156,7 @@ class ADecisiongen {
     let index = this.tuples.indexOf(tuple);
     let i = Object.keys(this.selectedTuples).length;
     let s = "" + index + ":" + tuple.toString();
-    unitTestChoice(i, "th choice", index, "of", this.tuples.length, ":", this.tuple.toString());
+    unitTestChoicemin(i, "th choice", index, "of", this.tuples.length, ":", this.tuple.toString());
     this.selectedTuples[i] = {random: index, tuple: tuple};
     let d = document.getElementById("divSelect");
     let els = document.getElementsByTagName("a");
@@ -173,7 +173,7 @@ class ADecisiongen {
         alert("onClickStep: this.tuples not same as G.tuples!");
       }
       //this.tuples = G.tuples;
-      console.log("onClickStep", G);
+      //console.log("onClickStep", G);
       this.decideAutoplay(G);
     }
   }
