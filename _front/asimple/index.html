@@ -32,13 +32,32 @@
 	<body>
 		<!-- #region HTML -->
 		<div id="mainDiv" class="grid_game">
-			<div id="lwait_area" class="grid_div" style="text-align:left">
+			<div id="next_area" class="grid_div" style="text-align:left">
+				<div style="width:188px;float:left;">
+					<span id="dFrozen" class="hidden" style="margin-left:16px;color:red;">running...</span>
+					<span id="dActive" class="hidden" style="margin-left:16px;color:rgb(0, 104, 0);">Select Action:</span>
+				</div>
+				<div id="selectFilterMode" style="margin:0px">
+					<button id="btile" onclick="decider.setFilterMode(this)" style="position:absolute;top:10px;left:190px;height:25px">tile</button>
+					<button id="bunit" onclick="decider.setFilterMode(this)" style="position:absolute;top:10px;left:260px;height:25px">unit</button>
+					<button id="bnation" onclick="decider.setFilterMode(this)" style="position:absolute;top:10px;left:330px;height:25px">nation</button>
+					<button id="bother" onclick="decider.setFilterMode(this)" style="position:absolute;top:10px;left:400px;height:25px">other</button>
+					<!-- <option value="tile">show tile</option>
+					<option value="unit">show unit</option>
+					<option value="card">show card</option>
+					<option value="influence">show influence</option>
+					<option value="nation">show nation</option> -->
+				</div>
+
+				<button id="bNextPlayer" class="hidden" style="margin-left:16px;color:green;" onclick="onClickNextPlayer()">Next Player</button>
+			</div>
+			<!-- <div id="lwait_area" class="grid_div" style="text-align:left">
 				<span id="dFrozen" class="hidden" style="margin-left:10px;color:red;">running...</span>
 				<button id="bNextPlayer" class="hidden" style="margin-left:10px;color:green;" onclick="onClickNextPlayer()">Next Player</button>
 			</div>
 			<div id="lselect_area" class="grid_div" style="text-align:left">
 				<span id="dActive" class="hidden" style="margin-left:10px;color:rgb(0, 104, 0);">Select Action:</span>
-			</div>
+			</div> -->
 			<div id="status_area" class="grid_div" style="text-align:left">
 				<div style="width:80px;float:left;margin-left:10px;" id="status_player"></div>
 				<div style="width:180px;float:left;margin-left:10px;" id="status_phase"></div>
@@ -245,7 +264,7 @@
 						//hier mach das localStorage ding!
 						console.log('saved', d);
 						let info = {
-							choiceList: decider.selectedTuples,
+							choiceList: decider.choiceList,
 							startPlayer: H.start.player,
 							startSeed: H.start.seed,
 							currentPlayer: H.player
@@ -275,7 +294,7 @@
 				onClickSave(fname);
 			}
 			function onClickSaveActions() {
-				saveToDownloads(decider.selectedTuples, 'a_' + H.start.player + '_' + H.start.seed);
+				saveToDownloads(decider.choiceList, 'a_' + H.start.player + '_' + H.start.seed);
 				unitTestSave(H);
 			}
 			function onClickStep() {
@@ -646,8 +665,8 @@
 							console.assert(data.info.game.player == H.player, 'wrong current player was saved in complete info!!!!');
 						}
 					} else {
-						//update selectedTuples and randomizer
-						decider.selectedTuples = fnameInfo.choiceList;
+						//update choiceList and randomizer
+						decider.choiceList = fnameInfo.choiceList;
 						unitTestLoad('vor randomizer correction:', fnameInfo);
 						let randomIndex = Object.keys(fnameInfo.choiceList).length;
 						//run random generator n times

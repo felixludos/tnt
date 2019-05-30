@@ -12,7 +12,7 @@ class NPage {
     show(this.status_area);
 
     show(this.edit_area);
-    show(this.select_area);
+    //show(this.select_area);
     show(this.command_area);
     show(this.command2_area);
 
@@ -29,7 +29,7 @@ class NPage {
     hideSvg(this.investmentDeckG);
     showSvg(this.discardedG);
 
-    this.mainDiv.className = "grid_game_select";
+    this.mainDiv.className = "grid_game_may";
     return this;
   }
   initView() {
@@ -38,7 +38,7 @@ class NPage {
     this.status_area = document.getElementById("status_area");
 
     this.edit_area = document.getElementById("edit_area");
-    this.select_area = document.getElementById("select_area");
+    //this.select_area = document.getElementById("select_area");
 
     this.map_area = document.getElementById("map_area");
 

@@ -104,6 +104,21 @@ button:active {
   padding: 6px 6px 6px 8px;
   margin-top: 16px;
 }
+#next_area button {
+  margin: 0px;
+  padding: 0px;
+  font-size: 12pt;
+  font-family: Verdana;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  background-color: #fff;
+  color: #2196f3;
+  border: none;
+  border-radius: 8px;
+  width: 62px;
+  height: 20px;
+}
 
 #command2_area button {
   width: 90%;
@@ -112,7 +127,8 @@ button:active {
 }
 
 .toggleSelected {
-  background-color: #1bb84a;
+	background-color: #2196f3;
+	color: white;
 }
 
 .columnDiv {
