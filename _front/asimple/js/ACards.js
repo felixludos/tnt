@@ -27,7 +27,7 @@ class ACards {
 	}
 	getCardMs(id) {
 		if (this.inVisibleHand(id)) {
-			return this.visibleHand.cards[id];
+			return this.visibleHand.cards[id].ms;
 		} else return null;
 	}
 	inVisibleHand(id) {

@@ -122,7 +122,16 @@ class MS {
     }
     this.elem.appendChild(r);
     return this;
-  }
+	}
+	makeUnselectable(handler){
+		this.unhighlight();
+		this.unselect();
+		this.clickHandler == null;
+		this.disable();
+	}
+	makeSelectable(){
+
+	}
   onClick(ev) {
     //console.log('click',this.id,this.isEnabled,this.clickHandler)
     if (!this.isEnabled) return;

@@ -26,27 +26,12 @@ class ADecisiongen {
 		this.playerStrategy['West'] = new AStrategy(this.assets); //new AStrategy(this.assets, {Government: t => t.includes("pass")});
 		this.playerStrategy['USSR'] = new AStrategy(this.assets); //new AStrategy(this.assets, {Government: t => t.includes("pass")});
 	}
-	setFilterMode(button) {
-		if (this.filterMode != null) {
-			//console.log('setFilterMode',this.filterMode,button)
-			let b = document.getElementById('b' + this.filterMode);
-			b.style.backgroundColor = 'white';
-			b.style.color = '#2196f3';
-		}
-		this.filterMode = button.id.substring(1);
-		button.style.backgroundColor = '#2196f3';
-		button.style.color = 'white';
-		// document.getElementById('b'+type).classList.add('toggleSelected');
-	}
 	clear() {
 		let d = document.getElementById('divSelect');
 		clearElement(d);
 		for (const id in this.msInTuples) {
-			let ms = this.msInTuples[id];
-			ms.unhighlight();
-			ms.unselect();
-			ms.clickHandler == null;
-			ms.disable();
+			let ms = this.msInTuples[id].ms;
+			ms.makeUnselectable();
 		}
 		this.msInTuples = {};
 		this.msSelected = null;
@@ -54,7 +39,7 @@ class ADecisiongen {
 	clearHighlighting() {
 		this.clearHoverTuple();
 		for (const id in this.msInTuples) {
-			let ms = this.msInTuples[id];
+			let ms = this.msInTuples[id].ms;
 			ms.unhighlight();
 			ms.unselect();
 		}
@@ -94,7 +79,7 @@ class ADecisiongen {
 			}
 
 			// show, record in selectedTuples, callback
-			this.highlightTuple(this.tuple);
+			this.highlightChosenTuple(this.tuple);
 			setTimeout(() => this.callback(this.tuple), 10); // leave user time to see what happened!
 		} else {
 			alert('decideAutoplay: already selected!!!');
@@ -103,21 +88,21 @@ class ADecisiongen {
 	filterList(ev) {
 		let idElem = evToId(ev);
 		unitTestFilter('filterList', idElem);
+		this.clearHighlighting();
 		if (this.msSelected != null && this.msSelected.elem.id == idElem) {
-			this.clearHighlighting();
-			this.highlightTiles();
+			this.highlightObjects();
 			this.unfilterTuples();
 			this.msSelected = null;
 		} else {
-			this.clearHighlighting();
-			let id = this.assets.uid2id[idElem];
-			let ms = this.msInTuples[id];
+			let id = idElem in this.assets.uid2id ? this.assets.uid2id[idElem] : idElem;
+			let ms = this.msInTuples[id].ms;
 			this.msSelected = ms;
 			ms.select(); // select clicked tile
 			this.filterTuples(id);
 		}
 	}
 	filterTuples(id) {
+		this.clearHighlighting();
 		unitTestFilter('filterTuples', id);
 		let d = document.getElementById('divSelect');
 		let elTuples = arrChildren(d);
@@ -132,17 +117,8 @@ class ADecisiongen {
 				unitTestFilter('found match!', t.toString());
 				//TODO: highlight related units on map if this is a movement tuple (length = 2)
 				for (const s of t) {
-					let idUnit = s;
-					let unit = this.units.getUnit(idUnit);
-					unitTestFilter(s, 'is a candidate unit', unit);
-					if (unit) {
-						unitTestFilter('unit found!!!', unit);
-						let ms = unit.ms;
-						this.msInTuples[idUnit] = ms;
-						ms.highlight();
-						ms.enable();
-						ms.clickHandler = this.onSelectedUnit.bind(this);
-					}
+					if (s == id) continue;
+					this.highlightObject(s);
 				}
 			}
 		}
@@ -161,20 +137,79 @@ class ADecisiongen {
 			this.decideAutoplay(G);
 		}
 	}
+	highlightObject(s) {
+		// try if is a unit
+		if (s in this.msInTuples){
+			let ms = this.msInTuples[s].ms;
+			if (!ms.isHighlighted){
+				ms.highlight();
+			}
+			return;
+		}
+		if (s in this.units.uis) {
+			let idUnit = s;
+			let unit = this.units.getUnit(idUnit);
+			unitTestFilter(s, 'is a candidate unit', unit);
+			if (unit) {
+				unitTestFilter('unit found!!!', unit);
+				let ms = unit.ms;
+				this.msInTuples[idUnit] = {id: idUnit, ms: ms, type: 'unit'};
+				ms.highlight();
+				return;
+				// ms.enable();
+				// ms.clickHandler = this.onSelectedUnit.bind(this);
+			}
+		}else if (s in this.map.tiles){
+			let ms = this.map.tiles[s];
+			this.msInTuples[s] = {id: s, ms: ms, type: 'tile'};
+			ms.highlight();
+		}else if (s in this.map.influences){
+			let ms = this.map.influences[s];
+			this.msInTuples[s] = {id: s, ms: ms, type: 'influence'};
+			ms.highlight();
+		}else if (s in this.cards.visibleHand.cards){
+			let ms = this.map.influences[s];
+			this.msInTuples[s] = {id: s, ms: ms, type: 'card'};
+			ms.highlight();
+		}
+	}
+	highlightObjects() {
+		this.clearHighlighting();
+		switch (this.filterMode) {
+			case 'unit':
+				this.highlightUnits();
+				break;
+			default:
+				this.highlightTiles();
+				break;
+		}
+	}
 	highlightTiles() {
 		//highlight tiles in moves and caders if any:
 		for (const t of this.tuples) {
-			if (t.length == 2 && any(t, s => this.assets.tileNames.includes(s))) {
+			if (t.length >= 2 && any(t, s => this.assets.tileNames.includes(s))) {
 				let tilename = firstCond(t, s => this.assets.tileNames.includes(s));
 				let ms = this.map.tiles[tilename];
 				ms.highlight();
 				ms.enable();
 				ms.clickHandler = this.filterList.bind(this);
-				this.msInTuples[ms.id] = ms;
+				this.msInTuples[ms.id] = {ms: ms, id: tilename, type: 'tile'};
 			}
 		}
 	}
-	highlightTuple(tuple, msecs = 30) {
+	highlightUnits() {
+		for (const t of this.tuples) {
+			if (any(t, s => s in this.units.uis)) {
+				let id = firstCond(t, s => s in this.units.uis);
+				let ms = this.units.uis[id].ms;
+				ms.highlight();
+				ms.enable();
+				ms.clickHandler = this.filterList.bind(this);
+				this.msInTuples[ms.id] = {ms: ms, id: id, type: 'unit'};
+			}
+		}
+	}
+	highlightChosenTuple(tuple, msecs = 30) {
 		// highlight element in selection list
 		let index = this.tuples.indexOf(tuple);
 		let i = Object.keys(this.choiceList).length;
@@ -227,7 +262,7 @@ class ADecisiongen {
 			let idx = firstNumber(id);
 			this.clearHighlighting();
 			this.tuple = this.tuples[idx];
-			this.highlightTuple(this.tuple);
+			this.highlightChosenTuple(this.tuple);
 			this.callback(this.tuple);
 		}
 	}
@@ -267,7 +302,7 @@ class ADecisiongen {
 			el.textContent = t;
 			d.appendChild(el);
 
-			//attach selected event when manual selection
+			//attach click and mouse events to tuples in list when manual selection
 			if (!this.autoplay) {
 				el.addEventListener('click', this.onSelected.bind(this));
 				el.addEventListener('mouseenter', this.onEnterTuple.bind(this));
@@ -276,6 +311,20 @@ class ADecisiongen {
 		}
 
 		if (!this.autoplay) this.highlightTiles();
+	}
+	setFilterMode(button) {
+		if (this.filterMode != null) {
+			//console.log('setFilterMode',this.filterMode,button)
+			let b = document.getElementById('b' + this.filterMode);
+			b.style.backgroundColor = 'white';
+			b.style.color = '#2196f3';
+		}
+		this.filterMode = button.id.substring(1);
+		button.style.backgroundColor = '#2196f3';
+		button.style.color = 'white';
+		// document.getElementById('b'+type).classList.add('toggleSelected');
+
+		this.highlightObjects();
 	}
 	unfilterTuples() {
 		let d = document.getElementById('divSelect');
