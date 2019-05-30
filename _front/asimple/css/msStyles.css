@@ -18,6 +18,8 @@
   fill: rgba(255, 0, 0, 0.6);
   z-index: 20;
 }
+.blink{ animation: aniblink .5s infinite;}
+@keyframes aniblink { from { opacity: .2; }  to { opacity: 1; }}
 
 .overlay {
   fill: transparent;
@@ -27,6 +29,12 @@
 }
 .overlay.selected{
   fill: rgba(255, 0, 0, 0.3);
+}
+.overlay.selGreen{
+  fill: rgba(0, 255, 0, 0.3);
+}
+.overlay.selBlue{
+  fill: rgba(0, 0, 255, 0.3);
 }
 .overlay:hover {
   /* fill:red;  */

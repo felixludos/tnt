@@ -159,7 +159,7 @@ class AHand {
       testText += " " + o.owner;
     }
 
-    ms.roundedRect({w: cardWidth, h: cardHeight, fill: "white"})
+    ms.roundedRect({className:'ground', w: cardWidth, h: cardHeight, fill: "white"})
       .text({txt: testText, fill: "red", y: cardHeight / 2, fz: cardWidth / 7})
       .textMultiline({txt: txt, maxWidth: cardWidth, fz: cardWidth / 7}) // / 6})
       .roundedRect({className: "overlay", w: cardWidth, h: cardHeight});

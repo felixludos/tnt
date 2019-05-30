@@ -8,14 +8,17 @@ class MS {
     this.isDrawn = false;
     this.isHighlighted = false;
     this.isSelected = false;
-    this.isEnabled = false;
+		this.isEnabled = false;
+		this.isBlinking = false;
+		this.isVisible = false;
     this.x = 0; // refers to center!
     this.y = 0;
     this.w = 0;
     this.h = 0;
     this.bounds = {l: 0, t: 0, r: 0, b: 0};
     this.overlay = null; //this is the overlay element for highlighting and selecting
-    this.data = {};
+		this.ground = null;
+		this.data = {};
     this.clickHandler = null;
     this.elem.addEventListener("click", this.onClick.bind(this));
   }
@@ -33,7 +36,38 @@ class MS {
     }
     //console.log("am ende:", this.overlay, cl, this.overlay.getAttribute("class"));
     return this;
-  }
+	}
+	toggle(){if (this.isVisible) this.hide(); else this.show();}
+	blink(){
+		if (this.isBlinking) return;
+		this.addClass('selGreen');
+		this.isBlinking = true;
+
+		// this.blinker = setInterval(this.toggle.bind(this),500);
+
+		//this.addClass('blink');
+
+		// if (this.ground){
+		// 	this.ground.setAttribute("class", 'blink');
+		// }
+	}
+	stopBlinking(){
+		if (!this.isBlinking) return;
+		this.removeClass('selGreen');
+		this.isBlinking = false;
+
+		// clearInterval(this.blinker);
+		// this.show();
+
+		//this.removeClass('blink');
+
+		// if (this.ground){
+		// 	this.ground.setAttribute("class", 'ground');
+		// }
+	}
+	frame(){
+
+	}
   circle({className = "", sz = 50, fill = "yellow", alpha = 1, x = 0, y = 0} = {}) {
     return this.ellipse({
       className: className,
@@ -74,7 +108,9 @@ class MS {
       ell.setAttribute("class", className);
       if (className.includes("overlay")) {
         this.overlay = ell; //set the interactive element!
-      }
+      }else if (className.includes('ground')){
+				this.ground = ell;
+			}
     }
     this.elem.appendChild(ell);
     return this;
@@ -123,13 +159,16 @@ class MS {
     this.elem.appendChild(r);
     return this;
 	}
-	makeUnselectable(handler){
+	makeUnselectable(){
 		this.unhighlight();
 		this.unselect();
 		this.clickHandler == null;
 		this.disable();
 	}
-	makeSelectable(){
+	makeSelectable(handler){
+		this.highlight();
+		this.enable();
+		this.clickHandler = handler;
 
 	}
   onClick(ev) {
@@ -160,7 +199,9 @@ class MS {
       r.setAttribute("class", className);
       if (className.includes("overlay")) {
         this.overlay = r; //set the interactive element!
-      }
+      } else if (className.includes('ground')){
+				this.ground = r;
+			}
     }
     this.elem.appendChild(r);
     return this;

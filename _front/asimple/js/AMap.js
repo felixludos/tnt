@@ -75,7 +75,8 @@ class AMap {
     let pos = this.assets.tilePositions[id];
     let sz = this.assets.SZ.tile;
     let ms = new MS(id, this.assets.getUniqueId(id), "mapG")
-      .circle({className: "overlay region", sz: sz})
+			.circle({className: "ground",fill:'transparent', sz: sz})
+			.circle({className: "overlay region", sz: sz})
       .setPos(pos.x, pos.y)
       .draw();
     return ms;
@@ -98,7 +99,7 @@ class AMap {
     let text = level;
     let rd = dlColor(0.5, 255, 0, 0);
     let fontColor = level != 2 ? "black" : rd;
-    ms.circle({fill: darker, alpha: 1, sz: szFrame})
+    ms.circle({className:'ground', fill: darker, alpha: 1, sz: szFrame})
       .circle({fill: color, alpha: 1, sz: szOuter})
       .image({path: imagePath, w: szImage, h: sz})
       .text({txt: text, fill: fontColor, fz: szImage - 5, weight: "bold"})

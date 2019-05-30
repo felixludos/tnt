@@ -121,7 +121,7 @@ class AUnits {
       let szImage = sz / 1.5;
       let y = szImage / 6;
       let ms = new MS(id, id, "mapG")
-        .roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
+        .roundedRect({className:'ground', w: sz, h: sz, fill: color, rounding: sz * 0.1})
         .roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
         .image({path: imagePath, y: y, w: szImage, h: szImage})
         .roundedRect({className: "unit overlay", w: sz, h: sz, fill: darker, rounding: sz * 0.1});

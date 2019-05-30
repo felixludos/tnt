@@ -516,7 +516,7 @@
 				// autoplay, cards, cardsNew, choice, choicemin, control, filter,
 				// init, load, log, map, moving, player, random, removed, request, response
 				// save, sender, skip, units, strategy
-				addIfComma('log, player, choicemin', execOptions.activatedTests);
+				addIfComma('filter, log, player, choicemin', execOptions.activatedTests);
 
 				onClickReload();
 				//sendInitSeed(H.player, H.start.seed, gameloop);
@@ -626,6 +626,7 @@
 				decider = new ADecisiongen(assets, map, cards, units, sender);
 			}
 			function resetAll() {
+				console.clear();
 				page.clearAllObjects();
 				assets.clear();
 			}

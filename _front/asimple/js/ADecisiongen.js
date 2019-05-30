@@ -15,7 +15,9 @@ class ADecisiongen {
 		this.decisionMode = 'seed'; // 'seed' | 'server' | 'manual'
 		this.seed = null;
 
-		this.filterMode = null; // 'unit' | 'action_card' | 'investment_card' | 'nation' | 'tile' | 'influence'
+		this.phase = null;
+		this.processed = {};
+		this.filterMode = null; // 'unit' | 'other' | 'nation' | 'tile' | 'influence'
 		this.setFilterMode(document.getElementById('btile'));
 		this.hoverTuple = null; //{id:id, msList:[ms,ms,...]} or null if no tuple is hovered over
 		this.msInTuples = {};
@@ -35,6 +37,7 @@ class ADecisiongen {
 		}
 		this.msInTuples = {};
 		this.msSelected = null;
+		this.processed = {};
 	}
 	clearHighlighting() {
 		this.clearHoverTuple();
@@ -47,8 +50,8 @@ class ADecisiongen {
 	clearHoverTuple() {
 		if (this.hoverTuple) {
 			for (const ms of this.hoverTuple.msList) {
-				if (ms == this.msSelected) continue;
-				ms.unselect();
+				//if (ms == this.msSelected) continue;
+				ms.stopBlinking(); //unselect();
 			}
 			this.hoverTuple = null;
 		}
@@ -88,22 +91,20 @@ class ADecisiongen {
 	filterList(ev) {
 		let idElem = evToId(ev);
 		unitTestFilter('filterList', idElem);
-		this.clearHighlighting();
-		if (this.msSelected != null && this.msSelected.elem.id == idElem) {
-			this.highlightObjects();
-			this.unfilterTuples();
-			this.msSelected = null;
-		} else {
-			let id = idElem in this.assets.uid2id ? this.assets.uid2id[idElem] : idElem;
-			let ms = this.msInTuples[id].ms;
-			this.msSelected = ms;
-			ms.select(); // select clicked tile
-			this.filterTuples(id);
-		}
+		let justUnfilter = this.msSelected && this.msSelected.elem.id == idElem;
+		//this.clearHighlighting();
+		this.resetFilter();
+		if (justUnfilter) return;
+		let id = idElem in this.assets.uid2id ? this.assets.uid2id[idElem] : idElem;
+		let ms = this.msInTuples[id].ms;
+		this.msSelected = ms;
+		ms.select(); // select clicked tile
+		this.filterTupleList(id);
 	}
-	filterTuples(id) {
-		this.clearHighlighting();
-		unitTestFilter('filterTuples', id);
+	filterTupleList(id) {
+		//hide tuples that do not contain id
+		//nothing changes in object highlighting!!!
+		unitTestFilter('filterTupleList', id);
 		let d = document.getElementById('divSelect');
 		let elTuples = arrChildren(d);
 		for (let i = 0; i < this.tuples.length; i++) {
@@ -114,11 +115,11 @@ class ADecisiongen {
 				//unitTestFilter(el, "should be hidden!!!");
 				el.style = 'display:none';
 			} else {
-				unitTestFilter('found match!', t.toString());
+				//unitTestFilter('found match!', t.toString());
 				//TODO: highlight related units on map if this is a movement tuple (length = 2)
 				for (const s of t) {
 					if (s == id) continue;
-					this.highlightObject(s);
+					this.selectObject(s);
 				}
 			}
 		}
@@ -130,6 +131,10 @@ class ADecisiongen {
 		this.autoplay = autoplay;
 		this.callback = callback;
 		this.tuples = G.tuples;
+		if (G.phase != this.phase) {
+			this.setPhaseFilter(G.phase);
+		}
+		console.log(this.phase);
 		this.tuple = null;
 		this.presentTuples(this.tuples);
 		this.choiceCompleted = false; //manual selection
@@ -139,9 +144,9 @@ class ADecisiongen {
 	}
 	highlightObject(s) {
 		// try if is a unit
-		if (s in this.msInTuples){
+		if (s in this.msInTuples) {
 			let ms = this.msInTuples[s].ms;
-			if (!ms.isHighlighted){
+			if (!ms.isHighlighted) {
 				ms.highlight();
 			}
 			return;
@@ -159,18 +164,54 @@ class ADecisiongen {
 				// ms.enable();
 				// ms.clickHandler = this.onSelectedUnit.bind(this);
 			}
-		}else if (s in this.map.tiles){
+		} else if (s in this.map.tiles) {
 			let ms = this.map.tiles[s];
 			this.msInTuples[s] = {id: s, ms: ms, type: 'tile'};
 			ms.highlight();
-		}else if (s in this.map.influences){
+		} else if (s in this.map.influences) {
 			let ms = this.map.influences[s];
 			this.msInTuples[s] = {id: s, ms: ms, type: 'influence'};
 			ms.highlight();
-		}else if (s in this.cards.visibleHand.cards){
+		} else if (s in this.cards.visibleHand.cards) {
 			let ms = this.map.influences[s];
 			this.msInTuples[s] = {id: s, ms: ms, type: 'card'};
 			ms.highlight();
+		}
+	}
+	selectObject(s) {
+		// try if is a unit
+		if (s in this.msInTuples) {
+			let ms = this.msInTuples[s].ms;
+			if (!ms.isSelected) {
+				ms.select();
+			}
+			return;
+		}
+		if (s in this.units.uis) {
+			let idUnit = s;
+			let unit = this.units.getUnit(idUnit);
+			unitTestFilter(s, 'is a candidate unit', unit);
+			if (unit) {
+				unitTestFilter('unit found!!!', unit);
+				let ms = unit.ms;
+				this.msInTuples[idUnit] = {id: idUnit, ms: ms, type: 'unit'};
+				ms.select();
+				return;
+				// ms.enable();
+				// ms.clickHandler = this.onSelectedUnit.bind(this);
+			}
+		} else if (s in this.map.tiles) {
+			let ms = this.map.tiles[s];
+			this.msInTuples[s] = {id: s, ms: ms, type: 'tile'};
+			ms.select();
+		} else if (s in this.map.influences) {
+			let ms = this.map.influences[s];
+			this.msInTuples[s] = {id: s, ms: ms, type: 'influence'};
+			ms.select();
+		} else if (s in this.cards.visibleHand.cards) {
+			let ms = this.map.influences[s];
+			this.msInTuples[s] = {id: s, ms: ms, type: 'card'};
+			ms.select();
 		}
 	}
 	highlightObjects() {
@@ -179,35 +220,93 @@ class ADecisiongen {
 			case 'unit':
 				this.highlightUnits();
 				break;
+			case 'nation':
+				this.highlightNations();
+				break;
+			case 'other':
+				this.highlightOther();
+				break;
+			case 'tile':
 			default:
 				this.highlightTiles();
 				break;
 		}
 	}
+	highlightNations() {
+		if (this.highlightProcessed('nation')) {
+			unitTestFilter('nation already processed!');
+			return;
+		} else {
+			this.processed['nation'] = {};
+		}
+		for (const t of this.tuples) {
+			if (any(t, s => s in this.map.nations)) {
+				let name = firstCond(t, s => s in this.map.nations);
+				let ms = this.map.nations[name];
+				ms.makeSelectable(this.filterList.bind(this));
+				this.msInTuples[ms.id] = {ms: ms, id: name, type: 'nation'};
+			}
+		}
+	}
+	highlightOther() {
+		if (this.highlightProcessed('other')) {
+			unitTestFilter('other already processed!');
+			return;
+		} else {
+			this.processed['other'] = {};
+		}
+		//betrifft eigentlich nur cards
+		for (const t of this.tuples) {
+			if (any(t, s => this.cards.inVisibleHand(s))) {
+				let name = firstCond(t, s => this.cards.inVisibleHand(s));
+				let ms = this.cards.getCardMs(name);
+				ms.makeSelectable(this.filterList.bind(this));
+				this.msInTuples[ms.id] = {ms: ms, id: name, type: 'other'};
+			}
+		}
+	}
 	highlightTiles() {
-		//highlight tiles in moves and caders if any:
+		if (this.highlightProcessed('tile')) {
+			unitTestFilter('tile already processed!');
+			return;
+		} else {
+			this.processed['tile'] = {};
+		}
 		for (const t of this.tuples) {
 			if (t.length >= 2 && any(t, s => this.assets.tileNames.includes(s))) {
 				let tilename = firstCond(t, s => this.assets.tileNames.includes(s));
 				let ms = this.map.tiles[tilename];
-				ms.highlight();
-				ms.enable();
-				ms.clickHandler = this.filterList.bind(this);
+				ms.makeSelectable(this.filterList.bind(this));
 				this.msInTuples[ms.id] = {ms: ms, id: tilename, type: 'tile'};
 			}
 		}
 	}
 	highlightUnits() {
+		if (this.highlightProcessed('unit')) {
+			unitTestFilter('unit already processed!');
+			return;
+		} else {
+			this.processed['unit'] = {};
+		}
 		for (const t of this.tuples) {
 			if (any(t, s => s in this.units.uis)) {
 				let id = firstCond(t, s => s in this.units.uis);
 				let ms = this.units.uis[id].ms;
-				ms.highlight();
-				ms.enable();
-				ms.clickHandler = this.filterList.bind(this);
+				ms.makeSelectable(this.filterList.bind(this));
 				this.msInTuples[ms.id] = {ms: ms, id: id, type: 'unit'};
 			}
 		}
+	}
+	highlightProcessed(type) {
+		if (type in this.processed) {
+			for (const id in this.msInTuples) {
+				const el = this.msInTuples[id];
+				if (el.type == type) {
+					el.ms.highlight();
+				}
+			}
+			return true;
+		} else return false;
 	}
 	highlightChosenTuple(tuple, msecs = 30) {
 		// highlight element in selection list
@@ -239,19 +338,41 @@ class ADecisiongen {
 		this.clearHoverTuple();
 	}
 	onEnterTuple(ev) {
-		let id = evToId(ev);
-		if (this.hoverTuple != null && this.hoverTuple.id == id) return;
-		let idx = firstNumber(id);
+		let idTuple = evToId(ev);
+		if (this.hoverTuple != null && this.hoverTuple.id == idTuple) return;
+		let idx = firstNumber(idTuple);
 		let tuple = this.tuples[idx];
-		this.hoverTuple = {id: id, msList: [], idx: idx, tuple: tuple};
-		for (const id of tuple) {
+		this.hoverTuple = {id: idTuple, msList: [], idx: idx, tuple: tuple};
+		for (const s of tuple) {
 			//get ms for this id
-			let ms = id in units.uis ? units.uis[id].ms : id in map.tiles ? map.tiles[id] : null;
-			if (!ms) ms = id in map.nations ? map.nations[id] : id in map.influences ? map.influences[id] : null;
-			if (!ms) ms = cards.inVisibleHand(id) ? cards.getCardMs(id) : null;
+			let type = null;
+			let ms = null;
+			if (s in this.msInTuples) {
+				ms = this.msInTuples[s].ms;
+			} else if (s in this.units.uis) {
+				ms = this.units.uis[s].ms;
+				type = 'unit';
+			} else if (s in this.map.tiles) {
+				ms = this.map.tiles[s];
+				type = 'tile';
+			} else if (s in this.map.nations) {
+				ms = this.map.nations[s];
+				type = 'nation';
+			} else if (s in this.map.influences) {
+				ms = this.map.influences[s];
+				type = 'nation';
+			} else if (this.cards.inVisibleHand(s)) {
+				ms = this.cards.getCardMs(s);
+				type = 'other';
+			}
 			if (ms) {
-				ms.select();
+				ms.blink();
+				unitTestFilter('blinking:', ms);
 				this.hoverTuple.msList.push(ms);
+				unitTestFilter('hover type of ms[' + s + ']:', ms.getTag('type'));
+				if (!(s in this.msInTuples)) {
+					this.msInTuples[s] = {id: s, ms: ms, type: type};
+				}
 			}
 		}
 	}
@@ -265,21 +386,6 @@ class ADecisiongen {
 			this.highlightChosenTuple(this.tuple);
 			this.callback(this.tuple);
 		}
-	}
-	onSelectedUnit(ev) {
-		// if (!this.selectionDone) {
-		//   let idUnit = evToId(ev);
-		//   //find tuple with this unit and the selected tile in it
-		//   for (const t of this.tuples) {
-		//     if (t.includes(this.msSelected.id) && t.includes(idUnit)) {
-		//       this.selectionDone = true;
-		//       this.clearHighlighting();
-		//       this.tuple = t;
-		//       this.highlightTuple(t);
-		//       this.callback(t);
-		//     }
-		//   }
-		// }
 	}
 	nextRandom(max) {
 		unitTestRandom('nextRandom max =', max, ', this.seed =', this.seed);
@@ -310,7 +416,9 @@ class ADecisiongen {
 			}
 		}
 
-		if (!this.autoplay) this.highlightTiles();
+		if (!this.autoplay) {
+			this.highlightObjects();
+		}
 	}
 	setFilterMode(button) {
 		if (this.filterMode != null) {
@@ -318,6 +426,7 @@ class ADecisiongen {
 			let b = document.getElementById('b' + this.filterMode);
 			b.style.backgroundColor = 'white';
 			b.style.color = '#2196f3';
+			this.resetFilter();
 		}
 		this.filterMode = button.id.substring(1);
 		button.style.backgroundColor = '#2196f3';
@@ -325,6 +434,40 @@ class ADecisiongen {
 		// document.getElementById('b'+type).classList.add('toggleSelected');
 
 		this.highlightObjects();
+	}
+	setPhaseFilter(newPhase) {
+		this.phase = newPhase;
+		show(document.getElementById('btile'));
+		show(document.getElementById('bunit'));
+		show(document.getElementById('bnation'));
+		show(document.getElementById('bother'));
+
+		switch (this.phase) {
+			case 'Setup':
+				hide(document.getElementById('bunit'));
+				hide(document.getElementById('bother'));
+				hide(document.getElementById('bnation'));
+				this.filterMode = 'tile';
+				break;
+			case 'Government':
+				this.filterMode = 'nation';
+				break;
+			case 'Battle':
+				this.filterMode = 'unit';
+				break;
+			default:
+				this.filterMode = 'tile';
+				break;
+		}
+	}
+	resetFilter() {
+		if (this.msSelected != null) {
+			//} && this.msSelected.elem.id == idElem) {
+			//unfilter list if is filtered already!
+			this.unfilterTuples();
+			this.highlightObjects();
+			this.msSelected = null;
+		}
 	}
 	unfilterTuples() {
 		let d = document.getElementById('divSelect');
