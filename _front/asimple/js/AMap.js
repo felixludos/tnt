@@ -3,11 +3,11 @@ class AMap {
   constructor(assets) {
     this.assets = assets;
     this.tiles = {};
-    this.nations = {};
     this.chips = {};
     this.influences = {}; //ms by id
     this.vpts = {Axis: [], West: [], USSR: []};
-    this.calculateStatsPositions();
+		this.calculateStatsPositions();
+		this.nations = this.assets.drawNationPositions();
   }
   calculateStatsPositions() {
     let arr = [];
@@ -134,18 +134,6 @@ class AMap {
     // ms.tag("level", level);
     // ms.tag("type", "influence");
     // return ms;
-  }
-  drawNationPositions() {
-    for (const id in this.assets.nationPositions) {
-      let pos = this.assets.nationPositions[id];
-      let sz = this.assets.SZ.influence;
-      let ms = new MS(id, assets.getUniqueId(id), "mapG")
-        .circle({className: "overlay nation", sz: sz})
-        .setPos(pos.x, pos.y)
-        .draw();
-
-      this.nations[id] = ms;
-    }
   }
   setPopulation(faction, n) {
     this.setChip("pop", "P", faction, n, "sienna");

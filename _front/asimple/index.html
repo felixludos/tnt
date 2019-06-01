@@ -26,6 +26,7 @@
 		<script src="/a/js/ACards.js"></script>
 		<script src="/a/js/AUnits.js"></script>
 		<script src="/a/js/AStrategy.js"></script>
+		<script src="/a/js/ADecisionUI.js"></script>
 		<script src="/a/js/ADecisiongen.js"></script>
 		<script src="/a/js/unitTests.js"></script>
 	</head>
@@ -38,10 +39,10 @@
 					<span id="dActive" class="hidden" style="margin-left:16px;color:rgb(0, 104, 0);">Select Action:</span>
 				</div>
 				<div id="selectFilterMode" style="margin:0px">
-					<button id="btile" onclick="decider.setFilterMode(this)" style="position:absolute;top:10px;left:190px;height:25px">tile</button>
-					<button id="bunit" onclick="decider.setFilterMode(this)" style="position:absolute;top:10px;left:260px;height:25px">unit</button>
-					<button id="bnation" onclick="decider.setFilterMode(this)" style="position:absolute;top:10px;left:330px;height:25px">nation</button>
-					<button id="bother" onclick="decider.setFilterMode(this)" style="position:absolute;top:10px;left:400px;height:25px">other</button>
+					<button id="btile" onclick="decider.UI.setHighlightType(this)" style="position:absolute;top:10px;left:190px;height:25px">tile</button>
+					<button id="bunit" onclick="decider.UI.setHighlightType(this)" style="position:absolute;top:10px;left:260px;height:25px">unit</button>
+					<button id="bnation" onclick="decider.UI.setHighlightType(this)" style="position:absolute;top:10px;left:330px;height:25px">nation</button>
+					<button id="bother" onclick="decider.UI.setHighlightType(this)" style="position:absolute;top:10px;left:400px;height:25px">other</button>
 					<!-- <option value="tile">show tile</option>
 					<option value="unit">show unit</option>
 					<option value="card">show card</option>
@@ -513,10 +514,14 @@
 		<!-- #region control flow -->
 		<script>
 			function startScript() {
-				// autoplay, cards, cardsNew, choice, choicemin, control, filter,
-				// init, load, log, map, moving, player, random, removed, request, response
+				// autoplay, cards, cardsNew, choice, choicemin, control, decision, 
+				// filter, filterByType,
+				// hover, init, load, log, map, moving, player, random, removed, request, response
 				// save, sender, skip, units, strategy
-				addIfComma('filter, log, player, choicemin', execOptions.activatedTests);
+				//(decision is new key for Decisiongen!)
+
+				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
+				addIfComma('filterByType', execOptions.activatedTests);
 
 				onClickReload();
 				//sendInitSeed(H.player, H.start.seed, gameloop);
@@ -739,6 +744,8 @@
 			var decider; //responsible for move generation
 
 			//execution starts here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			window.scrollTo(0, 0);
+
 			page = new NPage().initView().selectView();
 			panzoom('mapG'); //handles pan zoom on map
 			assets = new NAssets();

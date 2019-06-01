@@ -29,8 +29,20 @@ function unitTestChoicemin() {
 function unitTestControl() {
 	if (execOptions.activatedTests.includes('control')) console.log(...arguments);
 }
+function unitTestDecision() {
+	if (execOptions.activatedTests.includes('decision')) console.log(...arguments);
+}
 function unitTestFilter() {
 	if (execOptions.activatedTests.includes('filter')) console.log(...arguments);
+}
+function unitTestFilterByType() {
+	if (execOptions.activatedTests.includes('filterByType')) console.log(...arguments);
+}
+function unitTestFilterNation() {
+	if (execOptions.activatedTests.includes('filterNation')) console.log(...arguments);
+}
+function unitTestHover() {
+	if (execOptions.activatedTests.includes('hover')) console.log(...arguments);
 }
 function unitTestInit() {
 	if (execOptions.activatedTests.includes('init')) console.log(...arguments);

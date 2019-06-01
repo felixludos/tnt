@@ -38,6 +38,12 @@ class MS {
     return this;
 	}
 	toggle(){if (this.isVisible) this.hide(); else this.show();}
+	mouseDisable(){
+		this.addClass('mouseDisabled');
+	}
+	mouseEnable(){
+		this.removeClass('mouseDisabled');
+	}
 	blink(){
 		if (this.isBlinking) return;
 		this.addClass('selGreen');
@@ -133,7 +139,8 @@ class MS {
     this.isVisible = false;
   }
   highlight() {
-    //console.log('highlighting',this.id)
+		//console.log('highlighting',this.id)
+		if (this.isHighlighted) return;
     this.addClass("highlighted");
     this.isHighlighted = true;
   }
@@ -261,6 +268,7 @@ class MS {
     return this;
   }
   select() {
+		if (this.isSelected) return;
     //console.log('selecting',this.id)
     this.addClass("selected");
     //this.isHighlighted = false;
@@ -387,10 +395,12 @@ class MS {
     return this;
   }
   unhighlight() {
+		if (!this.isHighlighted) return;
     this.removeClass("highlighted");
     this.isHighlighted = false;
   }
   unselect() {
+		if (!this.isSelected) return;
     this.removeClass("selected");
     this.isSelected = false;
   }

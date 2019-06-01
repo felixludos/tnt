@@ -21,6 +21,10 @@
 .blink{ animation: aniblink .5s infinite;}
 @keyframes aniblink { from { opacity: .2; }  to { opacity: 1; }}
 
+.mouseDisabled{
+	pointer-events: none;
+}
+
 .overlay {
   fill: transparent;
 }

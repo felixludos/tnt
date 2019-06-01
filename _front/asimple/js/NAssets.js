@@ -4,7 +4,7 @@ class NAssets {
     this.tileNames;
     this.trackPositions = {};
     this.nationPositions = {};
-    this.nationNames;
+		this.nationNames;
     this.unitCountInfo;
     this.nationalityNames;
     this.unitTypeNames;
@@ -36,7 +36,8 @@ class NAssets {
       cardWidth: 100,
       cardHeight: 150,
       gap: 10,
-      chip: 40,
+			chip: 40,
+			nation:130,
       influence: 40
     };
     this.uid2id = {};
@@ -76,8 +77,8 @@ class NAssets {
         for (const idNation in data) {
           let id = replaceAll(idNation, " ", "_");
           this.nationPositions[id] = data[idNation];
-          map.drawNationPositions();
         }
+				//this.nations = this.drawNationPositions();
         this.nationNames = Object.keys(this.nationPositions);
         loadYML("/a/assets/config/unit_count.yml", data => {
           this.unitCountInfo = data;
@@ -134,7 +135,24 @@ class NAssets {
     this.uid2id = {};
     this.id2uid = {};
     this.uniqueIdCounter = 0;
+	}
+	drawNationPositions() {
+		unitTestFilterNation('drawNationPositions starting');
+		let nationDict = {};
+    for (const id in this.nationPositions) {
+      let pos = this.nationPositions[id];
+      let sz = this.SZ.nation;
+      let ms = new MS(id, this.getUniqueId(id), "mapG")
+        .circle({className: "overlay nation", sz: sz})
+        .setPos(pos.x, pos.y)
+        .draw();
+
+				nationDict[id] = ms;
+    }
+		unitTestFilterNation(nationDict);
+		return nationDict;
   }
+
   getUniqueId(id) {
     let uid = this.uniqueIdCounter + "_" + id;
     this.uniqueIdCounter += 1;
