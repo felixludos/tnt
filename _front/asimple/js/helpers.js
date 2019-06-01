@@ -195,6 +195,15 @@ function getListsContainingAll(ll, l) {
 	}
 	return res;
 }
+function intersection(arr1,arr2){ //each el in result will be unique
+	let res = [];
+	for (const a of arr1) {
+		if (arr2.includes(a)){
+			addIf(a,res);
+		}
+	}
+	return res;
+}
 function isEmpty(arr) {
 	return empty(arr);
 }

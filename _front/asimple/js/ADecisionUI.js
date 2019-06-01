@@ -82,17 +82,18 @@ class ADecisionUI {
 		}
 	}
 	filterByType() {
-		
 		let type = this.highlightType;
-		unitTestFilterByType('filterByType',type,this.tuples.length,this.ituplesByType[type].toString())
+		unitTestFilterByType('filterByType', type, this.tuples.length, this.ituplesByType[type].toString());
 		for (let i = 0; i < this.tuples.length; i++) {
-			if (!this.ituplesByType[type].includes(i)){
-				this.elTuples[i].style='display:none';
+			if (!this.ituplesByType[type].includes(i)) {
+				this.elTuples[i].style = 'display:none';
 			}
 		}
 	}
 	get(s) {
-		if (s in this.byS) return this.byS[s];
+		if (s in this.byS) {
+			return this.byS[s];
+		}
 
 		let type = null;
 		let ms = null;
@@ -153,17 +154,16 @@ class ADecisionUI {
 		//if more than 24 tuples (or as many as fit in visible tuple list)
 		//filter tuple list also
 
-		unitTestFilterByType('ids.length',ids.length)
-		if (this.tuples.length > 24) { //here need currently displayed ids!!!
+		unitTestFilterByType('ids.length', ids.length);
+		if (this.tuples.length > 24) {
+			//here need currently displayed ids!!!
 			this.filterByType();
 		}
-		
-
 	}
 	onExitTuple(ev) {
 		if (this.hoverTuple) {
 			unitTestHover('exit', this.hoverTuple.id);
-		}else{
+		} else {
 			unitTestHover('exit null');
 		}
 		this.clearHoverTuple();
@@ -181,7 +181,7 @@ class ADecisionUI {
 		}
 	}
 	restoreNoFilterHighlightType(highlight = true) {
-		this.elTuples.map(el => (el.style = ''));//all tuples are shown!
+		this.elTuples.map(el => (el.style = '')); //all tuples are shown!
 		this.clearHoverTuple();
 		for (const s of this.sInTuples) {
 			let ms = this.get(s).ms;
@@ -226,6 +226,23 @@ class ADecisionUI {
 				addIf(s, this.sInTuples);
 
 				let o = this.get(s);
+
+				//special case for names that are tiles and nations
+				if (['Albania', 'Malta', 'Gibraltar'].includes(s)) {
+					if (this.phase == 'Movement') {
+						if (t.length == 1) {
+							o.type = 'nation';
+						} else {
+							o.type = 'tile';
+						}
+					} else if (this.phase == 'Government') {
+						if (any(t, x => startsWith(x, 'action_'))) {
+							o.type = 'nation';
+						} else {
+							o.type = 'tile';
+						}
+					}
+				}
 
 				//s by type
 				addIfDict(o.type, s, this.byType);
@@ -280,7 +297,7 @@ class ADecisionUI {
 			this.unselectButton(this.buttons[this.highlightType]);
 		}
 		this.highlightType = button.id.substring(1);
-		unitTestFilterByType('setting new highlightType:',this.highlightType)
+		unitTestFilterByType('setting new highlightType:', this.highlightType);
 		this.selectButton(button);
 
 		this.restoreNoFilterHighlightType();
