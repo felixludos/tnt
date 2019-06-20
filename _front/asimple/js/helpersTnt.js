@@ -26,7 +26,7 @@ function getUnitOwner(nationality) {
   } else if (nationality == "Britain" || nationality == "France" || nationality == "USA") {
     return "West";
   } else {
-    return "Neutral";
+    return "Minor";
   }
 }
 function getVisibleSet(o) {

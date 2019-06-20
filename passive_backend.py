@@ -42,6 +42,8 @@ PHASES = adict({
 	'Movement': movement_phase,
 
 	'Combat': combat_phase,
+	'Land Battle': land_battle_phase, #@@
+	'Navel Battle': naval_battle_phase,
 	'Supply': supply_phase,
 	'Retreat': retreat_phase,
 
@@ -110,7 +112,7 @@ def format_out_message(player):
 	
 	if player in WAITING_ACTIONS:
 		out.actions = WAITING_ACTIONS[player]
-	else:
+	else: #@playerChange
 		out.waiting_for = xset(WAITING_ACTIONS.keys())
 	
 	out.log = G.logger.pull(player)
@@ -151,19 +153,22 @@ def process_actions(outtype, results, player):
 def evaluate_action(player=None, action=None):  # keeps going through phases until actions are returned
 	
 	out = None
-	
+	n=0
 	while out is None:
 		try:
 			phase = G.game.sequence[G.game.index]
+			print(n,'player',player,'action',action,'func',PHASES[phase]) #@@
+			n+=1
 			out = PHASES[phase](G, player=player, action=action)
 			player, action = None, None
 		except PhaseComplete:
+			G.logger.write('...phase: {} completed'.format(G.game.sequence[G.game.index]))
 			G.game.index += 1
 			
 			G.logger.write('Beginning phase: {}'.format(G.game.sequence[G.game.index]))
 			
 			# maybe save G to file
-			save_gamestate('temp.json')
+			#save_gamestate('temp.json')
 			
 			player, action = None, None
 			if DEBUG:
@@ -171,9 +176,11 @@ def evaluate_action(player=None, action=None):  # keeps going through phases unt
 				global PHASE_DONE
 				PHASE_DONE = True
 		except PhaseInterrupt as e:
+			G.logger.write('...phase {} interrupted to {}'.format(G.game.sequence[G.game.index], e.phase))
 			switch_phase(G, e.phase)
 			player, action = e.player, e.action
 		else:
+			G.logger.write('...back from phase {} without exception, out:{}'.format(G.game.sequence[G.game.index], out))
 			assert out is not None, 'Phase {} did not complete'.format(phase)
 	
 	return out
@@ -182,7 +189,6 @@ def evaluate_action(player=None, action=None):  # keeps going through phases unt
 
 
 def step(player, action):
-	
 	G.objects.created = tdict()
 	G.objects.updated = tdict()
 	G.objects.removed = tdict()
@@ -193,6 +199,7 @@ def step(player, action):
 	
 	try:
 		
+		print('step',player,action,'PHASE_DONE=',PHASE_DONE)
 		if PHASE_DONE:
 			PHASE_DONE = False
 			all_actions = evaluate_action()
@@ -357,6 +364,38 @@ def load_gamestate(path): # load from input file, or most recent checkpoint (mor
 	x, y, z = data['randstate']
 	rs = (x, tuple(y), z)
 	G.random.setstate(rs)
+
+	#need to convert so that G.objects.table points to same objects
+	#as G.player...units, G.tiles...
+	for id in G.objects.table:
+		o=G.objects.table[id]
+		if o.obj_type == 'unit':
+			owner = G.nations.designations[o.nationality]
+			if owner in G.players:
+				G.objects.table[id] = G.players[owner].units[id]
+		elif o.obj_type == 'tile':
+			G.objects.table[id] = G.tiles[id]
+		elif o.obj_type == 'influence':
+			nation = o.nation
+			G.objects.table[id] = G.diplomacy.influence[nation]
+	#is there any other type with replicated objects?
+	# do I need to mind updated, created, ...?		
+
 	if G is not None:
 		G.logger.write('Game loaded')
 
+def load_gamestate_orig(path): # load from input file, or most recent checkpoint (more safe)
+	data = json.load(open(path, 'r'))
+	global WAITING_OBJS, WAITING_ACTIONS, REPEATS, G, PHASE_DONE, DEBUG
+	WAITING_OBJS = convert_from_saveable(data['waiting_objs'])
+	WAITING_ACTIONS = convert_from_saveable(data['waiting_actions'])
+	REPEATS = convert_from_saveable(data['repeats'])
+	G = convert_from_saveable(data['gamestate'])
+	PHASE_DONE = data['phase_done']
+	DEBUG = data['debug']
+	G.random = random.Random()
+	x, y, z = data['randstate']
+	rs = (x, tuple(y), z)
+	G.random.setstate(rs)
+	if G is not None:
+		G.logger.write('Game loaded')

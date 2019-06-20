@@ -29,14 +29,6 @@ class ADecisionUI {
 		this.msSelected = null;
 		this.hoverTuple = null;
 	}
-	// clearElTuples() {
-	// 	if (this.elTuples) {
-	// 		this.elTuples.map(el => {
-	// 			el.removeEventListener('mouseenter', this.onEnterTuple);
-	// 			el.removeEventListener('mouseleave', this.onExitTuple);
-	// 		});
-	// 	}
-	// }
 	clearHoverTuple() {
 		unitTestHover('clearHoverTuple');
 		if (this.hoverTuple) {
@@ -140,13 +132,13 @@ class ADecisionUI {
 		//special case: if filterType is nation, hide tiles!
 		let tilesVisible = this.map.tiles['London'].isVisible;
 		let nationsVisible = this.map.nations['Britain'].isVisible;
-		if (this.highlightType == 'nation' && tilesVisible) {
-			Object.values(this.map.tiles).map(o => o.hide());
+		if (this.highlightType == 'nation') {
+			if (tilesVisible)	Object.values(this.map.tiles).map(o => o.hide());
 		} else if (!tilesVisible) {
 			Object.values(this.map.tiles).map(o => o.show());
 		}
-		if (this.highlightType == 'tile' && nationsVisible) {
-			Object.values(this.map.nations).map(o => o.hide());
+		if (this.highlightType == 'tile') {
+			if (nationsVisible) Object.values(this.map.nations).map(o => o.hide());
 		} else if (!nationsVisible) {
 			Object.values(this.map.nations).map(o => o.show());
 		}
@@ -185,9 +177,8 @@ class ADecisionUI {
 		this.clearHoverTuple();
 		for (const s of this.sInTuples) {
 			let ms = this.get(s).ms;
-			if (!ms) {
-				console.log(s, 'has no ms!');
-			} else {
+			if (ms) {
+				ms.stopBlinking();
 				ms.makeUnselectable();
 			}
 		}

@@ -1,7 +1,7 @@
 class ADecisiongen {
 	constructor(assets, map, cards, units, sender) {
 		this.autoplay = true;
-		this.decisionMode = 'seed'; // 'seed' | 'server' | 'manual'
+		this.decisionMode = 'server'; // 'seed' | 'server' | 'manual'
 		this.seed = null;
 
 		this.phase = null;

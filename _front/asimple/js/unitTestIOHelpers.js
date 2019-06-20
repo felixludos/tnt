@@ -41,6 +41,9 @@ function unitTestFilterByType() {
 function unitTestFilterNation() {
 	if (execOptions.activatedTests.includes('filterNation')) console.log(...arguments);
 }
+function unitTestGameloop() {
+	if (execOptions.activatedTests.includes('gameloop')) console.log(...arguments);
+}
 function unitTestHover() {
 	if (execOptions.activatedTests.includes('hover')) console.log(...arguments);
 }
@@ -68,6 +71,9 @@ function unitTestRandom() {
 function unitTestRemoved() {
 	if (execOptions.activatedTests.includes('removed')) console.log(...arguments);
 }
+function unitTestRemove() {
+	if (execOptions.activatedTests.includes('remove')) console.log(...arguments);
+}
 function unitTestRemovedCheck(data) {
 	return execOptions.activatedTests.includes('removed') && 'removed' in data && !empty(Object.keys(data.removed));
 }
@@ -83,11 +89,17 @@ function unitTestSave() {
 function unitTestSender() {
 	if (execOptions.activatedTests.includes('sender')) console.log(...arguments);
 }
+function unitTestServer() {
+	if (execOptions.activatedTests.includes('server')) console.log(...arguments);
+}
 function unitTestSkip() {
 	if (execOptions.activatedTests.includes('skip')) console.log(...arguments);
 }
 function unitTestUnits() {
 	if (execOptions.activatedTests.includes('units')) console.log(...arguments);
+}
+function unitTestUnitVisibility(){
+	if (execOptions.activatedTests.includes('visible')) console.log(...arguments);
 }
 function unitTestStrategy() {
 	if (execOptions.activatedTests.includes('strategy')) console.log(...arguments);

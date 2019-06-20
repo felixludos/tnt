@@ -32,7 +32,7 @@ def check_declarations(G, player):
 
 	nations = xset(nat for nat, info in G.nations.status.items() if not info.is_armed)
 	# nations -= G.players[player].diplomacy.violations
-
+	print('check_declarations nations ', nations)
 	options.add((nations,))
 
 	return options
@@ -70,6 +70,7 @@ def planning_phase(G, player, action):
 		G.logger.write('{} passes'.format(player))
 
 	elif head in faction.hand:
+		##spielt eine karte
 		G.temp.passes = 0
 		card = G.objects.table[head]
 		# if 'owner'
@@ -118,7 +119,8 @@ def planning_phase(G, player, action):
 		discard_cards(G, card._id)
 
 	if len(G.temp.commands):
-
+		##someone played cmd card
+		##players put in order of cards: G.temp.order contains players
 		G.temp.order = tlist(k for k, v in sorted(
 		    [(k, v.priority + ('e' if 'emergency' in v else '')) for k, v in G.temp.commands.items()], key=lambda x: x[1]))
 		G.logger.write('Play order is: {}'.format(', '.join(G.temp.order)))

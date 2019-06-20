@@ -165,3 +165,38 @@ input.chrome {
   border: none;
   cursor: pointer;
 }
+#dbuttons button {
+	float:left;
+  margin: 2px;
+  padding: 0px;
+  font-size: 12pt;
+  font-family: Verdana;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  background-color: #fff;
+  color: #2196f3;
+  border: none;
+  border-radius: 8px;
+  width: 62px;
+  height: 25px;
+}
+button :hover {
+  background-color: rgb(1, 48, 87);
+}
+/* #edit_area button:focus {
+  background-color: rgb(207, 181, 35);
+} */
+button :active {
+  background-color: rgb(233, 138, 134);
+}
+#btile :hover {
+  background-color: rgb(1, 48, 87);
+}
+.ismain {
+  background-color: rgb(1, 48, 87);
+}
+.bhov :active {
+  background-color: rgb(233, 138, 134);
+}
+

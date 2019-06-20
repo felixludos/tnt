@@ -238,7 +238,7 @@ def violation_of_neutrality(G, declarer, nation):  # including world reaction an
 		G.logger.write('{} loses {} influence in {} (losing POP={}, RES={})'.format(inf.faction, inf.value, nation, pop,
 		                                                                            res))
 		
-		convert_to_armed_minor(G, nation)
+	convert_to_armed_minor(G, nation) #$$
 		
 def convert_to_armed_minor(G, nation):
 	if nation in G.diplomacy.neutrals:

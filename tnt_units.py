@@ -110,7 +110,7 @@ def check_for_convoy(unit, tile):
 		del unit.carrying
 
 def remove_unit(G, unit):
-	player = G.nations[unit.nationality]
+	player = G.nations.designations[unit.nationality]
 	tilename = unit.tile
 
 	if unit.type == 'Convoy':
