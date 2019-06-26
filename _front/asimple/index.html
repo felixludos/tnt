@@ -526,11 +526,12 @@
 				// filter, filterByType, gameloop,
 				// hover, init, load, log, map, moving, player, random, 
 				// remove, removed, request, response
-				// save, sender, server, skip, units, strategy, visible
+				// save, sender, server, skip, units, strategy, visible,
+				// 8699
 				//(decision is new key for Decisiongen!)
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
-				addIfComma('server', execOptions.activatedTests);
+				addIfComma('8699,log,choicemin', execOptions.activatedTests);
 
 				onClickReload();
 				//onClickRestart();
@@ -604,6 +605,7 @@
 					para.innerHTML = data.log;
 					d.appendChild(para);
 					para.scrollIntoView();
+
 					unitTestLog(data.log);
 					unitTestServer(data.log);
 				}

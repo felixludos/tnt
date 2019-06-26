@@ -252,6 +252,7 @@ class AUnits {
 		unitTestUnits('updateCv', ms.id, ms.getTag('owner'), ms.getTag('tile'), 'to', cv);
 	}
 	updateVisibility(id, o, player) {
+		if (id == '8699') unitTest8('updateVisibility','old', o,'player', player);
 		unitTestUnitVisibility('updateVisibility','id', id,'o', o,'player', player);
 		let ms = id in this.uis ? this.uis[id].ms : null;
 		unitTestUnitVisibility('updateVisibility ms=', ms);
@@ -274,23 +275,6 @@ class AUnits {
 				ms.hide();
 			}
 		}
-		// if (idHidden) {
-		// 	unitTestUnitVisibility('updateVisibility idHidden=', idHidden);
-			
-		// 	unitTestUnitVisibility('updateVisibility idHidden=', idHidden);
-		// 	if (isVisibleToPlayer(o, player)) {
-		// 		if (ms) ms.show();
-		// 		else unitTestUnits('SERIOUS PROBLEM!!!!!!!! no unit but visible!', o);
-		// 		msHidden.hide();
-		// 	} else {
-		// 		if (ms) ms.hide();
-		// 		if (msHidden.getTag('count') > 0) msHidden.show();
-		// 		else unitTestUnitVisibility('unit hidden, hidden Unit counter 0',idHidden)
-		// 	}
-		// }else{
-		// 	unitTestUnits('no hidden unit for',idHidden);
-		// }
-
 	}
 	update(data, gObjects, player) {
 		if ('created' in data) {
@@ -363,6 +347,12 @@ class AUnits {
 							unitTestUnits('unit', id, 'has moved from', oldTile, 'to', gObjects[id].tile);
 							unitTestMoving('unit', id, 'has moved from', oldTile, 'to', gObjects[id].tile);
 						}
+
+						// *** visible change
+						if (d.summary.includes('visible')) {
+							gObjects[id].visible = o_new.visible;
+							this.uis[id].o.visible = o_new.visible;
+						}
 					}
 				}
 			}
@@ -416,19 +406,5 @@ class AUnits {
 		}
 		unitTestUnits('player', player, 'previousPlayer:', this.previousPlayer);
 		this.previousPlayer = player;
-
-		//show player's units!
-		// if (player != this.previousPlayer) {
-		//   for (const tile in this.units[player]) {
-		//     let unitList = this.units[player][tile];
-
-		//     for (const idUnit of unitList) {
-		//       this.uis[idUnit].ms.show();
-		//     }
-		//     let idHidden = this.getHiddenId(player, tile);
-		//     this.uis[idHidden].ms.hide();
-		//   }
-		//   this.previousPlayer = player;
-		// }
 	}
 }

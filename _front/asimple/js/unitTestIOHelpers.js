@@ -10,6 +10,9 @@ function testOutput(o) {
 		}
 	}
 }
+function unitTest8() {
+	if (execOptions.activatedTests.includes('8699')) console.log(...arguments);
+}
 
 function unitTestAutoplay() {
 	if (execOptions.activatedTests.includes('autoplay')) console.log(...arguments);

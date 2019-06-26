@@ -120,7 +120,7 @@ class ADecisionUI {
 		if (this.highlightType == 'other') {
 			this.extraTypes.map(t => this.byType[t].map(s => ids.push(s)));
 		}
-		unitTestFilterByType('highlightType:', this.highlightType, 'ids', ids.toString());
+		unitTestFilterByType('highlightType:', this.highlightType, 'ids', ids);
 
 		for (const s of ids) {
 			let ms = this.byS[s].ms;
@@ -133,7 +133,7 @@ class ADecisionUI {
 		let tilesVisible = this.map.tiles['London'].isVisible;
 		let nationsVisible = this.map.nations['Britain'].isVisible;
 		if (this.highlightType == 'nation') {
-			if (tilesVisible)	Object.values(this.map.tiles).map(o => o.hide());
+			if (tilesVisible) Object.values(this.map.tiles).map(o => o.hide());
 		} else if (!tilesVisible) {
 			Object.values(this.map.tiles).map(o => o.show());
 		}
@@ -212,7 +212,10 @@ class ADecisionUI {
 		for (const [i, t] of this.tuples.entries()) {
 			for (const s of t) {
 				//special rule: ignore nationalities and unit_types
-				if (this.assets.nationalityNames.includes(s) || this.assets.unitTypeNames.includes(s)) continue;
+				//except if singleton! dann muessen die in other!!!!!
+				if (this.assets.nationalityNames.includes(s) || this.assets.unitTypeNames.includes(s)) {
+					if (t.length > 1)	continue;
+				}
 
 				addIf(s, this.sInTuples);
 
@@ -267,11 +270,14 @@ class ADecisionUI {
 		//now ready to filter!
 		//set default button for phase in case of phaseChange
 		let recommendedHighlightType = this.checkPhaseChange(phase);
+		unitTestFilterByType('270: ',recommendedHighlightType)
 		if (!types.includes(recommendedHighlightType)) {
 			recommendedHighlightType = types[0];
+			unitTestFilterByType('273: ',recommendedHighlightType, types)
 			// noch besser: sortiere nach wieviele werte
 		}
 		this.highlightType = recommendedHighlightType;
+		unitTestFilterByType('nach setting highlightType 277: ',recommendedHighlightType,this.highlightType)
 		for (const t in this.buttons) {
 			if (t == this.highlightType) {
 				this.selectButton(this.buttons[t]);
@@ -288,7 +294,7 @@ class ADecisionUI {
 			this.unselectButton(this.buttons[this.highlightType]);
 		}
 		this.highlightType = button.id.substring(1);
-		unitTestFilterByType('setting new highlightType:', this.highlightType);
+		unitTestFilterByType('setting new highlightType 292:', this.highlightType);
 		this.selectButton(button);
 
 		this.restoreNoFilterHighlightType();
@@ -310,6 +316,7 @@ class ADecisionUI {
 		switch (this.phase) {
 			case 'Government':
 				return 'nation';
+			case 'Movement':
 			case 'Battle':
 				return 'unit';
 			case 'Spring':

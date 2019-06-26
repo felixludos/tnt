@@ -199,6 +199,7 @@ def fill_movement(G,
 	# friendly_only should be true for disengaging troops or strategic movement
 	# crossing is not None <=> unit_type == 'G'
 	# hidden_movement <=> unit_type in {'S', 'A'}
+	# disengaging should be (tile, neighbor)
 	# disengaging if None - not disengaging, if True - track border crossing, if (tile, neighbor) - add border option
 
 	if fuel == 0:

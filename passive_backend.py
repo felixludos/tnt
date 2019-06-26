@@ -180,7 +180,7 @@ def evaluate_action(player=None, action=None):  # keeps going through phases unt
 			switch_phase(G, e.phase)
 			player, action = e.player, e.action
 		else:
-			G.logger.write('...back from phase {} without exception, out:{}'.format(G.game.sequence[G.game.index], out))
+			#G.logger.write('...back from phase {} without exception, out None: {}'.format(G.game.sequence[G.game.index], (out == None)))
 			assert out is not None, 'Phase {} did not complete'.format(phase)
 	
 	return out

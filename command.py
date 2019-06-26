@@ -402,14 +402,14 @@ def encode_movement(G):
 
 def new_movement(G):
 	G.temp.battles = tdict()  # track new battles due to engaging
-	G.temp.has_moved = tset()  # units can only move once per movement phase
+	G.temp.has_moved = tdict()  # units can only move once per movement phase
 	G.temp.threats = tset()
 	G.temp.battle_groups = tdict()
 
 	active = G.temp.order[G.temp.active_idx]
 	G.logger.write('{} has {} command points for movement'.format(active, G.temp.commands[active].value))
 
-def movement_phase(G, player=None, action=None):  #@@@@@
+def movement_phase(G, player=None, action=None):  
 
 	if 'battles' not in G.temp:  # pseudo prephase
 		new_movement(G)
@@ -439,53 +439,23 @@ def movement_phase(G, player=None, action=None):  #@@@@@
 
 	elif head in faction.units:
 
-		destination, *border = tail  #is there a case for tail to have more than 1 element?
-		#@@@@@
-		# if len(tail)>1:
-		# 	print('>>>>>>>>>>>>>>ja, kann > 1 sein!!!',tail)
-		# elif 'crossings' in G.temp:
-		# 	print(G.temp.crossings)
-		# elif 'borders' in G.temp:
-		# 	print(G.temp.borders)
-		# else:
-		# 	print('no crossings, no borders!')
+		destination, *border = tail  
 
 		if len(border):
-			#if border not in G.temp.borders[player]: #@@@@@@
 			if border[0] not in G.temp.borders[player]:
 				G.temp.borders[player][border[0]] = 0
 			G.temp.borders[player][border[0]] += 1
 
 		unit = faction.units[head]
 
-		G.temp.has_moved.add(head)
+		G.temp.has_moved[head]=unit.tile
 
 		source = G.tiles[unit.tile]
-		#source.remove(unit._id) #@@@@@ eval_movement requires the unit moving no longer be on source
-		source.units.remove(unit._id)  #@@@@ eval_movement requires the unit moving no longer be on source
+		source.units.remove(unit._id)  
 
 		dest = G.tiles[destination]
 
-		#if 'alligence' in dest: #@@@@@
 		if 'alligence' in dest and 'threats' in G.temp:
-			#@@@@@@ orig code from here
-			# owner = dest.owner  #G.nations.designations[dest.alligence]
-			# if owner in G.temp.threats:  # controlled by player
-			# 	assert owner in G.players, 'how can {} be in threats'.format(owner)
-
-			# 	declaration_of_war(G, player, owner)
-
-			# 	G.temp.threats.remove(owner)
-
-			# owner = dest.alligence
-			# if owner in G.temp.threats:  # nation
-			# 	assert owner in G.nations.status, '{} mistaken as minor/major'.format(owner)
-
-			# 	violation_of_neutrality(G, player, owner)
-
-			# 	G.temp.threats.remove(owner)
-			#@@@@@@ to here
-			#new code because dest.owner need not be set
 			owner = ''
 			if 'owner' in dest and dest.owner in G.temp.threats:  # controlled by player
 				owner = dest.owner
