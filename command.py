@@ -479,7 +479,7 @@ def movement_phase(G, player=None, action=None):
 			G.temp.battles[destination] = player
 
 		if engaging or disengaging:  #@@@@@ hier hauts ihn auf! is this still relevant? yes for debugging, if this happens theres something wrong in movement generation code
-			assert len(border), 'no border was tracked, but unit is {}'.format('engaging' if engaging else 'disengaging')
+			assert len(border) or G.units.rules[unit.type].type != 'G', 'no border was tracked, but unit is {}'.format('engaging' if engaging else 'disengaging')
 
 		move_unit(G, unit, destination)
 

@@ -13,7 +13,7 @@ def combat_phase(G, player, action):
 		determine_stage(G, player)
 
 	c = G.temp.combat
-	head, *tail = None, None if not action else action
+	head, *tail = (None, None) if not action else action
 	if c.stage == 'done':
 		#finished a battle, ready to move on to next battle
 		#None,None params
@@ -29,12 +29,14 @@ def combat_phase(G, player, action):
 			#user has selected a battle or pass
 			#action must be a tile name or pass
 			if head == 'pass':
-				pass
+				c.battles_to_select.clear()
 			else:
-				c.battles_to_reveal.append(head)
+				c.battles_to_reveal[head]=player
 				add_battles_to_reveal(G, player)
 				#remove this battle from battles_to_select
 				c.battles_to_select.remove(head)
+			head = None
+
 		if not len(c.battles_to_select):
 			c.stage = 'next'
 		else:
@@ -43,11 +45,15 @@ def combat_phase(G, player, action):
 		if head:
 			#user has selected the next battle (a tile name)
 			c.battle = c.battles[head]
-			print('next battle:', head, c.battle)
-			c.battles.remove(head)
+			print('next battle:', head)
+			del c.battles[head]
 			c.stage = 'fight'
+		elif len(c.battles)>1:
+			return encode_options_for_next_battle(G, player)
 		else:
-			encode_options_for_next_battle(G, player)
+			c.stage = 'fight'
+			c.battle = c.battles.popitem()[1]
+
 	if c.stage == 'fight':
 		raise PhaseInterrupt('Land Battle')
 		#was ist danach?
@@ -85,6 +91,7 @@ def add_battles_to_reveal(G, player):
 		# b.intruder = c.battles_to_reveal[tile] #not sure about this!
 		b.owner = b.tile.owner  #SICHER RICHTIG
 		b.intruder = owners[1] if b.owner == owners[0] else owners[0]
+		assert G.temp.attacker == player,'ATTACKER != PLAYER!!!!!!'
 		b.attacker = G.temp.attacker  #GANZ SICHER RICHTIG
 		b.defender = owners[1] if b.attacker == owners[0] else owners[0]
 		print('owner', b.owner)

@@ -198,7 +198,7 @@ def roll_dice(G, b, player, opponent):
 		ndice *= 2
 	if b.fire.type == 'Fleet' and b.target_class == 'S':
 		limit = 3
-	dice_rolls = [5, 1, 2, 2, 3, 3, 3, 4, 4, 5, 6][:ndice]
+	dice_rolls = [5, 1, 2, 2, 3, 3, 3, 4, 4, 5, 6][:ndice] if b.idx % 2 else [1, 2, 2, 3, 3, 3, 4, 4, 5, 6, 5][:ndice]
 	outcome = sum(i <= limit for i in dice_rolls)
 	print('rolling', ndice, 'dice yields', outcome, 'hits')
 	return outcome
@@ -233,15 +233,19 @@ def land_battle_phase(G, player, action):
 			code = encode_cmd_options(G, player)
 
 			b.target_class = None
-			if len(code[player]) > 1:
+			if player == 'Minor':
+				b.target_class = 'G' if 'G' in b.opp_groups else b.opp_groupd[0]
+				G.logger.write('{} targeting {} {}'.format(player,opponent,b.target_class))
+				#just choose first possible target_class
+			elif len(code[player]) > 1:
 				G.logger.write('{} to select fire [target] or retreat [tile] command'.format(player))
 				return code
 			else:  #if only 1 option: go on to next stage
 				b.target_class = b.opp_groups[0]
-				if not player in G.players:
-					return encode_accept(G,opponent)
-				else:
-					return encode_accept(G, player)
+			if not player in G.players:
+				return encode_accept(G,opponent)
+			else:
+				return encode_accept(G, player)
 
 		else:
 			head, *tail = action
@@ -321,10 +325,13 @@ def land_battle_phase(G, player, action):
 		else:
 			c.stage = 'hit'
 			G.logger.write('battle vor recursive call: {}'.format(G.game.sequence[G.game.index]))
-			land_battle_phase(G, None, None)
+			code = land_battle_phase(G, None, None)
+			if code:
+				return code
 
-	if c.stage == 'done':
-		#increase idx,stage='fire'
+	if c.stage == 'done': #unit b.fire is done, reset b.hits
+		if 'hits' in b:
+			del b.hits
 		b.idx += 1
 		if b.idx >= len(b.fire_order):
 			if not 'past_battles' in G.temp:
