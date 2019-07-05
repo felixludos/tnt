@@ -1,8 +1,18 @@
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
 from tnt_cards import discard_cards
 from tnt_units import add_unit, move_unit, remove_unit
-from tnt_util import travel_options, fill_movement
+from tnt_util import travel_options, retreat_rebase_options, fill_movement
+from command import make_undisputed, switch_ownership
 import random
+
+def encode_list(G,player,lst): #lst is list of tuples
+	code = adict()
+	options = xset()
+	for t in lst:
+		options.add(t)
+	print('* * vor code[player]=options', options)
+	code[player] = options
+	return code
 
 def encode_accept(G, player):
 	#player = G.temp.order[G.temp.active_idx]
@@ -51,6 +61,7 @@ def calc_retreat_options_for_fire_unit(G, player, b, c):
 			b.retreat_options.append((id,G.temp.has_moved[id]))
 		else:
 			#unit can retreat into adjacent friendly territory
+			#TODO: extend for ANS units!
 			neighbors = tile.borders.keys()
 			for nei in neighbors:
 				if is_friendly_to_unit(G,id,u.group,nei,player):
@@ -203,6 +214,46 @@ def roll_dice(G, b, player, opponent):
 	print('rolling', ndice, 'dice yields', outcome, 'hits')
 	return outcome
 
+def calc_mandatory_rebase_options(G, player, b, c):
+	non_owner_units = [u for u in b.fire_order if u.owner != b.owner]
+	n_o_G = [u for u in non_owner_units if u.group == 'G']
+	n_o_ANS = [u for u in non_owner_units if u.group != 'G']
+	ground_support = len(n_o_G)>0
+	if len(n_o_ANS) and not ground_support:
+		options = xset()
+		b.mandatory_rebase_options = []
+		for ans in n_o_ANS:
+			unit = ans.unit
+			#if this unit has just moved in, retreat to same tile
+			if unit._id in G.temp.has_moved:
+				##options.add((unit._id,G.temp.has_moved[unit._id]))
+				#this unit has to move back to has_moved, so don't add to options
+				#just move it
+				##unit = G.players[player].units[id]
+				id = unit._id
+				destination = G.temp.has_moved[id]
+				move_unit(G, unit, destination)
+				b.fire_order = [u for u in b.fire_order if u.id != id]
+				#revert visibility to just owner!
+				unit.visible.clear()
+				unit.visible.add(player)
+				#TODO: mind border limits!!!!!!
+				G.logger.write('{} unit {} mandatory rebase to {}'.format(player,id,destination))
+			else:
+				locs = retreat_rebase_options(G, unit)
+				print('locs:',locs,type(locs))
+				if len(locs):
+					for loc in locs:
+						b.mandatory_rebase_options.append((unit._id,loc))
+					options.add((unit._id, locs))
+		if not len(options):
+			return None
+		else:
+			code = adict()
+			code[player] = options
+			G.logger.write('{} select rebase option for ANS units'.format(player))
+			return code
+
 def land_battle_phase(G, player, action):
 	c = G.temp.combat
 	b = c.battle
@@ -238,7 +289,7 @@ def land_battle_phase(G, player, action):
 				G.logger.write('{} targeting {} {}'.format(player,opponent,b.target_class))
 				#just choose first possible target_class
 			elif len(code[player]) > 1:
-				G.logger.write('{} to select fire [target] or retreat [tile] command'.format(player))
+				G.logger.write('{} to select fire+target_class or retreat+tile command'.format(player))
 				return code
 			else:  #if only 1 option: go on to next stage
 				b.target_class = b.opp_groups[0]
@@ -329,25 +380,33 @@ def land_battle_phase(G, player, action):
 			if code:
 				return code
 
+	if c.stage == 'rebasing':
+		#for this stage there must be an action which is one (unit,rebase_tile)
+		#remove options for this unit from options, and continue rebasing
+		#until b.mandatory_rebase_options is empty
+		#then goto stage 'after_rebasing'
+		head, *tail = action
+		uid = head
+		tilename = tail[0]
+		b.mandatory_rebase_options = [o for o in b.mandatory_rebase_options if o[0]!=id]
+		if len(b.mandatory_rebase_options):
+			#encode list of remaining tuples
+			return encode_list(G,player,b.mandatory_rebase_options)
+		else:
+			c.stage = 'after_rebasing'
+
 	if c.stage == 'done': #unit b.fire is done, reset b.hits
 		if 'hits' in b:
 			del b.hits
 		b.idx += 1
 		if b.idx >= len(b.fire_order):
-			if not 'past_battles' in G.temp:
-				G.temp.past_battles = []
-			G.temp.past_battles.append(G.temp.combat.battle)
-			del G.temp.combat.battle
-			G.logger.write('battle ended in {}'.format(b.tilename))
-			if no_enemy_units_left(G, c, b, player):
-				del G.tiles[b.tilename].disputed
-				G.tiles[b.tilename].owner = opponent
-				del G.tiles[b.tilename].aggressors
-			elif no_enemy_units_left(G, c, b, opponent):
-				del G.tiles[b.tilename].disputed
-				G.tiles[b.tilename].owner = player
-				del G.tiles[b.tilename].aggressors
-			raise PhaseComplete
+			#ANS must retreat/rebase if no friendly ground support!
+			code = calc_mandatory_rebase_options(G,player,b,c)
+			if code:
+				c.stage = 'rebasing'
+				return code
+			else:
+				c.stage = 'after_rebasing'
 		else:
 			b.fire = b.fire_order[b.idx]
 			c.stage = 'fire'  #to read away accept!
@@ -356,6 +415,35 @@ def land_battle_phase(G, player, action):
 				return encode_accept(G, player)
 			else:
 				return encode_accept(G, opponent)
+		
+	if c.stage == 'after_rebasing':		
+			#turn owner units back if owner is player!
+			if b.owner in G.players:
+				ownerUnits = [u for u in b.fire_order if u.owner == b.owner]
+				for u in ownerUnits:
+					unit = u.unit
+					unit.visible.clear()
+					unit.visible.add(b.owner)
+
+			if not 'past_battles' in G.temp:
+				G.temp.past_battles = []
+			G.temp.past_battles.append(G.temp.combat.battle)
+			G.logger.write('battle ended in {}'.format(b.tilename))
+			if no_enemy_units_left(G, c, b, player):#TODO do something else also done in command somewhere!!!
+				make_undisputed(G,b.tile)
+				if (b.owner != opponent):
+					switch_ownership(G,b.tile,opponent)
+				# G.tiles[b.tilename].owner = opponent
+			elif no_enemy_units_left(G, c, b, opponent):
+				make_undisputed(G,b.tile)
+				if (b.owner != player):
+					switch_ownership(G,b.tile,player)
+				# del G.tiles[b.tilename].disputed
+				# G.tiles[b.tilename].owner = player
+				# del G.tiles[b.tilename].aggressors
+			del G.temp.combat.battle
+			c.stage = 'done'
+			raise PhaseComplete
 
 def naval_battle_phase(G):
 	#special rule: ground units (convay) cannot engage or disengage at sea

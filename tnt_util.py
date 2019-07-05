@@ -453,3 +453,101 @@ def travel_options(G, unit):
 			options.add((dest,))
 
 	return options
+
+def retreat_rebase_options(G, unit):
+	pts = G.units.rules[unit.type].move
+	options = xset()
+
+	if pts == 0:
+		return options
+	#TODO: wenn engaged from tile1, need to retreat/rebase to that tile!
+
+	player = G.nations.designations[unit.nationality]
+	tile = G.tiles[unit.tile]
+	destinations = xset()
+	crossings = adict()
+	borders = G.temp.borders[player]  # past border crossings
+	ugroup = G.units.rules[unit.type].type
+	hidden_movement = ugroup == 'S' or ugroup == 'A'
+	disengaging = () #if 'disputed' in tile else None
+	fuel = pts #brauche nur non-strategic movement!
+	is_disengaging = True
+	defensive = True #das ist fuer non-strategic movement
+
+	#actually, ugroup cannot be 'G' since this is rebasing!
+	#if using it for retreat also, keep this!
+	xing = crossings if ugroup == 'G' else None #borders tracked?!?
+	current = xset()
+
+	#sea movement
+	if ugroup in 'NS' or (ugroup == 'G' and tile.type in movement_restrictions['sea']):  # sea movement
+		fill_movement(
+			    G,
+			    player,
+			    tile,
+			    current,
+			    crossings=xing,
+			    borders=borders,
+			    move_type='sea',
+			    fuel=fuel,
+			    disengaging=disengaging,
+			    friendly_only=defensive,
+			    hidden_movement=hidden_movement)
+		if len(crossings):
+			print('CROSSINGS', crossings)
+		else:
+			print('*********no crossings!')
+		if len(borders):
+			print('BORDERS', borders)
+		else:
+			print('*********no borders!')
+		# print(destinations)
+
+		destinations.update(current)
+		current = xset()
+
+	# land movement
+	if ugroup == 'G':  
+
+		fill_movement(
+				G,
+				player,
+				tile,
+				destinations,
+				crossings=xing,
+				borders=borders,
+				move_type='land',
+				fuel=fuel,
+				disengaging=disengaging,
+				friendly_only=defensive,
+				hidden_movement=hidden_movement)
+
+		destinations.update(current)
+		current = xset()
+
+	if ugroup == 'A':
+
+		fill_movement(
+				G,
+				player,
+				tile,
+				destinations,
+				crossings=xing,
+				borders=borders,
+				move_type='air',
+				fuel=fuel,
+				disengaging=disengaging,
+				friendly_only=defensive,
+				hidden_movement=hidden_movement)
+
+		destinations.update(current)
+
+	destinations.discard(unit.tile)
+
+	for dest in destinations:
+		if dest in crossings:
+			options.add((dest, crossings[dest]))
+		else:
+			options.add((dest,))
+
+	return options

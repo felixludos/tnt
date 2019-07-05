@@ -17,9 +17,6 @@ function unitTest8() {
 function unitTestAutoplay() {
 	if (execOptions.activatedTests.includes('autoplay')) console.log(...arguments);
 }
-function unitTestCard() {
-	if (execOptions.activatedTests.includes('card')) console.log(...arguments);
-}
 function unitTestCards() {
 	if (execOptions.activatedTests.includes('cards')) console.log(...arguments);
 }
@@ -67,9 +64,6 @@ function unitTestMap() {
 }
 function unitTestMoving() {
 	if (execOptions.activatedTests.includes('moving')) console.log(...arguments);
-}
-function unitTestMS() {
-	if (execOptions.activatedTests.includes('ms')) console.log(...arguments);
 }
 function unitTestPlayer() {
 	if (execOptions.activatedTests.includes('player')) console.log(...arguments);

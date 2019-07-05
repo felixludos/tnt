@@ -226,7 +226,11 @@ def hasFirstFire(G, player, utype):
 def prepare_combat_structs(G, player):
 	G.temp.combat = adict()
 	c = G.temp.combat
+
+	
+	#TODO: check ob relevant for current player!!!
 	battles_to_select = G.temp.potential_battles.copy()
+	#TODO hier nur die battles fuer den current player!!!!
 	battles_to_select -= G.temp.battles
 	c.battles_to_select = battles_to_select
 	c.opt_battles = battles_to_select
