@@ -227,14 +227,38 @@ def prepare_combat_structs(G, player):
 	G.temp.combat = adict()
 	c = G.temp.combat
 
-	
 	#TODO: check ob relevant for current player!!!
-	battles_to_select = G.temp.potential_battles.copy()
-	#TODO hier nur die battles fuer den current player!!!!
-	battles_to_select -= G.temp.battles
+	#G.temp.potential_battles tset
+	#G.temp.battles tdict
+	battles_to_select = tset()
+	for b in G.temp.potential_battles:
+		if b in G.temp.battles:
+			continue
+		tile = G.tiles[b]
+		is_relevant = False
+		for u in tile.units:
+			owner = G.nations.designations[u.nationality]
+			if owner == player:
+				is_relevant = True
+				break
+		if is_relevant:
+			battles_to_select.add(b)
 	c.battles_to_select = battles_to_select
+
+	battles_to_reveal = tdict()
+	for b in G.temp.battles:
+		if G.temp.battles[b] == player:
+			battles_to_reveal[b] = player
+		else:
+			print('RIESEN ERROR: new battle with another player!!!!',G.temp.battles[b])
+	c.battles_to_reveal = battles_to_reveal
+
+	# battles_to_select = G.temp.potential_battles.copy()
+	# #TODO hier nur die battles fuer den current player!!!!
+	# battles_to_select -= G.temp.battles
+	# c.battles_to_select = battles_to_select
 	c.opt_battles = battles_to_select
-	c.battles_to_reveal = G.temp.battles.copy()
+	# c.battles_to_reveal = G.temp.battles.copy()
 	c.battles = adict()
 	c.i_battle = None
 	add_battles_to_reveal(G, player)

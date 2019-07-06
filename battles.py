@@ -145,10 +145,14 @@ def calc_retreat_options_old(G, player, b, c):
 		#friendly neighbors
 		#retreat for Airforce
 
+def target_units_left(b, units, opponent):
+	return list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
+
+
 def calc_target_units_with_max_cv(b, units, opponent):
 	#apply damage
 	#find target units
-	b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
+	b.target_units = target_units_left(b, units, opponent) # list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 
 	# each Hit scored, reduce the currently
 	# strongest (largest CV) Enemy unit of the
@@ -156,7 +160,11 @@ def calc_target_units_with_max_cv(b, units, opponent):
 	# and Convoys lose two CV per Hit).
 
 	#find units with maximal cv
-	maxCV = max(u.cv for u in b.target_units)
+	maxCV = 0
+	for u in b.target_units:
+		if u.cv > maxCV:
+			maxCV = u.cv
+	#maxCV = max(u.cv for u in b.target_units)
 	units_max_cv = [u for u in b.target_units if u.cv == maxCV]
 	return units_max_cv
 
@@ -333,7 +341,8 @@ def land_battle_phase(G, player, action):
 		if not 'hits' in b:
 			b.hits = roll_dice(G, b, player, opponent)
 		G.logger.write('{} hits'.format(b.hits))
-		if b.hits > 0:
+		if b.hits > 0 and len(target_units_left(b,units,opponent)):
+			#TODO do not calc target_units_left twice!!!
 			b.hits -= 1
 			b.units_max_cv = calc_target_units_with_max_cv(b, units, opponent)
 			b.types_max_cv = list({u.type for u in b.units_max_cv})
