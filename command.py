@@ -70,10 +70,8 @@ def planning_phase(G, player, action):
 		G.logger.write('{} passes'.format(player))
 
 	elif head in faction.hand:
-		##spielt eine karte
 		G.temp.passes = 0
 		card = G.objects.table[head]
-		# if 'owner'
 		del card.owner
 		G.objects.updated[head] = card
 
@@ -429,7 +427,7 @@ def movement_phase(G, player=None, action=None):
 		# declaration_of_war(G, player, head)
 		G.temp.threats.add(head)
 
-		G.logger.write('{} has threatened to declare war on {}'.format(player, head))
+		G.logger.write('{} has declared war on {}'.format(player, head))
 
 	elif head in G.diplomacy.neutrals:  # TODO: use lazy threats - declarations only take effect when aggressing
 		# violation_of_neutrality(G, player, head)
@@ -442,9 +440,16 @@ def movement_phase(G, player=None, action=None):
 		destination, *border = tail  
 
 		if len(border):
-			if border[0] not in G.temp.borders[player]:
-				G.temp.borders[player][border[0]] = 0
-			G.temp.borders[player][border[0]] += 1
+			a=destination
+			b=border[0]
+			key = (a,b) if a < b else (b, a)
+
+			if key not in G.temp.borders[player]:
+				G.temp.borders[player][key] = 0
+			G.temp.borders[player][key] += 1
+			# if border[0] not in G.temp.borders[player]:
+			# 	G.temp.borders[player][border[0]] = 0
+			# G.temp.borders[player][border[0]] += 1
 
 		unit = faction.units[head]
 

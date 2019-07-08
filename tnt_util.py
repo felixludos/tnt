@@ -128,7 +128,8 @@ def placeable_units(G, player, nationality, tile_options):
 	return xset(options.values())
 
 def check_occupied(G, tile, player, wars, enemy=True):  # meant to check if rival or enemy troops
-
+	#enemy=True checks if this tile has units of enemy of player (including minors)
+	#enemy=False checks if
 	for uid in tile.units:
 		unit = G.objects.table[uid]
 		owner = G.nations.designations[unit.nationality]
@@ -141,32 +142,67 @@ def check_occupied(G, tile, player, wars, enemy=True):  # meant to check if riva
 
 	return False
 
-def tile_hostile(G, player, tile):
 
+
+
+
+
+
+######################
+# MOVEMENT CODE!!!!!
+######################
+def check_occupied_by_enemy(G, tile, player):
+	for uid in tile.units:
+		unit = G.objects.table[uid]
+		owner = G.nations.designations[unit.nationality]
+		if owner != player: 
+			return True
+	return False
+
+def check_occupied_by(G, tile, player):
+	for uid in tile.units:
+		unit = G.objects.table[uid]
+		owner = G.nations.designations[unit.nationality]
+		if owner == player:  # minor units are always enemies
+			return True
+	return False
+
+def tile_hostile(G, player, tile):
+	#a tile is hostile to player if
+	#has enemy troups on it
+	#is disputed
+	#owner is enemy
+
+	#returns 
+	# ... True if moving to this tile is considered engaging
+	# ... None if this tile is friendly (=owner by player and undisputed)
+	# ... False if this tile belongs to different player but 
+	#     player is not at war with or has threatened that other player
+	# (False means cannot engage but certain units can move through)
+
+	#wars[pl]==1 when player is at war with pl
 	wars = G.players[player].stats.at_war_with
 
 	if 'alligence' in tile:
-		if check_occupied(G, tile, player, wars, enemy=False):  # cant occupy same land tile as rival
-			return False
-		owner = G.nations.designations[tile.alligence]
-		if owner == player:
+		tile_owner = G.nations.designations[tile.alligence]
+		if tile_owner == player:
 			if 'disputed' in tile:
 				return True
-			return None
-		elif owner in G.players:
-			if not (wars[owner] or owner in G.temp.threats):
-				return False
-			elif check_occupied(G, tile, player, wars, enemy=True):
+			return None #why not returning False here?!?
+		elif tile_owner in G.players:
+			if not (wars[tile_owner] or tile_owner in G.temp.threats):
+				return False 
+			else:
 				return True
-			return None
 		elif tile.alligence in G.temp.threats:  # potential violation
 			return True if tile.muster > 0 else None
 		elif G.nations.status[tile.alligence].is_armed:  # entering armed minor
-			return True if check_occupied(G, tile, player, wars, enemy=True) else None
+			return True if check_occupied_by_enemy(G, tile, player) else None
 		else:
 			return False  # owner in decl # no access if occupied by nonenemy
 
-	elif check_occupied(G, tile, player, wars, enemy=True):
+	elif check_occupied_by_enemy(G, tile, player):
+		#TODO: find out when this happens and possibly check dow
 		return True
 	return None
 
@@ -229,7 +265,7 @@ def fill_movement(G,
 		# is access physically possible
 
 		if move_type in movement_restrictions \
-                   and neighbor.type not in movement_restrictions[move_type]: # invalid neighbor for move_type
+                     and neighbor.type not in movement_restrictions[move_type]: # invalid neighbor for move_type
 			continue
 
 		if move_type == 'sea' and neighbor.type == 'Coast':  # stop when reaching coast
@@ -454,6 +490,21 @@ def travel_options(G, unit):
 
 	return options
 
+######################
+# tawzz code
+######################
+def check_owned_by_enemy(G, tile, player):
+	if 'owner' in tile:
+		return tile.owner != player
+	owner = G.nations.designations[tile.alligence]
+	return owner != player
+
+def check_owned_by(G, tile, player):
+	if 'owner' in tile:
+		return tile.owner == player
+	owner = G.nations.designations[tile.alligence]
+	return owner == player
+
 def retreat_rebase_options(G, unit):
 	pts = G.units.rules[unit.type].move
 	options = xset()
@@ -469,30 +520,30 @@ def retreat_rebase_options(G, unit):
 	borders = G.temp.borders[player]  # past border crossings
 	ugroup = G.units.rules[unit.type].type
 	hidden_movement = ugroup == 'S' or ugroup == 'A'
-	disengaging = () #if 'disputed' in tile else None
-	fuel = pts #brauche nur non-strategic movement!
+	disengaging = ()  #if 'disputed' in tile else None
+	fuel = pts  #brauche nur non-strategic movement!
 	is_disengaging = True
-	defensive = True #das ist fuer non-strategic movement
+	defensive = True  #das ist fuer non-strategic movement
 
 	#actually, ugroup cannot be 'G' since this is rebasing!
 	#if using it for retreat also, keep this!
-	xing = crossings if ugroup == 'G' else None #borders tracked?!?
+	xing = crossings if ugroup == 'G' else None  #borders tracked?!?
 	current = xset()
 
 	#sea movement
 	if ugroup in 'NS' or (ugroup == 'G' and tile.type in movement_restrictions['sea']):  # sea movement
 		fill_movement(
-			    G,
-			    player,
-			    tile,
-			    current,
-			    crossings=xing,
-			    borders=borders,
-			    move_type='sea',
-			    fuel=fuel,
-			    disengaging=disengaging,
-			    friendly_only=defensive,
-			    hidden_movement=hidden_movement)
+		    G,
+		    player,
+		    tile,
+		    current,
+		    crossings=xing,
+		    borders=borders,
+		    move_type='sea',
+		    fuel=fuel,
+		    disengaging=disengaging,
+		    friendly_only=defensive,
+		    hidden_movement=hidden_movement)
 		if len(crossings):
 			print('CROSSINGS', crossings)
 		else:
@@ -507,20 +558,20 @@ def retreat_rebase_options(G, unit):
 		current = xset()
 
 	# land movement
-	if ugroup == 'G':  
+	if ugroup == 'G':
 
 		fill_movement(
-				G,
-				player,
-				tile,
-				destinations,
-				crossings=xing,
-				borders=borders,
-				move_type='land',
-				fuel=fuel,
-				disengaging=disengaging,
-				friendly_only=defensive,
-				hidden_movement=hidden_movement)
+		    G,
+		    player,
+		    tile,
+		    destinations,
+		    crossings=xing,
+		    borders=borders,
+		    move_type='land',
+		    fuel=fuel,
+		    disengaging=disengaging,
+		    friendly_only=defensive,
+		    hidden_movement=hidden_movement)
 
 		destinations.update(current)
 		current = xset()
@@ -528,17 +579,17 @@ def retreat_rebase_options(G, unit):
 	if ugroup == 'A':
 
 		fill_movement(
-				G,
-				player,
-				tile,
-				destinations,
-				crossings=xing,
-				borders=borders,
-				move_type='air',
-				fuel=fuel,
-				disengaging=disengaging,
-				friendly_only=defensive,
-				hidden_movement=hidden_movement)
+		    G,
+		    player,
+		    tile,
+		    destinations,
+		    crossings=xing,
+		    borders=borders,
+		    move_type='air',
+		    fuel=fuel,
+		    disengaging=disengaging,
+		    friendly_only=defensive,
+		    hidden_movement=hidden_movement)
 
 		destinations.update(current)
 
@@ -551,3 +602,6 @@ def retreat_rebase_options(G, unit):
 			options.add((dest,))
 
 	return options
+
+
+
