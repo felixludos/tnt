@@ -74,8 +74,10 @@ def contains_fortress(G, tile):
 	return False
 
 ######################
-# Diplomacy
+# Helpers
 ######################
+def encode_tuple_key(a, b):
+	return a + '_' + b
 
 ######################
 # Game Actions
@@ -142,12 +144,6 @@ def check_occupied(G, tile, player, wars, enemy=True):  # meant to check if riva
 
 	return False
 
-
-
-
-
-
-
 ######################
 # MOVEMENT CODE!!!!!
 ######################
@@ -155,7 +151,7 @@ def check_occupied_by_enemy(G, tile, player):
 	for uid in tile.units:
 		unit = G.objects.table[uid]
 		owner = G.nations.designations[unit.nationality]
-		if owner != player: 
+		if owner != player:
 			return True
 	return False
 
@@ -173,10 +169,10 @@ def tile_hostile(G, player, tile):
 	#is disputed
 	#owner is enemy
 
-	#returns 
+	#returns
 	# ... True if moving to this tile is considered engaging
 	# ... None if this tile is friendly (=owner by player and undisputed)
-	# ... False if this tile belongs to different player but 
+	# ... False if this tile belongs to different player but
 	#     player is not at war with or has threatened that other player
 	# (False means cannot engage but certain units can move through)
 
@@ -188,10 +184,10 @@ def tile_hostile(G, player, tile):
 		if tile_owner == player:
 			if 'disputed' in tile:
 				return True
-			return None #why not returning False here?!?
+			return None  #why not returning False here?!?
 		elif tile_owner in G.players:
 			if not (wars[tile_owner] or tile_owner in G.temp.threats):
-				return False 
+				return False
 			else:
 				return True
 		elif tile.alligence in G.temp.threats:  # potential violation
@@ -265,7 +261,7 @@ def fill_movement(G,
 		# is access physically possible
 
 		if move_type in movement_restrictions \
-                     and neighbor.type not in movement_restrictions[move_type]: # invalid neighbor for move_type
+                       and neighbor.type not in movement_restrictions[move_type]: # invalid neighbor for move_type
 			continue
 
 		if move_type == 'sea' and neighbor.type == 'Coast':  # stop when reaching coast
@@ -290,8 +286,9 @@ def fill_movement(G,
 
 		if crossings is not None and border in border_limits:
 			past = 0
-			if brd in borders:
-				past = borders[brd]
+			key = encode_tuple_key(brd[0],brd[1])
+			if key in borders:
+				past = borders[key]
 			limit = border_limits[border]
 			if border == 'Coast' and 'LSTs' in G.players[player].technologies:
 				limit += 1
@@ -505,13 +502,12 @@ def check_owned_by(G, tile, player):
 	owner = G.nations.designations[tile.alligence]
 	return owner == player
 
-def retreat_rebase_options(G, unit):
+def ANS_rebase_options(G, unit):
 	pts = G.units.rules[unit.type].move
 	options = xset()
 
 	if pts == 0:
 		return options
-	#TODO: wenn engaged from tile1, need to retreat/rebase to that tile!
 
 	player = G.nations.designations[unit.nationality]
 	tile = G.tiles[unit.tile]
@@ -602,6 +598,3 @@ def retreat_rebase_options(G, unit):
 			options.add((dest,))
 
 	return options
-
-
-

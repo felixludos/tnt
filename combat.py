@@ -166,13 +166,14 @@ def add_battles_to_reveal(G, player):
 			b.units.append(u)
 
 		b.fire_order = sorted(b.units, key=lambda u: u.priority * 10 + u.turn)
-
-		#moving this battle to fighting stage
-		print('battle is added')
-		print('battle is removed')
-		del c.battles_to_reveal[tile]
-		print('battles_to_reveal', c.battles_to_reveal)
-		print('battles_to_fight', c.battles)
+		# #moving this battle to fighting stage
+		# print('battle is added')
+		# print('battle is removed')
+		# del c.battles_to_reveal[tile] NOOOOOO!!!!!!!!!!!!!!
+		# print('battles_to_reveal', c.battles_to_reveal)
+		# print('battles_to_fight', c.battles)
+	c.battles_to_reveal.clear()
+	print(c.battles)
 
 def determine_stage(G, player):
 	c = G.temp.combat
@@ -182,7 +183,7 @@ def determine_stage(G, player):
 		c.stage = 'next'
 	else:
 		#in this case has to be 1!!!
-		assert (len(c.battles) == 1, 'NO BATTLES!!!')
+		assert len(c.battles) == 1, 'NO BATTLES!!!'
 		c.stage = 'fight'
 		c.battle = c.battles.popitem()[1]
 		print(c.battle)

@@ -1,176 +1,198 @@
 #test_area {
-  grid-area: test;
+	grid-area: test;
 }
 #status_area {
-  grid-area: status;
+	grid-area: status;
 }
 #menu_area {
-  grid-area: menu1;
+	grid-area: menu1;
 }
 #reserve_area {
-  grid-area: reserve;
-  width: 60px;
+	grid-area: reserve;
+	width: 60px;
 }
 #edit_area {
-  grid-area: edit;
-  width: 180px;
+	grid-area: edit;
+	width: 180px;
 }
 
 #select_area {
-  grid-area: select;
-  width: 280px;
-  height: 760px;
+	grid-area: select;
+	width: 280px;
+	height: 760px;
 }
-#next_area{
-  grid-area: next;
-  width: 468px;
+#next_area {
+	grid-area: next;
+	width: 468px;
 }
 #lwait_area {
-  grid-area: lwait;
-  width: 180px;
+	grid-area: lwait;
+	width: 180px;
 }
 
 #lselect_area {
-  grid-area: lselect;
-  width: 280px;
+	grid-area: lselect;
+	width: 280px;
 }
 
 #map_area {
-  grid-area: map;
+	grid-area: map;
 }
 
 #log_area {
-  grid-area: log;
-  height: 760px;
-  /* min-width: 150px; */
-  overflow-y: scroll;
+	grid-area: log;
+	height: 760px;
+	/* min-width: 150px; */
+	overflow-y: scroll;
 }
 #command_area {
-  grid-area: command;
-  /* min-width: 150px; */
+	grid-area: command;
+	/* min-width: 150px; */
 }
 #command2_area {
-  grid-area: command2;
+	grid-area: command2;
 }
 #chat_area {
-  grid-area: chat;
+	grid-area: chat;
 }
 #prop_area {
-  grid-area: props;
+	grid-area: props;
 }
 
 #hand_area {
-  grid-area: cards;
-  height: 200px;
+	grid-area: cards;
+	height: 200px;
 }
 #cards2_area {
-  grid-area: openCard;
-  height: 200px;
+	grid-area: openCard;
+	height: 200px;
+}
+#battle_area {
+	grid-area: battle;
+	height: 400px;
 }
 #cards3_area {
-  grid-area: invest;
-  height: 200px;
+	grid-area: invest;
+	height: 200px;
 }
 
 .grid_game_may {
-  display: grid;
-  grid-template-columns: 180px 280px 1190px auto;
-  grid-template-rows: 30px 760px auto auto;
-  grid-template-areas:
-    "next next status status"
-    "edit select map  log"
-    "edit command cards command2"
-    "edit command openCard command2";
-  /* "invest invest invest"; */
-  grid-gap: 8px;
-  background-color: #2196f3;
-  padding: 8px;
+	position: absolute;
+	display: grid;
+	grid-template-columns: 180px 280px 1190px auto;
+	grid-template-rows: 30px 760px auto auto;
+	grid-template-areas:
+		'next next status status'
+		'edit select map  log'
+		'edit command cards command2'
+		'edit command openCard command2';
+	/* "invest invest invest"; */
+	grid-gap: 8px;
+	background-color: #2196f3;
+	padding: 8px;
+}
+.grid_game_battle {
+	position: absolute;
+	display: grid;
+	grid-template-columns: 180px 280px 1190px auto;
+	grid-template-rows: 30px 760px auto auto auto;
+	grid-template-areas:
+		'next next status status'
+		'edit select map  log'
+		'edit command battle command2'
+		'edit command battle command2'
+		'edit command cards command2';
+	/* "invest invest invest"; */
+	grid-gap: 8px;
+	background-color: #2196f3;
+	padding: 8px;
 }
 
-
+/* __________________________ old ____________*/
 .grid_game_select {
-  display: grid;
-  grid-template-columns: 180px 280px 1190px auto;
-  grid-template-rows: 30px 760px auto auto;
-  grid-template-areas:
-    "lwait lselect status status"
-    "edit select map  log"
-    "edit command cards command2"
-    "edit command openCard command2";
-  /* "invest invest invest"; */
-  grid-gap: 8px;
-  background-color: #2196f3;
-  padding: 8px;
+	display: grid;
+	grid-template-columns: 180px 280px 1190px auto;
+	grid-template-rows: 30px 760px auto auto;
+	grid-template-areas:
+		'lwait lselect status status'
+		'edit select map  log'
+		'edit command cards command2'
+		'edit command openCard command2';
+	/* "invest invest invest"; */
+	grid-gap: 8px;
+	background-color: #2196f3;
+	padding: 8px;
 }
 
 .grid_game {
-  display: grid;
-  grid-template-columns: 60px 1190px auto;
-  grid-template-rows: auto 760px auto auto;
-  grid-template-areas:
-    "status status status"
-    "reserve map  log"
-    "cards cards command"
-    "openCard openCard command";
-  /* "invest invest invest"; */
-  grid-gap: 8px;
-  background-color: #2196f3;
-  padding: 8px;
+	display: grid;
+	grid-template-columns: 60px 1190px auto;
+	grid-template-rows: auto 760px auto auto;
+	grid-template-areas:
+		'status status status'
+		'reserve map  log'
+		'cards cards command'
+		'openCard openCard command';
+	/* "invest invest invest"; */
+	grid-gap: 8px;
+	background-color: #2196f3;
+	padding: 8px;
 }
 .grid_game_no_reserve {
-  display: grid;
-  grid-template-columns: 1190px auto;
-  grid-template-rows: auto 500px 260px auto auto auto;
-  grid-template-areas:
-    "status status"
-    "map  log"
-    "map  command"
-    "cards command"
-    "openCard openCard"
-    "invest invest";
-  grid-gap: 8px;
-  background-color: #2196f3;
-  padding: 8px;
+	display: grid;
+	grid-template-columns: 1190px auto;
+	grid-template-rows: auto 500px 260px auto auto auto;
+	grid-template-areas:
+		'status status'
+		'map  log'
+		'map  command'
+		'cards command'
+		'openCard openCard'
+		'invest invest';
+	grid-gap: 8px;
+	background-color: #2196f3;
+	padding: 8px;
 }
 
 .grid_test {
-  display: grid;
-  grid-template-columns: 60px 1190px auto;
-  grid-template-rows: auto auto auto 500px 260px auto auto auto;
-  grid-template-areas:
-    "menu1 menu1 menu1"
-    "test test test"
-    "status status status"
-    "reserve map  log"
-    "reserve map  command"
-    "cards cards command"
-    "openCard openCard openCard"
-    "invest invest invest";
-  grid-gap: 8px;
-  background-color: #2196f3;
-  padding: 8px;
+	display: grid;
+	grid-template-columns: 60px 1190px auto;
+	grid-template-rows: auto auto auto 500px 260px auto auto auto;
+	grid-template-areas:
+		'menu1 menu1 menu1'
+		'test test test'
+		'status status status'
+		'reserve map  log'
+		'reserve map  command'
+		'cards cards command'
+		'openCard openCard openCard'
+		'invest invest invest';
+	grid-gap: 8px;
+	background-color: #2196f3;
+	padding: 8px;
 }
 
 .grid_edit_old {
-  display: grid;
-  grid-template-columns: 60px 1190px auto;
-  grid-template-rows: auto auto 200px 760px auto auto auto;
-  grid-template-areas:
-    "menu1 menu1 menu1"
-    "status status status"
-    "test test test"
-    "reserve map  props"
-    "cards cards cards"
-    "openCard openCard openCard"
-    "invest invest invest";
-  grid-gap: 8px;
-  background-color: #22dd5a;
-  padding: 8px;
+	display: grid;
+	grid-template-columns: 60px 1190px auto;
+	grid-template-rows: auto auto 200px 760px auto auto auto;
+	grid-template-areas:
+		'menu1 menu1 menu1'
+		'status status status'
+		'test test test'
+		'reserve map  props'
+		'cards cards cards'
+		'openCard openCard openCard'
+		'invest invest invest';
+	grid-gap: 8px;
+	background-color: #22dd5a;
+	padding: 8px;
 }
 
 .grid_div {
-  background-color: rgba(255, 255, 255, 0.8);
-  text-align: center;
-  padding: 0;
-  font-size: 20pt;
+	position:relative;
+	background-color: rgba(255, 255, 255, 0.8);
+	text-align: center;
+	padding: 0;
+	font-size: 20pt;
 }

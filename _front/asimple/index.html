@@ -169,6 +169,11 @@
 					<g id="investmentDeckG"><text x="10" y="25" fill="grey">investment</text></g>
 				</svg>
 			</div>
+			<div id="battle_area" class="grid_div" style="height:400px">
+				<div style='position:absolute;top:0px;left:0px;width:100%;background-color:red'>combat</div>
+				<svg width="100%" height="100%" style="box-sizing:border-box;">
+				</svg>
+			</div>
 		</div>
 
 		<div id="dbuttons" style="position:fixed;left:190px;top:8px;width:286px;height:30px;margin:0px;padding:0">
@@ -240,6 +245,7 @@
 				fname = prompt('filename no ext.:');
 				onClickLoad(fname);
 			}
+
 			function onClickReload() {
 				let fname = document.getElementById('inFilename').value;
 				if (empty(fname)) {
@@ -249,6 +255,7 @@
 						fname = 'test1';
 					}
 				}
+				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
 				onClickLoad(fname);
 			}
 			function onClickResave() {
@@ -587,6 +594,13 @@
 				if ('info' in data) {
 					let info = data.info.game;
 					H.year = Number(info.year);
+					if (info.phase != H.phase){
+						if (info.phase == 'Combat' || info.phase == 'Land Battle'){
+							page.battleView();
+						}else{
+							page.selectView();
+						}
+					}
 					H.phase = info.phase;
 					if (info.player != H.player) {
 						unitTestPlayer('___ ', info.player, ':');

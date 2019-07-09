@@ -44,6 +44,9 @@ def calc_target_classes(b, units, opponent):
 
 def calc_retreat_options(G, player, b, c):
 	b.retreat_options = []
+	if b.fire.unit.type == 'Fortress':
+		return
+		
 	if player in G.players:
 		#tileneighbors
 		tile = b.tile

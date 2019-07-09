@@ -1,7 +1,7 @@
 from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete
 from tnt_cards import discard_cards
 from tnt_units import add_unit, move_unit, remove_unit
-from tnt_util import travel_options, retreat_rebase_options, fill_movement
+from tnt_util import travel_options, ANS_rebase_options, fill_movement
 from command import make_undisputed, switch_ownership
 import random
 
@@ -50,22 +50,45 @@ def calc_target_classes(b, units, opponent):
 	#brauche eigentlich nicht den type sondern die group!!!!
 	b.opp_groups = list({u.group for u in units if u.owner == opponent})
 
+def attacker_moved_from(G,b,player,tilenames):
+	result = []
+	for tilename in tilenames:
+		for u in b.fire_order:
+			id = u.unit._id
+			has_moved = G.temp.has_moved
+			if id in has_moved and has_moved[id]==tilename:
+				result.append(tilename)
+	return result
+
 def calc_retreat_options_for_fire_unit(G, player, b, c):
 	b.retreat_options = []
+
+	if b.fire.unit.type == 'Fortress':
+		return
+
 	if player in G.players:
 		tile = b.tile
 		u = b.fire
 		unit = u.unit
 		id = u.id
-		if id in G.temp.has_moved:
+		if player == b.attacker and id in G.temp.has_moved:
+			# attacker: ONLY to tile from wwhich moved if moved this turn!!!
 			b.retreat_options.append((id,G.temp.has_moved[id]))
-		else:
-			#unit can retreat into adjacent friendly territory
-			#TODO: extend for ANS units!
+		elif u.group == 'G':
 			neighbors = tile.borders.keys()
+			# if defender: not to tile from which attackers came
+			forbid = attacker_moved_from(G,b,player,neighbors) if player == b.defender else []
 			for nei in neighbors:
-				if is_friendly_to_unit(G,id,u.group,nei,player):
+				# G unit can retreat into adjacent undisputed friendly territory
+				if is_friendly_to_unit(G,id,u.group,nei,player) and not forbid.contains(nei):
 					b.retreat_options.append((id,nei))
+		else:
+			# ANS unit undisputed friendly within movement range
+			locs = ANS_rebase_options(G, unit)
+			print('locs:',locs,type(locs))
+			if len(locs):
+				for loc in locs:
+					b.retreat_options.append((id,loc))
 		print(b.retreat_options)
 
 def calc_all_retreat_options(G, player, b, c):
@@ -100,7 +123,7 @@ def calc_all_retreat_options(G, player, b, c):
 							continue
 						b.retreat_options.append((id,nei))
 			else: #ANS unit rebase options
-				locs = travel_options(G,u.unit)
+				locs = ANS_rebase_options(G,u.unit)
 				for loc in locs:
 					b.retreat_options.append((id,loc))
 
@@ -181,6 +204,8 @@ def find_tile_owner(G,tile):
 
 def is_friendly_to_unit(G,uid,ugroup,tilename,player):
 	tile = G.tiles[tilename]
+	if 'disputed' in tile:
+		return False
 	owner = find_tile_owner(G,tile)
 	if owner == player:
 		return True
@@ -233,7 +258,7 @@ def calc_mandatory_rebase_options(G, player, b, c):
 		for ans in n_o_ANS:
 			unit = ans.unit
 			#if this unit has just moved in, retreat to same tile
-			if unit._id in G.temp.has_moved:
+			if player == b.attacker and unit._id in G.temp.has_moved:
 				##options.add((unit._id,G.temp.has_moved[unit._id]))
 				#this unit has to move back to has_moved, so don't add to options
 				#just move it
@@ -248,7 +273,7 @@ def calc_mandatory_rebase_options(G, player, b, c):
 				#TODO: mind border limits!!!!!!
 				G.logger.write('{} unit {} mandatory rebase to {}'.format(player,id,destination))
 			else:
-				locs = retreat_rebase_options(G, unit)
+				locs = ANS_rebase_options(G, unit)
 				print('locs:',locs,type(locs))
 				if len(locs):
 					for loc in locs:
