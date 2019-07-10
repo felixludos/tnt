@@ -1,4 +1,4 @@
-//#region _HACKS
+//#region _HACKS and fieldSorter!!!
 function hackPhaseAndPlayerTest(msg) {
 	//console.log(msg);
 	let res = stringAfterLast(msg, 'Beginning ');
@@ -8,6 +8,17 @@ function hackPhaseAndPlayerTest(msg) {
 	let player = stringBefore(res1, ' ');
 	//console.log(res1, "player=" + player);
 }
+const fieldSorter = fields => (a, b) =>
+	fields
+		.map(o => {
+			let dir = 1;
+			if (o[0] === '-') {
+				dir = -1;
+				o = o.substring(1);
+			}
+			return a[o] > b[o] ? dir : a[o] < b[o] ? -dir : 0;
+		})
+		.reduce((p, n) => (p ? p : n), 0);
 
 //#endregion HACKS
 
@@ -1266,6 +1277,11 @@ function makeSvg(w, h) {
 	svg1.setAttribute('height', h);
 	return svg1;
 }
+function setCSSVariable(varName, val) {
+	let root = document.documentElement;
+	root.style.setProperty(varName, val);
+}
+
 function show(elem) {
 	if (isSvg(elem)) {
 		showSvg(elem);
@@ -1945,6 +1961,84 @@ function propDiff(o_old, o_new) {
 	return {onlyOld: onlyOld, onlyNew: onlyNew, propChange: propChange, summary: summary, hasChanged: hasChanged};
 }
 //#endregion object helpers
+
+//#region palette helpers
+function setCSSButtonColors(pal, ihue = 0) {
+	// takes a palette pal (sorted from darkest to lightest),
+	// sets css variables for button colors (used in layout.css):
+	// --bbg button background set to dark, --bhbg hover to light color, --babg press bg to medium
+	let root = document.documentElement;
+	let len = pal.length;
+	root.style.setProperty('--bbg', pal[0][ihue].b);
+	root.style.setProperty('--bhbg', pal[len - 1][ihue].b);
+	root.style.setProperty('--babg', pal[Math.floor(len / 2)][ihue].b);
+}
+function gen_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
+	//generates a palette = array of 7 arrays of nHues color pairs as {b:background,f:foreground}
+	//each color is a hsla string
+	//the 7 arrays are sorted from dark to light
+	//starting from hue (0 is red), 360 degrees of rainbow hues are divided into nHues equal arcs
+	//hue wheel in counter clockwise dir: 0=red,60=yellow,120=green,180=cyan,240=blue,300=magenta
+	//eg. pal=[[{b:h1darkest,f:h1df},{b:h2b,f:h2f},...],...,[{b:h1lightest,f:h1lf},...]]
+	// pal.length = 7, pal[0].length = nHues, pal[0][0] ... {b:c1,f:c2}
+	let hues = [];
+	let hueDiff = 360 / nHues;
+	for (let i = 0; i < nHues; i++) {
+		hues.push(hue);
+		hue += hueDiff;
+	}
+	let pal = [];
+	for (l of [15, 25, 35, 50, 65, 75, 85]) {
+		let palHues = [];
+		for (h of hues) {
+			cb = `hsla(${h},${sat}%,${l}%,${a})`; //hsla(120,100%,50%,0.3)
+			hopp = (h + 180) % 360;
+			cf = `hsla(${hopp},${sat}%,${l < 18 ? 100 : 0}%,${a})`; //hsla(120,100%,50%,0.3)
+			palHues.push({b: cb, f: cf});
+		}
+		pal.push(palHues);
+	}
+	//console.log('pal.length:', pal.length, ', pal[0].length:', pal[0].length, ', pal:', pal);
+	return pal;
+}
+function color_areas(nHues=2, iButtonHue=0,areaClass = 'area', gridDiv = 'grid_game') {
+	let hue1 = Math.floor(Math.random() * 360);
+	let pal = gen_palette(hue1, nHues);
+	setCSSButtonColors(pal,iButtonHue);
+	let areas = document.getElementsByClassName(areaClass);
+	let grid = document.getElementById(gridDiv);
+	grid.style.backgroundColor = pal[pal.length - 1][0].b;
+	idx = 0;
+	ihue = 0;
+	for (const a of areas) {
+		let cb = (a.style.backgroundColor = pal[idx][ihue].b);
+		let cf = (a.style.color = pal[idx][ihue].f);
+		//console.log('back', standardize_color(cb));
+		let hex = standardize_color(cb);
+
+		let f = complementaryColor(hex);
+		a.style.color = f; //nein
+
+		let rgbString = hex2rgb(hex);
+		let f2 = getTextColor(rgbString);
+		a.style.color = f2; //noch schlechter!
+
+		let f3 = niceColor(rgbString);
+		a.style.color = f3;
+
+		let f4 = blackOrWhite(cb);
+		a.style.color = f4; //geht
+
+		let f5 = idealTextColor(hex);
+		a.style.color = f5; //geht
+
+		idx += 1;
+		if (idx >= pal.length - 2) idx = 0;
+		ihue = (ihue + 1) % pal[0].length;
+		if (idx % pal[0].length == 0) ihue = (ihue + 1) % pal[0].length;
+	}
+}
+//endregion
 
 //#region set and tuple helpers
 function extractUniqueStrings(tupleList) {

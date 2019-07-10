@@ -502,6 +502,9 @@ def check_owned_by(G, tile, player):
 	owner = G.nations.designations[tile.alligence]
 	return owner == player
 
+def is_land_area(G,tilename):
+	return G.tiles[tilename].type in ['Land','Coast','Strait']
+
 def ANS_rebase_options(G, unit):
 	pts = G.units.rules[unit.type].move
 	options = xset()
@@ -588,8 +591,15 @@ def ANS_rebase_options(G, unit):
 		    hidden_movement=hidden_movement)
 
 		destinations.update(current)
+		#air cannot rebase to sea areas!
+		#eliminate those from dest
+
 
 	destinations.discard(unit.tile)
+	
+	#air rebase only to land area
+	if ugroup == 'A':
+		destinations = [d for d in destinations if is_land_area(G,d)]
 
 	for dest in destinations:
 		if dest in crossings:

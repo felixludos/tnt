@@ -4,6 +4,7 @@ from tnt_units import add_unit, move_unit
 from tnt_util import travel_options
 from government import check_revealable, reveal_tech
 from structures.common import condensed_str
+from battles import encode_accept
 
 def combat_phase(G, player, action):
 	player = G.temp.attacker
@@ -41,8 +42,13 @@ def combat_phase(G, player, action):
 			c.stage = 'next'
 		else:
 			return encode_battles_to_select(G, player)
+	
 	if c.stage == 'next':
-		if head:
+		if head == 'accept':
+			#just accepted only combat available
+			c.stage = 'fight'
+			c.battle = c.battles.popitem()[1]
+		elif head:
 			#user has selected the next battle (a tile name)
 			c.battle = c.battles[head]
 			print('next battle:', head)
@@ -50,9 +56,8 @@ def combat_phase(G, player, action):
 			c.stage = 'fight'
 		elif len(c.battles)>1:
 			return encode_options_for_next_battle(G, player)
-		else:
-			c.stage = 'fight'
-			c.battle = c.battles.popitem()[1]
+		else: #there is only 1 battle
+			return encode_accept(G,player)
 
 	if c.stage == 'fight':
 		raise PhaseInterrupt('Land Battle')

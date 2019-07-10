@@ -80,7 +80,7 @@ def calc_retreat_options_for_fire_unit(G, player, b, c):
 			forbid = attacker_moved_from(G,b,player,neighbors) if player == b.defender else []
 			for nei in neighbors:
 				# G unit can retreat into adjacent undisputed friendly territory
-				if is_friendly_to_unit(G,id,u.group,nei,player) and not forbid.contains(nei):
+				if is_friendly_to_unit(G,id,u.group,nei,player) and not nei in forbid:
 					b.retreat_options.append((id,nei))
 		else:
 			# ANS unit undisputed friendly within movement range
@@ -197,9 +197,10 @@ def find_unit_owner(G,unit):
 def find_tile_owner(G,tile):
 	if 'owner' in tile:
 		return tile.owner
-	nation = tile.alligence
-	if nation in G.nations.designations:
-		return G.nations.designations[nation]
+	if 'alligence' in tile:
+		nation = tile.alligence
+		if nation in G.nations.designations:
+			return G.nations.designations[nation]
 	return None
 
 def is_friendly_to_unit(G,uid,ugroup,tilename,player):
@@ -209,11 +210,11 @@ def is_friendly_to_unit(G,uid,ugroup,tilename,player):
 	owner = find_tile_owner(G,tile)
 	if owner == player:
 		return True
-	if tile.type == 'sea':
+	if tile.type == 'Sea' or tile.type == 'Ocean':
 		if ugroup == 'G': #if G unit, sea area only counts as friendly if occupied by own units
 			units = [u for u in tile.units if find_unit_owner(G,u)==player]
 			return len(units)>0
-		else: #if ANS unit, sea area that is unoccupied counts as friendly
+		else: #if ANS unit, sea area that is unoccupied by enemy counts as friendly
 			units = [u for u in tile.units if find_unit_owner(G,u)!=player]
 			return len(units)==0
 	return False
@@ -294,8 +295,10 @@ def land_battle_phase(G, player, action):
 	if not 'fire' in b:
 		b.idx = 0
 		b.fire = b.fire_order[b.idx]
-		c.stage = 'cmd'
 		G.logger.write('land battle starting in {}'.format(b.tilename))
+		c.stage = 'fire'
+		player = b.attacker if b.attacker in G.players else b.defender			
+		return encode_accept(G,player)
 
 	player = b.fire.owner
 	is_defender = player == b.defender
@@ -315,17 +318,21 @@ def land_battle_phase(G, player, action):
 			calc_retreat_options_for_fire_unit(G, player, b, c)
 			#encode fire or retreat options
 			code = encode_cmd_options(G, player)
-
+			#determining target class:
 			b.target_class = None
 			if player == 'Minor':
-				b.target_class = 'G' if 'G' in b.opp_groups else b.opp_groupd[0]
+				#just 'G' or choose first possible target_class
+				#TODO: refine target_class selection for minor!
+				b.target_class = 'G' if 'G' in b.opp_groups else b.opp_groups[0]
 				G.logger.write('{} targeting {} {}'.format(player,opponent,b.target_class))
-				#just choose first possible target_class
 			elif len(code[player]) > 1:
 				G.logger.write('{} to select fire+target_class or retreat+tile command'.format(player))
+				#player needs to pick target_class: return options
 				return code
 			else:  #if only 1 option: go on to next stage
 				b.target_class = b.opp_groups[0]
+
+			#b.target_class is known, still returning for accept:
 			if not player in G.players:
 				return encode_accept(G,opponent)
 			else:
@@ -464,17 +471,13 @@ def land_battle_phase(G, player, action):
 			G.temp.past_battles.append(G.temp.combat.battle)
 			G.logger.write('battle ended in {}'.format(b.tilename))
 			if no_enemy_units_left(G, c, b, player):#TODO do something else also done in command somewhere!!!
-				make_undisputed(G,b.tile)
+				make_undisputed(G,G.tiles[b.tilename])
 				if (b.owner != opponent):
-					switch_ownership(G,b.tile,opponent)
-				# G.tiles[b.tilename].owner = opponent
+					switch_ownership(G,G.tiles[b.tilename],opponent)
 			elif no_enemy_units_left(G, c, b, opponent):
-				make_undisputed(G,b.tile)
+				make_undisputed(G,G.tiles[b.tilename])
 				if (b.owner != player):
-					switch_ownership(G,b.tile,player)
-				# del G.tiles[b.tilename].disputed
-				# G.tiles[b.tilename].owner = player
-				# del G.tiles[b.tilename].aggressors
+					switch_ownership(G,G.tiles[b.tilename],player)
 			del G.temp.combat.battle
 			c.stage = 'done'
 			raise PhaseComplete

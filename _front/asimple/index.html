@@ -170,8 +170,9 @@
 				</svg>
 			</div>
 			<div id="battle_area" class="grid_div" style="height:400px">
-				<div style='position:absolute;top:0px;left:0px;width:100%;background-color:red'>combat</div>
+				<div style="position:absolute;top:0px;left:0px;width:100%;background-color:red">combat</div>
 				<svg width="100%" height="100%" style="box-sizing:border-box;">
+					<g id="battleG"></g>
 				</svg>
 			</div>
 		</div>
@@ -246,7 +247,7 @@
 				onClickLoad(fname);
 			}
 
-			function onClickReload() {
+			function onClickReload(defaultFName) {
 				let fname = document.getElementById('inFilename').value;
 				if (empty(fname)) {
 					//reload lastFile
@@ -256,6 +257,7 @@
 					}
 				}
 				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
+				if (defaultFName) fname = defaultFName;
 				onClickLoad(fname);
 			}
 			function onClickResave() {
@@ -522,6 +524,49 @@
 		</script>
 		<!-- #endregion handlers -->
 
+		<!-- #region battle presentation -->
+		<script>
+			function addPara(divElem,text){
+				let p = document.createElement('p');
+				p.textContent = text;
+				divElem.appendChild(p);
+			}
+			function make_battle_rep(loc,info){
+				//make a div of 600x400
+				//can use css for that!
+			}
+			function present_battle_overview(data) {
+				//this is done when combat phase starts
+				let c = data.temp.combat;
+				
+				let d = document.getElementById('battle_area');
+				clearElement(d);
+				addPara(d,'Combat is starting with '+data.temp.attacker+' as attacker!');
+
+				//presentation is done in battle_area
+				//at this stage all battles have been selected and first battle will be determined
+				//this function is called each time when c.stage == 'next'
+				//if only 1 in c.battles, c.battle is already set and title will be: 
+				let n = Object.keys(c.battles).length;
+				let battleNames = Object.keys(c.battles).join(', ');
+				for (const b in c.battles) {
+					let tilename = b;
+					let info = c.battles[b];
+					let elem = make_battle_rep(tilename,info)
+				}
+				addPara(d,n>1?''+n+' battles will be fought in '+battleNames:'Battle of '+Object.keys(c.battles)[0]);
+			}
+
+			function updateBattle(c) {
+				let b = c.battle;
+				let stage = c.stage;
+				//title of battle should
+				if (stage == 'fire') {
+				}
+			}
+		</script>
+		<!-- #endregion battle presentation -->
+
 		<!-- #region control flow -->
 		<script>
 			function startScript() {
@@ -538,9 +583,9 @@
 				//(decision is new key for Decisiongen!)
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
-				addIfComma('8699,log,choicemin', execOptions.activatedTests);
+				addIfComma('gameloop,log,choicemin', execOptions.activatedTests);
 
-				onClickReload();
+				onClickReload('axis4_dow6_select_battle');
 				//onClickRestart();
 			}
 			function gameloop(data) {
@@ -588,16 +633,22 @@
 				map.update(data, H.objects);
 				units.update(data, H.objects, H.player);
 				H.tuples = getTuples(data);
+				if (H.phase.includes('Battle')) updateBattle(data.temp.combat);
 			}
+
 			function updateMovePlayerPhaseYear(data) {
 				H.moveCounter += 1;
 				if ('info' in data) {
 					let info = data.info.game;
 					H.year = Number(info.year);
-					if (info.phase != H.phase){
-						if (info.phase == 'Combat' || info.phase == 'Land Battle'){
+					//handle phase change
+					if (info.phase != H.phase) {
+						unitTestGameloop('PHASE CHANGE!!!', H.phase, 'turning to:',info.phase);
+						if ((H.phase == 'Setup' || H.phase == 'Movement') && info.phase == 'Combat') {
+							unitTestGameloop('NEW COMBAT PHASE!!!!!!!!!!!!!!!!');
 							page.battleView();
-						}else{
+							present_battle_overview(data);
+						} else if (info.phase == 'Movement') {
 							page.selectView();
 						}
 					}

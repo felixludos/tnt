@@ -42,6 +42,8 @@
 				"Production",
 				"Government",
 				"Spring",
+				"Land Battle",
+				"Combat",
 				"Movement",
 				"Summer",
 				"Blockade",
@@ -995,7 +997,6 @@
 							118482,
 							118967,
 							119454,
-							97370,
 							97763
 						]
 					},
@@ -1072,7 +1073,7 @@
 						]
 					},
 					"owner": "West",
-					"disputed": true,
+					"disputed": 1,
 					"aggressors": [
 						"Axis"
 					],
@@ -5075,33 +5076,24 @@
 					"obj_type": "unit",
 					"visible": {
 						"xset": [
+							"Axis",
+							"USSR",
 							"West"
 						]
 					},
 					"_id": 96979
-				},
-				"97370": {
-					"nationality": "Germany",
-					"tile": "Lorraine",
-					"type": "Infantry",
-					"obj_type": "unit",
-					"cv": 2,
-					"visible": {
-						"xset": [
-							"Axis"
-						]
-					},
-					"_id": 97370
 				},
 				"97763": {
 					"nationality": "Germany",
 					"tile": "Lorraine",
 					"type": "Infantry",
 					"obj_type": "unit",
-					"cv": 2,
+					"cv": 1,
 					"visible": {
 						"xset": [
-							"Axis"
+							"Axis",
+							"USSR",
+							"West"
 						]
 					},
 					"_id": 97763
@@ -5270,7 +5262,9 @@
 					"cv": 1,
 					"visible": {
 						"xset": [
-							"Axis"
+							"Axis",
+							"USSR",
+							"West"
 						]
 					},
 					"_id": 103054
@@ -5647,6 +5641,8 @@
 					"cv": 2,
 					"visible": {
 						"xset": [
+							"Axis",
+							"USSR",
 							"West"
 						]
 					},
@@ -5686,6 +5682,8 @@
 					"cv": 1,
 					"visible": {
 						"xset": [
+							"Axis",
+							"USSR",
 							"West"
 						]
 					},
@@ -5699,6 +5697,8 @@
 					"cv": 1,
 					"visible": {
 						"xset": [
+							"Axis",
+							"USSR",
 							"West"
 						]
 					},
@@ -5712,6 +5712,8 @@
 					"cv": 1,
 					"visible": {
 						"xset": [
+							"Axis",
+							"USSR",
 							"West"
 						]
 					},
@@ -5962,84 +5964,54 @@
 			},
 			"created": {},
 			"updated": {
-				"Marseille": {
-					"type": "Coast",
-					"alligence": "France",
-					"res": 0,
-					"pop": 1,
-					"muster": 2,
-					"borders": {
-						"Barcelona": "Mountains",
-						"Western_Mediterranean": "Coast",
-						"Gascony": "Plains",
-						"Lorraine": "Plains",
-						"Milan": "Mountains"
-					},
-					"units": {
-						"xset": [
-							116075,
-							103054
-						]
-					},
-					"obj_type": "tile",
-					"visible": {
-						"xset": [
-							"West",
-							"USSR",
-							"Axis"
-						]
-					},
-					"owner": "West",
-					"disputed": true,
-					"aggressors": [
-						"Axis"
-					],
-					"_id": "Marseille"
-				},
-				"Milan": {
-					"type": "Coast",
-					"alligence": "Italy",
-					"res": 1,
-					"pop": 1,
-					"muster": 2,
-					"borders": {
-						"Tyrrhenian_Sea": "Coast",
-						"Rome": "Mountains",
-						"Western_Mediterranean": "Coast",
-						"Venice": "Plains",
-						"Marseille": "Mountains"
-					},
-					"units": {
-						"xset": [
-							103475
-						]
-					},
-					"obj_type": "tile",
-					"visible": {
-						"xset": [
-							"West",
-							"USSR",
-							"Axis"
-						]
-					},
-					"owner": "Axis",
-					"_id": "Milan"
-				},
-				"103054": {
-					"nationality": "Italy",
-					"tile": "Marseille",
+				"97370": {
+					"nationality": "Germany",
+					"tile": "Lorraine",
 					"type": "Infantry",
 					"obj_type": "unit",
 					"cv": 1,
 					"visible": {
 						"xset": [
-							"Axis"
+							"Axis",
+							"USSR",
+							"West"
 						]
 					},
-					"_id": 103054
+					"_id": 97370
+				},
+				"97763": {
+					"nationality": "Germany",
+					"tile": "Lorraine",
+					"type": "Infantry",
+					"obj_type": "unit",
+					"cv": 1,
+					"visible": {
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
+					},
+					"_id": 97763
 				}
 			},
-			"removed": {}
+			"removed": {
+				"97370": {
+					"nationality": "Germany",
+					"tile": "Lorraine",
+					"type": "Infantry",
+					"obj_type": "unit",
+					"cv": 1,
+					"visible": {
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
+					},
+					"_id": 97370
+				}
+			}
 		},
 		"tiles": {
 			"Ottawa": {
@@ -6873,7 +6845,6 @@
 						118482,
 						118967,
 						119454,
-						97370,
 						97763
 					]
 				},
@@ -6950,7 +6921,7 @@
 					]
 				},
 				"owner": "West",
-				"disputed": true,
+				"disputed": 1,
 				"aggressors": [
 					"Axis"
 				],
@@ -10235,28 +10206,17 @@
 					"IND": 12
 				},
 				"units": {
-					"97370": {
-						"nationality": "Germany",
-						"tile": "Lorraine",
-						"type": "Infantry",
-						"obj_type": "unit",
-						"cv": 2,
-						"visible": {
-							"xset": [
-								"Axis"
-							]
-						},
-						"_id": 97370
-					},
 					"97763": {
 						"nationality": "Germany",
 						"tile": "Lorraine",
 						"type": "Infantry",
 						"obj_type": "unit",
-						"cv": 2,
+						"cv": 1,
 						"visible": {
 							"xset": [
-								"Axis"
+								"Axis",
+								"USSR",
+								"West"
 							]
 						},
 						"_id": 97763
@@ -10425,7 +10385,9 @@
 						"cv": 1,
 						"visible": {
 							"xset": [
-								"Axis"
+								"Axis",
+								"USSR",
+								"West"
 							]
 						},
 						"_id": 103054
@@ -11134,6 +11096,8 @@
 						"obj_type": "unit",
 						"visible": {
 							"xset": [
+								"Axis",
+								"USSR",
 								"West"
 							]
 						},
@@ -11264,6 +11228,8 @@
 						"cv": 2,
 						"visible": {
 							"xset": [
+								"Axis",
+								"USSR",
 								"West"
 							]
 						},
@@ -11303,6 +11269,8 @@
 						"cv": 1,
 						"visible": {
 							"xset": [
+								"Axis",
+								"USSR",
 								"West"
 							]
 						},
@@ -11316,6 +11284,8 @@
 						"cv": 1,
 						"visible": {
 							"xset": [
+								"Axis",
+								"USSR",
 								"West"
 							]
 						},
@@ -11329,6 +11299,8 @@
 						"cv": 1,
 						"visible": {
 							"xset": [
+								"Axis",
+								"USSR",
 								"West"
 							]
 						},
@@ -12156,7 +12128,7 @@
 			],
 			"reserves": {
 				"Germany": {
-					"Infantry": 7,
+					"Infantry": 8,
 					"Fortress": 5,
 					"Tank": 5,
 					"AirForce": 6,
@@ -12334,7 +12306,26 @@
 						"Axis moves a unit from Munich to Lorraine (3 command points remaining)\n",
 						"Axis passes (2 command points remaining)\n",
 						"Game loaded\n",
-						"Axis moves a unit from Milan to Marseille (1 command points remaining)\n"
+						"Axis moves a unit from Milan to Marseille (1 command points remaining)\n",
+						"Game loaded\n",
+						"Axis passes (0 command points remaining)\n",
+						"Axis movement is complete\n",
+						"...phase Movement interrupted to Combat\n",
+						"Game loaded\n",
+						"...phase Combat interrupted to Land Battle\n",
+						"land battle starting in Lorraine\n",
+						"0:West 96979 targeting G Axis\n",
+						"3 hits\n",
+						"97370 lost 1 cv: 1\n",
+						"battle vor recursive call: Land Battle\n",
+						"0:West 96979 targeting G Axis\n",
+						"2 hits\n",
+						"unit 97370 removed\n",
+						"battle vor recursive call: Land Battle\n",
+						"0:West 96979 targeting G Axis\n",
+						"1 hits\n",
+						"97763 lost 1 cv: 1\n",
+						"West 119454 fires next\n"
 					],
 					"USSR": [
 						"Set seed 4\n",
@@ -12455,7 +12446,26 @@
 						"Axis moves a unit from Munich to Lorraine (3 command points remaining)\n",
 						"Axis passes (2 command points remaining)\n",
 						"Game loaded\n",
-						"Axis moves a unit from Milan to Marseille (1 command points remaining)\n"
+						"Axis moves a unit from Milan to Marseille (1 command points remaining)\n",
+						"Game loaded\n",
+						"Axis passes (0 command points remaining)\n",
+						"Axis movement is complete\n",
+						"...phase Movement interrupted to Combat\n",
+						"Game loaded\n",
+						"...phase Combat interrupted to Land Battle\n",
+						"land battle starting in Lorraine\n",
+						"0:West 96979 targeting G Axis\n",
+						"3 hits\n",
+						"97370 lost 1 cv: 1\n",
+						"battle vor recursive call: Land Battle\n",
+						"0:West 96979 targeting G Axis\n",
+						"2 hits\n",
+						"unit 97370 removed\n",
+						"battle vor recursive call: Land Battle\n",
+						"0:West 96979 targeting G Axis\n",
+						"1 hits\n",
+						"97763 lost 1 cv: 1\n",
+						"West 119454 fires next\n"
 					],
 					"West": [
 						"Set seed 4\n",
@@ -12576,7 +12586,26 @@
 						"Axis moves a unit from Munich to Lorraine (3 command points remaining)\n",
 						"Axis passes (2 command points remaining)\n",
 						"Game loaded\n",
-						"Axis moves a unit from Milan to Marseille (1 command points remaining)\n"
+						"Axis moves a unit from Milan to Marseille (1 command points remaining)\n",
+						"Game loaded\n",
+						"Axis passes (0 command points remaining)\n",
+						"Axis movement is complete\n",
+						"...phase Movement interrupted to Combat\n",
+						"Game loaded\n",
+						"...phase Combat interrupted to Land Battle\n",
+						"land battle starting in Lorraine\n",
+						"0:West 96979 targeting G Axis\n",
+						"3 hits\n",
+						"97370 lost 1 cv: 1\n",
+						"battle vor recursive call: Land Battle\n",
+						"0:West 96979 targeting G Axis\n",
+						"2 hits\n",
+						"unit 97370 removed\n",
+						"battle vor recursive call: Land Battle\n",
+						"0:West 96979 targeting G Axis\n",
+						"1 hits\n",
+						"97763 lost 1 cv: 1\n",
+						"West 119454 fires next\n"
 					]
 				},
 				"updates": {
@@ -12592,36 +12621,34 @@
 						"Axis moves a unit from Munich to Lorraine (3 command points remaining)\n",
 						"Axis passes (2 command points remaining)\n",
 						"Game loaded\n",
-						"Axis moves a unit from Milan to Marseille (1 command points remaining)\n"
+						"Axis moves a unit from Milan to Marseille (1 command points remaining)\n",
+						"Game loaded\n",
+						"Axis passes (0 command points remaining)\n",
+						"Axis movement is complete\n",
+						"...phase Movement interrupted to Combat\n",
+						"Game loaded\n",
+						"...phase Combat interrupted to Land Battle\n",
+						"land battle starting in Lorraine\n",
+						"0:West 96979 targeting G Axis\n",
+						"3 hits\n",
+						"97370 lost 1 cv: 1\n",
+						"battle vor recursive call: Land Battle\n",
+						"0:West 96979 targeting G Axis\n",
+						"2 hits\n",
+						"unit 97370 removed\n",
+						"battle vor recursive call: Land Battle\n",
+						"0:West 96979 targeting G Axis\n",
+						"1 hits\n",
+						"97763 lost 1 cv: 1\n",
+						"West 119454 fires next\n"
 					],
-					"West": [
-						"USSR passes\n",
-						"Axis plays a card\n",
-						"USSR passes\n",
-						"West has played a Spring command: K 5\n",
-						"Axis has played a Spring command: F 5\n",
-						"Play order is: Axis, West\n",
-						"...phase: Spring completed\n",
-						"Beginning phase: Movement\n",
-						"Axis has 5 command points for movement\n",
-						"Game loaded\n",
-						"Axis has declared war on West\n",
-						"Game loaded\n",
-						"The Axis delares war on the West\n",
-						"Axis loses 1 victory point\n",
-						"West decreases their factory cost to 5\n",
-						"Axis moves a unit from Munich to Lorraine (4 command points remaining)\n",
-						"Axis moves a unit from Munich to Lorraine (3 command points remaining)\n",
-						"Axis passes (2 command points remaining)\n",
-						"Game loaded\n",
-						"Axis moves a unit from Milan to Marseille (1 command points remaining)\n"
-					]
+					"West": []
 				}
 			}
 		},
 		"temp": {
 			"season": "Spring",
-			"active_idx": 0,
+			"active_idx": 1,
 			"active_players": [
 				"USSR"
 			],
@@ -12667,13 +12694,6 @@
 						"xset": []
 					},
 					"value": 5
-				},
-				"Axis": {
-					"priority": "F",
-					"moved": {
-						"xset": []
-					},
-					"value": 1
 				}
 			},
 			"order": [
@@ -12692,212 +12712,764 @@
 			"threats": {
 				"xset": []
 			},
-			"battle_groups": {}
+			"battle_groups": {},
+			"potential_battles": {
+				"xset": [
+					"Lorraine",
+					"Marseille"
+				]
+			},
+			"attacker": "Axis",
+			"combat": {
+				"battles_to_select": {
+					"xset": []
+				},
+				"battles_to_reveal": {},
+				"opt_battles": {
+					"xset": []
+				},
+				"battles": {
+					"Marseille": {
+						"tilename": "Marseille",
+						"tile": {
+							"type": "Coast",
+							"alligence": "France",
+							"res": 0,
+							"pop": 1,
+							"muster": 2,
+							"borders": {
+								"Barcelona": "Mountains",
+								"Western_Mediterranean": "Coast",
+								"Gascony": "Plains",
+								"Lorraine": "Plains",
+								"Milan": "Mountains"
+							},
+							"units": {
+								"xset": [
+									116075,
+									103054
+								]
+							},
+							"obj_type": "tile",
+							"visible": {
+								"xset": [
+									"West",
+									"USSR",
+									"Axis"
+								]
+							},
+							"owner": "West",
+							"disputed": 1,
+							"aggressors": [
+								"Axis"
+							],
+							"_id": "Marseille"
+						},
+						"owner": "West",
+						"intruder": "Axis",
+						"attacker": "Axis",
+						"defender": "West",
+						"units": [
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Marseille",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 2,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 116075
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 116075,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "Italy",
+									"tile": "Marseille",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 103054
+								},
+								"owner": "Axis",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 103054,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 1
+							}
+						],
+						"fire_order": [
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Marseille",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 2,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 116075
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 116075,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "Italy",
+									"tile": "Marseille",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 103054
+								},
+								"owner": "Axis",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 103054,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 1
+							}
+						]
+					}
+				},
+				"i_battle": null,
+				"stage": "fire",
+				"battle": {
+					"tilename": "Lorraine",
+					"tile": {
+						"type": "Land",
+						"alligence": "France",
+						"res": 2,
+						"pop": 0,
+						"muster": 0,
+						"borders": {
+							"Munich": "River",
+							"Paris": "Plains",
+							"Amsterdam": "Forest",
+							"Gascony": "Plains",
+							"Marseille": "Plains"
+						},
+						"units": {
+							"xset": [
+								96979,
+								118482,
+								118967,
+								119454,
+								97370,
+								97763
+							]
+						},
+						"obj_type": "tile",
+						"visible": {
+							"xset": [
+								"West",
+								"USSR",
+								"Axis"
+							]
+						},
+						"owner": "West",
+						"disputed": 1,
+						"aggressors": [
+							"Axis"
+						],
+						"_id": "Lorraine"
+					},
+					"owner": "West",
+					"intruder": "Axis",
+					"attacker": "Axis",
+					"defender": "West",
+					"units": [
+						{
+							"unit": {
+								"nationality": "France",
+								"tile": "Lorraine",
+								"type": "Fortress",
+								"cv": 3,
+								"obj_type": "unit",
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 96979
+							},
+							"owner": "West",
+							"group": "G",
+							"priority": 1,
+							"rules": {
+								"priority": 1,
+								"type": "G",
+								"move": 0,
+								"A": 2,
+								"N": 3,
+								"G": 4,
+								"S": 3
+							},
+							"id": 96979,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "Fortress",
+							"turn": 0
+						},
+						{
+							"unit": {
+								"nationality": "France",
+								"tile": "Lorraine",
+								"type": "Infantry",
+								"obj_type": "unit",
+								"cv": 1,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 118482
+							},
+							"owner": "West",
+							"group": "G",
+							"priority": 7,
+							"rules": {
+								"priority": 7,
+								"type": "G",
+								"move": 2,
+								"A": 1,
+								"N": 1,
+								"G": 3,
+								"S": 0
+							},
+							"id": 118482,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "Infantry",
+							"turn": 0
+						},
+						{
+							"unit": {
+								"nationality": "France",
+								"tile": "Lorraine",
+								"type": "Tank",
+								"obj_type": "unit",
+								"cv": 1,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 118967
+							},
+							"owner": "West",
+							"group": "G",
+							"priority": 6,
+							"rules": {
+								"priority": 6,
+								"type": "G",
+								"move": 3,
+								"A": 0,
+								"N": 0,
+								"G": 2,
+								"S": 0
+							},
+							"id": 118967,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "Tank",
+							"turn": 0
+						},
+						{
+							"unit": {
+								"nationality": "France",
+								"tile": "Lorraine",
+								"type": "AirForce",
+								"obj_type": "unit",
+								"cv": 1,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 119454
+							},
+							"owner": "West",
+							"group": "A",
+							"priority": 2,
+							"rules": {
+								"rebase": 1,
+								"priority": 2,
+								"type": "A",
+								"move": 2,
+								"A": 3,
+								"N": 1,
+								"G": 1,
+								"S": 1
+							},
+							"id": 119454,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "AirForce",
+							"turn": 0
+						},
+						{
+							"unit": {
+								"nationality": "Germany",
+								"tile": "Lorraine",
+								"type": "Infantry",
+								"obj_type": "unit",
+								"cv": 2,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 97370
+							},
+							"owner": "Axis",
+							"group": "G",
+							"priority": 7,
+							"rules": {
+								"priority": 7,
+								"type": "G",
+								"move": 2,
+								"A": 1,
+								"N": 1,
+								"G": 3,
+								"S": 0
+							},
+							"id": 97370,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "Infantry",
+							"turn": 1
+						},
+						{
+							"unit": {
+								"nationality": "Germany",
+								"tile": "Lorraine",
+								"type": "Infantry",
+								"obj_type": "unit",
+								"cv": 2,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 97763
+							},
+							"owner": "Axis",
+							"group": "G",
+							"priority": 7,
+							"rules": {
+								"priority": 7,
+								"type": "G",
+								"move": 2,
+								"A": 1,
+								"N": 1,
+								"G": 3,
+								"S": 0
+							},
+							"id": 97763,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "Infantry",
+							"turn": 1
+						}
+					],
+					"fire_order": [
+						{
+							"unit": {
+								"nationality": "France",
+								"tile": "Lorraine",
+								"type": "Fortress",
+								"cv": 3,
+								"obj_type": "unit",
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 96979
+							},
+							"owner": "West",
+							"group": "G",
+							"priority": 1,
+							"rules": {
+								"priority": 1,
+								"type": "G",
+								"move": 0,
+								"A": 2,
+								"N": 3,
+								"G": 4,
+								"S": 3
+							},
+							"id": 96979,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "Fortress",
+							"turn": 0
+						},
+						{
+							"unit": {
+								"nationality": "France",
+								"tile": "Lorraine",
+								"type": "AirForce",
+								"obj_type": "unit",
+								"cv": 1,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 119454
+							},
+							"owner": "West",
+							"group": "A",
+							"priority": 2,
+							"rules": {
+								"rebase": 1,
+								"priority": 2,
+								"type": "A",
+								"move": 2,
+								"A": 3,
+								"N": 1,
+								"G": 1,
+								"S": 1
+							},
+							"id": 119454,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "AirForce",
+							"turn": 0
+						},
+						{
+							"unit": {
+								"nationality": "France",
+								"tile": "Lorraine",
+								"type": "Tank",
+								"obj_type": "unit",
+								"cv": 1,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 118967
+							},
+							"owner": "West",
+							"group": "G",
+							"priority": 6,
+							"rules": {
+								"priority": 6,
+								"type": "G",
+								"move": 3,
+								"A": 0,
+								"N": 0,
+								"G": 2,
+								"S": 0
+							},
+							"id": 118967,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "Tank",
+							"turn": 0
+						},
+						{
+							"unit": {
+								"nationality": "France",
+								"tile": "Lorraine",
+								"type": "Infantry",
+								"obj_type": "unit",
+								"cv": 1,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 118482
+							},
+							"owner": "West",
+							"group": "G",
+							"priority": 7,
+							"rules": {
+								"priority": 7,
+								"type": "G",
+								"move": 2,
+								"A": 1,
+								"N": 1,
+								"G": 3,
+								"S": 0
+							},
+							"id": 118482,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "Infantry",
+							"turn": 0
+						},
+						{
+							"unit": {
+								"nationality": "Germany",
+								"tile": "Lorraine",
+								"type": "Infantry",
+								"obj_type": "unit",
+								"cv": 2,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 97763
+							},
+							"owner": "Axis",
+							"group": "G",
+							"priority": 7,
+							"rules": {
+								"priority": 7,
+								"type": "G",
+								"move": 2,
+								"A": 1,
+								"N": 1,
+								"G": 3,
+								"S": 0
+							},
+							"id": 97763,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "Infantry",
+							"turn": 1
+						}
+					],
+					"idx": 1,
+					"fire": {
+						"unit": {
+							"nationality": "France",
+							"tile": "Lorraine",
+							"type": "AirForce",
+							"obj_type": "unit",
+							"cv": 1,
+							"visible": {
+								"xset": [
+									"Axis",
+									"USSR",
+									"West"
+								]
+							},
+							"_id": 119454
+						},
+						"owner": "West",
+						"group": "A",
+						"priority": 2,
+						"rules": {
+							"rebase": 1,
+							"priority": 2,
+							"type": "A",
+							"move": 2,
+							"A": 3,
+							"N": 1,
+							"G": 1,
+							"S": 1
+						},
+						"id": 119454,
+						"ff": 0,
+						"sonar": 0,
+						"air_def_radar": 0,
+						"prec_bomb": 0,
+						"type": "AirForce",
+						"turn": 0
+					},
+					"opp_types": [
+						"Infantry"
+					],
+					"opp_groups": [
+						"G"
+					],
+					"retreat_options": [],
+					"target_class": "G",
+					"target_units": [
+						{
+							"nationality": "Germany",
+							"tile": "Lorraine",
+							"type": "Infantry",
+							"obj_type": "unit",
+							"cv": 2,
+							"visible": {
+								"xset": [
+									"Axis",
+									"USSR",
+									"West"
+								]
+							},
+							"_id": 97763
+						}
+					],
+					"units_max_cv": [
+						{
+							"nationality": "Germany",
+							"tile": "Lorraine",
+							"type": "Infantry",
+							"obj_type": "unit",
+							"cv": 2,
+							"visible": {
+								"xset": [
+									"Axis",
+									"USSR",
+									"West"
+								]
+							},
+							"_id": 97763
+						}
+					],
+					"types_max_cv": [
+						"Infantry"
+					],
+					"unit_hit": {
+						"nationality": "Germany",
+						"tile": "Lorraine",
+						"type": "Infantry",
+						"obj_type": "unit",
+						"cv": 2,
+						"visible": {
+							"xset": [
+								"Axis",
+								"USSR",
+								"West"
+							]
+						},
+						"_id": 97763
+					}
+				}
+			}
 		}
 	},
 	"waiting_objs": {
-		"West": {
-			"created": {},
-			"updated": {
-				"action_6": {
-					"top": "Rumania",
-					"bottom": "Spain",
-					"season": "Spring",
-					"priority": "F",
-					"value": 5,
-					"obj_type": "action_card",
-					"visible": {
-						"xset": []
-					},
-					"_id": "action_6"
-				},
-				"action_11": {
-					"top": "Austria",
-					"bottom": "Afghanistan",
-					"season": "Spring",
-					"priority": "K",
-					"value": 5,
-					"obj_type": "action_card",
-					"visible": {
-						"xset": []
-					},
-					"_id": "action_11"
-				},
-				"Lorraine": {
-					"type": "Land",
-					"alligence": "France",
-					"res": 2,
-					"pop": 0,
-					"muster": 0,
-					"borders": {
-						"Munich": "River",
-						"Paris": "Plains",
-						"Amsterdam": "Forest",
-						"Gascony": "Plains",
-						"Marseille": "Plains"
-					},
-					"units": {
-						"xset": [
-							96979,
-							118482,
-							118967,
-							119454,
-							97370,
-							97763
-						]
-					},
-					"obj_type": "tile",
-					"visible": {
-						"xset": [
-							"West",
-							"USSR",
-							"Axis"
-						]
-					},
-					"owner": "West",
-					"disputed": 1,
-					"aggressors": [
-						"Axis"
-					],
-					"_id": "Lorraine"
-				},
-				"Munich": {
-					"type": "Land",
-					"alligence": "Germany",
-					"res": 0,
-					"pop": 1,
-					"muster": 2,
-					"borders": {
-						"Berlin": "Plains",
-						"Ruhr": "Plains",
-						"Prague": "Forest",
-						"Vienna": "Plains",
-						"Amsterdam": "River",
-						"Lorraine": "River"
-					},
-					"units": {
-						"xset": [
-							125379,
-							125882,
-							126387
-						]
-					},
-					"obj_type": "tile",
-					"visible": {
-						"xset": [
-							"West",
-							"USSR",
-							"Axis"
-						]
-					},
-					"owner": "Axis",
-					"_id": "Munich"
-				},
-				"97370": {
-					"nationality": "Germany",
-					"tile": "Lorraine",
-					"type": "Infantry",
-					"obj_type": "unit",
-					"cv": 2,
-					"visible": {
-						"xset": [
-							"Axis"
-						]
-					},
-					"_id": 97370
-				},
-				"97763": {
-					"nationality": "Germany",
-					"tile": "Lorraine",
-					"type": "Infantry",
-					"obj_type": "unit",
-					"cv": 2,
-					"visible": {
-						"xset": [
-							"Axis"
-						]
-					},
-					"_id": 97763
-				},
-				"Marseille": {
-					"type": "Coast",
-					"alligence": "France",
-					"res": 0,
-					"pop": 1,
-					"muster": 2,
-					"borders": {
-						"Barcelona": "Mountains",
-						"Western_Mediterranean": "Coast",
-						"Gascony": "Plains",
-						"Lorraine": "Plains",
-						"Milan": "Mountains"
-					},
-					"units": {
-						"xset": [
-							116075,
-							103054
-						]
-					},
-					"obj_type": "tile",
-					"visible": {
-						"xset": [
-							"West",
-							"USSR",
-							"Axis"
-						]
-					},
-					"owner": "West",
-					"disputed": true,
-					"aggressors": [
-						"Axis"
-					],
-					"_id": "Marseille"
-				},
-				"Milan": {
-					"type": "Coast",
-					"alligence": "Italy",
-					"res": 1,
-					"pop": 1,
-					"muster": 2,
-					"borders": {
-						"Tyrrhenian_Sea": "Coast",
-						"Rome": "Mountains",
-						"Western_Mediterranean": "Coast",
-						"Venice": "Plains",
-						"Marseille": "Mountains"
-					},
-					"units": {
-						"xset": [
-							103475
-						]
-					},
-					"obj_type": "tile",
-					"visible": {
-						"xset": [
-							"West",
-							"USSR",
-							"Axis"
-						]
-					},
-					"owner": "Axis",
-					"_id": "Milan"
-				},
-				"103054": {
-					"nationality": "Italy",
-					"tile": "Marseille",
-					"type": "Infantry",
-					"obj_type": "unit",
-					"cv": 1,
-					"visible": {
-						"xset": [
-							"Axis"
-						]
-					},
-					"_id": 103054
-				}
-			},
-			"removed": {}
-		},
 		"USSR": {
 			"created": {},
 			"updated": {
@@ -12976,10 +13548,12 @@
 					"tile": "Lorraine",
 					"type": "Infantry",
 					"obj_type": "unit",
-					"cv": 2,
+					"cv": 1,
 					"visible": {
 						"xset": [
-							"Axis"
+							"Axis",
+							"USSR",
+							"West"
 						]
 					},
 					"_id": 97370
@@ -12989,10 +13563,12 @@
 					"tile": "Lorraine",
 					"type": "Infantry",
 					"obj_type": "unit",
-					"cv": 2,
+					"cv": 1,
 					"visible": {
 						"xset": [
-							"Axis"
+							"Axis",
+							"USSR",
+							"West"
 						]
 					},
 					"_id": 97763
@@ -13025,7 +13601,7 @@
 						]
 					},
 					"owner": "West",
-					"disputed": true,
+					"disputed": 1,
 					"aggressors": [
 						"Axis"
 					],
@@ -13068,13 +13644,106 @@
 					"cv": 1,
 					"visible": {
 						"xset": [
-							"Axis"
+							"Axis",
+							"USSR",
+							"West"
 						]
 					},
 					"_id": 103054
+				},
+				"96979": {
+					"nationality": "France",
+					"tile": "Lorraine",
+					"type": "Fortress",
+					"cv": 3,
+					"obj_type": "unit",
+					"visible": {
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
+					},
+					"_id": 96979
+				},
+				"118482": {
+					"nationality": "France",
+					"tile": "Lorraine",
+					"type": "Infantry",
+					"obj_type": "unit",
+					"cv": 1,
+					"visible": {
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
+					},
+					"_id": 118482
+				},
+				"118967": {
+					"nationality": "France",
+					"tile": "Lorraine",
+					"type": "Tank",
+					"obj_type": "unit",
+					"cv": 1,
+					"visible": {
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
+					},
+					"_id": 118967
+				},
+				"119454": {
+					"nationality": "France",
+					"tile": "Lorraine",
+					"type": "AirForce",
+					"obj_type": "unit",
+					"cv": 1,
+					"visible": {
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
+					},
+					"_id": 119454
+				},
+				"116075": {
+					"nationality": "France",
+					"tile": "Marseille",
+					"type": "Infantry",
+					"obj_type": "unit",
+					"cv": 2,
+					"visible": {
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
+					},
+					"_id": 116075
 				}
 			},
-			"removed": {}
+			"removed": {
+				"97370": {
+					"nationality": "Germany",
+					"tile": "Lorraine",
+					"type": "Infantry",
+					"obj_type": "unit",
+					"cv": 1,
+					"visible": {
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
+					},
+					"_id": 97370
+				}
+			}
 		}
 	},
 	"waiting_actions": {
@@ -13082,1664 +13751,7 @@
 			"xset": [
 				{
 					"tuple": [
-						"pass"
-					]
-				},
-				{
-					"tuple": [
-						{
-							"xset": [
-								"USSR"
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						{
-							"xset": [
-								"USA",
-								"Latin_America",
-								"Portugal",
-								"Spain",
-								"Ireland",
-								"Denmark",
-								"Low_Countries",
-								"Austria",
-								"Norway",
-								"Sweden",
-								"Finland",
-								"Baltic_States",
-								"Poland",
-								"Czechoslovakia",
-								"Hungary",
-								"Yugoslavia",
-								"Albania",
-								"Greece",
-								"Rumania",
-								"Bulgaria",
-								"Afghanistan",
-								"Persia",
-								"Turkey"
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						98158,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Baltic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"North_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Gulf_of_Bothnia"
-									]
-								},
-								{
-									"tuple": [
-										"Konigsberg"
-									]
-								},
-								{
-									"tuple": [
-										"Berlin"
-									]
-								},
-								{
-									"tuple": [
-										"Norwegian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Glasgow",
-										{
-											"xset": [
-												"North_Sea"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"London",
-										{
-											"xset": [
-												"North_Sea"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"English_Channel"
-									]
-								},
-								{
-									"tuple": [
-										"Paris",
-										{
-											"xset": [
-												"North_Sea"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Munich"
-									]
-								},
-								{
-									"tuple": [
-										"Greenland_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Irish_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Nordkapp_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Bay_of_Biscay"
-									]
-								},
-								{
-									"tuple": [
-										"Irminger_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Barents_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Madeira_Sea"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						98555,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Baltic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Gulf_of_Bothnia"
-									]
-								},
-								{
-									"tuple": [
-										"Konigsberg"
-									]
-								},
-								{
-									"tuple": [
-										"Berlin"
-									]
-								},
-								{
-									"tuple": [
-										"North_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Norwegian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Glasgow",
-										{
-											"xset": [
-												"North_Sea",
-												"Norwegian_Sea"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"London",
-										{
-											"xset": [
-												"North_Sea",
-												"English_Channel"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"English_Channel"
-									]
-								},
-								{
-									"tuple": [
-										"Paris",
-										{
-											"xset": [
-												"North_Sea",
-												"English_Channel"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Greenland_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Irish_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Nordkapp_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Bay_of_Biscay"
-									]
-								},
-								{
-									"tuple": [
-										"Munich"
-									]
-								},
-								{
-									"tuple": [
-										"Irminger_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Barents_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"North_Atlantic_Ocean"
-									]
-								},
-								{
-									"tuple": [
-										"Madeira_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"White_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Mid_Atlantic_Ocean"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						98954,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Baltic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"North_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Gulf_of_Bothnia"
-									]
-								},
-								{
-									"tuple": [
-										"Konigsberg"
-									]
-								},
-								{
-									"tuple": [
-										"Berlin"
-									]
-								},
-								{
-									"tuple": [
-										"Norwegian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Glasgow"
-									]
-								},
-								{
-									"tuple": [
-										"London"
-									]
-								},
-								{
-									"tuple": [
-										"English_Channel"
-									]
-								},
-								{
-									"tuple": [
-										"Paris"
-									]
-								},
-								{
-									"tuple": [
-										"Munich"
-									]
-								},
-								{
-									"tuple": [
-										"Lorraine"
-									]
-								},
-								{
-									"tuple": [
-										"Nordkapp_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Barents_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Greenland_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Irish_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Bay_of_Biscay"
-									]
-								},
-								{
-									"tuple": [
-										"Irminger_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Madeira_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Western_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Milan"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						99355,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Baltic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Gulf_of_Bothnia"
-									]
-								},
-								{
-									"tuple": [
-										"Berlin"
-									]
-								},
-								{
-									"tuple": [
-										"Ruhr"
-									]
-								},
-								{
-									"tuple": [
-										"North_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Norwegian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"English_Channel"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						99758,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Baltic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Gulf_of_Bothnia"
-									]
-								},
-								{
-									"tuple": [
-										"Berlin"
-									]
-								},
-								{
-									"tuple": [
-										"Ruhr"
-									]
-								},
-								{
-									"tuple": [
-										"Nordkapp_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Norwegian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"North_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"English_Channel"
-									]
-								},
-								{
-									"tuple": [
-										"Munich"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						100163,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Baltic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Gulf_of_Bothnia"
-									]
-								},
-								{
-									"tuple": [
-										"Konigsberg"
-									]
-								},
-								{
-									"tuple": [
-										"Berlin"
-									]
-								},
-								{
-									"tuple": [
-										"North_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Norwegian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Glasgow",
-										{
-											"xset": [
-												"North_Sea",
-												"Norwegian_Sea"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"London",
-										{
-											"xset": [
-												"North_Sea",
-												"English_Channel"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"English_Channel"
-									]
-								},
-								{
-									"tuple": [
-										"Paris",
-										{
-											"xset": [
-												"North_Sea",
-												"English_Channel"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Greenland_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Irish_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Nordkapp_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Bay_of_Biscay"
-									]
-								},
-								{
-									"tuple": [
-										"Munich"
-									]
-								},
-								{
-									"tuple": [
-										"Irminger_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Barents_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"North_Atlantic_Ocean"
-									]
-								},
-								{
-									"tuple": [
-										"Madeira_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"White_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Mid_Atlantic_Ocean"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						100979,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Baltic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Gulf_of_Bothnia"
-									]
-								},
-								{
-									"tuple": [
-										"Konigsberg"
-									]
-								},
-								{
-									"tuple": [
-										"Ruhr"
-									]
-								},
-								{
-									"tuple": [
-										"Munich"
-									]
-								},
-								{
-									"tuple": [
-										"North_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Norwegian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"English_Channel"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						101390,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Baltic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Gulf_of_Bothnia"
-									]
-								},
-								{
-									"tuple": [
-										"Konigsberg"
-									]
-								},
-								{
-									"tuple": [
-										"Ruhr"
-									]
-								},
-								{
-									"tuple": [
-										"Munich"
-									]
-								},
-								{
-									"tuple": [
-										"North_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Norwegian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"English_Channel"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						101803,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Baltic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Gulf_of_Bothnia"
-									]
-								},
-								{
-									"tuple": [
-										"Konigsberg"
-									]
-								},
-								{
-									"tuple": [
-										"Ruhr"
-									]
-								},
-								{
-									"tuple": [
-										"Munich"
-									]
-								},
-								{
-									"tuple": [
-										"North_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Norwegian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"English_Channel"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						102218,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Baltic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Gulf_of_Bothnia"
-									]
-								},
-								{
-									"tuple": [
-										"Konigsberg"
-									]
-								},
-								{
-									"tuple": [
-										"North_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Ruhr"
-									]
-								},
-								{
-									"tuple": [
-										"Munich"
-									]
-								},
-								{
-									"tuple": [
-										"Norwegian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"English_Channel"
-									]
-								},
-								{
-									"tuple": [
-										"Greenland_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Irminger_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Nordkapp_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Irish_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Bay_of_Biscay"
-									]
-								},
-								{
-									"tuple": [
-										"Barents_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Madeira_Sea"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						102635,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Baltic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Gulf_of_Bothnia"
-									]
-								},
-								{
-									"tuple": [
-										"Konigsberg"
-									]
-								},
-								{
-									"tuple": [
-										"Ruhr"
-									]
-								},
-								{
-									"tuple": [
-										"North_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Norwegian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"English_Channel"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						103475,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Tyrrhenian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Western_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Sardinia"
-									]
-								},
-								{
-									"tuple": [
-										"Malta"
-									]
-								},
-								{
-									"tuple": [
-										"Sicily"
-									]
-								},
-								{
-									"tuple": [
-										"Rome"
-									]
-								},
-								{
-									"tuple": [
-										"Gibraltar"
-									]
-								},
-								{
-									"tuple": [
-										"Algiers"
-									]
-								},
-								{
-									"tuple": [
-										"Tunisia"
-									]
-								},
-								{
-									"tuple": [
-										"Marseille"
-									]
-								},
-								{
-									"tuple": [
-										"Madeira_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Central_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Taranto"
-									]
-								},
-								{
-									"tuple": [
-										"Adriatic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Tripoli"
-									]
-								},
-								{
-									"tuple": [
-										"Cyrenaica"
-									]
-								},
-								{
-									"tuple": [
-										"Eastern_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Aegean_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Crete"
-									]
-								},
-								{
-									"tuple": [
-										"Bay_of_Biscay"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						103898,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Sicily"
-									]
-								},
-								{
-									"tuple": [
-										"Malta",
-										{
-											"xset": [
-												"Sicily",
-												"Tyrrhenian_Sea",
-												"Central_Mediterranean"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Tyrrhenian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Western_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Sardinia"
-									]
-								},
-								{
-									"tuple": [
-										"Milan"
-									]
-								},
-								{
-									"tuple": [
-										"Central_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Taranto"
-									]
-								},
-								{
-									"tuple": [
-										"Adriatic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Tripoli"
-									]
-								},
-								{
-									"tuple": [
-										"Cyrenaica"
-									]
-								},
-								{
-									"tuple": [
-										"Eastern_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Aegean_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Crete"
-									]
-								},
-								{
-									"tuple": [
-										"Gibraltar",
-										{
-											"xset": [
-												"Western_Mediterranean"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Algiers",
-										{
-											"xset": [
-												"Western_Mediterranean"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Tunisia",
-										{
-											"xset": [
-												"Western_Mediterranean"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Marseille",
-										{
-											"xset": [
-												"Western_Mediterranean"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Venice"
-									]
-								},
-								{
-									"tuple": [
-										"Western_Black_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Eastern_Black_Sea"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						104323,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Central_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Malta",
-										{
-											"xset": [
-												"Central_Mediterranean"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Sicily"
-									]
-								},
-								{
-									"tuple": [
-										"Taranto"
-									]
-								},
-								{
-									"tuple": [
-										"Adriatic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Cyrenaica"
-									]
-								},
-								{
-									"tuple": [
-										"Eastern_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Aegean_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Crete"
-									]
-								},
-								{
-									"tuple": [
-										"Sfax",
-										{
-											"xset": [
-												"Tripoli"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Egypt",
-										{
-											"xset": [
-												"Cyrenaica"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Tyrrhenian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Western_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Sardinia"
-									]
-								},
-								{
-									"tuple": [
-										"Rome"
-									]
-								},
-								{
-									"tuple": [
-										"Milan"
-									]
-								},
-								{
-									"tuple": [
-										"Venice"
-									]
-								},
-								{
-									"tuple": [
-										"Western_Black_Sea"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						104750,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Central_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Malta",
-										{
-											"xset": [
-												"Central_Mediterranean",
-												"Sicily"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Sicily"
-									]
-								},
-								{
-									"tuple": [
-										"Tyrrhenian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Rome"
-									]
-								},
-								{
-									"tuple": [
-										"Taranto"
-									]
-								},
-								{
-									"tuple": [
-										"Adriatic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Venice"
-									]
-								},
-								{
-									"tuple": [
-										"Cyrenaica"
-									]
-								},
-								{
-									"tuple": [
-										"Eastern_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Aegean_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Crete"
-									]
-								},
-								{
-									"tuple": [
-										"Suez",
-										{
-											"xset": [
-												"Eastern_Mediterranean"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Jordan",
-										{
-											"xset": [
-												"Eastern_Mediterranean"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Damascus",
-										{
-											"xset": [
-												"Eastern_Mediterranean"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Egypt",
-										{
-											"xset": [
-												"Eastern_Mediterranean",
-												"Cyrenaica"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Sfax",
-										{
-											"xset": [
-												"Tripoli"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Western_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Sardinia"
-									]
-								},
-								{
-									"tuple": [
-										"Milan"
-									]
-								},
-								{
-									"tuple": [
-										"Western_Black_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Eastern_Black_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Sea_of_Azov"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						105179,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Sicily"
-									]
-								},
-								{
-									"tuple": [
-										"Malta",
-										{
-											"xset": [
-												"Sicily",
-												"Tyrrhenian_Sea"
-											]
-										}
-									]
-								},
-								{
-									"tuple": [
-										"Tyrrhenian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Central_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Taranto"
-									]
-								},
-								{
-									"tuple": [
-										"Western_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Sardinia"
-									]
-								},
-								{
-									"tuple": [
-										"Milan"
-									]
-								},
-								{
-									"tuple": [
-										"Venice"
-									]
-								},
-								{
-									"tuple": [
-										"Adriatic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Tripoli"
-									]
-								},
-								{
-									"tuple": [
-										"Cyrenaica"
-									]
-								},
-								{
-									"tuple": [
-										"Eastern_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Aegean_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Crete"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						106043,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Sicily"
-									]
-								},
-								{
-									"tuple": [
-										"Malta"
-									]
-								},
-								{
-									"tuple": [
-										"Tyrrhenian_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Central_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Taranto"
-									]
-								},
-								{
-									"tuple": [
-										"Western_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Sardinia"
-									]
-								},
-								{
-									"tuple": [
-										"Milan"
-									]
-								},
-								{
-									"tuple": [
-										"Venice"
-									]
-								},
-								{
-									"tuple": [
-										"Marseille"
-									]
-								},
-								{
-									"tuple": [
-										"Adriatic_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Tripoli"
-									]
-								},
-								{
-									"tuple": [
-										"Cyrenaica"
-									]
-								},
-								{
-									"tuple": [
-										"Eastern_Mediterranean"
-									]
-								},
-								{
-									"tuple": [
-										"Aegean_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Crete"
-									]
-								},
-								{
-									"tuple": [
-										"Madeira_Sea"
-									]
-								},
-								{
-									"tuple": [
-										"Bay_of_Biscay"
-									]
-								},
-								{
-									"tuple": [
-										"Munich"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						125379,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Berlin"
-									]
-								},
-								{
-									"tuple": [
-										"Ruhr"
-									]
-								}
-							]
-						}
-					]
-				},
-				{
-					"tuple": [
-						125882,
-						{
-							"xset": [
-								{
-									"tuple": [
-										"Berlin"
-									]
-								},
-								{
-									"tuple": [
-										"Ruhr"
-									]
-								}
-							]
-						}
+						"accept"
 					]
 				}
 			]
@@ -14749,30 +13761,886 @@
 		"West": {
 			"created": {},
 			"updated": {
-				"action_11": {
-					"top": "Austria",
-					"bottom": "Afghanistan",
-					"season": "Spring",
-					"priority": "K",
-					"value": 5,
-					"obj_type": "action_card",
+				"97370": {
+					"nationality": "Germany",
+					"tile": "Lorraine",
+					"type": "Infantry",
+					"obj_type": "unit",
+					"cv": 1,
 					"visible": {
-						"xset": []
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
 					},
-					"_id": "action_11"
+					"_id": 97370
+				},
+				"97763": {
+					"nationality": "Germany",
+					"tile": "Lorraine",
+					"type": "Infantry",
+					"obj_type": "unit",
+					"cv": 1,
+					"visible": {
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
+					},
+					"_id": 97763
 				}
 			},
-			"removed": {},
+			"removed": {
+				"97370": {
+					"nationality": "Germany",
+					"tile": "Lorraine",
+					"type": "Infantry",
+					"obj_type": "unit",
+					"cv": 1,
+					"visible": {
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
+					},
+					"_id": 97370
+				}
+			},
 			"waiting_for": {
 				"xset": [
-					"USSR"
+					"Axis"
 				]
 			},
-			"log": "Game loaded\nWest plays a card\n",
+			"log": "0:West 96979 targeting G Axis\n3 hits\n97370 lost 1 cv: 1\nbattle vor recursive call: Land Battle\n0:West 96979 targeting G Axis\n2 hits\nunit 97370 removed\nbattle vor recursive call: Land Battle\n0:West 96979 targeting G Axis\n1 hits\n97763 lost 1 cv: 1\nWest 119454 fires next\n",
+			"temp": {
+				"season": "Spring",
+				"active_idx": 1,
+				"active_players": [
+					"USSR"
+				],
+				"decision": {
+					"West": {
+						"top": "Austria",
+						"bottom": "Afghanistan",
+						"season": "Spring",
+						"priority": "K",
+						"value": 5,
+						"obj_type": "action_card",
+						"visible": {
+							"xset": []
+						},
+						"_id": "action_11"
+					},
+					"Axis": {
+						"top": "Rumania",
+						"bottom": "Spain",
+						"season": "Spring",
+						"priority": "F",
+						"value": 5,
+						"obj_type": "action_card",
+						"visible": {
+							"xset": []
+						},
+						"_id": "action_6"
+					}
+				},
+				"passes": 1,
+				"borders": {
+					"Axis": {
+						"Lorraine_Munich": 2,
+						"Marseille_Milan": 1
+					},
+					"USSR": {},
+					"West": {}
+				},
+				"commands": {
+					"West": {
+						"priority": "K",
+						"moved": {
+							"xset": []
+						},
+						"value": 5
+					}
+				},
+				"order": [
+					"Axis",
+					"West"
+				],
+				"battles": {
+					"Lorraine": "Axis",
+					"Marseille": "Axis"
+				},
+				"has_moved": {
+					"97370": "Munich",
+					"97763": "Munich",
+					"103054": "Milan"
+				},
+				"threats": {
+					"xset": []
+				},
+				"battle_groups": {},
+				"potential_battles": {
+					"xset": [
+						"Lorraine",
+						"Marseille"
+					]
+				},
+				"attacker": "Axis",
+				"combat": {
+					"battles_to_select": {
+						"xset": []
+					},
+					"battles_to_reveal": {},
+					"opt_battles": {
+						"xset": []
+					},
+					"battles": {
+						"Marseille": {
+							"tilename": "Marseille",
+							"tile": {
+								"type": "Coast",
+								"alligence": "France",
+								"res": 0,
+								"pop": 1,
+								"muster": 2,
+								"borders": {
+									"Barcelona": "Mountains",
+									"Western_Mediterranean": "Coast",
+									"Gascony": "Plains",
+									"Lorraine": "Plains",
+									"Milan": "Mountains"
+								},
+								"units": {
+									"xset": [
+										116075,
+										103054
+									]
+								},
+								"obj_type": "tile",
+								"visible": {
+									"xset": [
+										"West",
+										"USSR",
+										"Axis"
+									]
+								},
+								"owner": "West",
+								"disputed": 1,
+								"aggressors": [
+									"Axis"
+								],
+								"_id": "Marseille"
+							},
+							"owner": "West",
+							"intruder": "Axis",
+							"attacker": "Axis",
+							"defender": "West",
+							"units": [
+								{
+									"unit": {
+										"nationality": "France",
+										"tile": "Marseille",
+										"type": "Infantry",
+										"obj_type": "unit",
+										"cv": 2,
+										"visible": {
+											"xset": [
+												"Axis",
+												"USSR",
+												"West"
+											]
+										},
+										"_id": 116075
+									},
+									"owner": "West",
+									"group": "G",
+									"priority": 7,
+									"rules": {
+										"priority": 7,
+										"type": "G",
+										"move": 2,
+										"A": 1,
+										"N": 1,
+										"G": 3,
+										"S": 0
+									},
+									"id": 116075,
+									"ff": 0,
+									"sonar": 0,
+									"air_def_radar": 0,
+									"prec_bomb": 0,
+									"type": "Infantry",
+									"turn": 0
+								},
+								{
+									"unit": {
+										"nationality": "Italy",
+										"tile": "Marseille",
+										"type": "Infantry",
+										"obj_type": "unit",
+										"cv": 1,
+										"visible": {
+											"xset": [
+												"Axis",
+												"USSR",
+												"West"
+											]
+										},
+										"_id": 103054
+									},
+									"owner": "Axis",
+									"group": "G",
+									"priority": 7,
+									"rules": {
+										"priority": 7,
+										"type": "G",
+										"move": 2,
+										"A": 1,
+										"N": 1,
+										"G": 3,
+										"S": 0
+									},
+									"id": 103054,
+									"ff": 0,
+									"sonar": 0,
+									"air_def_radar": 0,
+									"prec_bomb": 0,
+									"type": "Infantry",
+									"turn": 1
+								}
+							],
+							"fire_order": [
+								{
+									"unit": {
+										"nationality": "France",
+										"tile": "Marseille",
+										"type": "Infantry",
+										"obj_type": "unit",
+										"cv": 2,
+										"visible": {
+											"xset": [
+												"Axis",
+												"USSR",
+												"West"
+											]
+										},
+										"_id": 116075
+									},
+									"owner": "West",
+									"group": "G",
+									"priority": 7,
+									"rules": {
+										"priority": 7,
+										"type": "G",
+										"move": 2,
+										"A": 1,
+										"N": 1,
+										"G": 3,
+										"S": 0
+									},
+									"id": 116075,
+									"ff": 0,
+									"sonar": 0,
+									"air_def_radar": 0,
+									"prec_bomb": 0,
+									"type": "Infantry",
+									"turn": 0
+								},
+								{
+									"unit": {
+										"nationality": "Italy",
+										"tile": "Marseille",
+										"type": "Infantry",
+										"obj_type": "unit",
+										"cv": 1,
+										"visible": {
+											"xset": [
+												"Axis",
+												"USSR",
+												"West"
+											]
+										},
+										"_id": 103054
+									},
+									"owner": "Axis",
+									"group": "G",
+									"priority": 7,
+									"rules": {
+										"priority": 7,
+										"type": "G",
+										"move": 2,
+										"A": 1,
+										"N": 1,
+										"G": 3,
+										"S": 0
+									},
+									"id": 103054,
+									"ff": 0,
+									"sonar": 0,
+									"air_def_radar": 0,
+									"prec_bomb": 0,
+									"type": "Infantry",
+									"turn": 1
+								}
+							]
+						}
+					},
+					"i_battle": null,
+					"stage": "fire",
+					"battle": {
+						"tilename": "Lorraine",
+						"tile": {
+							"type": "Land",
+							"alligence": "France",
+							"res": 2,
+							"pop": 0,
+							"muster": 0,
+							"borders": {
+								"Munich": "River",
+								"Paris": "Plains",
+								"Amsterdam": "Forest",
+								"Gascony": "Plains",
+								"Marseille": "Plains"
+							},
+							"units": {
+								"xset": [
+									96979,
+									118482,
+									118967,
+									119454,
+									97370,
+									97763
+								]
+							},
+							"obj_type": "tile",
+							"visible": {
+								"xset": [
+									"West",
+									"USSR",
+									"Axis"
+								]
+							},
+							"owner": "West",
+							"disputed": 1,
+							"aggressors": [
+								"Axis"
+							],
+							"_id": "Lorraine"
+						},
+						"owner": "West",
+						"intruder": "Axis",
+						"attacker": "Axis",
+						"defender": "West",
+						"units": [
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "Fortress",
+									"cv": 3,
+									"obj_type": "unit",
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 96979
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 1,
+								"rules": {
+									"priority": 1,
+									"type": "G",
+									"move": 0,
+									"A": 2,
+									"N": 3,
+									"G": 4,
+									"S": 3
+								},
+								"id": 96979,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Fortress",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 118482
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 118482,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "Tank",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 118967
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 6,
+								"rules": {
+									"priority": 6,
+									"type": "G",
+									"move": 3,
+									"A": 0,
+									"N": 0,
+									"G": 2,
+									"S": 0
+								},
+								"id": 118967,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Tank",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "AirForce",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 119454
+								},
+								"owner": "West",
+								"group": "A",
+								"priority": 2,
+								"rules": {
+									"rebase": 1,
+									"priority": 2,
+									"type": "A",
+									"move": 2,
+									"A": 3,
+									"N": 1,
+									"G": 1,
+									"S": 1
+								},
+								"id": 119454,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "AirForce",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "Germany",
+									"tile": "Lorraine",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 2,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 97370
+								},
+								"owner": "Axis",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 97370,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 1
+							},
+							{
+								"unit": {
+									"nationality": "Germany",
+									"tile": "Lorraine",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 2,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 97763
+								},
+								"owner": "Axis",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 97763,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 1
+							}
+						],
+						"fire_order": [
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "Fortress",
+									"cv": 3,
+									"obj_type": "unit",
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 96979
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 1,
+								"rules": {
+									"priority": 1,
+									"type": "G",
+									"move": 0,
+									"A": 2,
+									"N": 3,
+									"G": 4,
+									"S": 3
+								},
+								"id": 96979,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Fortress",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "AirForce",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 119454
+								},
+								"owner": "West",
+								"group": "A",
+								"priority": 2,
+								"rules": {
+									"rebase": 1,
+									"priority": 2,
+									"type": "A",
+									"move": 2,
+									"A": 3,
+									"N": 1,
+									"G": 1,
+									"S": 1
+								},
+								"id": 119454,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "AirForce",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "Tank",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 118967
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 6,
+								"rules": {
+									"priority": 6,
+									"type": "G",
+									"move": 3,
+									"A": 0,
+									"N": 0,
+									"G": 2,
+									"S": 0
+								},
+								"id": 118967,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Tank",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 118482
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 118482,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "Germany",
+									"tile": "Lorraine",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 2,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 97763
+								},
+								"owner": "Axis",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 97763,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 1
+							}
+						],
+						"idx": 1,
+						"fire": {
+							"unit": {
+								"nationality": "France",
+								"tile": "Lorraine",
+								"type": "AirForce",
+								"obj_type": "unit",
+								"cv": 1,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 119454
+							},
+							"owner": "West",
+							"group": "A",
+							"priority": 2,
+							"rules": {
+								"rebase": 1,
+								"priority": 2,
+								"type": "A",
+								"move": 2,
+								"A": 3,
+								"N": 1,
+								"G": 1,
+								"S": 1
+							},
+							"id": 119454,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "AirForce",
+							"turn": 0
+						},
+						"opp_types": [
+							"Infantry"
+						],
+						"opp_groups": [
+							"G"
+						],
+						"retreat_options": [],
+						"target_class": "G",
+						"target_units": [
+							{
+								"nationality": "Germany",
+								"tile": "Lorraine",
+								"type": "Infantry",
+								"obj_type": "unit",
+								"cv": 2,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 97763
+							}
+						],
+						"units_max_cv": [
+							{
+								"nationality": "Germany",
+								"tile": "Lorraine",
+								"type": "Infantry",
+								"obj_type": "unit",
+								"cv": 2,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 97763
+							}
+						],
+						"types_max_cv": [
+							"Infantry"
+						],
+						"unit_hit": {
+							"nationality": "Germany",
+							"tile": "Lorraine",
+							"type": "Infantry",
+							"obj_type": "unit",
+							"cv": 2,
+							"visible": {
+								"xset": [
+									"Axis",
+									"USSR",
+									"West"
+								]
+							},
+							"_id": 97763
+						}
+					}
+				}
+			},
 			"info": {
 				"game": {
 					"year": 1936,
-					"phase": "Spring",
+					"phase": "Land Battle",
 					"turn_order": [
 						"West",
 						"USSR",
@@ -14788,11 +14656,11 @@
 						},
 						"at_war_with": {
 							"USSR": 0,
-							"West": 0
+							"West": 1
 						},
 						"DoW": {
 							"USSR": 0,
-							"West": 0
+							"West": 1
 						}
 					},
 					"USSR": {
@@ -14817,7 +14685,7 @@
 							"IND": 6
 						},
 						"at_war_with": {
-							"Axis": 0,
+							"Axis": 1,
 							"USSR": 0
 						},
 						"DoW": {
@@ -14852,1763 +14720,897 @@
 		"Axis": {
 			"created": {},
 			"updated": {
-				"Marseille": {
-					"type": "Coast",
-					"alligence": "France",
-					"res": 0,
-					"pop": 1,
-					"muster": 2,
-					"borders": {
-						"Barcelona": "Mountains",
-						"Western_Mediterranean": "Coast",
-						"Gascony": "Plains",
-						"Lorraine": "Plains",
-						"Milan": "Mountains"
-					},
-					"units": {
-						"xset": [
-							116075,
-							103054
-						]
-					},
-					"obj_type": "tile",
-					"visible": {
-						"xset": [
-							"West",
-							"USSR",
-							"Axis"
-						]
-					},
-					"owner": "West",
-					"disputed": true,
-					"aggressors": [
-						"Axis"
-					],
-					"_id": "Marseille"
-				},
-				"Milan": {
-					"type": "Coast",
-					"alligence": "Italy",
-					"res": 1,
-					"pop": 1,
-					"muster": 2,
-					"borders": {
-						"Tyrrhenian_Sea": "Coast",
-						"Rome": "Mountains",
-						"Western_Mediterranean": "Coast",
-						"Venice": "Plains",
-						"Marseille": "Mountains"
-					},
-					"units": {
-						"xset": [
-							103475
-						]
-					},
-					"obj_type": "tile",
-					"visible": {
-						"xset": [
-							"West",
-							"USSR",
-							"Axis"
-						]
-					},
-					"owner": "Axis",
-					"_id": "Milan"
-				},
-				"103054": {
-					"nationality": "Italy",
-					"tile": "Marseille",
+				"97370": {
+					"nationality": "Germany",
+					"tile": "Lorraine",
 					"type": "Infantry",
 					"obj_type": "unit",
 					"cv": 1,
 					"visible": {
 						"xset": [
-							"Axis"
+							"Axis",
+							"USSR",
+							"West"
 						]
 					},
-					"_id": 103054
+					"_id": 97370
+				},
+				"97763": {
+					"nationality": "Germany",
+					"tile": "Lorraine",
+					"type": "Infantry",
+					"obj_type": "unit",
+					"cv": 1,
+					"visible": {
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
+					},
+					"_id": 97763
 				}
 			},
-			"removed": {},
+			"removed": {
+				"97370": {
+					"nationality": "Germany",
+					"tile": "Lorraine",
+					"type": "Infantry",
+					"obj_type": "unit",
+					"cv": 1,
+					"visible": {
+						"xset": [
+							"Axis",
+							"USSR",
+							"West"
+						]
+					},
+					"_id": 97370
+				}
+			},
 			"actions": {
 				"xset": [
 					{
 						"tuple": [
-							"pass"
-						]
-					},
-					{
-						"tuple": [
-							{
-								"xset": [
-									"USSR"
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							{
-								"xset": [
-									"USA",
-									"Latin_America",
-									"Portugal",
-									"Spain",
-									"Ireland",
-									"Denmark",
-									"Low_Countries",
-									"Austria",
-									"Norway",
-									"Sweden",
-									"Finland",
-									"Baltic_States",
-									"Poland",
-									"Czechoslovakia",
-									"Hungary",
-									"Yugoslavia",
-									"Albania",
-									"Greece",
-									"Rumania",
-									"Bulgaria",
-									"Afghanistan",
-									"Persia",
-									"Turkey"
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							98158,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Baltic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"North_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Gulf_of_Bothnia"
-										]
-									},
-									{
-										"tuple": [
-											"Konigsberg"
-										]
-									},
-									{
-										"tuple": [
-											"Berlin"
-										]
-									},
-									{
-										"tuple": [
-											"Norwegian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Glasgow",
-											{
-												"xset": [
-													"North_Sea"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"London",
-											{
-												"xset": [
-													"North_Sea"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"English_Channel"
-										]
-									},
-									{
-										"tuple": [
-											"Paris",
-											{
-												"xset": [
-													"North_Sea"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Munich"
-										]
-									},
-									{
-										"tuple": [
-											"Greenland_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Irish_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Nordkapp_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Bay_of_Biscay"
-										]
-									},
-									{
-										"tuple": [
-											"Irminger_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Barents_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Madeira_Sea"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							98555,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Baltic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Gulf_of_Bothnia"
-										]
-									},
-									{
-										"tuple": [
-											"Konigsberg"
-										]
-									},
-									{
-										"tuple": [
-											"Berlin"
-										]
-									},
-									{
-										"tuple": [
-											"North_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Norwegian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Glasgow",
-											{
-												"xset": [
-													"North_Sea",
-													"Norwegian_Sea"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"London",
-											{
-												"xset": [
-													"North_Sea",
-													"English_Channel"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"English_Channel"
-										]
-									},
-									{
-										"tuple": [
-											"Paris",
-											{
-												"xset": [
-													"North_Sea",
-													"English_Channel"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Greenland_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Irish_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Nordkapp_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Bay_of_Biscay"
-										]
-									},
-									{
-										"tuple": [
-											"Munich"
-										]
-									},
-									{
-										"tuple": [
-											"Irminger_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Barents_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"North_Atlantic_Ocean"
-										]
-									},
-									{
-										"tuple": [
-											"Madeira_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"White_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Mid_Atlantic_Ocean"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							98954,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Baltic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"North_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Gulf_of_Bothnia"
-										]
-									},
-									{
-										"tuple": [
-											"Konigsberg"
-										]
-									},
-									{
-										"tuple": [
-											"Berlin"
-										]
-									},
-									{
-										"tuple": [
-											"Norwegian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Glasgow"
-										]
-									},
-									{
-										"tuple": [
-											"London"
-										]
-									},
-									{
-										"tuple": [
-											"English_Channel"
-										]
-									},
-									{
-										"tuple": [
-											"Paris"
-										]
-									},
-									{
-										"tuple": [
-											"Munich"
-										]
-									},
-									{
-										"tuple": [
-											"Lorraine"
-										]
-									},
-									{
-										"tuple": [
-											"Nordkapp_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Barents_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Greenland_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Irish_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Bay_of_Biscay"
-										]
-									},
-									{
-										"tuple": [
-											"Irminger_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Madeira_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Western_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Milan"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							99355,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Baltic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Gulf_of_Bothnia"
-										]
-									},
-									{
-										"tuple": [
-											"Berlin"
-										]
-									},
-									{
-										"tuple": [
-											"Ruhr"
-										]
-									},
-									{
-										"tuple": [
-											"North_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Norwegian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"English_Channel"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							99758,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Baltic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Gulf_of_Bothnia"
-										]
-									},
-									{
-										"tuple": [
-											"Berlin"
-										]
-									},
-									{
-										"tuple": [
-											"Ruhr"
-										]
-									},
-									{
-										"tuple": [
-											"Nordkapp_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Norwegian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"North_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"English_Channel"
-										]
-									},
-									{
-										"tuple": [
-											"Munich"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							100163,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Baltic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Gulf_of_Bothnia"
-										]
-									},
-									{
-										"tuple": [
-											"Konigsberg"
-										]
-									},
-									{
-										"tuple": [
-											"Berlin"
-										]
-									},
-									{
-										"tuple": [
-											"North_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Norwegian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Glasgow",
-											{
-												"xset": [
-													"North_Sea",
-													"Norwegian_Sea"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"London",
-											{
-												"xset": [
-													"North_Sea",
-													"English_Channel"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"English_Channel"
-										]
-									},
-									{
-										"tuple": [
-											"Paris",
-											{
-												"xset": [
-													"North_Sea",
-													"English_Channel"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Greenland_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Irish_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Nordkapp_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Bay_of_Biscay"
-										]
-									},
-									{
-										"tuple": [
-											"Munich"
-										]
-									},
-									{
-										"tuple": [
-											"Irminger_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Barents_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"North_Atlantic_Ocean"
-										]
-									},
-									{
-										"tuple": [
-											"Madeira_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"White_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Mid_Atlantic_Ocean"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							100979,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Baltic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Gulf_of_Bothnia"
-										]
-									},
-									{
-										"tuple": [
-											"Konigsberg"
-										]
-									},
-									{
-										"tuple": [
-											"Ruhr"
-										]
-									},
-									{
-										"tuple": [
-											"Munich"
-										]
-									},
-									{
-										"tuple": [
-											"North_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Norwegian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"English_Channel"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							101390,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Baltic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Gulf_of_Bothnia"
-										]
-									},
-									{
-										"tuple": [
-											"Konigsberg"
-										]
-									},
-									{
-										"tuple": [
-											"Ruhr"
-										]
-									},
-									{
-										"tuple": [
-											"Munich"
-										]
-									},
-									{
-										"tuple": [
-											"North_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Norwegian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"English_Channel"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							101803,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Baltic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Gulf_of_Bothnia"
-										]
-									},
-									{
-										"tuple": [
-											"Konigsberg"
-										]
-									},
-									{
-										"tuple": [
-											"Ruhr"
-										]
-									},
-									{
-										"tuple": [
-											"Munich"
-										]
-									},
-									{
-										"tuple": [
-											"North_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Norwegian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"English_Channel"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							102218,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Baltic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Gulf_of_Bothnia"
-										]
-									},
-									{
-										"tuple": [
-											"Konigsberg"
-										]
-									},
-									{
-										"tuple": [
-											"North_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Ruhr"
-										]
-									},
-									{
-										"tuple": [
-											"Munich"
-										]
-									},
-									{
-										"tuple": [
-											"Norwegian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"English_Channel"
-										]
-									},
-									{
-										"tuple": [
-											"Greenland_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Irminger_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Nordkapp_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Irish_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Bay_of_Biscay"
-										]
-									},
-									{
-										"tuple": [
-											"Barents_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Madeira_Sea"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							102635,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Baltic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Gulf_of_Bothnia"
-										]
-									},
-									{
-										"tuple": [
-											"Konigsberg"
-										]
-									},
-									{
-										"tuple": [
-											"Ruhr"
-										]
-									},
-									{
-										"tuple": [
-											"North_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Norwegian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"English_Channel"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							103475,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Tyrrhenian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Western_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Sardinia"
-										]
-									},
-									{
-										"tuple": [
-											"Malta"
-										]
-									},
-									{
-										"tuple": [
-											"Sicily"
-										]
-									},
-									{
-										"tuple": [
-											"Rome"
-										]
-									},
-									{
-										"tuple": [
-											"Gibraltar"
-										]
-									},
-									{
-										"tuple": [
-											"Algiers"
-										]
-									},
-									{
-										"tuple": [
-											"Tunisia"
-										]
-									},
-									{
-										"tuple": [
-											"Marseille"
-										]
-									},
-									{
-										"tuple": [
-											"Madeira_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Central_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Taranto"
-										]
-									},
-									{
-										"tuple": [
-											"Adriatic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Tripoli"
-										]
-									},
-									{
-										"tuple": [
-											"Cyrenaica"
-										]
-									},
-									{
-										"tuple": [
-											"Eastern_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Aegean_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Crete"
-										]
-									},
-									{
-										"tuple": [
-											"Bay_of_Biscay"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							103898,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Sicily"
-										]
-									},
-									{
-										"tuple": [
-											"Malta",
-											{
-												"xset": [
-													"Sicily",
-													"Tyrrhenian_Sea",
-													"Central_Mediterranean"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Tyrrhenian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Western_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Sardinia"
-										]
-									},
-									{
-										"tuple": [
-											"Milan"
-										]
-									},
-									{
-										"tuple": [
-											"Central_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Taranto"
-										]
-									},
-									{
-										"tuple": [
-											"Adriatic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Tripoli"
-										]
-									},
-									{
-										"tuple": [
-											"Cyrenaica"
-										]
-									},
-									{
-										"tuple": [
-											"Eastern_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Aegean_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Crete"
-										]
-									},
-									{
-										"tuple": [
-											"Gibraltar",
-											{
-												"xset": [
-													"Western_Mediterranean"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Algiers",
-											{
-												"xset": [
-													"Western_Mediterranean"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Tunisia",
-											{
-												"xset": [
-													"Western_Mediterranean"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Marseille",
-											{
-												"xset": [
-													"Western_Mediterranean"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Venice"
-										]
-									},
-									{
-										"tuple": [
-											"Western_Black_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Eastern_Black_Sea"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							104323,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Central_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Malta",
-											{
-												"xset": [
-													"Central_Mediterranean"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Sicily"
-										]
-									},
-									{
-										"tuple": [
-											"Taranto"
-										]
-									},
-									{
-										"tuple": [
-											"Adriatic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Cyrenaica"
-										]
-									},
-									{
-										"tuple": [
-											"Eastern_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Aegean_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Crete"
-										]
-									},
-									{
-										"tuple": [
-											"Sfax",
-											{
-												"xset": [
-													"Tripoli"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Egypt",
-											{
-												"xset": [
-													"Cyrenaica"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Tyrrhenian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Western_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Sardinia"
-										]
-									},
-									{
-										"tuple": [
-											"Rome"
-										]
-									},
-									{
-										"tuple": [
-											"Milan"
-										]
-									},
-									{
-										"tuple": [
-											"Venice"
-										]
-									},
-									{
-										"tuple": [
-											"Western_Black_Sea"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							104750,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Central_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Malta",
-											{
-												"xset": [
-													"Central_Mediterranean",
-													"Sicily"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Sicily"
-										]
-									},
-									{
-										"tuple": [
-											"Tyrrhenian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Rome"
-										]
-									},
-									{
-										"tuple": [
-											"Taranto"
-										]
-									},
-									{
-										"tuple": [
-											"Adriatic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Venice"
-										]
-									},
-									{
-										"tuple": [
-											"Cyrenaica"
-										]
-									},
-									{
-										"tuple": [
-											"Eastern_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Aegean_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Crete"
-										]
-									},
-									{
-										"tuple": [
-											"Suez",
-											{
-												"xset": [
-													"Eastern_Mediterranean"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Jordan",
-											{
-												"xset": [
-													"Eastern_Mediterranean"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Damascus",
-											{
-												"xset": [
-													"Eastern_Mediterranean"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Egypt",
-											{
-												"xset": [
-													"Eastern_Mediterranean",
-													"Cyrenaica"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Sfax",
-											{
-												"xset": [
-													"Tripoli"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Western_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Sardinia"
-										]
-									},
-									{
-										"tuple": [
-											"Milan"
-										]
-									},
-									{
-										"tuple": [
-											"Western_Black_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Eastern_Black_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Sea_of_Azov"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							105179,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Sicily"
-										]
-									},
-									{
-										"tuple": [
-											"Malta",
-											{
-												"xset": [
-													"Sicily",
-													"Tyrrhenian_Sea"
-												]
-											}
-										]
-									},
-									{
-										"tuple": [
-											"Tyrrhenian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Central_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Taranto"
-										]
-									},
-									{
-										"tuple": [
-											"Western_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Sardinia"
-										]
-									},
-									{
-										"tuple": [
-											"Milan"
-										]
-									},
-									{
-										"tuple": [
-											"Venice"
-										]
-									},
-									{
-										"tuple": [
-											"Adriatic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Tripoli"
-										]
-									},
-									{
-										"tuple": [
-											"Cyrenaica"
-										]
-									},
-									{
-										"tuple": [
-											"Eastern_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Aegean_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Crete"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							106043,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Sicily"
-										]
-									},
-									{
-										"tuple": [
-											"Malta"
-										]
-									},
-									{
-										"tuple": [
-											"Tyrrhenian_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Central_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Taranto"
-										]
-									},
-									{
-										"tuple": [
-											"Western_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Sardinia"
-										]
-									},
-									{
-										"tuple": [
-											"Milan"
-										]
-									},
-									{
-										"tuple": [
-											"Venice"
-										]
-									},
-									{
-										"tuple": [
-											"Marseille"
-										]
-									},
-									{
-										"tuple": [
-											"Adriatic_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Tripoli"
-										]
-									},
-									{
-										"tuple": [
-											"Cyrenaica"
-										]
-									},
-									{
-										"tuple": [
-											"Eastern_Mediterranean"
-										]
-									},
-									{
-										"tuple": [
-											"Aegean_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Crete"
-										]
-									},
-									{
-										"tuple": [
-											"Madeira_Sea"
-										]
-									},
-									{
-										"tuple": [
-											"Bay_of_Biscay"
-										]
-									},
-									{
-										"tuple": [
-											"Munich"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							125379,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Berlin"
-										]
-									},
-									{
-										"tuple": [
-											"Ruhr"
-										]
-									}
-								]
-							}
-						]
-					},
-					{
-						"tuple": [
-							125882,
-							{
-								"xset": [
-									{
-										"tuple": [
-											"Berlin"
-										]
-									},
-									{
-										"tuple": [
-											"Ruhr"
-										]
-									}
-								]
-							}
+							"accept"
 						]
 					}
 				]
 			},
-			"log": "Game loaded\nAxis moves a unit from Milan to Marseille (1 command points remaining)\n",
+			"log": "0:West 96979 targeting G Axis\n3 hits\n97370 lost 1 cv: 1\nbattle vor recursive call: Land Battle\n0:West 96979 targeting G Axis\n2 hits\nunit 97370 removed\nbattle vor recursive call: Land Battle\n0:West 96979 targeting G Axis\n1 hits\n97763 lost 1 cv: 1\nWest 119454 fires next\n",
+			"temp": {
+				"season": "Spring",
+				"active_idx": 1,
+				"active_players": [
+					"USSR"
+				],
+				"decision": {
+					"West": {
+						"top": "Austria",
+						"bottom": "Afghanistan",
+						"season": "Spring",
+						"priority": "K",
+						"value": 5,
+						"obj_type": "action_card",
+						"visible": {
+							"xset": []
+						},
+						"_id": "action_11"
+					},
+					"Axis": {
+						"top": "Rumania",
+						"bottom": "Spain",
+						"season": "Spring",
+						"priority": "F",
+						"value": 5,
+						"obj_type": "action_card",
+						"visible": {
+							"xset": []
+						},
+						"_id": "action_6"
+					}
+				},
+				"passes": 1,
+				"borders": {
+					"Axis": {
+						"Lorraine_Munich": 2,
+						"Marseille_Milan": 1
+					},
+					"USSR": {},
+					"West": {}
+				},
+				"commands": {
+					"West": {
+						"priority": "K",
+						"moved": {
+							"xset": []
+						},
+						"value": 5
+					}
+				},
+				"order": [
+					"Axis",
+					"West"
+				],
+				"battles": {
+					"Lorraine": "Axis",
+					"Marseille": "Axis"
+				},
+				"has_moved": {
+					"97370": "Munich",
+					"97763": "Munich",
+					"103054": "Milan"
+				},
+				"threats": {
+					"xset": []
+				},
+				"battle_groups": {},
+				"potential_battles": {
+					"xset": [
+						"Lorraine",
+						"Marseille"
+					]
+				},
+				"attacker": "Axis",
+				"combat": {
+					"battles_to_select": {
+						"xset": []
+					},
+					"battles_to_reveal": {},
+					"opt_battles": {
+						"xset": []
+					},
+					"battles": {
+						"Marseille": {
+							"tilename": "Marseille",
+							"tile": {
+								"type": "Coast",
+								"alligence": "France",
+								"res": 0,
+								"pop": 1,
+								"muster": 2,
+								"borders": {
+									"Barcelona": "Mountains",
+									"Western_Mediterranean": "Coast",
+									"Gascony": "Plains",
+									"Lorraine": "Plains",
+									"Milan": "Mountains"
+								},
+								"units": {
+									"xset": [
+										116075,
+										103054
+									]
+								},
+								"obj_type": "tile",
+								"visible": {
+									"xset": [
+										"West",
+										"USSR",
+										"Axis"
+									]
+								},
+								"owner": "West",
+								"disputed": 1,
+								"aggressors": [
+									"Axis"
+								],
+								"_id": "Marseille"
+							},
+							"owner": "West",
+							"intruder": "Axis",
+							"attacker": "Axis",
+							"defender": "West",
+							"units": [
+								{
+									"unit": {
+										"nationality": "France",
+										"tile": "Marseille",
+										"type": "Infantry",
+										"obj_type": "unit",
+										"cv": 2,
+										"visible": {
+											"xset": [
+												"Axis",
+												"USSR",
+												"West"
+											]
+										},
+										"_id": 116075
+									},
+									"owner": "West",
+									"group": "G",
+									"priority": 7,
+									"rules": {
+										"priority": 7,
+										"type": "G",
+										"move": 2,
+										"A": 1,
+										"N": 1,
+										"G": 3,
+										"S": 0
+									},
+									"id": 116075,
+									"ff": 0,
+									"sonar": 0,
+									"air_def_radar": 0,
+									"prec_bomb": 0,
+									"type": "Infantry",
+									"turn": 0
+								},
+								{
+									"unit": {
+										"nationality": "Italy",
+										"tile": "Marseille",
+										"type": "Infantry",
+										"obj_type": "unit",
+										"cv": 1,
+										"visible": {
+											"xset": [
+												"Axis",
+												"USSR",
+												"West"
+											]
+										},
+										"_id": 103054
+									},
+									"owner": "Axis",
+									"group": "G",
+									"priority": 7,
+									"rules": {
+										"priority": 7,
+										"type": "G",
+										"move": 2,
+										"A": 1,
+										"N": 1,
+										"G": 3,
+										"S": 0
+									},
+									"id": 103054,
+									"ff": 0,
+									"sonar": 0,
+									"air_def_radar": 0,
+									"prec_bomb": 0,
+									"type": "Infantry",
+									"turn": 1
+								}
+							],
+							"fire_order": [
+								{
+									"unit": {
+										"nationality": "France",
+										"tile": "Marseille",
+										"type": "Infantry",
+										"obj_type": "unit",
+										"cv": 2,
+										"visible": {
+											"xset": [
+												"Axis",
+												"USSR",
+												"West"
+											]
+										},
+										"_id": 116075
+									},
+									"owner": "West",
+									"group": "G",
+									"priority": 7,
+									"rules": {
+										"priority": 7,
+										"type": "G",
+										"move": 2,
+										"A": 1,
+										"N": 1,
+										"G": 3,
+										"S": 0
+									},
+									"id": 116075,
+									"ff": 0,
+									"sonar": 0,
+									"air_def_radar": 0,
+									"prec_bomb": 0,
+									"type": "Infantry",
+									"turn": 0
+								},
+								{
+									"unit": {
+										"nationality": "Italy",
+										"tile": "Marseille",
+										"type": "Infantry",
+										"obj_type": "unit",
+										"cv": 1,
+										"visible": {
+											"xset": [
+												"Axis",
+												"USSR",
+												"West"
+											]
+										},
+										"_id": 103054
+									},
+									"owner": "Axis",
+									"group": "G",
+									"priority": 7,
+									"rules": {
+										"priority": 7,
+										"type": "G",
+										"move": 2,
+										"A": 1,
+										"N": 1,
+										"G": 3,
+										"S": 0
+									},
+									"id": 103054,
+									"ff": 0,
+									"sonar": 0,
+									"air_def_radar": 0,
+									"prec_bomb": 0,
+									"type": "Infantry",
+									"turn": 1
+								}
+							]
+						}
+					},
+					"i_battle": null,
+					"stage": "fire",
+					"battle": {
+						"tilename": "Lorraine",
+						"tile": {
+							"type": "Land",
+							"alligence": "France",
+							"res": 2,
+							"pop": 0,
+							"muster": 0,
+							"borders": {
+								"Munich": "River",
+								"Paris": "Plains",
+								"Amsterdam": "Forest",
+								"Gascony": "Plains",
+								"Marseille": "Plains"
+							},
+							"units": {
+								"xset": [
+									96979,
+									118482,
+									118967,
+									119454,
+									97370,
+									97763
+								]
+							},
+							"obj_type": "tile",
+							"visible": {
+								"xset": [
+									"West",
+									"USSR",
+									"Axis"
+								]
+							},
+							"owner": "West",
+							"disputed": 1,
+							"aggressors": [
+								"Axis"
+							],
+							"_id": "Lorraine"
+						},
+						"owner": "West",
+						"intruder": "Axis",
+						"attacker": "Axis",
+						"defender": "West",
+						"units": [
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "Fortress",
+									"cv": 3,
+									"obj_type": "unit",
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 96979
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 1,
+								"rules": {
+									"priority": 1,
+									"type": "G",
+									"move": 0,
+									"A": 2,
+									"N": 3,
+									"G": 4,
+									"S": 3
+								},
+								"id": 96979,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Fortress",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 118482
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 118482,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "Tank",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 118967
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 6,
+								"rules": {
+									"priority": 6,
+									"type": "G",
+									"move": 3,
+									"A": 0,
+									"N": 0,
+									"G": 2,
+									"S": 0
+								},
+								"id": 118967,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Tank",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "AirForce",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 119454
+								},
+								"owner": "West",
+								"group": "A",
+								"priority": 2,
+								"rules": {
+									"rebase": 1,
+									"priority": 2,
+									"type": "A",
+									"move": 2,
+									"A": 3,
+									"N": 1,
+									"G": 1,
+									"S": 1
+								},
+								"id": 119454,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "AirForce",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "Germany",
+									"tile": "Lorraine",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 2,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 97370
+								},
+								"owner": "Axis",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 97370,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 1
+							},
+							{
+								"unit": {
+									"nationality": "Germany",
+									"tile": "Lorraine",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 2,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 97763
+								},
+								"owner": "Axis",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 97763,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 1
+							}
+						],
+						"fire_order": [
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "Fortress",
+									"cv": 3,
+									"obj_type": "unit",
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 96979
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 1,
+								"rules": {
+									"priority": 1,
+									"type": "G",
+									"move": 0,
+									"A": 2,
+									"N": 3,
+									"G": 4,
+									"S": 3
+								},
+								"id": 96979,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Fortress",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "AirForce",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 119454
+								},
+								"owner": "West",
+								"group": "A",
+								"priority": 2,
+								"rules": {
+									"rebase": 1,
+									"priority": 2,
+									"type": "A",
+									"move": 2,
+									"A": 3,
+									"N": 1,
+									"G": 1,
+									"S": 1
+								},
+								"id": 119454,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "AirForce",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "Tank",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 118967
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 6,
+								"rules": {
+									"priority": 6,
+									"type": "G",
+									"move": 3,
+									"A": 0,
+									"N": 0,
+									"G": 2,
+									"S": 0
+								},
+								"id": 118967,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Tank",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "France",
+									"tile": "Lorraine",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 1,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 118482
+								},
+								"owner": "West",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 118482,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 0
+							},
+							{
+								"unit": {
+									"nationality": "Germany",
+									"tile": "Lorraine",
+									"type": "Infantry",
+									"obj_type": "unit",
+									"cv": 2,
+									"visible": {
+										"xset": [
+											"Axis",
+											"USSR",
+											"West"
+										]
+									},
+									"_id": 97763
+								},
+								"owner": "Axis",
+								"group": "G",
+								"priority": 7,
+								"rules": {
+									"priority": 7,
+									"type": "G",
+									"move": 2,
+									"A": 1,
+									"N": 1,
+									"G": 3,
+									"S": 0
+								},
+								"id": 97763,
+								"ff": 0,
+								"sonar": 0,
+								"air_def_radar": 0,
+								"prec_bomb": 0,
+								"type": "Infantry",
+								"turn": 1
+							}
+						],
+						"idx": 1,
+						"fire": {
+							"unit": {
+								"nationality": "France",
+								"tile": "Lorraine",
+								"type": "AirForce",
+								"obj_type": "unit",
+								"cv": 1,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 119454
+							},
+							"owner": "West",
+							"group": "A",
+							"priority": 2,
+							"rules": {
+								"rebase": 1,
+								"priority": 2,
+								"type": "A",
+								"move": 2,
+								"A": 3,
+								"N": 1,
+								"G": 1,
+								"S": 1
+							},
+							"id": 119454,
+							"ff": 0,
+							"sonar": 0,
+							"air_def_radar": 0,
+							"prec_bomb": 0,
+							"type": "AirForce",
+							"turn": 0
+						},
+						"opp_types": [
+							"Infantry"
+						],
+						"opp_groups": [
+							"G"
+						],
+						"retreat_options": [],
+						"target_class": "G",
+						"target_units": [
+							{
+								"nationality": "Germany",
+								"tile": "Lorraine",
+								"type": "Infantry",
+								"obj_type": "unit",
+								"cv": 2,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 97763
+							}
+						],
+						"units_max_cv": [
+							{
+								"nationality": "Germany",
+								"tile": "Lorraine",
+								"type": "Infantry",
+								"obj_type": "unit",
+								"cv": 2,
+								"visible": {
+									"xset": [
+										"Axis",
+										"USSR",
+										"West"
+									]
+								},
+								"_id": 97763
+							}
+						],
+						"types_max_cv": [
+							"Infantry"
+						],
+						"unit_hit": {
+							"nationality": "Germany",
+							"tile": "Lorraine",
+							"type": "Infantry",
+							"obj_type": "unit",
+							"cv": 2,
+							"visible": {
+								"xset": [
+									"Axis",
+									"USSR",
+									"West"
+								]
+							},
+							"_id": 97763
+						}
+					}
+				}
+			},
 			"choice": {
-				"random": 259,
-				"count": 299,
+				"random": 0,
+				"count": 1,
 				"tuple": [
-					"99355",
-					"Berlin"
+					"accept"
 				]
 			},
 			"info": {
 				"game": {
 					"year": 1936,
-					"phase": "Movement",
+					"phase": "Land Battle",
 					"turn_order": [
 						"West",
 						"USSR",
@@ -16633,7 +15635,7 @@
 						"victory_points": 9,
 						"reserves": {
 							"Germany": {
-								"Infantry": 7,
+								"Infantry": 8,
 								"Fortress": 5,
 								"Tank": 5,
 								"AirForce": 6,
@@ -17421,7 +16423,7 @@
 			1282926098,
 			2453879047,
 			2589924035,
-			520
+			531
 		],
 		null
 	]

@@ -116,6 +116,10 @@ def format_out_message(player):
 		out.waiting_for = xset(WAITING_ACTIONS.keys())
 	
 	out.log = G.logger.pull(player)
+	if 'temp' in G:
+		out.temp = G.temp #@@@ added this to test extra battle info!!!!!!!!!!
+	else:
+		out.temp = adict()
 	
 	REPEATS[player] = out
 	return out
@@ -199,7 +203,7 @@ def step(player, action):
 	
 	try:
 		
-		print('step',player,action,'PHASE_DONE=',PHASE_DONE)
+		#print('step',player,action,'PHASE_DONE=',PHASE_DONE)
 		if PHASE_DONE:
 			PHASE_DONE = False
 			all_actions = evaluate_action()
@@ -212,6 +216,7 @@ def step(player, action):
 			all_actions = evaluate_action(player, action)
 			
 	except Exception as e:
+		print(e)
 		G.abort()
 		
 		if DEBUG:
