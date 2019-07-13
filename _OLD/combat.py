@@ -10,6 +10,7 @@ def combat_phase(G, player, action):
 
 	if not 'combat' in G.temp:
 		prepare_combat_structs(G,player)
+		G.temp.combat.unitRules = G.units.rules
 		determine_stage(G,player)
 	
 	c=G.temp.combat

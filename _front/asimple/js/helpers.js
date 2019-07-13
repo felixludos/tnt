@@ -22,6 +22,41 @@ const fieldSorter = fields => (a, b) =>
 
 //#endregion HACKS
 
+class Counter extends Map {
+	//usage:
+	// results = new Counter([1, 2, 3, 1, 2, 3, 1, 2, 2]);
+	// for (let [number, times] of results.entries()) console.log('%s occurs %s times', number, times);
+	// people = [
+	// 		{name: 'Mary', gender: 'girl'},
+	// 		{name: 'John', gender: 'boy'},
+	// 		{name: 'Lisa', gender: 'girl'},
+	// 		{name: 'Bill', gender: 'boy'},
+	// 		{name: 'Maklatura', gender: 'girl'}
+	// ];
+	// byGender = new Counter(people, x => x.gender);
+	// for (let g of ['boy', 'girl']) console.log("there are %s %ss", byGender.get(g), g);
+
+	//count objects with 2 conditions: objects of same type, same owner:
+	// byType = new Counter(b.fire_order, x => x.unit.type+'_'+x.owner);
+	// for (let g of cartesian(brep.allUnitTypes,brep.factions)) console.log("there are %s %s", byType.get(g), g);
+
+	constructor(iter, key = null) {
+		super();
+		this.key = key || (x => x);
+		for (let x of iter) {
+			this.add(x);
+		}
+	}
+	add(x) {
+		x = this.key(x);
+		this.set(x, (this.get(x) || 0) + 1);
+	}
+}
+function getItemWithMaxValue(d){
+	let k = Object.keys(d).reduce((a, b) => d[a] >= d[b] ? a : b);
+	return [k,d[k]];
+}
+
 //#region array helpers
 function addAll(akku, other) {
 	for (const el of other) {
@@ -1130,6 +1165,16 @@ function transColor(r, g, b, a) {
 //#endregion
 
 //#region dictionary helpers
+function dict2list(d) {
+	//d assumed to be dictionary with values are objects!!!!
+	let res = [];
+	for (const key in d) {
+		let o = d[key];
+		o.key = key;
+		res.push(o);
+	}
+	return res;
+}
 function isType(sType, val) {
 	// uses existing (global) config data to infer type from val
 	////console.log("isType called!",sType, val, regions, units);
@@ -1156,6 +1201,13 @@ function inferType(val) {
 //#endregion dictionary helpers
 
 //#region DOM helpers:
+function addFlexGridDiv(div) {
+	let d = document.createElement('div');
+	d.classList.add('flex-grid');
+	div.appendChild(d);
+	return d;
+}
+
 function arrChildren(elem) {
 	return [...elem.children];
 }
@@ -1312,7 +1364,6 @@ function makeKeyValueTable(data) {
 	let res1 = (elem = new DOMParser().parseFromString(res, 'text/html').body.firstChild);
 	return res1;
 }
-
 function makeTable(tableName, rowHeaders, colHeaders) {
 	let cols = colHeaders.length + 1;
 	let rows = rowHeaders.length + 1;
@@ -1963,15 +2014,25 @@ function propDiff(o_old, o_new) {
 //#endregion object helpers
 
 //#region palette helpers
+var palette=null;
 function setCSSButtonColors(pal, ihue = 0) {
 	// takes a palette pal (sorted from darkest to lightest),
 	// sets css variables for button colors (used in layout.css):
 	// --bbg button background set to dark, --bhbg hover to light color, --babg press bg to medium
 	let root = document.documentElement;
 	let len = pal.length;
+	//backgrounds:
 	root.style.setProperty('--bbg', pal[0][ihue].b);
 	root.style.setProperty('--bhbg', pal[len - 1][ihue].b);
 	root.style.setProperty('--babg', pal[Math.floor(len / 2)][ihue].b);
+
+	root.style.setProperty('--bxxd', pal[0][ihue].b);
+	root.style.setProperty('--bxd', pal[1][ihue].b);
+	root.style.setProperty('--bd', pal[2][ihue].b);
+	root.style.setProperty('--bm', pal[3][ihue].b);
+	root.style.setProperty('--bl', pal[4][ihue].b);
+	root.style.setProperty('--bxl', pal[5][ihue].b);
+	root.style.setProperty('--bxxl', pal[6][ihue].b);
 }
 function gen_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
 	//generates a palette = array of 7 arrays of nHues color pairs as {b:background,f:foreground}
@@ -1994,17 +2055,36 @@ function gen_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
 			cb = `hsla(${h},${sat}%,${l}%,${a})`; //hsla(120,100%,50%,0.3)
 			hopp = (h + 180) % 360;
 			cf = `hsla(${hopp},${sat}%,${l < 18 ? 100 : 0}%,${a})`; //hsla(120,100%,50%,0.3)
-			palHues.push({b: cb, f: cf});
+			let hex = standardize_color(cb);
+			let f5 = idealTextColor(hex);
+			palHues.push({b: cb, f: f5});
 		}
 		pal.push(palHues);
 	}
 	//console.log('pal.length:', pal.length, ', pal[0].length:', pal[0].length, ', pal:', pal);
 	return pal;
 }
-function color_areas(nHues=2, iButtonHue=0,areaClass = 'area', gridDiv = 'grid_game') {
+function getpal(ipal=-1,ihue=0,bOrf='b'){
+	//gets a b or f color from palette
+	//a value of -1 in ihue or ipal ... pick random
+	//default: return random background shade of first hue
+	//if no palette has ever been set, just return a random color
+	if (!palette) return randomColor();
+	nHues = palette[0].length;
+	nShades = palette.length;
+	if (ipal<-1) ipal=randomNumber(0,nShades);
+	else if (ipal>=nShades) ipal%=nShades;
+	if (ihue<-1) ihue=randomNumber(0,nHues);
+	else if (ihue>=nHues) ihue%=nHues;
+
+	return palette[ipal][ihue][bOrf];
+
+}
+function color_areas(nHues = 2, iButtonHue = 0, areaClass = 'area', gridDiv = 'grid_game') {
 	let hue1 = Math.floor(Math.random() * 360);
 	let pal = gen_palette(hue1, nHues);
-	setCSSButtonColors(pal,iButtonHue);
+	palette = pal; //set global palette variable!
+	setCSSButtonColors(pal, iButtonHue);
 	let areas = document.getElementsByClassName(areaClass);
 	let grid = document.getElementById(gridDiv);
 	grid.style.backgroundColor = pal[pal.length - 1][0].b;

@@ -1,4 +1,4 @@
-//#region _HACKS
+//#region _HACKS and fieldSorter!!!
 function hackPhaseAndPlayerTest(msg) {
 	//console.log(msg);
 	let res = stringAfterLast(msg, 'Beginning ');
@@ -8,8 +8,54 @@ function hackPhaseAndPlayerTest(msg) {
 	let player = stringBefore(res1, ' ');
 	//console.log(res1, "player=" + player);
 }
+const fieldSorter = fields => (a, b) =>
+	fields
+		.map(o => {
+			let dir = 1;
+			if (o[0] === '-') {
+				dir = -1;
+				o = o.substring(1);
+			}
+			return a[o] > b[o] ? dir : a[o] < b[o] ? -dir : 0;
+		})
+		.reduce((p, n) => (p ? p : n), 0);
 
 //#endregion HACKS
+
+class Counter extends Map {
+	//usage:
+	// results = new Counter([1, 2, 3, 1, 2, 3, 1, 2, 2]);
+	// for (let [number, times] of results.entries()) console.log('%s occurs %s times', number, times);
+	// people = [
+	// 		{name: 'Mary', gender: 'girl'},
+	// 		{name: 'John', gender: 'boy'},
+	// 		{name: 'Lisa', gender: 'girl'},
+	// 		{name: 'Bill', gender: 'boy'},
+	// 		{name: 'Maklatura', gender: 'girl'}
+	// ];
+	// byGender = new Counter(people, x => x.gender);
+	// for (let g of ['boy', 'girl']) console.log("there are %s %ss", byGender.get(g), g);
+
+	//count objects with 2 conditions: objects of same type, same owner:
+	// byType = new Counter(b.fire_order, x => x.unit.type+'_'+x.owner);
+	// for (let g of cartesian(brep.allUnitTypes,brep.factions)) console.log("there are %s %s", byType.get(g), g);
+
+	constructor(iter, key = null) {
+		super();
+		this.key = key || (x => x);
+		for (let x of iter) {
+			this.add(x);
+		}
+	}
+	add(x) {
+		x = this.key(x);
+		this.set(x, (this.get(x) || 0) + 1);
+	}
+}
+function getItemWithMaxValue(d){
+	let k = Object.keys(d).reduce((a, b) => d[a] >= d[b] ? a : b);
+	return [k,d[k]];
+}
 
 //#region array helpers
 function addAll(akku, other) {
@@ -182,7 +228,7 @@ function getMissingIndices(arr, len) {
 			j += 1;
 		}
 		i += 1;
-		j=a+1;
+		j = a + 1;
 		a = i < arr.length ? arr[i] : len;
 	}
 	return res;
@@ -195,11 +241,12 @@ function getListsContainingAll(ll, l) {
 	}
 	return res;
 }
-function intersection(arr1,arr2){ //each el in result will be unique
+function intersection(arr1, arr2) {
+	//each el in result will be unique
 	let res = [];
 	for (const a of arr1) {
-		if (arr2.includes(a)){
-			addIf(a,res);
+		if (arr2.includes(a)) {
+			addIf(a, res);
 		}
 	}
 	return res;
@@ -335,7 +382,126 @@ function without(arr, elementToRemove) {
 
 //#endregion array helpers
 
+//#region color conversion
+function standardize_color(str) {
+	var c = document.createElement('canvas').getContext('2d');
+	c.fillStyle = str;
+	return c.fillStyle;
+}
+function hex2rgb(hex) {
+	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	result = result
+		? {
+				r: parseInt(result[1], 16),
+				g: parseInt(result[2], 16),
+				b: parseInt(result[3], 16)
+		  }
+		: null;
+	if (result) return `rgb(${result.r},${result.g},${result.b})`;
+	else return 'rgb(0,0,0)';
+}
+
+function rgb2hsl(r, g, b) {
+	(r /= 255), (g /= 255), (b /= 255);
+
+	var max = Math.max(r, g, b),
+		min = Math.min(r, g, b);
+	var h,
+		s,
+		l = (max + min) / 2;
+
+	if (max == min) {
+		h = s = 0; // achromatic
+	} else {
+		var d = max - min;
+		s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+		switch (max) {
+			case r:
+				h = (g - b) / d + (g < b ? 6 : 0);
+				break;
+			case g:
+				h = (b - r) / d + 2;
+				break;
+			case b:
+				h = (r - g) / d + 4;
+				break;
+		}
+
+		h /= 6;
+	}
+
+	return [h, s, l];
+}
+var Epsilon = 1e-10;
+
+function RGBtoHCV(RGB) {
+	// Based on work by Sam Hocevar and Emil Persson
+	let P = RGB.g < RGB.b ? float4(RGB.bg, -1.0, 2.0 / 3.0) : float4(RGB.gb, 0.0, -1.0 / 3.0);
+	let Q = RGB.r < P.x ? float4(P.xyw, RGB.r) : float4(RGB.r, P.yzx);
+	let C = Q.x - min(Q.w, Q.y);
+	let H = abs((Q.w - Q.y) / (6 * C + Epsilon) + Q.z);
+	return float3(H, C, Q.x);
+}
+function h2rgb(h) {
+	let r = Math.abs(h * 6 - 3) - 1;
+	let g = 2 - Math.abs(h * 6 - 2);
+	let b = 2 - Math.abs(h * 6 - 4);
+	return saturate(float3(r, g, b));
+}
+function hsl2rgb(h, s, l) {
+	let RGB = h2rgb(h);
+	let C = (1 - Math.abs(2 * l - 1)) * s;
+	return (RGB - 0.5) * C + l;
+}
+function hsv2hsl(hue, sat, val) {
+	return [
+		//[hue, saturation, lightness]
+		//Range should be between 0 - 1
+		hue, //Hue stays the same
+
+		//Saturation is very different between the two color spaces
+		//If (2-sat)*val < 1 set it to sat*val/((2-sat)*val)
+		//Otherwise sat*val/(2-(2-sat)*val)
+		//Conditional is not operating with hue, it is reassigned!
+		(sat * val) / ((hue = (2 - sat) * val) < 1 ? hue : 2 - hue),
+
+		hue / 2 //Lightness is (2-sat)*val/2
+		//See reassignment of hue above
+	];
+}
+function hsl2hsv(hue, sat, light) {
+	sat *= light < 0.5 ? light : 1 - light;
+
+	return [
+		//[hue, saturation, value]
+		//Range should be between 0 - 1
+
+		hue, //Hue stays the same
+		(2 * sat) / (light + sat), //Saturation
+		light + sat //Value
+	];
+}
+function rgb2hex(r, g, b) {
+	return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+function rgb2hsv(r, g, b) {
+	let v = Math.max(r, g, b);
+	let n = v - Math.min(r, g, b);
+	let h = n && (v == r ? (g - b) / n : v == g ? 2 + (b - r) / n : 4 + (r - g) / n);
+	h = 60 * (h < 0 ? h + 6 : h);
+	s = v && n / v;
+	return {
+		h: h,
+		s: s * 100,
+		v: (v * 100) / 255
+	};
+}
+
+//#endregion
+
 //#region color helpers
+
 function fromArray(arr) {
 	return colorArrToString(...arr);
 }
@@ -393,6 +559,63 @@ const pSBC = (p, c0, c1, l) => {
 	if (h) return 'rgb' + (f ? 'a(' : '(') + r + ',' + g + ',' + b + (f ? ',' + m(a * 1000) / 1000 : '') + ')';
 	else return '#' + (4294967296 + r * 16777216 + g * 65536 + b * 256 + (f ? m(a * 255) : 0)).toString(16).slice(1, f ? undefined : -2);
 };
+function hexToRgb(hex) {
+	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	return result
+		? {
+				r: parseInt(result[1], 16),
+				g: parseInt(result[2], 16),
+				b: parseInt(result[3], 16)
+		  }
+		: null;
+}
+
+function hslToHsv(h, s, l) {
+	//h in [0,360], s,l in percent, a in [0,1]
+	let newh = h;
+	l /= 100.0;
+	s /= 100.0;
+	//console.log(h, s, l);
+	let newv = (2 * l + s * (1 - Math.abs(2 * l - 1))) / 2;
+	let news = (2 * (newv - l)) / newv;
+	//console.log(newh, news, newv);
+	let rgb = hsvToRgb(newh, news, newv);
+	let result = [h, s, l, newh, news, newv];
+	result.push(rgbToHex(rgb[0], rgb[1], rgb[2]));
+	return result;
+}
+
+function hslToHslaString(h, s, l, a = 1) {
+	// hsl is object
+	return 'hsla(' + h + ', ' + s + '%, ' + l + '%, ' + a + ')';
+}
+
+function hsvToHsl(h, s, v) {
+	//h in [0,360], s,l in percent, a in [0,1]
+	let newh = h;
+	s /= 100.0;
+	v /= 100.0;
+	//console.log(h, s, v);
+	let newl = 0.5 * v * (2 - s);
+	let news = (v * s) / (1 - Math.abs(2 * s - 1));
+	//console.log(newh, news, newl);
+	return {
+		h: newh,
+		s: news,
+		l: newl
+	};
+	// let rgb = hsvToRgb(newh,news,newv);
+	// let result = [h,s,l,newh,news,newv];
+	// result.push(rgbToHex(rgb[0],rgb[1],rgb[2]));
+	// return result;
+}
+
+function hsvToRgb(h, s, v) {
+	//expects input: h in [0,360] and s,v in [0,1] - output: [r,g,b] in [0,1]
+	let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
+	//return [f(5),f(3),f(1)]; // this returns r,g,b in [0,1]
+	return [Math.floor(f(5) * 255), Math.floor(f(3) * 255), Math.floor(f(1) * 255)];
+}
 function rgbToHsl(r, g, b) {
 	(r /= 255), (g /= 255), (b /= 255);
 
@@ -424,34 +647,6 @@ function rgbToHsl(r, g, b) {
 	}
 
 	return [h, s, l];
-}
-function hsv2hsl(hue, sat, val) {
-	return [
-		//[hue, saturation, lightness]
-		//Range should be between 0 - 1
-		hue, //Hue stays the same
-
-		//Saturation is very different between the two color spaces
-		//If (2-sat)*val < 1 set it to sat*val/((2-sat)*val)
-		//Otherwise sat*val/(2-(2-sat)*val)
-		//Conditional is not operating with hue, it is reassigned!
-		(sat * val) / ((hue = (2 - sat) * val) < 1 ? hue : 2 - hue),
-
-		hue / 2 //Lightness is (2-sat)*val/2
-		//See reassignment of hue above
-	];
-}
-function hsl2hsv(hue, sat, light) {
-	sat *= light < 0.5 ? light : 1 - light;
-
-	return [
-		//[hue, saturation, value]
-		//Range should be between 0 - 1
-
-		hue, //Hue stays the same
-		(2 * sat) / (light + sat), //Saturation
-		light + sat //Value
-	];
 }
 function dlColor(factor, r, g, b) {
 	//console.log(r, g, b);
@@ -490,7 +685,7 @@ function blackOrWhite(cssHSLA, maxLumForWhite = 88) {
 	let hue = getHue(cssHSLA);
 	if (hue > 40 && hue < 90) maxLumForWhite = 60;
 	let result = l <= maxLumForWhite ? 'white' : 'black';
-	////console.log('lum('+l+'), hue('+hue+') : '+result);
+	//console.log('lum(' + l + '), hue(' + hue + ') : ' + result);
 	return result;
 }
 
@@ -873,74 +1068,39 @@ function getHue(cssHSLA) {
 	return h;
 }
 
-function hexToRgb(hex) {
-	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-	return result
-		? {
-				r: parseInt(result[1], 16),
-				g: parseInt(result[2], 16),
-				b: parseInt(result[3], 16)
-		  }
-		: null;
-}
-
-function hslToHsv(h, s, l) {
-	//h in [0,360], s,l in percent, a in [0,1]
-	let newh = h;
-	l /= 100.0;
-	s /= 100.0;
-	//console.log(h, s, l);
-	let newv = (2 * l + s * (1 - Math.abs(2 * l - 1))) / 2;
-	let news = (2 * (newv - l)) / newv;
-	//console.log(newh, news, newv);
-	let rgb = hsvToRgb(newh, news, newv);
-	let result = [h, s, l, newh, news, newv];
-	result.push(rgbToHex(rgb[0], rgb[1], rgb[2]));
-	return result;
-}
-
-function hslToHslaString(h, s, l, a = 1) {
-	// hsl is object
-	return 'hsla(' + h + ', ' + s + '%, ' + l + '%, ' + a + ')';
-}
-
-function hsvToHsl(h, s, v) {
-	//h in [0,360], s,l in percent, a in [0,1]
-	let newh = h;
-	s /= 100.0;
-	v /= 100.0;
-	//console.log(h, s, v);
-	let newl = 0.5 * v * (2 - s);
-	let news = (v * s) / (1 - Math.abs(2 * s - 1));
-	//console.log(newh, news, newl);
-	return {
-		h: newh,
-		s: news,
-		l: newl
-	};
-	// let rgb = hsvToRgb(newh,news,newv);
-	// let result = [h,s,l,newh,news,newv];
-	// result.push(rgbToHex(rgb[0],rgb[1],rgb[2]));
-	// return result;
-}
-
-function hsvToRgb(h, s, v) {
-	//expects input: h in [0,360] and s,v in [0,1] - output: [r,g,b] in [0,1]
-	let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
-	//return [f(5),f(3),f(1)]; // this returns r,g,b in [0,1]
-	return [Math.floor(f(5) * 255), Math.floor(f(3) * 255), Math.floor(f(1) * 255)];
-}
-
 function hue(h) {
 	var r = Math.abs(h * 6 - 3) - 1;
 	var g = 2 - Math.abs(h * 6 - 2);
 	var b = 2 - Math.abs(h * 6 - 4);
 	return [Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255)];
 }
+const complementaryColor = color => {
+	const hexColor = color.replace('#', '0x');
+
+	return `#${('000000' + ('0xffffff' ^ hexColor).toString(16)).slice(-6)}`;
+};
+// complementaryColor('#ff0000'); // #00ffff
+function niceColor(rgb) {
+	// assumes "rgb(R,G,B)" string
+	let hsl = rgb2hsl(rgb);
+	hsl[0] = (hsl[0] + 0.5) % 1; // Hue
+	hsl[1] = (hsl[1] + 0.5) % 1; // Saturation
+	hsl[2] = (hsl[2] + 0.5) % 1; // Luminocity
+	return 'hsl(' + hsl[0] * 360 + ',' + hsl[1] * 100 + '%,' + hsl[2] * 100 + '%)';
+}
+// assumes bgColor is a rgb() string: "rgb(66, 134, 244)"
+function getTextColor(c) {
+	let rgb = c
+		.substring(4, c.indexOf(')'))
+		.split(', ')
+		.map(x => parseInt(x));
+	let o = Math.round((parseInt(rgb[0]) * 299 + parseInt(rgb[1]) * 587 + parseInt(rgb[2]) * 114) / 1000);
+	return o > 125 ? 'black' : 'white';
+}
 
 function idealTextColor(bg, grayPreferred = false) {
 	//bg color name or hex string!
-	const nThreshold = 40; //105;
+	const nThreshold = 105; //40; //105;
 	if (bg.substring(0, 1) != '#') bg = colorNameToHexString(bg);
 	rgb = hexToRgb(bg);
 	r = rgb.r;
@@ -1005,6 +1165,16 @@ function transColor(r, g, b, a) {
 //#endregion
 
 //#region dictionary helpers
+function dict2list(d) {
+	//d assumed to be dictionary with values are objects!!!!
+	let res = [];
+	for (const key in d) {
+		let o = d[key];
+		o.key = key;
+		res.push(o);
+	}
+	return res;
+}
 function isType(sType, val) {
 	// uses existing (global) config data to infer type from val
 	////console.log("isType called!",sType, val, regions, units);
@@ -1152,6 +1322,11 @@ function makeSvg(w, h) {
 	svg1.setAttribute('height', h);
 	return svg1;
 }
+function setCSSVariable(varName, val) {
+	let root = document.documentElement;
+	root.style.setProperty(varName, val);
+}
+
 function show(elem) {
 	if (isSvg(elem)) {
 		showSvg(elem);
@@ -1182,7 +1357,6 @@ function makeKeyValueTable(data) {
 	let res1 = (elem = new DOMParser().parseFromString(res, 'text/html').body.firstChild);
 	return res1;
 }
-
 function makeTable(tableName, rowHeaders, colHeaders) {
 	let cols = colHeaders.length + 1;
 	let rows = rowHeaders.length + 1;
@@ -1831,6 +2005,84 @@ function propDiff(o_old, o_new) {
 	return {onlyOld: onlyOld, onlyNew: onlyNew, propChange: propChange, summary: summary, hasChanged: hasChanged};
 }
 //#endregion object helpers
+
+//#region palette helpers
+function setCSSButtonColors(pal, ihue = 0) {
+	// takes a palette pal (sorted from darkest to lightest),
+	// sets css variables for button colors (used in layout.css):
+	// --bbg button background set to dark, --bhbg hover to light color, --babg press bg to medium
+	let root = document.documentElement;
+	let len = pal.length;
+	root.style.setProperty('--bbg', pal[0][ihue].b);
+	root.style.setProperty('--bhbg', pal[len - 1][ihue].b);
+	root.style.setProperty('--babg', pal[Math.floor(len / 2)][ihue].b);
+}
+function gen_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
+	//generates a palette = array of 7 arrays of nHues color pairs as {b:background,f:foreground}
+	//each color is a hsla string
+	//the 7 arrays are sorted from dark to light
+	//starting from hue (0 is red), 360 degrees of rainbow hues are divided into nHues equal arcs
+	//hue wheel in counter clockwise dir: 0=red,60=yellow,120=green,180=cyan,240=blue,300=magenta
+	//eg. pal=[[{b:h1darkest,f:h1df},{b:h2b,f:h2f},...],...,[{b:h1lightest,f:h1lf},...]]
+	// pal.length = 7, pal[0].length = nHues, pal[0][0] ... {b:c1,f:c2}
+	let hues = [];
+	let hueDiff = 360 / nHues;
+	for (let i = 0; i < nHues; i++) {
+		hues.push(hue);
+		hue += hueDiff;
+	}
+	let pal = [];
+	for (l of [15, 25, 35, 50, 65, 75, 85]) {
+		let palHues = [];
+		for (h of hues) {
+			cb = `hsla(${h},${sat}%,${l}%,${a})`; //hsla(120,100%,50%,0.3)
+			hopp = (h + 180) % 360;
+			cf = `hsla(${hopp},${sat}%,${l < 18 ? 100 : 0}%,${a})`; //hsla(120,100%,50%,0.3)
+			palHues.push({b: cb, f: cf});
+		}
+		pal.push(palHues);
+	}
+	//console.log('pal.length:', pal.length, ', pal[0].length:', pal[0].length, ', pal:', pal);
+	return pal;
+}
+function color_areas(nHues = 2, iButtonHue = 0, areaClass = 'area', gridDiv = 'grid_game') {
+	let hue1 = Math.floor(Math.random() * 360);
+	let pal = gen_palette(hue1, nHues);
+	setCSSButtonColors(pal, iButtonHue);
+	let areas = document.getElementsByClassName(areaClass);
+	let grid = document.getElementById(gridDiv);
+	grid.style.backgroundColor = pal[pal.length - 1][0].b;
+	idx = 0;
+	ihue = 0;
+	for (const a of areas) {
+		let cb = (a.style.backgroundColor = pal[idx][ihue].b);
+		let cf = (a.style.color = pal[idx][ihue].f);
+		//console.log('back', standardize_color(cb));
+		let hex = standardize_color(cb);
+
+		let f = complementaryColor(hex);
+		a.style.color = f; //nein
+
+		let rgbString = hex2rgb(hex);
+		let f2 = getTextColor(rgbString);
+		a.style.color = f2; //noch schlechter!
+
+		let f3 = niceColor(rgbString);
+		a.style.color = f3;
+
+		let f4 = blackOrWhite(cb);
+		a.style.color = f4; //geht
+
+		let f5 = idealTextColor(hex);
+		a.style.color = f5; //geht
+
+		idx += 1;
+		if (idx >= pal.length - 2) idx = 0;
+		ihue = (ihue + 1) % pal[0].length;
+		if (idx % pal[0].length == 0) ihue = (ihue + 1) % pal[0].length;
+	}
+}
+//endregion
 
 //#region set and tuple helpers
 function extractUniqueStrings(tupleList) {

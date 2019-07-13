@@ -526,35 +526,35 @@
 
 		<!-- #region battle presentation -->
 		<script>
-			function addPara(divElem,text){
+			function addPara(divElem, text) {
 				let p = document.createElement('p');
 				p.textContent = text;
 				divElem.appendChild(p);
 			}
-			function make_battle_rep(loc,info){
+			function make_battle_rep(loc, info) {
 				//make a div of 600x400
 				//can use css for that!
 			}
 			function present_battle_overview(data) {
 				//this is done when combat phase starts
 				let c = data.temp.combat;
-				
+
 				let d = document.getElementById('battle_area');
 				clearElement(d);
-				addPara(d,'Combat is starting with '+data.temp.attacker+' as attacker!');
+				addPara(d, 'Combat is starting with ' + data.temp.attacker + ' as attacker!');
 
 				//presentation is done in battle_area
 				//at this stage all battles have been selected and first battle will be determined
 				//this function is called each time when c.stage == 'next'
-				//if only 1 in c.battles, c.battle is already set and title will be: 
+				//if only 1 in c.battles, c.battle is already set and title will be:
 				let n = Object.keys(c.battles).length;
 				let battleNames = Object.keys(c.battles).join(', ');
 				for (const b in c.battles) {
 					let tilename = b;
 					let info = c.battles[b];
-					let elem = make_battle_rep(tilename,info)
+					let elem = make_battle_rep(tilename, info);
 				}
-				addPara(d,n>1?''+n+' battles will be fought in '+battleNames:'Battle of '+Object.keys(c.battles)[0]);
+				addPara(d, n > 1 ? '' + n + ' battles will be fought in ' + battleNames : 'Battle of ' + Object.keys(c.battles)[0]);
 			}
 
 			function updateBattle(c) {
@@ -565,6 +565,241 @@
 				}
 			}
 		</script>
+		<script>
+			function addUnit(id, gName, type, nationality, cv, x, y) {
+				let ms = createUnit(id, gName, type, nationality);
+				ms.setPos(x, y).draw();
+				updateCv(ms, cv);
+				return ms;
+			}
+			function createUnit(id, gName, type, nationality) {
+				// let type = 'Infantry';
+				// let nationality = 'France';
+				let assets = new NAssets();
+				let owner = 'West';
+				let imagePath = './battle/images/' + type + '.svg';
+				let color = assets.troopColors[nationality];
+				let darker = darkerColor(color[0], color[1], color[2]);
+				let sz = assets.SZ.cadreDetail;
+				let sz80 = sz * 0.86;
+				let szImage = sz / 1.5;
+				let y = szImage / 6;
+				let ms = new MS(id, id, gName)
+					.roundedRect({className: 'ground', w: sz, h: sz, fill: color, rounding: sz * 0.1})
+					.roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
+					.image({path: imagePath, y: y, w: szImage, h: szImage})
+					.roundedRect({className: 'unit overlay', w: sz, h: sz, fill: darker, rounding: sz * 0.1});
+				ms.tag('type', 'unit');
+				ms.tag('owner', owner);
+				ms.tag('nationality', nationality);
+				return ms;
+			}
+			function updateCv(ms, cv) {
+				ms.removeFromChildIndex(5);
+				let assets = new NAssets();
+				let sz = assets.SZ.cadreDetail;
+				let dx = sz / (cv + 1);
+				let xStart = -sz / 2;
+				let y = -sz / 3.2;
+				let diam = Math.min(dx / 1.5, sz / 5);
+				let x = dx + xStart;
+				for (let i = 0; i < cv; i++) {
+					ms.circle({sz: diam, x: x, y: y, fill: 'white'});
+					x += dx;
+				}
+
+				ms.tag('cv', cv);
+			}
+			function calc_combat_rep(assets, dataTempCombat) {
+				let c = dataTempCombat;
+				//console.log(c);
+				let dlist = dict2list(c.unitRules);
+				//console.log(dlist);
+				let columnHeaders = dlist.sort(fieldSorter(['priority'])).map(x => x.key);
+				let crep = {locs: Object.keys(c.battles)};
+				let wMax = 0;
+				let hMax = 0;
+				for (const loc in c.battles) {
+					crep[loc] = {};
+					let brep = crep[loc];
+					let b = c.battles[loc];
+					brep.factions = [b.attacker, b.defender];
+					brep.allUnitTypes = Array.from(new Set(b.fire_order.map(x => x.unit.type)));
+					brep.b = b;
+					let unitTypeCountPerFaction = {};
+					let maxUnitTypeCountPerFaction = {};
+					byTypeAndFaction = new Counter(b.fire_order, x => x.unit.type + '_' + x.owner);
+					//console.log(byTypeAndFaction)
+					for (let g of cartesian(brep.allUnitTypes, brep.factions)) {
+						let type = stringBefore(g, '_');
+						let faction = stringAfter(g, '_');
+						//console.log("there are %s of type %s and faction %s", byTypeAndFaction.get(g), type,faction);
+						if (!(faction in unitTypeCountPerFaction)) unitTypeCountPerFaction[faction] = {};
+						let count = byTypeAndFaction.get(g);
+						unitTypeCountPerFaction[faction][type] = count ? count : 0;
+					}
+					nColsPerFaction = {};
+					for (const f of brep.factions) {
+						//console.log('hallo!!!',f,unitTypeCountPerFaction[f])
+						//console.log(getItemWithMaxValue(unitTypeCountPerFaction[f]));
+						maxUnitTypeCountPerFaction[f] = getItemWithMaxValue(unitTypeCountPerFaction[f])[1];
+						nColsPerFaction[f] = maxUnitTypeCountPerFaction[f];
+					}
+
+					//console.log('max unit type count by faction:',maxUnitTypeCountPerFaction);
+
+					brep.maxUnitTypeCountPerFaction = maxUnitTypeCountPerFaction;
+					brep.location = b.tilename;
+
+					//vertical dimensions:
+					let hTitle = 25 * 2; //title of battle, names of factions
+					let usz = assets.SZ.cadreDetail;
+					let hGap = 4;
+					let hRow = usz + hGap;
+					let hTotal = hRow * brep.allUnitTypes.length + hTitle + 2 * hGap;
+
+					//horizontal dimensions:
+					let wGap = hGap;
+					let wFactionGap = 2 * hGap;
+					let wCol = usz + wGap;
+					let wColTotal = Object.values(maxUnitTypeCountPerFaction).reduce((a, b) => a + b, 0);
+
+					let wColsPerFaction = {};
+					let xStartPerFaction = {};
+					let xAkku = wGap;
+					for (const f of brep.factions) {
+						//console.log('hallo!!!',f,unitTypeCountPerFaction[f])
+						//console.log(getItemWithMaxValue(unitTypeCountPerFaction[f]));
+						maxUnitTypeCountPerFaction[f] = getItemWithMaxValue(unitTypeCountPerFaction[f])[1];
+						wColsPerFaction[f] = maxUnitTypeCountPerFaction[f] * wCol;
+						xStartPerFaction[f] = xAkku;
+						xAkku += wColsPerFaction[f] + wFactionGap;
+					}
+
+					let yStartPerUnitType = {};
+					let yAkku = hGap + 25;
+					for (const t of brep.allUnitTypes) {
+						yStartPerUnitType[t] = yAkku;
+						yAkku += hRow;
+					}
+
+					brep.xStartPerFaction = xStartPerFaction;
+					brep.yStartPerUnitType = yStartPerUnitType;
+					brep.wColsPerFaction = wColsPerFaction;
+
+					//console.log(wColTotal);
+					let wTotal = wGap + wColTotal * wCol + wFactionGap * brep.factions.length + wGap;
+
+					brep.size = {w: wTotal, h: hTotal};
+					brep.unitSize = {w: wCol, h: hRow};
+					brep.gap = {w: wGap, h: hGap, col: wFactionGap};
+
+					if (wMax < wTotal) wMax = wTotal;
+					if (hMax < hTotal) hMax = hTotal;
+				}
+				crep.dims = {w: wMax, h: hMax};
+				//console.log(crep)
+				return crep;
+			}
+			function set_combat_title(div, locs) {
+				let title = 'COMBAT!!! Battle' + (locs.length > 1 ? 's' : '') + ' in ' + locs.join(', ');
+				let p = document.createElement('p');
+				p.textContent = title;
+				div.appendChild(p);
+			}
+			function rep_combat(assets,data, divName) {
+				let crep = calc_combat_rep(assets,data);
+				console.log(crep);
+
+				let dParent = document.getElementById(divName);
+				clearElement(dParent);
+				set_combat_title(dParent, crep.locs);
+				dParent = addFlexGridDiv(dParent);
+
+				let ipal = 0;
+				let i = 0;
+				for (const loc of crep.locs) {
+					let brep = crep[loc];
+					let d = document.createElement('div');
+					// make big div
+					d.innerHTML = loc;
+					let bg = getpal(ipal, 0, 'b');
+					let fg = getpal(ipal, 0, 'f');
+					d.style.backgroundColor = bg;
+					d.style.color = fg;
+					ipal += 1; //randomColor();
+					d.style.width = crep.dims.w + 'px'; //c.size.w + 'px';
+					d.style.height = crep.dims.h + 'px'; //c.size.h + 'px';
+					d.style.border = '1px solid ' + getpal(6); // red';
+					d.style.margin = '10px';
+					d.style.float = 'left';
+					d.style.textAlign = 'center';
+					dParent.appendChild(d);
+
+					//make small or equal div centered horizontally and top vertically in big div
+					let d1 = document.createElement('div');
+					d1.style.width = brep.size.w + 'px';
+					d1.style.height = brep.size.h - 25 + 'px';
+					//d1.style.border = '1px solid ' + getpal(6); // red';
+					d1.style.margin = 'auto';
+					d.appendChild(d1);
+
+					//each div gets an svg and inside a g
+					let svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+					svg1.setAttribute('width', '100%');
+					svg1.setAttribute('height', '100%');
+					//svg1.setAttribute("style", "background-color:red")
+					d1.appendChild(svg1);
+
+					let g1 = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+					g1.id = 'g' + loc;
+					svg1.appendChild(g1);
+					//addUnit('u'+i, g1.id, 'Fortress', 'Italy', 4, 0,0);
+					i += 1;
+
+					for (const f of brep.factions) {
+						let id = 't' + i;
+						i += 1;
+						let x = brep.xStartPerFaction[f] + brep.wColsPerFaction[f] / 2;
+						let ms = new MS(id, id, g1.id)
+							.text({txt: f, fill: fg})
+							.setPos(x, 15)
+							.draw();
+					}
+
+					let xStart = brep.gap.w;
+					let yStart = brep.gap.h;
+					//let xPerFactionAndType={};
+					let x = xStart;
+					let y = yStart;
+					let curFaction = null;
+					let curType = null;
+					for (const u of brep.b.fire_order) {
+						let type = u.unit.type;
+						let faction = u.owner;
+						if (faction != curFaction) {
+							x = brep.xStartPerFaction[faction];
+						}
+
+						if (type != curType) {
+							y = brep.yStartPerUnitType[type];
+							x = brep.xStartPerFaction[faction];
+						}
+						//place unit
+						let usz = brep.unitSize.w / 2;
+						let ums = addUnit('u' + u.unit._id, g1.id, type, u.unit.nationality, u.unit.cv, x + usz, y + usz);
+
+						curType = type;
+						curFaction = faction;
+
+						x += brep.unitSize.w + brep.gap.w;
+						// let itype = brep.allUnitTypes.indexOf(type);
+						// let ifaction = brep.factions.indexOf(faction);
+					}
+				}
+			}
+		</script>
+
 		<!-- #endregion battle presentation -->
 
 		<!-- #region control flow -->
@@ -643,12 +878,16 @@
 					H.year = Number(info.year);
 					//handle phase change
 					if (info.phase != H.phase) {
-						unitTestGameloop('PHASE CHANGE!!!', H.phase, 'turning to:',info.phase);
+						unitTestGameloop('PHASE CHANGE!!!', H.phase, 'turning to:', info.phase);
 						if ((H.phase == 'Setup' || H.phase == 'Movement') && info.phase == 'Combat') {
 							unitTestGameloop('NEW COMBAT PHASE!!!!!!!!!!!!!!!!');
 							page.battleView();
-							present_battle_overview(data);
+							//color_areas(nHues = 2, iButtonHue = 0, areaClass = 'area', gridDiv = 'grid_game')
+							color_areas(1,0,'grid_div','mainDiv');
+							rep_combat(assets,data.temp.combat,'battle_area');
+							//present_battle_overview(data);
 						} else if (info.phase == 'Movement') {
+							//clearElement(document.getElementById('battle_area'));
 							page.selectView();
 						}
 					}
