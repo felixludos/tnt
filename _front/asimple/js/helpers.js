@@ -52,9 +52,33 @@ class Counter extends Map {
 		this.set(x, (this.get(x) || 0) + 1);
 	}
 }
-function getItemWithMaxValue(d){
-	let k = Object.keys(d).reduce((a, b) => d[a] >= d[b] ? a : b);
-	return [k,d[k]];
+class UniqueIdEngine {
+	constructor() {
+		this.next = -1;
+	}
+	get() {
+		this.next += 1;
+		return 'a###' + this.next;
+		this.next += 1;
+	}
+}
+var uniqueIdEngine = new UniqueIdEngine();
+function getItemWithMaxValue(d) {
+	let k = Object.keys(d).reduce((a, b) => (d[a] >= d[b] ? a : b));
+	return [k, d[k]];
+}
+function getItemWithMax(d, propName) {
+	//console.log('getItemWithMax dict:',d,'propName:',propName)
+	let max = 0;
+	let kmax = null;
+	for (const key in d) {
+		let val = d[key][propName];
+		if (val > max) {
+			max = val;
+			kmax = key;
+		}
+	}
+	return [kmax, d[kmax], max];
 }
 
 //#region array helpers
@@ -233,7 +257,6 @@ function getMissingIndices(arr, len) {
 	}
 	return res;
 }
-
 function getListsContainingAll(ll, l) {
 	let res = [];
 	for (const l1 of ll) {
@@ -1201,6 +1224,44 @@ function inferType(val) {
 //#endregion dictionary helpers
 
 //#region DOM helpers:
+function addSvgg(dParent, gid) {
+	//each div gets an svg and inside a g
+	let svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+	svg1.setAttribute('width', '100%');
+	svg1.setAttribute('height', '100%');
+	//svg1.setAttribute("style", "background-color:red")
+	dParent.appendChild(svg1);
+
+	let g1 = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+	g1.id = gid;
+	svg1.appendChild(g1);
+	return g1;
+	//addUnit('u'+i, g1.id, 'Fortress', 'Italy', 4, 0,0);
+}
+function addDiv(dParent,{html, w = '100%', h = '100%', bg, fg, ipal, border, rounding = '10px', margin = '10px', float = null, textAlign = null}) {
+	let d = document.createElement('div');
+	// make big div
+	if (html) d.innerHTML = html;
+	if (ipal) {
+		bg = getpal(ipal, 0, 'b');
+		fg = getpal(ipal, 0, 'f');
+	}
+	if (bg) {
+		d.style.backgroundColor = bg;
+		d.style.color = fg;
+	}
+	d.style.width = w;
+	d.style.height = h;
+	if (border) {
+		d.style.border = border;
+		d.style.borderRadius = rounding;
+	}
+	d.style.margin = margin;
+	if (float) d.style.float = float;
+	if (textAlign) d.style.textAlign = textAlign;
+	dParent.appendChild(d);
+	return d;
+}
 function addFlexGridDiv(div) {
 	let d = document.createElement('div');
 	d.classList.add('flex-grid');
@@ -1913,6 +1974,17 @@ var countries = [
 ];
 //#endregion
 
+//#region ms helpers: should NOT USE anything in MS!!!
+function addMSContainer(dParent,gid,{w,h,margin='auto'}){
+	//adds a div w/ svg w/ g (with id=gid) inside dParent
+	let d1 = addDiv(dParent, {w: w, h: h, margin: margin});
+	let g1 = addSvgg(d1, gid);
+	return d1;
+
+}
+
+//#endreagion ms helpers
+
 //#region numbers
 function intDiv(n, q) {
 	return Math.floor(n / q);
@@ -2014,7 +2086,7 @@ function propDiff(o_old, o_new) {
 //#endregion object helpers
 
 //#region palette helpers
-var palette=null;
+var palette = null;
 function setCSSButtonColors(pal, ihue = 0) {
 	// takes a palette pal (sorted from darkest to lightest),
 	// sets css variables for button colors (used in layout.css):
@@ -2064,7 +2136,7 @@ function gen_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
 	//console.log('pal.length:', pal.length, ', pal[0].length:', pal[0].length, ', pal:', pal);
 	return pal;
 }
-function getpal(ipal=-1,ihue=0,bOrf='b'){
+function getpal(ipal = -1, ihue = 0, bOrf = 'b') {
 	//gets a b or f color from palette
 	//a value of -1 in ihue or ipal ... pick random
 	//default: return random background shade of first hue
@@ -2072,13 +2144,16 @@ function getpal(ipal=-1,ihue=0,bOrf='b'){
 	if (!palette) return randomColor();
 	nHues = palette[0].length;
 	nShades = palette.length;
-	if (ipal<-1) ipal=randomNumber(0,nShades);
-	else if (ipal>=nShades) ipal%=nShades;
-	if (ihue<-1) ihue=randomNumber(0,nHues);
-	else if (ihue>=nHues) ihue%=nHues;
+	if (ipal < -1) ipal = randomNumber(0, nShades);
+	else if (ipal >= nShades) ipal %= nShades;
+	if (ihue < -1) ihue = randomNumber(0, nHues);
+	else if (ihue >= nHues) ihue %= nHues;
 
 	return palette[ipal][ihue][bOrf];
-
+}
+function set_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
+	palette = gen_palette(hue, nHues, sat, a);
+	return palette;
 }
 function color_areas(nHues = 2, iButtonHue = 0, areaClass = 'area', gridDiv = 'grid_game') {
 	let hue1 = Math.floor(Math.random() * 360);

@@ -78,8 +78,6 @@ def calc_retreat_options(G, player, b, c):
 		#retreat for Airforce
 def calc_target_units_with_max_cv(b, units, opponent):
 	#apply damage
-	#find target units
-	b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 
 	# each Hit scored, reduce the currently
 	# strongest (largest CV) Enemy unit of the
@@ -141,13 +139,17 @@ def land_battle_phase(G, player, action):
 			calc_retreat_options(G, player, b, c)
 			#encode fire or retreat options
 			code = encode_fire_options(G, player)
-
 			b.target_class = None
+			b.target_units = None
 			if len(code) > 1:
 				return code
 			else:  #if only 1 option: go on to next stage
 				b.target_class = b.opp_groups[0]
+				#find target units
+				b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 				c.stage = 'hit'
+				G.logger.write('TARGET UNITS ARE CLASS {} UNITS'.format(b.target_class))
+				return encode_accept(G,player)
 		else:
 			head, *tail = action
 			if head in G.tiles:
@@ -156,6 +158,7 @@ def land_battle_phase(G, player, action):
 				c.stage = 'retreat'
 			else:
 				b.target_class = head
+				b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 				c.stage = 'hit'
 
 	if c.stage == 'hit':

@@ -175,7 +175,7 @@ def target_units_left(b, units, opponent):
 def calc_target_units_with_max_cv(b, units, opponent):
 	#apply damage
 	#find target units
-	b.target_units = target_units_left(b, units, opponent) # list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
+	#b.target_units = target_units_left(b, units, opponent) # list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 
 	# each Hit scored, reduce the currently
 	# strongest (largest CV) Enemy unit of the
@@ -320,18 +320,25 @@ def land_battle_phase(G, player, action):
 			code = encode_cmd_options(G, player)
 			#determining target class:
 			b.target_class = None
+			b.target_units = None
 			if player == 'Minor':
 				#just 'G' or choose first possible target_class
 				#TODO: refine target_class selection for minor!
 				b.target_class = 'G' if 'G' in b.opp_groups else b.opp_groups[0]
+				b.target_units = target_units_left(b, units, opponent)
+				#b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 				G.logger.write('{} targeting {} {}'.format(player,opponent,b.target_class))
+				#return encode_accept(G,opponent)
 			elif len(code[player]) > 1:
 				G.logger.write('{} to select fire+target_class or retreat+tile command'.format(player))
 				#player needs to pick target_class: return options
 				return code
 			else:  #if only 1 option: go on to next stage
 				b.target_class = b.opp_groups[0]
-
+				b.target_units = target_units_left(b, units, opponent)
+				#b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
+				G.logger.write('PLEASE ACCEPT TARGET GROUP {}'.format(b.target_class))
+				#return encode_accept(G,player)
 			#b.target_class is known, still returning for accept:
 			if not player in G.players:
 				return encode_accept(G,opponent)
@@ -352,7 +359,11 @@ def land_battle_phase(G, player, action):
 				c.stage = 'retreat'
 			else:
 				b.target_class = head
+				b.target_units = target_units_left(b, units, opponent)
+				#b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 				c.stage = 'hit'
+				G.logger.write('SELECTED TARGET GROUP {}'.format(b.target_class))
+				return encode_accept(G,player)
 
 	if c.stage == 'retreat':
 		for id in b.retreats:
@@ -371,7 +382,10 @@ def land_battle_phase(G, player, action):
 	if c.stage == 'hit':
 		G.logger.write('{}:{} {} targeting {} {}'.format(b.idx, player, b.fire.id, b.target_class, opponent))
 		if not 'hits' in b:
+			G.logger.write('ROLLING DICE..............')
 			b.hits = roll_dice(G, b, player, opponent)
+			return encode_accept(G,player)
+
 		G.logger.write('{} hits'.format(b.hits))
 		if b.hits > 0 and len(target_units_left(b,units,opponent)):
 			#TODO do not calc target_units_left twice!!!

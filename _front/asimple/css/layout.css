@@ -1,3 +1,11 @@
+:root {
+  --bbg: green;
+  --bhbg: rgb(1, 48, 87);
+	--babg: rgb(233, 138, 134);
+	--wTable: 1000px;
+	--hTable: 700px;
+	--wBattle: 200px;
+}
 #test_area {
 	grid-area: test;
 }
@@ -108,6 +116,19 @@
 	padding: 8px;
 }
 
+.flex-grid {
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+	/* height: 100%; */
+}
+.flex-grid >div {
+	/* flex: 1; */
+	flex: 1 0 var(--wBattle);
+	/* min-width: var(--wBattle); */
+}
+
+
 /* __________________________ old ____________*/
 .grid_game_select {
 	display: grid;
@@ -190,9 +211,21 @@
 }
 
 .grid_div {
+	/* position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%; */
+
+
 	position:relative;
+
+	/* width: 100%; 
+	height: 100%;  */
+
 	background-color: rgba(255, 255, 255, 0.8);
 	text-align: center;
 	padding: 0;
+	margin:0;
 	font-size: 20pt;
 }

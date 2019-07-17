@@ -17,6 +17,9 @@ function unitTest8() {
 function unitTestAutoplay() {
 	if (execOptions.activatedTests.includes('autoplay')) console.log(...arguments);
 }
+function unitTestBattle() {
+	if (execOptions.activatedTests.includes('battle')) console.log(...arguments);
+}
 function unitTestCard() {
 	if (execOptions.activatedTests.includes('card')) console.log(...arguments);
 }
@@ -31,6 +34,9 @@ function unitTestChoice() {
 }
 function unitTestChoicemin() {
 	if (execOptions.activatedTests.includes('choice') || execOptions.activatedTests.includes('choicemin')) console.log(...arguments);
+}
+function unitTestCombat() {
+	if (execOptions.activatedTests.includes('combat')) console.log(...arguments);
 }
 function unitTestControl() {
 	if (execOptions.activatedTests.includes('control')) console.log(...arguments);
