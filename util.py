@@ -20,7 +20,12 @@ class Logger(Transactionable):
 		self.logs = adict({p:deque() for p in players})
 		self.updates = adict({p:deque() for p in players})
 		self.collectors = None
-		
+	
+	def reset(self, *players):
+		self.logs = adict({p:deque() for p in players})
+		self.updates = adict({p:deque() for p in players})
+		self.collectors = None
+
 	def save_state(self):
 		state = {
 			'stdout': self.stdout,
@@ -81,7 +86,6 @@ class Logger(Transactionable):
 			print(obj, end='')
 	
 	def update(self, obj, player=None):
-		
 		if player is not None:
 			self.updates[player].append(obj)
 			self.logs[player].append(obj)

@@ -387,20 +387,6 @@ def load_gamestate(path): # load from input file, or most recent checkpoint (mor
 	# do I need to mind updated, created, ...?		
 
 	if G is not None:
+		G.logger.reset(*G.players.keys())
 		G.logger.write('Game loaded')
 
-def load_gamestate_orig(path): # load from input file, or most recent checkpoint (more safe)
-	data = json.load(open(path, 'r'))
-	global WAITING_OBJS, WAITING_ACTIONS, REPEATS, G, PHASE_DONE, DEBUG
-	WAITING_OBJS = convert_from_saveable(data['waiting_objs'])
-	WAITING_ACTIONS = convert_from_saveable(data['waiting_actions'])
-	REPEATS = convert_from_saveable(data['repeats'])
-	G = convert_from_saveable(data['gamestate'])
-	PHASE_DONE = data['phase_done']
-	DEBUG = data['debug']
-	G.random = random.Random()
-	x, y, z = data['randstate']
-	rs = (x, tuple(y), z)
-	G.random.setstate(rs)
-	if G is not None:
-		G.logger.write('Game loaded')

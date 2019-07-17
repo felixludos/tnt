@@ -168,6 +168,10 @@ class ABattle {
 		}
 		if ('target_class' in data.battle) {
 			let target_class = data.battle.target_class;
+			let units = data.battle.target_units;
+			for (const id in units) {
+				this.ms[id].highlight();
+			}
 
 		}
 	}

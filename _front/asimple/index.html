@@ -579,9 +579,9 @@
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('log, battle', execOptions.activatedTests);
+				addIfComma('gameloop, log, battle', execOptions.activatedTests);
 
-				onClickReload('axis4_dow6_select_battle');
+				onClickReload('axis4_dow7_battleStarted');
 				//onClickRestart();
 			}
 			function gameloop(data) {
@@ -628,6 +628,7 @@
 				cards.update(H.player, data, H.objects);
 				map.update(data, H.objects);
 				units.update(data, H.objects, H.player);
+				unitTestGameloop('H vor update combat',H)
 				if ('combat' in H) H.combat.update(data, H);
 				H.tuples = getTuples(data);
 			}

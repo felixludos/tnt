@@ -47,7 +47,6 @@ def encode_who_takes_hit_options(G, player):
 
 def calc_target_classes(b, units, opponent):
 	b.opp_types = list({u.type for u in units if u.owner == opponent})
-	#brauche eigentlich nicht den type sondern die group!!!!
 	b.opp_groups = list({u.group for u in units if u.owner == opponent})
 
 def attacker_moved_from(G,b,player,tilenames):
@@ -91,104 +90,23 @@ def calc_retreat_options_for_fire_unit(G, player, b, c):
 					b.retreat_options.append((id,loc))
 		print(b.retreat_options)
 
-def calc_all_retreat_options(G, player, b, c):
-	b.retreat_options = []
-	b.must_retreat = [] #ANS without friendly ground support
-	#calc_all_retreat_options: border limits must be kept track once select
-	# a retreat option!
-	#retreats must be pairs: unit_id,tile for each possible retreat
-	#as user selects retreat for a unit, need to reduce set of other possible retreats
-	#accordingly
-	#once retreat has been selected, only more retreats are possible
-	#then land battle ends even if units are left
-	if player in G.players:
-		#tileneighbors
-		tile = b.tile
-		units = [u for u in b.fire_order if u.owner == player]
-
-		for u in units:
-			#TODO: add rebase options! retreat for Airforce: 
-			id = u.id
-			if u.group != 'G':
-				b.must_retreat.append(id)
-			if id in G.temp.has_moved:
-				b.retreat_options.append((id,G.temp.has_moved[id]))
-				continue
-			elif u.group == 'G':
-				#unit can retreat into adjacent friendly territory
-				neighbors = tile.borders.keys()
-				for nei in neighbors:
-					if is_friendly(G,nei, player):
-						if u.group == 'G' and G.tiles[nei].type == 'sea':
-							continue
-						b.retreat_options.append((id,nei))
-			else: #ANS unit rebase options
-				locs = ANS_rebase_options(G,u.unit)
-				for loc in locs:
-					b.retreat_options.append((id,loc))
-
-def calc_retreat_options_old(G, player, b, c):
-	b.retreat_options = []
-	#retreats must be pairs: unit_id,tile for each possible retreat
-	#as user selects retreat for a unit, need to reduce set of other possible retreats
-	#accordingly
-	#once retreat has been selected, only more retreats are possible
-	#then land battle ends even if units are left
-	if player in G.players:
-		#tileneighbors
-		tile = b.tile
-		neighbors = tile.borders.keys()
-
-		borders = G.temp.borders[player]  # past border crossings
-		group = G.units.rules[b.fire.unit.type].type
-		crossings = adict()
-		xing = crossings if group == 'G' else None
-		current = xset()
-		fuel = 1
-
-		fill_movement(
-		    G,
-		    player,
-		    tile,
-		    current,
-		    crossings=xing,
-		    borders=borders,
-		    move_type='land',
-		    fuel=fuel,
-		    disengaging=None,
-		    friendly_only=True,
-		    hidden_movement=False)
-
-		#look at current: vielleicht ist das eh was ich will!
-		b.retreat_options = current
-
-		#if b.fire.unit has_moved from a tile then can only retreat to that 
-		#tile!
-
-		#friendly neighbors
-		#retreat for Airforce
-
 def target_units_left(b, units, opponent):
-	return list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
+	res = adict()
+	for u in units:
+		if u.owner == opponent and u.group == b.target_class:
+			res[u.id] = u
+	return res
 
-
-def calc_target_units_with_max_cv(b, units, opponent):
-	#apply damage
-	#find target units
-	#b.target_units = target_units_left(b, units, opponent) # list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
-
-	# each Hit scored, reduce the currently
-	# strongest (largest CV) Enemy unit of the
-	# Targeted Class by 1 CV (exception: Carriers
-	# and Convoys lose two CV per Hit).
-
-	#find units with maximal cv
+def calc_target_units_with_max_cv(remaining_units, opponent):
 	maxCV = 0
-	for u in b.target_units:
+	for id in remaining_units:
+		u = remaining_units[id].unit
 		if u.cv > maxCV:
 			maxCV = u.cv
-	#maxCV = max(u.cv for u in b.target_units)
-	units_max_cv = [u for u in b.target_units if u.cv == maxCV]
+	units_max_cv = adict()
+	for id in remaining_units:
+		if remaining_units[id].unit.cv == maxCV:
+			units_max_cv[id]=remaining_units[id]
 	return units_max_cv
 
 def find_unit_owner(G,unit):
@@ -326,9 +244,7 @@ def land_battle_phase(G, player, action):
 				#TODO: refine target_class selection for minor!
 				b.target_class = 'G' if 'G' in b.opp_groups else b.opp_groups[0]
 				b.target_units = target_units_left(b, units, opponent)
-				#b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 				G.logger.write('{} targeting {} {}'.format(player,opponent,b.target_class))
-				#return encode_accept(G,opponent)
 			elif len(code[player]) > 1:
 				G.logger.write('{} to select fire+target_class or retreat+tile command'.format(player))
 				#player needs to pick target_class: return options
@@ -336,9 +252,7 @@ def land_battle_phase(G, player, action):
 			else:  #if only 1 option: go on to next stage
 				b.target_class = b.opp_groups[0]
 				b.target_units = target_units_left(b, units, opponent)
-				#b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 				G.logger.write('PLEASE ACCEPT TARGET GROUP {}'.format(b.target_class))
-				#return encode_accept(G,player)
 			#b.target_class is known, still returning for accept:
 			if not player in G.players:
 				return encode_accept(G,opponent)
@@ -360,7 +274,6 @@ def land_battle_phase(G, player, action):
 			else:
 				b.target_class = head
 				b.target_units = target_units_left(b, units, opponent)
-				#b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 				c.stage = 'hit'
 				G.logger.write('SELECTED TARGET GROUP {}'.format(b.target_class))
 				return encode_accept(G,player)
@@ -382,45 +295,48 @@ def land_battle_phase(G, player, action):
 	if c.stage == 'hit':
 		G.logger.write('{}:{} {} targeting {} {}'.format(b.idx, player, b.fire.id, b.target_class, opponent))
 		if not 'hits' in b:
-			G.logger.write('ROLLING DICE..............')
 			b.hits = roll_dice(G, b, player, opponent)
+			G.logger.write('ROLLING DICE..............{} hits!'.format(b.hits))
+			c.stage = 'next_hit'
+			return encode_accept(G,player)
+		else:
+			c.stage = 'next_hit'
+			G.logger.write('{} hits left!'.format(b.hits))
 			return encode_accept(G,player)
 
-		G.logger.write('{} hits'.format(b.hits))
-		if b.hits > 0 and len(target_units_left(b,units,opponent)):
-			#TODO do not calc target_units_left twice!!!
+	if c.stage == 'next_hit':
+		b.remaining_targets = target_units_left(b,units,opponent)
+		if b.hits > 0 and len(b.remaining_targets):
 			b.hits -= 1
-			b.units_max_cv = calc_target_units_with_max_cv(b, units, opponent)
-			b.types_max_cv = list({u.type for u in b.units_max_cv})
+			b.units_max_cv = calc_target_units_with_max_cv(b.remaining_targets, opponent)
+			b.types_max_cv = list({u.type for u in b.units_max_cv.values()})
 			if opponent in G.players and len(b.types_max_cv) > 1:
 				# The owner can choose which of equal-CV unit takes hit
 				b.unit_hit = None
 				c.stage = 'select_hit'
 				return encode_who_takes_hit_options(G, opponent)
 			else:
-				b.unit_hit = b.units_max_cv[0]
+				b.unit_hit = b.units_max_cv.popitem() #is a tuple {id:u}
 				c.stage = 'damage'
 		else:
 			c.stage = 'done'
 
 	if c.stage == 'select_hit':
 		head, *tail = action
-		correctTypeUnits = [u for u in b.units_max_cv if u.type == head]
-		b.unit_hit =  correctTypeUnits[0] #G.players[opponent].units[head]
+		correctTypeUnits = {id:u for id,u in b.units_max_cv if u.type == head}
+		b.unit_hit =  correctTypeUnits.items[0] #is a tuple!G.players[opponent].units[head]
 		c.stage = 'damage'
 
 	if c.stage == 'damage':
-		unit_hit = b.unit_hit
-		id = unit_hit._id
+		unit_hit = b.unit_hit #is a tuple (id,u)
+		id = unit_hit[0]
 		unit = G.objects.table[id]
 		if unit.cv == 1:
-			# units takes a Hit. Units reduced to 0 CV
-			# are eliminated and removed from play
-			#unit is removed
+			#unit is eliminated
 			G.logger.write('unit {} removed'.format(id))
 			remove_unit(G, unit)
 			#remove unit from fire_order!!!
-			b.fire_order = res = [i for i in b.fire_order if i.unit._id != id]
+			b.fire_order = res = [i for i in b.fire_order if i.id != id]
 			b.idx = b.fire_order.index(b.fire)
 		else:
 			unit.cv -= 1
@@ -429,11 +345,13 @@ def land_battle_phase(G, player, action):
 		if b.hits == 0 or no_enemy_units_left(G, c, b, opponent):
 			c.stage = 'done'
 		else:
-			c.stage = 'hit'
-			G.logger.write('battle vor recursive call: {}'.format(G.game.sequence[G.game.index]))
-			code = land_battle_phase(G, None, None)
-			if code:
-				return code
+			c.stage = 'next_hit'
+			G.logger.write('ACCEPT NEXT HIT IS BEING APPLIED!!!!')
+			return encode_accept(G,player)
+			#G.logger.write('battle vor recursive call: {}'.format(G.game.sequence[G.game.index]))
+			#code = land_battle_phase(G, None, None)
+			# if code:
+			# 	return code
 
 	if c.stage == 'rebasing':
 		#for this stage there must be an action which is one (unit,rebase_tile)
