@@ -156,8 +156,18 @@ class ABattle {
 		let msSelected = new MS(id, id, this.gid).circle({fill: 'limegreen'}).draw();
 		this.signals[id] = msSelected;
 	}
+	mirror_units(data,H){
+		for (const u of data.battle.fire_order) {
+			let o = H.objects[u.id];
+			if (u.unit.cv != o.cv){
+				this.updateCv(this.ms[u.id],o.cv);
+			}
+			//if (o.cv != u.unit.cv)
+		}
+	}
 	update(data, H) {
-		unitTestBattle(data.stage,data.battle);
+		console.log('HALLO!!!!!!!!!!!!!!!!!')
+		unitTestBattle('update',data.stage,data.battle);
 		if ('fire' in data.battle) {
 			let fire = this.ms[data.battle.fire.id];
 			if (this.activeUnit != fire) {
@@ -165,6 +175,7 @@ class ABattle {
 				this.activeUnit = fire;
 				fire.highlight();
 			}
+			unitTestBattle('ACTIVE FIRE UNIT:',fire);
 		}
 		if ('target_class' in data.battle) {
 			let target_class = data.battle.target_class;
@@ -172,8 +183,10 @@ class ABattle {
 			for (const id in units) {
 				this.ms[id].highlight();
 			}
+			unitTestBattle('TARGET UNITS:',units.toString())
 
 		}
+		this.mirror_units(data,H);
 	}
 	updateCv(ms, cv) {
 		ms.removeFromChildIndex(5);

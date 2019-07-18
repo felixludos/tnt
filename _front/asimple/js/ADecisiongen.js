@@ -64,6 +64,7 @@ class ADecisiongen {
 		if (G.phase != this.phase) {
 			this.phase = G.phase;
 		}
+		this.UI.clearHoverTuple();
 		let container = this.presentTuples(this.tuples);
 		this.choiceCompleted = false;
 		if (autoplay) {

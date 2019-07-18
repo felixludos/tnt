@@ -569,7 +569,8 @@
 				// return;
 				//"Gibraltar", "Malta", "Albania"
 
-				// autoplay, cards, cardsNew, choice, choicemin, control, decision,
+				// autoplay, cards, cardsNew, choice, choicemin, control, 
+				// convoy, decision,
 				// filter, filterByType, gameloop,
 				// hover, init, load, log, map, moving, player, random,
 				// remove, removed, request, response
@@ -579,9 +580,9 @@
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('gameloop, log, battle', execOptions.activatedTests);
+				addIfComma('convoy', execOptions.activatedTests);
 
-				onClickReload('axis4_dow7_battleStarted');
+				onClickReload('axis4_summer');//('axis4_movement');//7_battleStarted');
 				//onClickRestart();
 			}
 			function gameloop(data) {
@@ -628,7 +629,7 @@
 				cards.update(H.player, data, H.objects);
 				map.update(data, H.objects);
 				units.update(data, H.objects, H.player);
-				unitTestGameloop('H vor update combat',H)
+				unitTestGameloop('H vor update combat\ndata:',data,'\nH:',H)
 				if ('combat' in H) H.combat.update(data, H);
 				H.tuples = getTuples(data);
 			}
@@ -722,6 +723,7 @@
 			function resetAll() {
 				//console.clear();
 				page.clearAllObjects();
+				page.selectView();
 				assets.clear();
 			}
 			function startFromFile(fname) {

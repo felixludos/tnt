@@ -38,6 +38,15 @@ class MS {
 		//console.log("am ende:", this.overlay, cl, this.overlay.getAttribute("class"));
 		return this;
 	}
+	addBorder(color='red',thickness=1){
+		if (!this.overlay) return;
+		this.overlay.setAttribute('stroke',color);
+		this.overlay.setAttribute('stroke-width',thickness);
+	}
+	removeBorder(){
+		if (!this.overlay) return;
+		this.overlay.setAttribute('stroke-width',0);
+	}
 	toggle() {
 		if (this.isVisible) this.hide();
 		else this.show();

@@ -61,20 +61,18 @@ class ACombat {
 	}
 	update(data, H) {
 		let c = data.temp.combat;
-		unitTestCombat('COMBAT UPDATE_______________')
-		unitTestCombat('stage='+c.stage,c);
-		if (c.stage == 'next'){
-		}
-
+		unitTestBattle('COMBAT UPDATE_______________')
+		unitTestBattle('stage='+c.stage,c);
 		if ('battle' in c){
 			if (!this.battle){
 				this.battle = this.battles[c.battle.tilename];
 				this.battle.selectBattle();
-			}else{
-				this.battle.update(c,H);
+				unitTestBattle('SELECTED:',c.battle.tilename)
 			}
+			this.battle.update(c,H);
 			
 
 		}
+		unitTestBattle('END OF COMBAT UPDATE_______________')
 	}
 }

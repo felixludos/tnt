@@ -41,6 +41,9 @@ function unitTestCombat() {
 function unitTestControl() {
 	if (execOptions.activatedTests.includes('control')) console.log(...arguments);
 }
+function unitTestConvoy() {
+	if (execOptions.activatedTests.includes('convoy')) console.log(...arguments);
+}
 function unitTestDecision() {
 	if (execOptions.activatedTests.includes('decision')) console.log(...arguments);
 }

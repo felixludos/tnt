@@ -316,7 +316,7 @@ def land_battle_phase(G, player, action):
 				c.stage = 'select_hit'
 				return encode_who_takes_hit_options(G, opponent)
 			else:
-				b.unit_hit = b.units_max_cv.popitem() #is a tuple {id:u}
+				b.unit_hit = b.units_max_cv.popitem() #is a tuple (id,u)
 				c.stage = 'damage'
 		else:
 			c.stage = 'done'

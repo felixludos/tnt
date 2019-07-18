@@ -27,6 +27,9 @@ class AUnits {
 			addIf(id, this.units[owner][tile]);
 		}
 		this.uis[id] = {o: jsCopy(o), ms: ms};
+		if (o.type == 'Convoy'){
+			unitTestConvoy('addUnit of type CONVOY!!!',o,ms)
+		}
 		unitTestUnits('added', id, ms, o, owner, tile);
 		unitTestMoving('added', id, ms, o, owner, tile, this.units[owner]);
 	}
@@ -114,6 +117,10 @@ class AUnits {
 				unitTestUnits('vor updateCv call', ms, o.cv);
 				this.updateCv(ms, o.cv);
 			}
+			if (o.type == 'Convoy'){
+				this.markAsConvoy(id,ms,null,o);
+			}
+
 		}
 
 		if (isNeutral) return; //don't need hidden unit
@@ -139,14 +146,23 @@ class AUnits {
 		//unitTestFilter('getUnit',this.uis,id)
 		return id in this.uis ? this.uis[id] : null;
 	}
-	markAsConvoy(ms, o_old, o_new) {
+	markAsConvoy(id, ms, o_old, o_new) {
 		if (o_new.type == 'Convoy') {
 			ms.tag('isConvoy', true);
+			this.uis[id].o = jsCopy(o_new);
+			unitTestConvoy('unit',id,'becomes convoy',o_new)
+			ms.addBorder('blue')
 		} else {
 			ms.tag('isConvoy', false);
+			this.uis[id].o = jsCopy(o_new);
+			unitTestConvoy('going back from convoy: unit',id,'becomes',o_new.type,o_new)
+			ms.removeBorder();
 		}
 	}
 	moveUnit(id, tile_old, o_new) {
+		if (o_new.type == 'Convoy'){
+			unitTestConvoy('move unit',id,'is a CONVOY!!!!!!!!')
+		}
 		if (!(id in this.uis)) {
 			unitTestUnits('PROBLEM: moveUnit', id, ' NOT in uis!');
 			alert('PROBLEM: moveUnit ' + id + ' NOT in uis!');
@@ -310,7 +326,7 @@ class AUnits {
 								//player == owner) {
 								console.assert(o_old.type == 'Convoy' || o_new.type == 'Convoy', 'type change other than convoy!!!!');
 								unitTestUnits('!!!!!!! for not this temp type change NOT reflected in G!!!!');
-								this.markAsConvoy(this.uis[id].ms, o_old, o_new);
+								this.markAsConvoy(id, this.uis[id].ms, o_old, o_new);
 								unitTestUnits('>>>>>MARK AS CONVOY!!!!!!!!!!!!');
 								unitTestUnits(id, 'type was ' + o_old.type + ' new=' + o_new.type);
 							}
