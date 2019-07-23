@@ -142,7 +142,7 @@ class NAssets {
     for (const id in this.nationPositions) {
       let pos = this.nationPositions[id];
       let sz = this.SZ.nation;
-      let ms = new MS(id, this.getUniqueId(id), "mapG")
+      let ms = new MS(id, "mapG", this.getUniqueId(id))
         .circle({className: "overlay nation", sz: sz})
         .setPos(pos.x, pos.y)
         .draw();

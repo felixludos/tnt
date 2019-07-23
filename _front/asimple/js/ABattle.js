@@ -54,6 +54,7 @@ class ABattle {
 		this.size = {w: wTotal, h: hTotal};
 		this.unitSize = {w: wCol, h: hRow};
 		this.gap = {w: wGap, h: hGap, col: wFactionGap};
+		//console.log('*************',this.size, this.unitSize,this.gap)
 	}
 	addUnit(id, gName, type, nationality, cv, x, y) {
 		let ms = this.createUnit(id, gName, type, nationality);
@@ -72,7 +73,8 @@ class ABattle {
 		let sz80 = sz * 0.86;
 		let szImage = sz / 1.5;
 		let y = szImage / 6;
-		let ms = new MS(id, id, gName)
+		//console.log('*************',gName,document.getElementById(gName))
+		let ms = new MS(id, gName)
 			.roundedRect({className: 'ground', w: sz, h: sz, fill: color, rounding: sz * 0.1})
 			.roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
 			.image({path: imagePath, y: y, w: szImage, h: szImage})
@@ -103,14 +105,14 @@ class ABattle {
 	populate(d, gid, bg, fg) {
 		// let gid = 'g' + loc;
 		this.gid = gid;
-		addMSContainer(d, gid, {w: this.size.w + 'px', h: this.size.h - 25 + 'px'});
-
+		let res = addMSContainer(d, gid, {w: this.size.w + 'px', h: this.size.h - 25 + 'px'});
+		//console.log('*************',d,gid, 'res',res);
 		let i = 0;
 		for (const f of this.factions) {
 			let id = 't' + i;
 			i += 1;
 			let x = this.xStartPerFaction[f] + this.wColsPerFaction[f] / 2;
-			let msTitle = new MS(id, id, gid)
+			let msTitle = new MS(id, gid)
 				.text({txt: f, fill: fg})
 				.setPos(x, 15)
 				.draw();
@@ -153,7 +155,7 @@ class ABattle {
 		this.selected = true;
 		this.signals = {};
 		let id = 'selected' + this.location;
-		let msSelected = new MS(id, id, this.gid).circle({fill: 'limegreen'}).draw();
+		let msSelected = new MS(id, this.gid).circle({fill: 'limegreen'}).draw();
 		this.signals[id] = msSelected;
 	}
 	mirror_units(data,H){

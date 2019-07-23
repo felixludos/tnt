@@ -21,7 +21,7 @@ class AHand {
   }
   addNew(id, o) {
     let parentName = this.g.id;
-    let ms = new MS(id, id, parentName); // cards have id also as elem id! so make sure it is unique!
+    let ms = new MS(id, parentName); // cards have id also as elem id! so make sure it is unique!
     this.setCardContent(ms, o);
     this.positionAndAdd(id, ms, o);
     return ms;

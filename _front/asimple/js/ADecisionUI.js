@@ -35,7 +35,7 @@ class ADecisionUI {
 			unitTestHover('clearHoverTuple', this.hoverTuple.id);
 			for (const s of this.hoverTuple.tuple) {
 				let ms = this.get(s).ms;
-				if (ms) ms.stopBlinking();
+				if (ms) ms.stopSelGreen();
 			}
 			this.hoverTuple = null;
 		}
@@ -169,7 +169,7 @@ class ADecisionUI {
 		this.hoverTuple = {id: idTuple, idx: idx, tuple: tuple};
 		for (const s of tuple) {
 			let ms = this.get(s).ms;
-			if (ms) ms.blink();
+			if (ms) ms.selGreen();
 		}
 	}
 	restoreNoFilterHighlightType(highlight = true) {
@@ -178,7 +178,7 @@ class ADecisionUI {
 		for (const s of this.sInTuples) {
 			let ms = this.get(s).ms;
 			if (ms) {
-				ms.stopBlinking();
+				ms.stopSelGreen();
 				ms.makeUnselectable();
 			}
 		}

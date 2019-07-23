@@ -8,6 +8,8 @@ class ACombat {
 
 		this.battles = {}; // list of ABattle
 		this.battle = null; // the active ABattle
+		this.dTitle = null;
+		this.dSubtitle = null;
 
 		//create battles
 		for (const loc of this.locations) {
@@ -19,8 +21,11 @@ class ACombat {
 		//clear area
 		let dParent = document.getElementById(this.dArea);
 		clearElement(dParent);
+
 		//set title and add flex grid for battle grids
-		this.set_combat_title(dParent, this.locations);
+		let title = 'COMBAT!!! Battle' + (this.locations.length > 1 ? 's' : '') + ' in ' + this.locations.join(', ');
+		this.dTitle = addDiv(dParent, {html: title, w: 'auto', h: 'auto'});
+
 		dParent = addFlexGridDiv(dParent);
 
 		let ipal = 0;
@@ -44,16 +49,8 @@ class ACombat {
 
 			ipal += 1;
 
-			this.battles[loc].populate(d,'g'+loc, bg, fg);
+			this.battles[loc].populate(d, 'g' + loc, bg, fg);
 		}
-
-	}
-	set_combat_title(div, locs) {
-		let title = 'COMBAT!!! Battle' + (locs.length > 1 ? 's' : '') + ' in ' + locs.join(', ');
-		let p = document.createElement('p');
-		p.textContent = title;
-		//p.style.margin = '8px';
-		div.appendChild(p);
 	}
 	clear_area() {
 		let d = document.getElementById(this.dArea);
@@ -61,18 +58,22 @@ class ACombat {
 	}
 	update(data, H) {
 		let c = data.temp.combat;
-		unitTestBattle('COMBAT UPDATE_______________')
-		unitTestBattle('stage='+c.stage,c);
-		if ('battle' in c){
-			if (!this.battle){
+		unitTestBattle('COMBAT UPDATE_______________');
+		unitTestBattle('stage=' + c.stage, c);
+		if (!this.dSubtitle) {
+			this.dSubtitle = addDiv(this.dTitle, {w: 'auto', h: 'auto', fontSize:'18px', fg:'red'});
+		}
+		if (c.stage == 'next') {
+			this.dSubtitle.innerHTML = 'SELECT NEXT BATTLE!';
+		}
+		if ('battle' in c) {
+			if (!this.battle) {
 				this.battle = this.battles[c.battle.tilename];
 				this.battle.selectBattle();
-				unitTestBattle('SELECTED:',c.battle.tilename)
+				unitTestBattle('SELECTED:', c.battle.tilename);
 			}
-			this.battle.update(c,H);
-			
-
+			this.battle.update(c, H);
 		}
-		unitTestBattle('END OF COMBAT UPDATE_______________')
+		unitTestBattle('END OF COMBAT UPDATE!');
 	}
 }

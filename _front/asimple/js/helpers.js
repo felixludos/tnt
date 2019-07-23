@@ -1,12 +1,12 @@
 //#region _HACKS and fieldSorter!!!
 function hackPhaseAndPlayerTest(msg) {
-	//console.log(msg);
+	testHelpers(msg);
 	let res = stringAfterLast(msg, 'Beginning ');
 	let phase = stringBefore(res, ' ');
-	//console.log(res, "phase=" + phase);
+	testHelpers(res, 'phase=' + phase);
 	let res1 = stringAfter(res, '<br>');
 	let player = stringBefore(res1, ' ');
-	//console.log(res1, "player=" + player);
+	testHelpers(res1, 'player=' + player);
 }
 const fieldSorter = fields => (a, b) =>
 	fields
@@ -21,6 +21,11 @@ const fieldSorter = fields => (a, b) =>
 		.reduce((p, n) => (p ? p : n), 0);
 
 //#endregion HACKS
+var UIDHelpers = 0;
+function uidHelpers() {
+	UIDHelpers += 1;
+	return 'id' + UIDHelpers;
+}
 
 class Counter extends Map {
 	//usage:
@@ -68,7 +73,7 @@ function getItemWithMaxValue(d) {
 	return [k, d[k]];
 }
 function getItemWithMax(d, propName) {
-	//console.log('getItemWithMax dict:',d,'propName:',propName)
+	testHelpers('getItemWithMax dict:', d, 'propName:', propName);
 	let max = 0;
 	let kmax = null;
 	for (const key in d) {
@@ -197,7 +202,7 @@ function containedInAny(el, ll) {
 }
 function empty(arr) {
 	let result = arr === undefined || !arr || (isString(arr) && arr == '') || (Array.isArray(arr) && arr.length == 0);
-	//console.log(typeof(arr),result?'EMPTY':arr)
+	testHelpers(typeof arr, result ? 'EMPTY' : arr);
 	return result;
 }
 function first(arr) {
@@ -232,7 +237,7 @@ function formatll(ll) {
 		s += '[' + content + ']';
 	}
 	s += ']';
-	//console.log(s);
+	testHelpers(s);
 }
 function formatjson(j) {
 	//return beautiful small json
@@ -247,7 +252,7 @@ function getMissingIndices(arr, len) {
 	let res = [];
 	while (j < len) {
 		while (j < a) {
-			//console.log(j,a,'adding j')
+			testHelpers(j, a, 'adding j');
 			res.push(j);
 			j += 1;
 		}
@@ -283,12 +288,12 @@ function isList(arr) {
 function isll(ll) {
 	//true if arr is a list of lists of strings
 	if (!isList(ll)) {
-		//console.log('NOT a list',ll);
+		testHelpers('NOT a list', ll);
 		return false;
 	}
 	for (const l of ll) {
 		if (!isList(l)) {
-			//console.log('element',l,'NOT a list!');
+			testHelpers('element', l, 'NOT a list!');
 			return false;
 		}
 		for (const el of l) {
@@ -300,12 +305,12 @@ function isll(ll) {
 function isllPlus(ll) {
 	//true if arr is a list of lists
 	if (!isList(ll)) {
-		//console.log('NOT a list',ll);
+		testHelpers('NOT a list', ll);
 		return false;
 	}
 	for (const l of ll) {
 		if (!isList(l)) {
-			//console.log('element',l,'NOT a list!');
+			testHelpers('element', l, 'NOT a list!');
 			return false;
 		}
 	}
@@ -322,7 +327,7 @@ function orderFromTo(lst, fromOrder, toOrder) {
 	for (let i = 0; i < lst.length; i++) {
 		res.push(lst[fromOrder.indexOf(toOrder[i])]);
 	}
-	//console.log(res)
+	testHelpers(res);
 	return res;
 }
 function prjstart(j) {
@@ -337,7 +342,7 @@ function pr(x) {
 function prll(ll) {
 	//ensure this is a list of lists
 	if (!isList(ll)) {
-		//console.log('NOT a list',ll);
+		testHelpers('NOT a list', ll);
 		return;
 	}
 	for (const l of ll) {
@@ -351,7 +356,7 @@ function prll(ll) {
 		s += '[' + l.toString() + ']';
 	}
 	s += ']';
-	//console.log(s);
+	testHelpers(s);
 }
 function prlist(arr) {
 	if (isList(arr)) {
@@ -378,7 +383,7 @@ function removeInPlace(arr, el) {
 	}
 }
 function someFunction() {
-	//console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhh");
+	testHelpers('hhhhhhhhhhhhhhhhhhhhhhhhhhh');
 }
 function sameList(l1, l2) {
 	// compares 2 lists of strings if have same strings in it
@@ -598,10 +603,10 @@ function hslToHsv(h, s, l) {
 	let newh = h;
 	l /= 100.0;
 	s /= 100.0;
-	//console.log(h, s, l);
+	testHelpers(h, s, l);
 	let newv = (2 * l + s * (1 - Math.abs(2 * l - 1))) / 2;
 	let news = (2 * (newv - l)) / newv;
-	//console.log(newh, news, newv);
+	testHelpers(newh, news, newv);
 	let rgb = hsvToRgb(newh, news, newv);
 	let result = [h, s, l, newh, news, newv];
 	result.push(rgbToHex(rgb[0], rgb[1], rgb[2]));
@@ -618,10 +623,10 @@ function hsvToHsl(h, s, v) {
 	let newh = h;
 	s /= 100.0;
 	v /= 100.0;
-	//console.log(h, s, v);
+	testHelpers(h, s, v);
 	let newl = 0.5 * v * (2 - s);
 	let news = (v * s) / (1 - Math.abs(2 * s - 1));
-	//console.log(newh, news, newl);
+	testHelpers(newh, news, newl);
 	return {
 		h: newh,
 		s: news,
@@ -672,7 +677,7 @@ function rgbToHsl(r, g, b) {
 	return [h, s, l];
 }
 function dlColor(factor, r, g, b) {
-	//console.log(r, g, b);
+	testHelpers(r, g, b);
 	let hsl = rgbToHsl(r, g, b);
 	let hsv = hsl2hsv(...hsl);
 
@@ -692,13 +697,13 @@ function dlColor(factor, r, g, b) {
 	// let h = hsv.h;
 	// let s = hsv.s;
 	// let v = hsv.v / 2;
-	// //console.log("hsv", h, s, v);
+	// testHelpers("hsv", h, s, v);
 	// let hsl = hsv2hsl(h, s, v); //hsvToHsl(h, s, v);
 	// let h = hsl[0];
 	// let s = hsl[1] * 100;
 	// let l = hsl[2] * 100;
 	// let v = hsv[2];
-	//console.log("h,s,l,v:", h, s, l, v); //hsl[0], hsl[1], hsl[2]);
+	testHelpers('h,s,l,v:', h, s, l, v); //hsl[0], hsl[1], hsl[2]);
 	return hslToHslaString(h, sperc, lperc); //hsl[0], hsl[1], hsl[2]);
 }
 
@@ -708,7 +713,7 @@ function blackOrWhite(cssHSLA, maxLumForWhite = 88) {
 	let hue = getHue(cssHSLA);
 	if (hue > 40 && hue < 90) maxLumForWhite = 60;
 	let result = l <= maxLumForWhite ? 'white' : 'black';
-	//console.log('lum(' + l + '), hue(' + hue + ') : ' + result);
+	testHelpers('lum(' + l + '), hue(' + hue + ') : ' + result);
 	return result;
 }
 
@@ -740,20 +745,20 @@ function colorNameToRgb(str) {
 function convertToRgba(cAny, alpha = 1) {
 	//alpha either value btween 0 and 1 or 0-255
 	let a = alpha >= 0 && alpha <= 1 ? alpha : alpha / 100; //alpha==0?0:alpha==1?255:alpha<1?Math.round(alpha*100):alpha;
-	//console.log("type is", typeof cAny);
+	testHelpers('type is', typeof cAny);
 	if (isString(cAny)) {
-		//console.log("convertToRgba is a String", cAny);
+		testHelpers('convertToRgba is a String', cAny);
 		if (cAny[0] == '#') {
 			let rgbObj = hexToRgb(cAny);
 			return `rgba(${rgbObj.r},${rgbObj.g},${rgbObj.b},${a})`;
 		} else if (startsWith(cAny, 'hsl') || startsWith(cAny, 'rgb')) {
-			//console.log("hsla or rgba color!", cAny);
+			testHelpers('hsla or rgba color!', cAny);
 			return cAny;
 		} else if (cAny == 'transparent') {
 			return cAny;
 		} else {
 			//assume colorname
-			//console.log("should be a color name!!!", cAny);
+			testHelpers('should be a color name!!!', cAny);
 			let rgbObj = colorNameToRgb(cAny);
 			return `rgba(${rgbObj.r},${rgbObj.g},${rgbObj.b},${a})`;
 		}
@@ -766,7 +771,7 @@ function convertToRgba(cAny, alpha = 1) {
 			return `rgba(${r},${g},${b},${a})`;
 		} else {
 			//return a random color
-			//console.log("convertToRgba: ERROR! NOT A COLOR:", cAny);
+			testHelpers('convertToRgba: ERROR! NOT A COLOR:', cAny);
 			return randomColor(100, 70, a);
 		}
 	}
@@ -1079,14 +1084,14 @@ function getColorHexes(x) {
 
 function getLuminosity(cssHSLA) {
 	//return luminosity in percent
-	////console.log('css: ',cssHSLA);
+	//testHelpers('css: ',cssHSLA);
 	let ints = allNumbers(cssHSLA);
 	return ints[2];
 }
 
 function getHue(cssHSLA) {
 	//return luminosity in percent
-	////console.log('css: ',cssHSLA);
+	//testHelpers('css: ',cssHSLA);
 	let h = firstNumber(cssHSLA);
 	return h;
 }
@@ -1158,7 +1163,7 @@ function rgbToHsv(r, g, b) {
 }
 function darkerColor(r, g, b) {
 	let hsv = rgbToHsv(r, g, b);
-	//console.log(hsv);
+	testHelpers(hsv);
 	let h = hsv.h;
 	let s = hsv.s;
 	let v = hsv.v / 2;
@@ -1166,12 +1171,12 @@ function darkerColor(r, g, b) {
 	h = hsl.h;
 	s = hsl.s * 100;
 	let l = hsl.l * 100;
-	//console.log('hsl:',h,s,l)
+	testHelpers('hsl:', h, s, l);
 	return hslToHslaString(h, s, l);
 }
 function lighterColor(r, g, b) {
 	let hsv = rgbToHsv(r, g, b);
-	//console.log(hsv);
+	testHelpers(hsv);
 	let h = hsv.h;
 	let s = hsv.s;
 	let v = hsv.v * 1.5;
@@ -1179,7 +1184,7 @@ function lighterColor(r, g, b) {
 	h = hsl.h;
 	s = hsl.s * 100;
 	let l = hsl.l * 100;
-	//console.log('hsl:',h,s,l)
+	testHelpers('hsl:', h, s, l);
 	return hslToHslaString(h, s, l);
 }
 function transColor(r, g, b, a) {
@@ -1188,19 +1193,19 @@ function transColor(r, g, b, a) {
 //#endregion
 
 //#region dictionary helpers
-function dict2list(d) {
+function dict2list(d, keyName = 'key') {
 	//d assumed to be dictionary with values are objects!!!!
 	let res = [];
 	for (const key in d) {
 		let o = d[key];
-		o.key = key;
+		o[keyName] = key;
 		res.push(o);
 	}
 	return res;
 }
 function isType(sType, val) {
 	// uses existing (global) config data to infer type from val
-	////console.log("isType called!",sType, val, regions, units);
+	//testHelpers("isType called!",sType, val, regions, units);
 	switch (sType) {
 		case 'region':
 			return val in regions;
@@ -1224,12 +1229,14 @@ function inferType(val) {
 //#endregion dictionary helpers
 
 //#region DOM helpers:
-function addSvgg(dParent, gid) {
+function addSvgg(dParent, gid, {w = '100%', h = '100%', bg, fg} = {}) {
 	//each div gets an svg and inside a g
 	let svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-	svg1.setAttribute('width', '100%');
-	svg1.setAttribute('height', '100%');
-	//svg1.setAttribute("style", "background-color:red")
+	svg1.setAttribute('width', w);
+	svg1.setAttribute('height', h);
+	let style = 'margin:0;padding:0;position:relative;top:0px;left:0px;'; //
+	if (bg) style += 'background-color:' + bg;
+	svg1.setAttribute('style', style);
 	dParent.appendChild(svg1);
 
 	let g1 = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -1238,7 +1245,46 @@ function addSvgg(dParent, gid) {
 	return g1;
 	//addUnit('u'+i, g1.id, 'Fortress', 'Italy', 4, 0,0);
 }
-function addDiv(dParent,{html, w = '100%', h = '100%', bg, fg, ipal, border, rounding = '10px', margin = '10px', float = null, textAlign = null}) {
+function addPara(div, s, margin = '0px', fontSize = '10px', color = 'green') {
+	console.log('*** CREATED PARA:', s);
+	let p = document.createElement('p');
+	p.id = uidHelpers();
+	div.appendChild(p);
+	$(p.id).css('background-color', 'violet');
+	p.textContent = s;
+	//p.style.cssText = `margin:${margin};font-size:${fontSize};color:${color}`;
+	return p;
+}
+// function addTitle(div, s) {
+// 	let dTitle = document.createElement('div');
+// 	dTitle.style.cssText = 'margin:0px;padding:0px;background-color:red;color:green;font-size:20px';
+// 	dTitle.innerHTML = s;
+
+// 	//addPara(dTitle, s);
+
+// 	// var sheet = document.createElement('style99');
+// 	// let sStyles = '.title {border: 2px solid black; background-color: blue;}\n';
+// 	// sStyles += '.subTitle {margin:0px;background-color:red;font-size:8px;}';
+// 	// sheet.innerHTML = sStyles;
+// 	// document.body.appendChild(sheet);
+
+// 	// p.classList.add('.title');
+// 	div.appendChild(dTitle);
+// 	return dTitle;
+// }
+// function addSubtitle(dTitle, s) {
+// 	let pTitle = dTitle.firstChild;
+// 	console.log('dTitle firstChild:',pTitle);
+// 	clearElement(dTitle);
+// 	dTitle.appendChild(pTitle);
+// 	console.log('HAAAAAAAAAAAAAAAAAAAAAALLLLLLLLLLo');
+// 	let p = addDiv(dTitle, s);
+// 	// p.classList.add('subTitle');
+// 	console.log(dTitle);
+// 	return p;
+// }
+function addDiv(dParent, {html, w = '100%', h = '100%', bg, fg, ipal, border, rounding, margin, padding, float, textAlign, fontSize}) {
+	// bg, fg, ipal, border, rounding, margin, padding, float, textAlign}) {
 	let d = document.createElement('div');
 	// make big div
 	if (html) d.innerHTML = html;
@@ -1246,19 +1292,19 @@ function addDiv(dParent,{html, w = '100%', h = '100%', bg, fg, ipal, border, rou
 		bg = getpal(ipal, 0, 'b');
 		fg = getpal(ipal, 0, 'f');
 	}
-	if (bg) {
-		d.style.backgroundColor = bg;
-		d.style.color = fg;
-	}
+	if (bg) d.style.backgroundColor = bg;
+	if (fg) {d.style.color = fg;}
 	d.style.width = w;
 	d.style.height = h;
 	if (border) {
 		d.style.border = border;
 		d.style.borderRadius = rounding;
 	}
-	d.style.margin = margin;
+	if (margin) d.style.margin = margin;
+	if (padding) d.style.padding = padding;
 	if (float) d.style.float = float;
 	if (textAlign) d.style.textAlign = textAlign;
+	if (fontSize) d.style.fontSize = fontSize;
 	dParent.appendChild(d);
 	return d;
 }
@@ -1268,8 +1314,10 @@ function addFlexGridDiv(div) {
 	div.appendChild(d);
 	return d;
 }
-
 function arrChildren(elem) {
+	testHelpers('arrChildren', getTypeOf(elem), elem.children, elem.childNodes);
+	testHelpers('result:', [...elem.children]);
+	testHelpers('res2:', Array.from(elem.children));
 	return [...elem.children];
 }
 function clearElement(elem, eventHandlerDictByEvent = {}) {
@@ -1279,7 +1327,7 @@ function clearElement(elem, eventHandlerDictByEvent = {}) {
 		}
 		let el = elem.firstChild;
 		elem.removeChild(el);
-		//console.log('removed',el)
+		testHelpers('removed', el);
 	}
 }
 function clearElementFromChildIndex(elem, idx = 0) {
@@ -1294,12 +1342,42 @@ function closestParent(elem, selector) {
 	}
 	return null;
 }
+function detectType(id) {
+	let el = document.getElementById(id);
+	return getTypeOf(el);
+}
+function findDescendantWithId(id, parent) {
+	if (parent.id == id) return parent;
+	let children = arrChildren(parent);
+	if (empty(children)) return null;
+	for (const ch of children) {
+		let res = findDescendantWithId(id, ch);
+		if (res) return res;
+	}
+	return null;
+}
+function findChildWithId(id, parentElem) {
+	testHelpers(parentElem);
+	let children = arrChildren(parentElem);
+	for (const ch of children) {
+		if (ch.id == id) return ch;
+	}
+	return null;
+}
+function findChildOfType(type, parentElem) {
+	testHelpers(parentElem);
+	let children = arrChildren(parentElem);
+	for (const ch of children) {
+		if (getTypeOf(ch) == type) return ch;
+	}
+	return null;
+}
 function findParentWithId(elem) {
-	////console.log(elem);
+	//testHelpers(elem);
 	while (elem && !elem.id) {
 		elem = elem.parentNode;
 	}
-	////console.log("parent with id: ", elem);
+	//testHelpers("parent with id: ", elem);
 	return elem;
 }
 function ellipsis(text, font, width, padding) {
@@ -1463,10 +1541,10 @@ function addTableTo(table) {
 //     url: "/loadTest",
 //     type: "GET",
 //     success: function(response) {
-//       //console.log(response);
+//       testHelpers(response);
 //     },
 //     error: function(error) {
-//       //console.log(error);
+//       testHelpers(error);
 //     }
 //   });
 // }
@@ -1475,10 +1553,10 @@ function addTableTo(table) {
 //     url: "/loadTest",
 //     type: "GET",
 //     success: function(response) {
-//       //console.log(response);
+//       testHelpers(response);
 //     },
 //     error: function(error) {
-//       //console.log(error);
+//       testHelpers(error);
 //     }
 //   });
 // }
@@ -1493,10 +1571,10 @@ function saveJsonAtServer(jsonObject, filename) {
 		processData: false,
 		contentType: 'application/json; charset=UTF-8',
 		success: function(response) {
-			//console.log(response);
+			testHelpers(response);
 		},
 		error: function(error) {
-			//console.log(error);
+			testHelpers(error);
 		}
 	});
 }
@@ -1504,7 +1582,7 @@ function saveJsonAtServer(jsonObject, filename) {
 
 //#region file helpers
 function loadJSON(path, callback) {
-	//console.log(path);
+	testHelpers(path);
 	var xobj = new XMLHttpRequest();
 	xobj.overrideMimeType('application/json');
 	xobj.open('GET', path, true); //path example: '../news_data.json'
@@ -1516,17 +1594,17 @@ function loadJSON(path, callback) {
 	xobj.send(null);
 }
 function loadYML(path, callback) {
-	////console.log(path);
+	//testHelpers(path);
 	res = undefined;
 	$.get(path) // eg. '/common/resources/LessonContentsLv01Ln01.yml'
 		.done(function(data) {
-			////console.log("File load complete");
+			//testHelpers("File load complete");
 			var yml = jsyaml.load(data);
-			////console.log(yml);
+			//testHelpers(yml);
 			var jsonString = JSON.stringify(data);
 			var json = $.parseJSON(jsonString);
-			////console.log(jsonString);
-			////console.log(json);
+			//testHelpers(jsonString);
+			//testHelpers(json);
 			callback(yml);
 		});
 }
@@ -1557,9 +1635,36 @@ function saveFile(name, type, data) {
 
 //usage: https://stackoverflow.com/questions/48073151/read-local-json-file-into-variable
 // loadJSON(function(json) {
-//   //console.log(json); // this will log out the json object
+//   testHelpers(json); // this will log out the json object
 // });
 //#endregion file helpers
+
+//#region geo helpers
+function size2hex(w = 100, h = 0, x = 0, y = 0) {
+	//from center of poly and w (possibly h), calculate hex poly points and return as string!
+	//TODO: add options to return as point list!
+	//if h is omitted, a regular hex of width w is produced
+	//starting from N:
+	let hexPoints = [{X: 0.5, Y: 0}, {X: 1, Y: 0.25}, {X: 1, Y: 0.75}, {X: 0.5, Y: 1}, {X: 0, Y: 0.75}, {X: 0, Y: 0.25}];
+
+	if (h == 0) {
+		h = (2 * w) / 1.73;
+	}
+	x -= w / 2;
+	y -= h / 2;
+
+	let pts = hexPoints.map(p => [p.X * w + x, p.Y * h + y]);
+	let newpts = [];
+	for (const p of pts) {
+		newp = {X: p[0], Y: Math.round(p[1])};
+		newpts.push(newp);
+	}
+	pts = newpts;
+	let sPoints = pts.map(p => '' + p.X + ',' + p.Y).join(' '); //'0,0 100,0 50,80',
+	testHexgrid(x, y, pts, sPoints);
+	return sPoints;
+}
+//#endregion
 
 //#region id helpers
 function comp_(...arr) {
@@ -1601,13 +1706,18 @@ function error(msg) {
 //#endregion io helpers
 
 //#region layout helpers
+function tableDimensions(w, h) {
+	setCSSVariable('--wTable', '' + w + 'px');
+	setCSSVariable('--hTable', '' + h + 'px');
+}
+
 function calculateDims(n, sz = 60, minRows = 1) {
 	var rows = minRows;
 	var cols = Math.ceil(n / rows);
 	var gap = 10;
 	var padding = 20;
 	let w = 9999999;
-	//console.log('calculateDims with:',rows,cols)
+	testHelpers('calculateDims with:', rows, cols);
 	let rOld = 0;
 	while (true) {
 		rOld = rows;
@@ -1658,7 +1768,7 @@ function mle(o, p, d) {
 }
 function snail(p, o, d) {
 	if (o.length == 0) return;
-	//console.log(p,o)
+	testHelpers(p, o);
 
 	o[0].setPos(p.x, p.y);
 	n = o.length;
@@ -1740,7 +1850,7 @@ function calcSnailPositions(x, y, d, n) {
 
 //   let i=0;
 //   for (const o of objects) {
-//     //console.log('p[i]',p[i],'object',o)
+//     testHelpers('p[i]',p[i],'object',o)
 //     o.setPos(p[i][0],p[i][1]); i+=1;
 //   }
 // }
@@ -1975,15 +2085,14 @@ var countries = [
 //#endregion
 
 //#region ms helpers: should NOT USE anything in MS!!!
-function addMSContainer(dParent,gid,{w,h,margin='auto'}){
+function addMSContainer(dParent, gid, {w = '100%', h = '100%', margin = 'auto'}) {
 	//adds a div w/ svg w/ g (with id=gid) inside dParent
 	let d1 = addDiv(dParent, {w: w, h: h, margin: margin});
 	let g1 = addSvgg(d1, gid);
-	return d1;
-
+	return {div: d1, g: g1};
 }
 
-//#endreagion ms helpers
+//#endregion ms helpers
 
 //#region numbers
 function intDiv(n, q) {
@@ -2133,7 +2242,7 @@ function gen_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
 		}
 		pal.push(palHues);
 	}
-	//console.log('pal.length:', pal.length, ', pal[0].length:', pal[0].length, ', pal:', pal);
+	testHelpers('pal.length:', pal.length, ', pal[0].length:', pal[0].length, ', pal:', pal);
 	return pal;
 }
 function getpal(ipal = -1, ihue = 0, bOrf = 'b') {
@@ -2155,7 +2264,7 @@ function set_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
 	palette = gen_palette(hue, nHues, sat, a);
 	return palette;
 }
-function color_areas(nHues = 2, iButtonHue = 0, areaClass = 'area', gridDiv = 'grid_game') {
+function color_areas(nHues = 2, iButtonHue = 0, areaClass = 'area', gridDiv = 'mainDiv') {
 	let hue1 = Math.floor(Math.random() * 360);
 	let pal = gen_palette(hue1, nHues);
 	palette = pal; //set global palette variable!
@@ -2168,7 +2277,7 @@ function color_areas(nHues = 2, iButtonHue = 0, areaClass = 'area', gridDiv = 'g
 	for (const a of areas) {
 		let cb = (a.style.backgroundColor = pal[idx][ihue].b);
 		let cf = (a.style.color = pal[idx][ihue].f);
-		//console.log('back', standardize_color(cb));
+		testHelpers('back', standardize_color(cb));
 		let hex = standardize_color(cb);
 
 		let f = complementaryColor(hex);
@@ -2232,8 +2341,8 @@ function expand1(x) {
 		let b = x.slice(1);
 		let c = expand1(x.slice(1));
 		let d = extractStringLists(c);
-		//console.log('a=',fj(a),'b=',fj(b),'c=',fj(c))
-		//console.log('d=',fj(d))
+		testHelpers('a=', fj(a), 'b=', fj(b), 'c=', fj(c));
+		testHelpers('d=', fj(d));
 		return carteset(a, d);
 	}
 }
@@ -2284,7 +2393,7 @@ function capitalize(s) {
 function eraseSpaces(s) {
 	let i = 0;
 	while (s.includes('  ')) {
-		////console.log(i++ + ": ", s);
+		//testHelpers(i++ + ": ", s);
 		s = s.replace('  ', ' ');
 		s = s.replace(' {', '{');
 		s = s.replace(' (', '(');
@@ -2348,16 +2457,16 @@ function sameCaseIn(s1, s2) {
 	return s1.toLowerCase() == s2.toLowerCase();
 }
 function startsWith(s, sSub) {
-	////console.log('startWith: s='+s+', sSub='+sSub,typeof(s),typeof(sSub));
+	//testHelpers('startWith: s='+s+', sSub='+sSub,typeof(s),typeof(sSub));
 	return s.substring(0, sSub.length) == sSub;
 }
 function startsWithCaseIn(s, ssub) {
 	return startsWith(s.toLowerCase(), ssub.toLowerCase());
 }
 function stringAfter(sFull, sSub) {
-	////console.log('s='+sFull,'sub='+sSub)
+	//testHelpers('s='+sFull,'sub='+sSub)
 	let idx = sFull.indexOf(sSub);
-	////console.log('idx='+idx)
+	//testHelpers('idx='+idx)
 	if (idx < 0) return '';
 	return sFull.substring(idx + sSub.length);
 }
@@ -2372,23 +2481,43 @@ function stringBefore(sFull, sSub) {
 }
 //#endregion
 
+//#region test helpers
+var activatedTests = [];
+function activateTests(commaSepString) {
+	addIfComma(commaSepString, activatedTests);
+}
+function testGSM() {
+	if (activatedTests.includes('GSM')) console.log(...arguments);
+}
+function testHelpers() {
+	if (activatedTests.includes('helpers')) console.log(...arguments);
+}
+function testHexgrid() {
+	if (activatedTests.includes('hexgrid')) console.log(...arguments);
+}
+function testMS_fine() {
+	if (activatedTests.includes('MS_fine')) console.log(...arguments);
+}
+
+//#endregion
+
 //#region type and conversion helpers
 function getTypeOf(param) {
 	let type = typeof param;
-	//console.log("typeof says:" + type);
+	testHelpers('typeof says:' + type);
 	if (type == 'string') {
 		return 'string';
 	}
 	if (type == 'object') {
 		type = param.constructor.name;
-		//console.log(type, startsWith(type, "SVG"));
+		testHelpers(type, startsWith(type, 'SVG'));
 		if (startsWith(type, 'SVG')) type = stringBefore(stringAfter(type, 'SVG'), 'Element').toLowerCase();
 		else if (startsWith(type, 'HTML')) type = stringBefore(stringAfter(type, 'HTML'), 'Element').toLowerCase();
 	}
 	let lType = type.toLowerCase();
 	if (lType.includes('event')) type = 'event';
-	////console.log("this param is of type: " + type);
-	////console.log(param);
+	testHelpers('this param is of type: ' + type);
+	testHelpers(param);
 	return type;
 }
 function isEvent(param) {
@@ -2406,22 +2535,22 @@ function isNumber(param) {
 function convertToMS(p) {
 	let res = undefined;
 	if (isMS(p)) {
-		////console.log("convertToMS: isMS ", p);
+		//testHelpers("convertToMS: isMS ", p);
 		res = p;
 	} else if (isEvent(p)) {
-		////console.log("convertToMS: isEvent ", p);
+		//testHelpers("convertToMS: isEvent ", p);
 		p = p.target;
 		res = findParentWithId(p);
 		res = MS.byId[res.id];
 	} else if (isString(p)) {
 		//assume that this is the id
-		////console.log("convertToMS: isString ", p);
+		//testHelpers("convertToMS: isString ", p);
 		res = MS.byId[p];
 	} else {
 		//assume some ui element
-		////console.log("convertToMS: else ", res);
+		//testHelpers("convertToMS: else ", res);
 	}
-	////console.log("convertToMS: RESULT=", res);
+	//testHelpers("convertToMS: RESULT=", res);
 	return res;
 }
 
@@ -2456,7 +2585,7 @@ function decomposeMatrix(matrix) {
 	};
 }
 function getTransformInfo(gElement) {
-	//console.log(gElement)
+	testHelpers(gElement);
 	var matrix = gElement.getCTM();
 	let info = decomposeMatrix(matrix);
 	return info;
@@ -2466,6 +2595,6 @@ function getZoomFactor(gElement) {
 	var matrix = gElement.getCTM();
 	let info = decomposeMatrix(matrix);
 	return info.scale;
-	// //console.log(x.scale);
+	// testHelpers(x.scale);
 }
 //#endregion zooming

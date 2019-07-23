@@ -51,7 +51,7 @@ class ADecisiongen {
 		if (this.hoverTuple) {
 			for (const ms of this.hoverTuple.msList) {
 				//if (ms == this.msSelected) continue;
-				ms.stopBlinking(); //unselect();
+				ms.stopSelGreen(); //unselect();
 			}
 			this.hoverTuple = null;
 		}
@@ -366,8 +366,8 @@ class ADecisiongen {
 				type = 'other';
 			}
 			if (ms) {
-				ms.blink();
-				unitTestFilter('blinking:', ms);
+				ms.selGreen();
+				unitTestFilter('selGreen:', ms);
 				this.hoverTuple.msList.push(ms);
 				unitTestFilter('hover type of ms[' + s + ']:', ms.getTag('type'));
 				if (!(s in this.msInTuples)) {

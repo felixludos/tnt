@@ -50,7 +50,7 @@ class AMap {
     let sz = this.assets.SZ.chip;
     let pts = this.vpts[faction];
     let pos = pts[0];
-    let ms = new MS(id, assets.getUniqueId(id), "mapG")
+    let ms = new MS(id, "mapG", assets.getUniqueId(id))
       .roundedRect({w: sz, h: sz, fill: color})
       .text({txt: text, fill: "white", weight: "bold"})
       .setPos(pos.x + sz / 2, pos.y + sz / 2)
@@ -59,7 +59,7 @@ class AMap {
   }
   createInfluence(id, nation, faction, value) {
     unitTestMap("createInfluence", id, nation, faction, value);
-    let ms = new MS(id, assets.getUniqueId(id), "mapG");
+    let ms = new MS(id, "mapG", assets.getUniqueId(id));
     this.drawInfluence(ms, nation, faction, value);
     //this.influences[nation] = ms;
 
@@ -74,7 +74,7 @@ class AMap {
   createTile(id, o) {
     let pos = this.assets.tilePositions[id];
     let sz = this.assets.SZ.tile;
-    let ms = new MS(id, this.assets.getUniqueId(id), "mapG")
+    let ms = new MS(id, "mapG", this.assets.getUniqueId(id))
 			.circle({className: "ground",fill:'transparent', sz: sz})
 			.circle({className: "overlay region", sz: sz})
       .setPos(pos.x, pos.y)

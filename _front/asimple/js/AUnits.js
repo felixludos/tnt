@@ -61,7 +61,7 @@ class AUnits {
 		let sz80 = sz * 0.86;
 		let szImage = sz / 1.5;
 		let y = szImage / 6;
-		let ms = new MS(id, id, 'mapG')
+		let ms = new MS(id, 'mapG')
 			.roundedRect({w: sz, h: sz, fill: color, rounding: sz * 0.1})
 			.roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
 			.text({txt: 1, fz: sz / 2, fill: 'white'})
@@ -99,7 +99,7 @@ class AUnits {
 			let sz80 = sz * 0.86;
 			let szImage = sz / 1.5;
 			let y = szImage / 6;
-			let ms = new MS(id, id, 'mapG')
+			let ms = new MS(id, 'mapG')
 				.roundedRect({className: 'ground', w: sz, h: sz, fill: color, rounding: sz * 0.1})
 				.roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
 				.image({path: imagePath, y: y, w: szImage, h: szImage})
