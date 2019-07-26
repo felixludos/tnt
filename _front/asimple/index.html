@@ -10,6 +10,7 @@
 		<link rel="stylesheet" type="text/css" href="/a/css/main.css" />
 		<link rel="stylesheet" type="text/css" href="/a/css/layout.css" />
 		<link rel="stylesheet" type="text/css" href="/a/css/msStyles.css" />
+		<link rel="stylesheet" type="text/css" href="/a/css/specialStyles.css" />
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.12.2/js-yaml.js"></script>
 
@@ -20,6 +21,7 @@
 		<script src="/a/js/helpersTnt.js"></script>
 		<script src="/a/js/panzoom.js"></script>
 		<script src="/a/js/MS.js"></script>
+		<script src="/a/js/AnimationQueue.js"></script>
 		<script src="/a/js/NPage.js"></script>
 		<script src="/a/js/AMap.js"></script>
 		<script src="/a/js/AHand.js"></script>
@@ -558,7 +560,6 @@
 				}
 				addPara(d, n > 1 ? '' + n + ' battles will be fought in ' + battleNames : 'Battle of ' + Object.keys(c.battles)[0]);
 			}
-
 		</script>
 		<!-- #endregion battle presentation -->
 
@@ -569,7 +570,7 @@
 				// return;
 				//"Gibraltar", "Malta", "Albania"
 
-				// autoplay, cards, cardsNew, choice, choicemin, control, 
+				// autoplay, cards, cardsNew, choice, choicemin, control,
 				// convoy, decision,
 				// filter, filterByType, gameloop,
 				// hover, init, load, log, map, moving, player, random,
@@ -580,13 +581,14 @@
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('', execOptions.activatedTests);
+				addIfComma('battle', execOptions.activatedTests);
 
-				onClickReload('axis4_pass2war');//('axis4_movement');//7_battleStarted');
+				onClickReload('axis4_pass2war');//('axis4_acc2cmd'); //('axis4_pass2war');//('axis4_movement');//7_battleStarted');
 				//onClickRestart();
 			}
 			function gameloop(data) {
 				unitTestGameloop('gameloop', data);
+				//animationQueue.end();
 				updateCycle(data);
 
 				autoplay = !STOP && execOptions.skipCond();
@@ -599,6 +601,7 @@
 					H,
 					t => {
 						freezeUI();
+						// animationQueue.start();
 						sendAction(H.player, t, gameloop);
 					},
 					autoplay
@@ -629,31 +632,26 @@
 				cards.update(H.player, data, H.objects);
 				map.update(data, H.objects);
 				units.update(data, H.objects, H.player);
-				unitTestGameloop('H vor update combat\ndata:',data,'\nH:',H)
+				unitTestGameloop('H vor update combat\ndata:', data, '\nH:', H);
 				if ('combat' in H) H.combat.update(data, H);
 				H.tuples = getTuples(data);
 			}
 			function phaseChange(data) {
 				let info = data.info.game;
 				unitTestGameloop('PHASE CHANGE!!!', H.phase, 'turning to:', info.phase);
-				if ((H.phase == 'Setup' || H.phase == 'Movement') && info.phase == 'Combat') {
+				if ((H.phase == 'Setup' || H.phase == 'Movement') && (info.phase == 'Combat' || info.phase.includes('Battle'))) {
 					//handle new Combat!
 					unitTestGameloop('NEW COMBAT PHASE!!!!!!!!!!!!!!!!');
 
 					page.battleView();
 
-					H.combat = new ACombat(assets,data.temp.combat,'battle_area');
-
+					H.combat = new ACombat(assets, data.temp.combat, 'battle_area');
 				} else if ('combat' in H && info.phase == 'Movement') {
-
 					//handle end of combat phase!
 					page.selectView();
-					unitTestGameloop('COMBAT HAS ENDED!!!!!!!!!!!!!!!!!')
-					H.combat.clear_area(); 
+					unitTestGameloop('COMBAT HAS ENDED!!!!!!!!!!!!!!!!!');
+					H.combat.clear_area();
 					delete H.combat;
-
-
-
 				}
 				H.phase = info.phase;
 			}
@@ -826,6 +824,8 @@
 			var H = {start: {}}; //package up all game data
 			H.start.player = 'West';
 			H.start.seed = 0;
+
+			var animationQueue;
 
 			// controllers responsible for different aspects of game
 			var page; //responsible for layout

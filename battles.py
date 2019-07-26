@@ -338,7 +338,7 @@ def land_battle_phase(G, player, action):
 				G.logger.write('{} to select fire+target_class or retreat+tile command'.format(player))
 				#player needs to pick target_class: return options
 				return code
-			else:  #if only 1 option: go on to next stage
+			else:  #if only 1 option: send accept
 				b.target_class = b.opp_groups[0]
 				b.target_units = target_units_left(b, units, opponent)
 				#b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})

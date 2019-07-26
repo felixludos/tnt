@@ -410,6 +410,21 @@ function without(arr, elementToRemove) {
 
 //#endregion array helpers
 
+//#region 2d array helpers
+function arr2Set(arr2d,func){ //assumes all entries are objects or null
+	console.log(arr2d,func)
+	for(let i=0;i<arr2d.length;i++){
+		for(let j=0;j<arr2d[i].length;j++){
+			let o=arr2d[i][j];
+			if (typeof(o) == 'object'){
+				func(o,i,j);
+			}
+				
+		}
+	}
+}
+//#endregion
+
 //#region color conversion
 function standardize_color(str) {
 	var c = document.createElement('canvas').getContext('2d');
@@ -1229,14 +1244,38 @@ function inferType(val) {
 //#endregion dictionary helpers
 
 //#region DOM helpers:
+function gZone(d,gid,vAnchor,hAnchor,wPercent,hPercent, bg, fg){
+	let svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+
+	//calculate wDiv,hDiv
+	let wd = d.style.width;
+	let hd = d.style.height;
+	console.log(wd,hd);
+
+	// svg1.setAttribute('width', w);
+	// svg1.setAttribute('height', h);
+	// let style = 'margin:0;padding:0;position:absolute;top:0px;left:0px;'; //
+	// if (bg) style += 'background-color:' + bg;
+	// svg1.setAttribute('style', style);
+	// //dParent.style.position = 'absolute';//???????
+	// //dParent.parentNode.style.position='absolute'; nein das geht nicht!!!
+	// dParent.appendChild(svg1);
+
+	// let g1 = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+	// g1.id = gid;
+	// svg1.appendChild(g1);
+	// return g1;
+}
 function addSvgg(dParent, gid, {w = '100%', h = '100%', bg, fg} = {}) {
 	//each div gets an svg and inside a g
 	let svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 	svg1.setAttribute('width', w);
 	svg1.setAttribute('height', h);
-	let style = 'margin:0;padding:0;position:relative;top:0px;left:0px;'; //
+	let style = 'margin:0;padding:0;position:absolute;top:0px;left:0px;'; //
 	if (bg) style += 'background-color:' + bg;
 	svg1.setAttribute('style', style);
+	//dParent.style.position = 'absolute';//???????
+	//dParent.parentNode.style.position='absolute'; nein das geht nicht!!!
 	dParent.appendChild(svg1);
 
 	let g1 = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -1283,6 +1322,30 @@ function addPara(div, s, margin = '0px', fontSize = '10px', color = 'green') {
 // 	console.log(dTitle);
 // 	return p;
 // }
+function addStyledDiv(dParent,id,html,styleString){
+	let d = document.createElement('div');
+	dParent.appendChild(d);
+	d.id = id;
+	d.style.cssText = styleString;
+	if (html) d.innerHTML = html;
+	return d;
+}
+function addDivFullClass(dParent,id,className){
+	let d = document.createElement('div');
+	dParent.appendChild(d);
+	d.id = id;
+	d.style.width = '100%';
+	d.style.height = '100%';
+	d.classList.add(className);
+	return d;
+}
+function addDivClass(dParent,id,className){
+	let d = document.createElement('div');
+	dParent.appendChild(d);
+	d.id = id;
+	d.classList.add(className);
+	return d;
+}
 function addDiv(dParent, {html, w = '100%', h = '100%', bg, fg, ipal, border, rounding, margin, padding, float, textAlign, fontSize}) {
 	// bg, fg, ipal, border, rounding, margin, padding, float, textAlign}) {
 	let d = document.createElement('div');
@@ -2085,10 +2148,21 @@ var countries = [
 //#endregion
 
 //#region ms helpers: should NOT USE anything in MS!!!
+
+
 function addMSContainer(dParent, gid, {w = '100%', h = '100%', margin = 'auto'}) {
+
 	//adds a div w/ svg w/ g (with id=gid) inside dParent
-	let d1 = addDiv(dParent, {w: w, h: h, margin: margin});
-	let g1 = addSvgg(d1, gid);
+	//let wParent = dParent.offsetWidth;
+	//let hParent = dParent.offsetHeight;
+
+	//let marginLeft = (wParent-w)/2
+
+	// let d1 = addDiv(dParent, {w: w, h: h, margin: '0px '+marginLeft+'px', bg:'green'});
+	let d1 = addDiv(dParent, {w: w, h: h, margin: margin});//, bg:'green'});
+	d1.style.position = 'relative';
+
+	let g1 = addSvgg(d1, gid);//,{bg:'red'});
 	return {div: d1, g: g1};
 }
 

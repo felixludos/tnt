@@ -56,6 +56,26 @@ class ABattle {
 		this.gap = {w: wGap, h: hGap, col: wFactionGap};
 		//console.log('*************',this.size, this.unitSize,this.gap)
 	}
+	selectBattle(){
+		this.battleDiv.style.border = '4px solid yellow';
+	}
+	unselectBattle(){
+		this.battleDiv.style.border = '1px solid ' + getpal(6);
+	}
+	startDiceAnimation(fire){
+		this.fire = fire;
+		let dDice = fire.owner == this.b.attacker? this.attackerDiceDiv:this.defenderDiceDiv;
+		dDice.classList.add('pulseOn')
+	}
+	stopDiceAnimation(fire){
+		let dDice = fire.owner == this.b.attacker? this.attackerDiceDiv:this.defenderDiceDiv;
+		dDice.classList.remove('pulseOn')
+	}
+	showHits(hits){
+		let dDice = this.fire.owner == this.b.attacker? this.attackerDiceDiv:this.defenderDiceDiv;
+		let html = dDice.innerHTML;
+		dDice.innerHTML = html + '<br>' + hits;
+	}
 	addUnit(id, gName, type, nationality, cv, x, y) {
 		let ms = this.createUnit(id, gName, type, nationality);
 		ms.setPos(x, y).draw();
@@ -102,11 +122,35 @@ class ABattle {
 		}
 		return nColsPerFaction;
 	}
-	populate(d, gid, bg, fg) {
-		// let gid = 'g' + loc;
+	mirror_units(data,H){
+		for (const u of data.battle.fire_order) {
+			let o = H.objects[u.id];
+			if (u.unit.cv != o.cv){
+				this.updateCv(this.ms[u.id],o.cv);
+			}
+			//if (o.cv != u.unit.cv)
+		}
+	}
+	populate(dBattleOuter, gid, bg, fg) {
+
+		let dBattleLeft = addDivClass(dBattleOuter,'dBattleLeft','battleLeft');
+		let dBattleRight = addDivClass(dBattleOuter,'dBattleRight','battleRight');
+		let dBattleMiddle = addDivClass(dBattleOuter,'dBattleMiddle','battleMiddle');
+
+		let dBattleTitle = addDivClass(dBattleMiddle,'dBattleTitle','battleTitle');
+		dBattleTitle.innerHTML = this.location;
+
+		let dBattleFactions = addDivClass(dBattleMiddle,'dBattleFactions','battleFactions');
+		dBattleFactions.style.width = this.size.w + 'px';
+		dBattleFactions.style.height = this.size.h - 25 + 'px';
+	
+		let g1 = addSvgg(dBattleFactions,gid);
+		
 		this.gid = gid;
-		let res = addMSContainer(d, gid, {w: this.size.w + 'px', h: this.size.h - 25 + 'px'});
-		//console.log('*************',d,gid, 'res',res);
+		this.battleDiv = dBattleOuter;
+		this.attackerDiceDiv = dBattleLeft;
+		this.defenderDiceDiv = dBattleRight;
+
 		let i = 0;
 		for (const f of this.factions) {
 			let id = 't' + i;
@@ -120,7 +164,6 @@ class ABattle {
 
 		let xStart = this.gap.w;
 		let yStart = this.gap.h;
-		//let xPerFactionAndType={};
 		let x = xStart;
 		let y = yStart;
 		let curFaction = null;
@@ -150,25 +193,8 @@ class ABattle {
 			x += this.unitSize.w + this.gap.w;
 		}
 	}
-	selectBattle() {
-		if (this.selected) return;
-		this.selected = true;
-		this.signals = {};
-		let id = 'selected' + this.location;
-		let msSelected = new MS(id, this.gid).circle({fill: 'limegreen'}).draw();
-		this.signals[id] = msSelected;
-	}
-	mirror_units(data,H){
-		for (const u of data.battle.fire_order) {
-			let o = H.objects[u.id];
-			if (u.unit.cv != o.cv){
-				this.updateCv(this.ms[u.id],o.cv);
-			}
-			//if (o.cv != u.unit.cv)
-		}
-	}
 	update(data, H) {
-		console.log('HALLO!!!!!!!!!!!!!!!!!')
+		console.log('ABattle.update!!!!!!!!!!!')
 		unitTestBattle('update',data.stage,data.battle);
 		if ('fire' in data.battle) {
 			let fire = this.ms[data.battle.fire.id];
@@ -179,7 +205,7 @@ class ABattle {
 			}
 			unitTestBattle('ACTIVE FIRE UNIT:',fire);
 		}
-		if ('target_class' in data.battle) {
+		if ('target_class' in data.battle && data.battle.target_class) {
 			let target_class = data.battle.target_class;
 			let units = data.battle.target_units;
 			for (const id in units) {

@@ -1,0 +1,88 @@
+.combatContainer {
+	background-color: green;
+}
+
+.combatTitles {
+	height: auto;
+	background-color: blue;
+}
+.combatTitle {
+	background-color: skyblue;
+}
+.combatSubtitle {
+	height: auto;
+	padding: 6px;
+	background-color: red;
+	font-size: 24px;
+	color:white;
+
+}
+
+.battleGrid {
+	background-color: green;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+}
+.battleOuterOverview {
+	background-color: yellow;
+	flex: 0 0 auto;
+}
+.battleOuterSelected {
+	background-color: yellow;
+	flex: 1 0 800px;
+}
+
+.battleOuter {
+	height: 100%;
+	width: 100%;
+	text-align: center;
+}
+.battleLeft {
+	width: 70px;
+	height: 100%;
+	float: left; /* [1] */
+	/* background-color: #fcc; */
+}
+.battleRight {
+	width: 70px;
+	height: 100%;
+	float: right; /* [3] */
+	/* background-color: #ccf;  */
+}
+.battleMiddle {
+	/* background-color: #cfc;  */
+	height: 100%;
+	/* overflow: hidden;  */
+}
+.battleTitle {
+	height: 25px;
+	/* background-color:red; */
+}
+.battleFactions {
+	/* background-color:blue; */
+	position: relative;
+	margin: auto;
+}
+
+.pulseOn {
+	color: white;
+	animation: pulse2 1s infinite;
+}
+@keyframes pulse {
+	0% {
+		background-color: #001f3f;
+	}
+	100% {
+		background-color: #ff4136;
+	}
+}
+@keyframes pulse2 {
+	0%,
+	100% {
+		background-color: yellow;
+	}
+	50% {
+		background-color: transparent;
+	}
+}
