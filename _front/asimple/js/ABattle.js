@@ -30,8 +30,6 @@ class ABattle {
 		let xStartPerFaction = {};
 		let xAkku = wGap;
 		for (const f of this.factions) {
-			//console.log('hallo!!!',f,unitTypeCountPerFaction[f])
-			//console.log(getItemWithMaxValue(unitTypeCountPerFaction[f]));
 			wColsPerFaction[f] = this.nColsPerFaction[f] * wCol;
 			xStartPerFaction[f] = xAkku;
 			xAkku += wColsPerFaction[f] + wFactionGap;
@@ -48,31 +46,29 @@ class ABattle {
 		this.yStartPerUnitType = yStartPerUnitType;
 		this.wColsPerFaction = wColsPerFaction;
 
-		//console.log(wColTotal);
 		let wTotal = wGap + wColTotal * wCol + wFactionGap * this.factions.length + wGap;
 
 		this.size = {w: wTotal, h: hTotal};
 		this.unitSize = {w: wCol, h: hRow};
 		this.gap = {w: wGap, h: hGap, col: wFactionGap};
-		//console.log('*************',this.size, this.unitSize,this.gap)
 	}
-	selectBattle(){
+	selectBattle() {
 		this.battleDiv.style.border = '4px solid yellow';
 	}
-	unselectBattle(){
+	unselectBattle() {
 		this.battleDiv.style.border = '1px solid ' + getpal(6);
 	}
-	startDiceAnimation(fire){
+	startDiceAnimation(fire) {
 		this.fire = fire;
-		let dDice = fire.owner == this.b.attacker? this.attackerDiceDiv:this.defenderDiceDiv;
-		dDice.classList.add('pulseOn')
+		let dDice = fire.owner == this.b.attacker ? this.attackerDiceDiv : this.defenderDiceDiv;
+		dDice.classList.add('pulseOn');
 	}
-	stopDiceAnimation(fire){
-		let dDice = fire.owner == this.b.attacker? this.attackerDiceDiv:this.defenderDiceDiv;
-		dDice.classList.remove('pulseOn')
+	stopDiceAnimation(fire) {
+		let dDice = fire.owner == this.b.attacker ? this.attackerDiceDiv : this.defenderDiceDiv;
+		dDice.classList.remove('pulseOn');
 	}
-	showHits(hits){
-		let dDice = this.fire.owner == this.b.attacker? this.attackerDiceDiv:this.defenderDiceDiv;
+	showHits(hits) {
+		let dDice = this.fire.owner == this.b.attacker ? this.attackerDiceDiv : this.defenderDiceDiv;
 		let html = dDice.innerHTML;
 		dDice.innerHTML = html + '<br>' + hits;
 	}
@@ -93,7 +89,7 @@ class ABattle {
 		let sz80 = sz * 0.86;
 		let szImage = sz / 1.5;
 		let y = szImage / 6;
-		//console.log('*************',gName,document.getElementById(gName))
+
 		let ms = new MS(id, gName)
 			.roundedRect({className: 'ground', w: sz, h: sz, fill: color, rounding: sz * 0.1})
 			.roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
@@ -107,11 +103,11 @@ class ABattle {
 	calcMaxUnitTypePerFaction() {
 		let unitTypeCountPerFaction = {};
 		let byTypeAndFaction = new Counter(this.b.fire_order, x => x.unit.type + '_' + x.owner);
-		//console.log(byTypeAndFaction)
+
 		for (let g of cartesian(this.allUnitTypes, this.factions)) {
 			let type = stringBefore(g, '_');
 			let faction = stringAfter(g, '_');
-			//console.log("there are %s of type %s and faction %s", byTypeAndFaction.get(g), type,faction);
+
 			if (!(faction in unitTypeCountPerFaction)) unitTypeCountPerFaction[faction] = {};
 			let count = byTypeAndFaction.get(g);
 			unitTypeCountPerFaction[faction][type] = count ? count : 0;
@@ -122,30 +118,53 @@ class ABattle {
 		}
 		return nColsPerFaction;
 	}
-	mirror_units(data,H){
+	mirror_units(data, H) {
+		unitTestMirrorBattle('new data:', data);
+		unitTestMirrorBattle('H:', H);
 		for (const u of data.battle.fire_order) {
 			let o = H.objects[u.id];
-			if (u.unit.cv != o.cv){
-				this.updateCv(this.ms[u.id],o.cv);
+			if (u.unit.cv != o.cv) {
+				this.updateCv(this.ms[u.id], o.cv);
 			}
-			//if (o.cv != u.unit.cv)
+		}
+		if ('dead' in data.battle) {
+			for (const u of data.battle.dead) {
+				if (u.id in H.objects) {
+					//this dead unit needs to be removed
+					unitTestMirrorBattle('H still contains dead unit', u.id);
+				} else {
+					unitTestMirrorBattle('dead unit', u.id, 'has been removed from H');
+					if (u.id in this.ms) {
+						let ms = this.ms[u.id];
+						if (!ms.getTag('dead')) {
+							this.updateCv(ms,0)
+							ms.unhighlight();
+							ms.select();
+							ms.tag('dead', true);
+						} else{
+							unitTestMirrorBattle('unit',u.id,'has already been marked dead!!!')
+						}
+					} else {
+						unitTestMirrorBattle('ERROR!!! dead unit', u.id, 'not in ms!!!!');
+					}
+				}
+			}
 		}
 	}
 	populate(dBattleOuter, gid, bg, fg) {
+		let dBattleLeft = addDivClass(dBattleOuter, 'dBattleLeft', 'battleLeft');
+		let dBattleRight = addDivClass(dBattleOuter, 'dBattleRight', 'battleRight');
+		let dBattleMiddle = addDivClass(dBattleOuter, 'dBattleMiddle', 'battleMiddle');
 
-		let dBattleLeft = addDivClass(dBattleOuter,'dBattleLeft','battleLeft');
-		let dBattleRight = addDivClass(dBattleOuter,'dBattleRight','battleRight');
-		let dBattleMiddle = addDivClass(dBattleOuter,'dBattleMiddle','battleMiddle');
-
-		let dBattleTitle = addDivClass(dBattleMiddle,'dBattleTitle','battleTitle');
+		let dBattleTitle = addDivClass(dBattleMiddle, 'dBattleTitle', 'battleTitle');
 		dBattleTitle.innerHTML = this.location;
 
-		let dBattleFactions = addDivClass(dBattleMiddle,'dBattleFactions','battleFactions');
+		let dBattleFactions = addDivClass(dBattleMiddle, 'dBattleFactions', 'battleFactions');
 		dBattleFactions.style.width = this.size.w + 'px';
 		dBattleFactions.style.height = this.size.h - 25 + 'px';
-	
-		let g1 = addSvgg(dBattleFactions,gid);
-		
+
+		let g1 = addSvgg(dBattleFactions, gid);
+
 		this.gid = gid;
 		this.battleDiv = dBattleOuter;
 		this.attackerDiceDiv = dBattleLeft;
@@ -193,17 +212,23 @@ class ABattle {
 			x += this.unitSize.w + this.gap.w;
 		}
 	}
+	roundEnding(){
+		unitTestCombatStage('roundEnding!!!')
+		for (const id in this.ms) {
+			this.ms[id].unhighlight();
+		}
+	}
 	update(data, H) {
-		console.log('ABattle.update!!!!!!!!!!!')
-		unitTestBattle('update',data.stage,data.battle);
+		unitTestBattle('update', data.stage, data.battle);
 		if ('fire' in data.battle) {
 			let fire = this.ms[data.battle.fire.id];
 			if (this.activeUnit != fire) {
 				if (this.activeUnit) this.activeUnit.unhighlight();
 				this.activeUnit = fire;
 				fire.highlight();
+				this.fire = data.battle.fire;
 			}
-			unitTestBattle('ACTIVE FIRE UNIT:',fire);
+			unitTestBattle('ACTIVE FIRE UNIT:', fire);
 		}
 		if ('target_class' in data.battle && data.battle.target_class) {
 			let target_class = data.battle.target_class;
@@ -211,10 +236,9 @@ class ABattle {
 			for (const id in units) {
 				this.ms[id].highlight();
 			}
-			unitTestBattle('TARGET UNITS:',units.toString())
-
+			unitTestBattle('TARGET UNITS:', units.toString());
 		}
-		this.mirror_units(data,H);
+		this.mirror_units(data, H);
 	}
 	updateCv(ms, cv) {
 		ms.removeFromChildIndex(5);

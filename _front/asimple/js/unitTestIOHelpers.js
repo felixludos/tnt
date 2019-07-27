@@ -38,6 +38,9 @@ function unitTestChoicemin() {
 function unitTestCombat() {
 	if (execOptions.activatedTests.includes('combat')) console.log(...arguments);
 }
+function unitTestCombatStage(){
+	if (execOptions.activatedTests.includes('stage')) console.log(...arguments);
+}
 function unitTestControl() {
 	if (execOptions.activatedTests.includes('control')) console.log(...arguments);
 }
@@ -73,6 +76,9 @@ function unitTestLog() {
 }
 function unitTestMap() {
 	if (execOptions.activatedTests.includes('map')) console.log(...arguments);
+}
+function unitTestMirrorBattle() {
+	if (execOptions.activatedTests.includes('mirror')) console.log(...arguments);
 }
 function unitTestMoving() {
 	if (execOptions.activatedTests.includes('moving')) console.log(...arguments);
