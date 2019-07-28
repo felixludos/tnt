@@ -330,7 +330,7 @@ def land_battle_phase(G, player, action):
 		b.idx = 0
 		b.fire = b.fire_order[b.idx]
 		G.logger.write('land battle starting in {}'.format(b.tilename))
-		c.stage = 'fire'
+		c.stage = 'fight'
 		player = b.attacker if b.attacker in G.players else b.defender
 		return encode_accept(G, player)
 
@@ -339,130 +339,133 @@ def land_battle_phase(G, player, action):
 	opponent = b.attacker if is_defender else b.defender  #TODO: correct! for simplicity assume just 1 opponent!
 	units = b.fire_order
 
-	if c.stage == 'fire': #starting a combat round
-		#got accept action,
-		#next fire
-		action = None
-		if 'outcome' in b:
-			del b.outcome
-		c.stage = 'cmd'
+	if c.stage == 'fight': #starting a combat round
+		action = None #if got accept action, just delete it and proceed
+		c.stage = 'cmd_needed'
 
-	if c.stage == 'cmd':
-		#have fire unit, need fire_target or retreat_tile command
+	if c.stage == 'cmd_needed':	#have fire unit, need combat action: fire_target or retreat_tile command
 		if not action: #return either target/retreat options or accept, stay in cmd
+			if 'combat_action' in b:
+				del b.combat_action
 			calc_target_classes(b, units, opponent)
 			calc_retreat_options_for_fire_unit(G, player, b, c)
-			#encode fire or retreat options
 			code = encode_cmd_options(G, player)
+
 			#determining target class:
 			b.target_class = None
 			b.target_units = None
-			if player == 'Minor':
-				#just 'G' or choose first possible target_class
+			if player == 'Minor':	#just 'G' or choose first possible target_class
 				#TODO: refine target_class selection for minor!
 				b.target_class = 'G' if 'G' in b.opp_groups else b.opp_groups[0]
 				b.target_units = target_units_left(b, units, opponent)
-				#b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 				G.logger.write('{} targeting {} {}'.format(player, opponent, b.target_class))
-				#return encode_accept(G,opponent)
-			elif len(code[player]) > 1:
+				b.combat_action = 'hit'
+				c.stage = 'have_cmd'
+			elif len(code[player]) > 1: #player needs to pick target_class: return options
 				G.logger.write('{} to select fire+target_class or retreat+tile command'.format(player))
-				#player needs to pick target_class: return options
 				return code
 			else:  #if only 1 option: send accept
 				b.target_class = b.opp_groups[0]
 				b.target_units = target_units_left(b, units, opponent)
-				#b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 				G.logger.write('PLEASE ACCEPT TARGET GROUP {}'.format(b.target_class))
-				#return encode_accept(G,player)
-			#b.target_class is known, still returning for accept:
+				b.combat_action = 'hit'
+				c.stage = 'have_cmd'
+
+		else: #user has selected a cmd option! (if a command option was set automatically there would be no action!)
+			head, *tail = action
+			action = None
+			if len(action) > 1:
+				#user selected a retreat command
+				print('unit', head, 'RETREAT to', tail[0])
+				if not 'retreats' in b:
+					b.retreats = adict()
+				b.retreats[head] = tail[0]
+				b.combat_action = 'retreat'
+				c.stage = 'have_cmd'
+			else:
+				#user selected a hit command
+				b.target_class = head
+				b.target_units = target_units_left(b, units, opponent)
+				#b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
+				b.combat_action = 'hit'
+				c.stage = 'have_cmd'
+
+	if c.stage == 'have_cmd': #combat action is determined, ask user to accept it
+		if not action: #just for user to accept
+			if b.combat_action == 'hit':
+				G.logger.write('{}:{} {} targeting {} {}'.format(b.idx, player, b.fire.id, b.target_class, opponent))
+			else:
+				G.logger.write('{}:{} {} RETREATING TO {}'.format(b.idx, player, b.fire.id, b.retreats[head]))
+
 			if not player in G.players:
 				return encode_accept(G, opponent)
 			else:
 				return encode_accept(G, player)
 
-		else:
-			head, *tail = action
-			if head == 'accept':
-				#there was only one option, the target class
-				c.stage = 'hit'
-			elif len(action) > 1:
-				#this is a retreat command
-				print('unit', head, 'RETREAT to', tail[0])
-				if not 'retreats' in b:
-					b.retreats = adict()
-				b.retreats[head] = tail[0]
-				c.stage = 'retreat'
-			else:
-				b.target_class = head
-				b.target_units = target_units_left(b, units, opponent)
-				#b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
-				c.stage = 'hit'
-				G.logger.write('SELECTED TARGET GROUP {}'.format(b.target_class))
-				return encode_accept(G, player)
-
-	if c.stage == 'retreat':
-		for id in b.retreats:
-			unit = G.players[player].units[id]
-			destination = b.retreats[id]
-			move_unit(G, unit, destination)
-			b.fire_order = [u for u in b.fire_order if u.id != id]
-			#revert visibility to just owner!
-			unit.visible.clear()
-			unit.visible.add(player)
-			#TODO: mind border limits!!!!!!
-			G.logger.write('{} unit {} retreats to {}'.format(player, id, destination))
-		del b.retreats
-		c.stage = 'done'
+		else: #only possible action is accept! goto stage 'retreat' or 'hit'
+			c.stage = b.combat_action #after accept go directly to 'hit' or 'retreat'
 
 	if c.stage == 'hit':
+		#assert not 'outcome' in b, 'ERROR: OUTCOME IN B AT HIT!!!!'+b.outcome
 		G.logger.write('{}:{} {} targeting {} {}'.format(b.idx, player, b.fire.id, b.target_class, opponent))
 		if not 'hits' in b:
 			G.logger.write('ROLLING DICE..............')
 			b.hits = roll_dice(G, b, player, opponent)
 			b.outcome = b.hits
-			if b.hits == 0:
-				c.stage = 'accept_no_hits'
-				return encode_accept(G,player)
+			G.logger.write('{} hits rolled!'.format(b.hits))
 
-		G.logger.write('{} hits'.format(b.hits))
-
-		if b.hits > 0 and len(target_units_left(b, units, opponent)):
+		if b.hits > 0: ## and len(target_units_left(b, units, opponent)):
 			b.units_max_cv = calc_target_units_with_max_cv(b, units, opponent)
 			b.types_max_cv = list({u.type for u in b.units_max_cv})
 
 			if len(b.units_max_cv) <= b.hits:
 				#just apply damage to each of those units and
 				b.units_hit = b.units_max_cv
-				c.stage = 'damage'
+				c.stage = 'accept_outcome'
 
 			elif opponent in G.players and len(b.types_max_cv) > 1:
 				# The owner can choose which of equal-CV unit takes hit
 				b.units_hit = None
-				c.stage = 'select_hit'
+				c.stage = 'select_hit_type'
 				return encode_who_takes_hit_options(G, opponent)
 
 			else:
 				b.units_hit = b.units_max_cv[:b.hits]
-				c.stage = 'damage'
+				c.stage = 'accept_outcome'
 
 		else:
-			c.stage = 'done'
+			c.stage = 'accept_outcome'
 
-	if c.stage == 'select_hit':
+	if c.stage == 'select_hit_type':
 		head, *tail = action
 		correctTypeUnits = [u for u in b.units_max_cv if u.type == head]
 		b.units_hit = correctTypeUnits  #G.players[opponent].units[head]
-		c.stage = 'damage'
+		c.stage = 'apply_damage'
 
-	if c.stage == 'damage':
+	if c.stage == 'accept_outcome':
+		if action != None:
+			if b.hits == 0:
+				c.stage = 'combat_action_done'
+			else:
+				c.stage = 'apply_damage'
+		else:
+			return encode_accept(G,player)
+
+	if c.stage == 'apply_damage': #have b.units_hit, need to apply 1 hit to each of those units
 		#unit_hit = b.units_hit
 		b.hits -= len(b.units_hit)
 		for unit_hit in b.units_hit:
 			apply_damage(G, b, unit_hit)
 
-		if b.hits == 0 or no_enemy_units_left(G, c, b, opponent):
-			c.stage = 'done'
+		#and then what?
+		#habe gerade damage applied!
+		#sollte das dem user jetzt zeigen
+		if no_enemy_units_left(G, c, b, opponent):
+			c.stage = 'battle_done'
+			return encode_accept(G,player)
+		elif b.hits == 0:
+			c.stage = 'combat_action_done'
+			return encode_accept(G,player)
 		else:
 			c.stage = 'hit'
 			#return encode_accept(G,player)
@@ -471,70 +474,96 @@ def land_battle_phase(G, player, action):
 			if code:
 				return code
 
-	if c.stage == 'rebasing':
-		#for this stage there must be an action which is one (unit,rebase_tile)
-		#remove options for this unit from options, and continue rebasing
-		#until b.mandatory_rebase_options is empty
-		#then goto stage 'after_rebasing'
-		head, *tail = action
-		uid = head
-		tilename = tail[0]
-		b.mandatory_rebase_options = [o for o in b.mandatory_rebase_options if o[0] != id]
-		if len(b.mandatory_rebase_options):
-			#encode list of remaining tuples
-			return encode_list(G, player, b.mandatory_rebase_options)
-		else:
-			c.stage = 'after_rebasing'
+	#-------------------------- no more implemented ---------------------------
+	if c.stage == 'combat_action_done':  #unit b.fire is done, reset b.hits
+		G.logger.write('{} WHAT SHOULD I DO NOW???!'.format(c.stage))
+		return encode_accept(G,player)
 
-	if c.stage == 'accept_no_hits':
-		head = None
-		c.stage = 'done'
+	if c.stage == 'battle_done':  #unit b.fire is done, reset b.hits
+		G.logger.write('{} WHAT SHOULD I DO NOW???!'.format(c.stage))
+		return encode_accept(G,player)
 
-	if c.stage == 'done':  #unit b.fire is done, reset b.hits
-		if 'hits' in b:
-			del b.hits
-			return encode_accept(G,player)
-		b.idx += 1
-		c.stage = 'after_rebasing'
-		if b.idx >= len(b.fire_order):
-			#ANS must retreat/rebase if no friendly ground support!
-			code = calc_mandatory_rebase_options(G, player, b, c)
-			if code:
-				c.stage = 'rebasing'
-				return code
-		else:
-			b.fire = b.fire_order[b.idx]
-			c.stage = 'fire'  #to read away accept!
-			G.logger.write('{} {} fires next'.format(b.fire.owner, b.fire.id))
-			if not opponent in G.players:
-				return encode_accept(G, player)
-			else:
-				return encode_accept(G, opponent)
+	if c.stage == 'retreat':  #unit b.fire is done, reset b.hits
+		G.logger.write('{} WHAT SHOULD I DO NOW???!'.format(c.stage))
+		return encode_accept(G,player)
 
-	if c.stage == 'after_rebasing':
-		#turn owner units back if owner is player!
-		if b.owner in G.players:
-			ownerUnits = [u for u in b.fire_order if u.owner == b.owner]
-			for u in ownerUnits:
-				unit = u.unit
-				unit.visible.clear()
-				unit.visible.add(b.owner)
+	# 	b.idx += 1
+	# 	if b.idx < len(b.fire_order):
+	# 		b.fire = b.fire_order[b.idx]
+	# 		c.stage = 'fight'  #to read away accept!
+	# 		G.logger.write('{} {} fires next'.format(b.fire.owner, b.fire.id))
+	# 		if not opponent in G.players:
+	# 			return encode_accept(G, player)
+	# 		else:
+	# 			return encode_accept(G, opponent)
 
-		if not 'past_battles' in G.temp:
-			G.temp.past_battles = []
-		G.temp.past_battles.append(G.temp.combat.battle)
-		G.logger.write('battle ended in {}'.format(b.tilename))
-		if no_enemy_units_left(G, c, b, player):  #TODO do something else also done in command somewhere!!!
-			make_undisputed(G, G.tiles[b.tilename])
-			if (b.owner != opponent):
-				switch_ownership(G, G.tiles[b.tilename], opponent)
-		elif no_enemy_units_left(G, c, b, opponent):
-			make_undisputed(G, G.tiles[b.tilename])
-			if (b.owner != player):
-				switch_ownership(G, G.tiles[b.tilename], player)
-		del G.temp.combat.battle
-		c.stage = 'done'
-		raise PhaseComplete
+	# 			#ANS must retreat/rebase if no friendly ground support!
+	# 			code = calc_mandatory_rebase_options(G, player, b, c)
+	# 			if code:
+	# 				c.stage = 'rebasing'
+	# 				return code
+
+	# 	if 'hits' in b:
+	# 		del b.hits
+	# 		return encode_accept(G,player)
+		
+	# 		c.stage = 'after_rebasing'
+	# 	else:
+
+	# if c.stage == 'retreat':
+	# 	#TODO: explain why there can be more than 1 unit in b.retreats?
+	# 	for id in b.retreats: 
+	# 		unit = G.players[player].units[id]
+	# 		destination = b.retreats[id]
+	# 		move_unit(G, unit, destination)
+	# 		b.fire_order = [u for u in b.fire_order if u.id != id]
+	# 		#revert visibility to just owner!
+	# 		unit.visible.clear()
+	# 		unit.visible.add(player)
+	# 		#TODO: mind border limits!!!!!!
+	# 		G.logger.write('{} unit {} retreats to {}'.format(player, id, destination))
+	# 	del b.retreats
+	# 	c.stage = 'combat_action_done'
+
+	# if c.stage == 'rebasing':
+	# 	#for this stage there must be an action which is one (unit,rebase_tile)
+	# 	#remove options for this unit from options, and continue rebasing
+	# 	#until b.mandatory_rebase_options is empty
+	# 	#then goto stage 'after_rebasing'
+	# 	head, *tail = action
+	# 	uid = head
+	# 	tilename = tail[0]
+	# 	b.mandatory_rebase_options = [o for o in b.mandatory_rebase_options if o[0] != id]
+	# 	if len(b.mandatory_rebase_options):
+	# 		#encode list of remaining tuples
+	# 		return encode_list(G, player, b.mandatory_rebase_options)
+	# 	else:
+	# 		c.stage = 'after_rebasing'
+
+	# if c.stage == 'after_rebasing':
+	# 	#turn owner units back if owner is player!
+	# 	if b.owner in G.players:
+	# 		ownerUnits = [u for u in b.fire_order if u.owner == b.owner]
+	# 		for u in ownerUnits:
+	# 			unit = u.unit
+	# 			unit.visible.clear()
+	# 			unit.visible.add(b.owner)
+
+	# 	if not 'past_battles' in G.temp:
+	# 		G.temp.past_battles = []
+	# 	G.temp.past_battles.append(G.temp.combat.battle)
+	# 	G.logger.write('battle ended in {}'.format(b.tilename))
+	# 	if no_enemy_units_left(G, c, b, player):  #TODO do something else also done in command somewhere!!!
+	# 		make_undisputed(G, G.tiles[b.tilename])
+	# 		if (b.owner != opponent):
+	# 			switch_ownership(G, G.tiles[b.tilename], opponent)
+	# 	elif no_enemy_units_left(G, c, b, opponent):
+	# 		make_undisputed(G, G.tiles[b.tilename])
+	# 		if (b.owner != player):
+	# 			switch_ownership(G, G.tiles[b.tilename], player)
+	# 	del G.temp.combat.battle
+	# 	c.stage = 'done'
+	# 	raise PhaseComplete
 
 def naval_battle_phase(G):
 	#special rule: ground units (convay) cannot engage or disengage at sea

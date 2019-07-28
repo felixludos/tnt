@@ -214,7 +214,7 @@ def land_battle_phase(G, player, action):
 		b.idx = 0
 		b.fire = b.fire_order[b.idx]
 		G.logger.write('land battle starting in {}'.format(b.tilename))
-		c.stage = 'fire'
+		c.stage = 'fight'
 		player = b.attacker if b.attacker in G.players else b.defender			
 		return encode_accept(G,player)
 
@@ -223,7 +223,7 @@ def land_battle_phase(G, player, action):
 	opponent = b.attacker if is_defender else b.defender  #TODO: correct! for simplicity assume just 1 opponent!
 	units = b.fire_order
 
-	if c.stage == 'fire':
+	if c.stage == 'fight':
 		#got accept action,
 		#next fire
 		action = None
@@ -382,7 +382,7 @@ def land_battle_phase(G, player, action):
 				c.stage = 'after_rebasing'
 		else:
 			b.fire = b.fire_order[b.idx]
-			c.stage = 'fire'  #to read away accept!
+			c.stage = 'fight'  #to read away accept!
 			G.logger.write('{} {} fires next'.format(b.fire.owner, b.fire.id))
 			if not opponent in G.players:
 				return encode_accept(G, player)

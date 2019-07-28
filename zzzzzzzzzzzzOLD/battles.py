@@ -126,7 +126,7 @@ def land_battle_phase(G, player, action):
 	opponent = b.attacker if is_defender else b.defender  #TODO: correct! for simplicity assume just 1 opponent!
 	units = b.fire_order
 
-	if c.stage == 'fire':
+	if c.stage == 'fight':
 		#got accept action,
 		#next fire
 		action = None
@@ -200,10 +200,10 @@ def land_battle_phase(G, player, action):
 			c.stage = 'hit'
 
 	if c.stage == 'done':
-		#increase idx,stage='fire'
+		#increase idx,stage='fight'
 		b.idx += 1
 		b.fire = b.fire_order[b.idx]
-		c.stage = 'fire'  #to read away accept!
+		c.stage = 'fight'  #to read away accept!
 		print('hit applied, should go to retaliation hit')
 		G.logger.write('{} hit, new cv: {}'.format(id, unit.cv))
 		if not opponent in G.players:
