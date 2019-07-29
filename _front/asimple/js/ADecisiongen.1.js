@@ -144,7 +144,7 @@ class ADecisiongen {
 		if (G.phase != this.phase) {
 			this.setPhaseFilter(G.phase);
 		}
-		console.log('new genMove call!!!', this.phase);
+		//console.log('new genMove call!!!', this.phase);
 		this.tuple = null;
 		this.presentTuples(this.tuples);
 		this.choiceCompleted = false;

@@ -221,7 +221,7 @@ function sendInit_old(player, callback) {
 }
 function sendAction_old(player, actionTuple, callback) {
   sender.send("action_test/" + player + "/" + actionTuple.join("+"), dAction => {
-    console.log(dAction);
+    //console.log(dAction);
     sender.send("info/" + player, dInfo => {
       dAction = extend(true, dAction, dInfo);
       if ("actions" in dAction) {
@@ -230,7 +230,7 @@ function sendAction_old(player, actionTuple, callback) {
         callback(dAction);
       } else if ("waiting_for" in dAction) {
         let waiting = getSet(dAction, "waiting_for");
-        console.log("PLAYER CHANGE!!!!!!!!!!!!", waiting);
+        //console.log("PLAYER CHANGE!!!!!!!!!!!!", waiting);
         if (!empty(waiting)) {
           let newPlayer = waiting[0];
           dAction.game.player = newPlayer;
@@ -285,7 +285,7 @@ function sendChangePlayer(data, callback) {
   if (!assets.factionNames.includes(player)) {
     logFormattedData(data, msgCounter, "ERROR: waiting_for data corrupt!!!" + player);
   } else {
-    console.log("________ player:", player);
+    //console.log("________ player:", player);
     let chain = ["info/" + player, "status/" + player];
     sender.chainSend(chain, player, callback);
   }
@@ -295,17 +295,17 @@ function sendInit_old(player, callback, seed = 1) {
   sender.chainSend(chain, player, callback);
 }
 function sendLoading_old(filename, player, callback, outputOption = "none") {
-  console.log("loading", filename);
+  //console.log("loading", filename);
   execOptions.output = outputOption;
   var sData = {};
   sender.send("myload/" + filename + ".json", data => {
-    console.log("myload response:", data);
+    //console.log("myload response:", data);
     sender.send("refresh/" + player, data => {
-      console.log("refresh response:", data);
+      //console.log("refresh response:", data);
       sData.created = data;
       let chain = ["info/" + player, "status/" + player];
       sender.chainSend(chain, player, data => {
-        console.log("info+status response:", data);
+        //console.log("info+status response:", data);
         sData = augment(sData, data);
         sData.created = augment(sData.created, sData.updated);
         if ("waiting_for" in data && empty(getSet(data, "waiting_for"))) {

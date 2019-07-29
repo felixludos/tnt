@@ -28,9 +28,9 @@ class AStrategy {
     if (tuples.length == 1) return tuples[0];
     else {
       let favTuples = tuples.filter(t => t.includes(fav));
-      console.log("favTuples:", favTuples);
+      //console.log("favTuples:", favTuples);
       let tuple = empty(favTuples) ? chooseRandomElement(tuples, t => !t.includes("pass")) : favTuples[0];
-      console.log("chooseFavIfPossible outcome:", tuple);
+      //console.log("chooseFavIfPossible outcome:", tuple);
 
       return tuple;
     }

@@ -7,7 +7,6 @@ class ACombat {
 		this.locations = Object.keys(combatData.battles); //list of battle locations
 
 		this.battleCounter = 0; //index of current battle
-		this.battleRounds = 0; //index of current battle round
 
 		this.battles = {}; // list of ABattle
 		this.battle = null; // the active ABattle
@@ -86,69 +85,26 @@ class ACombat {
 	}
 	update(data, H) {
 		let c = data.temp.combat;
-		unitTestBattle('COMBAT UPDATE_______________');
-		unitTestCombatStage('stage=' + c.stage, c);
+		unitTestCombat('_______________combat update');
+		unitTestCombatStage('Combat stage=' + c.stage, c);
+		//console.log('WAAAAAAAAAAAAAAAAAAAAAAASSSSSSSSSSSSSS?????')
 
 		let message = '';
-		if (c.stage == 'next') {
+		if (c.stage == 'opt') {
+			message = 'SELECT BATTLES TO FIGHT!';
+		} else if (c.stage == 'next') {
 			message = 'SELECT NEXT BATTLE!';
-		
-		} else if (c.stage == 'fight') {
-			if (this.battleRounds > 0){
-				message = 'NEXT BATTLE ROUND! PLEASE ACCEPT TO START...'
-			}else{
-				message = 'BATTLE IN ' + c.battle.tilename.toUpperCase() + ': PLEASE ACCEPT!';
+		} else if (c.stage == 'battle') {
+			//console.log('WAAAAAAAAAAAAAAAAAAAAAAASSSSSSSSSSSSSS?????')
+			if (c.battle.stage == 'battle_start_ack'){
+				//console.log('WAAAAAAAAAAAAAAAAAAAAAAASSSSSSSSSSSSSS?????')
+				this.battle = this.battles[c.battle.tilename];
 			}
-			this.battleRounds+= 1;
-		
-		} else if (c.stage == 'cmd_needed') {
-			message = 'SELECT TARGET CLASS OR RETREAT OPTIONS OR ACCEPT!!!';
-
-		} else if (c.stage == 'have_cmd') {
-			let uFire = c.battle.fire;
-			if (c.battle.combat_action == 'hit'){
-				message = 'UNIT ' + uFire.id + ' (' + uFire.type + ') IS TARGETING ' + c.battle.target_class + ': PLEASE ACCEPT!';
-				this.battle.startDiceAnimation(c.battle.fire);
-			}else{
-				message = 'UNIT ' + uFire.id + ' (' + uFire.type + ') IS RETREATING TO ' + c.battle.retreats[uFire.id] + ': PLEASE ACCEPT!';
-			}
-
-		}else if (c.stage == 'hit') {
-				message = 'DAMAGE: ' + c.battle.hits + '!!!' + 'PICK UNIT TAKING DAMAGE OR ACCEPT!';
-		
-		} else if (c.stage == 'accept_no_hits') {
-			message = 'HITS = 0, SO NO DAMAGE! PLEASE ACCEPT...';
-		
-		} else if (c.stage == 'select_hit') {
-			message = 'CHOOSE UNIT TYPE THAT TAKES HITs!';
-		
-		} else if (c.stage == 'damage') {
-			message = 'DAMAGE TAKEN: PLEASE ACCEPT!';
-		
-		} else if (c.stage == 'done') {
-			if ('battle' in c && 'outcome' in c.battle){
-				message = 'APPLIED '+c.battle.outcome+' HITS! ACCEPT TO PROCEED...'
-			}
-			//unhighlight all units!!! in fire order!!!!
-			this.battle.roundEnding();
+			message = this.battle.update(data, H);
 		}
 		this.dCombatSubtitle.innerHTML = message;
 
-		//TODO: das alles in battle update machen!!!
-		if ('battle' in c) {
-			if ('outcome' in c.battle && c.stage == 'done') {
-				this.battle.stopDiceAnimation(c.battle.fire);
-				this.battle.showHits(c.battle.outcome);
-			}
-			if (this.battle && this.battle.location != c.battle.tilename) {
-				this.battle.unselectBattle();
-			} else if (!this.battle || this.battle.location != c.battle.tilename) {
-				this.battle = this.battles[c.battle.tilename];
-				this.battle.selectBattle();
-				unitTestBattle('SELECTED:', c.battle.tilename);
-			}
-			this.battle.update(c, H);
-		}
-		unitTestBattle('END OF COMBAT UPDATE!');
+		unitTestCombat('_____________________');
+
 	}
 }

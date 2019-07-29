@@ -88,7 +88,7 @@ class NAssets {
           loadYML("/a/assets/config/faction_setup.yml", data => {
             this.factionSetup = data;
             this.factionNames = Object.keys(data);
-            console.log("...finished loading assets!");
+            //console.log("...finished loading assets!");
             callback();
           });
         });

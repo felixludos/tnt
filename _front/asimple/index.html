@@ -207,7 +207,7 @@
 						H.start.player = player;
 					}
 				}
-				console.log('restarting with', H.start.player, H.start.seed);
+				//console.log('restarting with', H.start.player, H.start.seed);
 				STOP = false;
 				restartFromScratch(H.start.player, H.start.seed);
 			}
@@ -276,11 +276,11 @@
 				onClickSave(fname);
 			}
 			function onClickSave(fname) {
-				console.log('click save', fname);
+				//console.log('click save', fname);
 				if (FreezeAndUpdateLastFileAndInFilename(fname)) {
 					sender.send('mysave/' + fname, d => {
 						//hier mach das localStorage ding!
-						console.log('saved', d);
+						//console.log('saved', d);
 						let info = {
 							choiceList: decider.choiceList,
 							startPlayer: H.start.player,
@@ -566,7 +566,7 @@
 		<!-- #region control flow -->
 		<script>
 			function startScript() {
-				// console.log(intersection(assets.tileNames,assets.nationNames));
+				// //console.log(intersection(assets.tileNames,assets.nationNames));
 				// return;
 				//"Gibraltar", "Malta", "Albania"
 
@@ -581,7 +581,7 @@
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('stage', execOptions.activatedTests);
+				addIfComma('battle', execOptions.activatedTests);
 
 				onClickReload('axis4_pass2war');//('axis4_acc2cmd'); //('axis4_pass2war');//('axis4_movement');//7_battleStarted');
 				//onClickRestart();

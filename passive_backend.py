@@ -161,7 +161,7 @@ def evaluate_action(player=None, action=None):  # keeps going through phases unt
 	while out is None:
 		try:
 			phase = G.game.sequence[G.game.index]
-			print(n,'player',player,'action',action,'func',PHASES[phase]) #@@
+			#print(n,'player',player,'action',action,'func',PHASES[phase]) #@@
 			n+=1
 			out = PHASES[phase](G, player=player, action=action)
 			player, action = None, None
@@ -216,7 +216,7 @@ def step(player, action):
 			all_actions = evaluate_action(player, action)
 			
 	except Exception as e:
-		print(e)
+		#print(e)
 		G.abort()
 		
 		if DEBUG:

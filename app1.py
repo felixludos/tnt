@@ -24,7 +24,7 @@ def addChoiceInfo(res, faction):
 		#print(lst)
 		lst.sort()
 		n = randint1(len(lst) - 1)
-		print('choice:', n, 'of', len(lst), ':', lst[n])
+		#print('choice:', n, 'of', len(lst), ':', lst[n])
 		res.choice = adict()
 		res.choice.random = n
 		res.choice.count = len(lst)

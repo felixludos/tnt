@@ -412,7 +412,7 @@ function without(arr, elementToRemove) {
 
 //#region 2d array helpers
 function arr2Set(arr2d,func){ //assumes all entries are objects or null
-	console.log(arr2d,func)
+	//console.log(arr2d,func)
 	for(let i=0;i<arr2d.length;i++){
 		for(let j=0;j<arr2d[i].length;j++){
 			let o=arr2d[i][j];
@@ -1250,7 +1250,7 @@ function gZone(d,gid,vAnchor,hAnchor,wPercent,hPercent, bg, fg){
 	//calculate wDiv,hDiv
 	let wd = d.style.width;
 	let hd = d.style.height;
-	console.log(wd,hd);
+	//console.log(wd,hd);
 
 	// svg1.setAttribute('width', w);
 	// svg1.setAttribute('height', h);
@@ -1285,7 +1285,7 @@ function addSvgg(dParent, gid, {w = '100%', h = '100%', bg, fg} = {}) {
 	//addUnit('u'+i, g1.id, 'Fortress', 'Italy', 4, 0,0);
 }
 function addPara(div, s, margin = '0px', fontSize = '10px', color = 'green') {
-	console.log('*** CREATED PARA:', s);
+	//console.log('*** CREATED PARA:', s);
 	let p = document.createElement('p');
 	p.id = uidHelpers();
 	div.appendChild(p);

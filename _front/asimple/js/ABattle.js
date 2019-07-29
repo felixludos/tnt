@@ -4,6 +4,7 @@ class ABattle {
 		this.location = loc;
 		this.b = b;
 		this.stage = stage;
+		this.roundCounter = 0; //index of current battle round
 
 		this.factions = [b.attacker, b.defender];
 		this.allUnitTypes = Array.from(new Set(b.fire_order.map(x => x.unit.type)));
@@ -58,6 +59,22 @@ class ABattle {
 	unselectBattle() {
 		this.battleDiv.style.border = '1px solid ' + getpal(6);
 	}
+	selectFireUnit() {
+		let fireUnitMS = this.ms[this.b.fire.id];
+		fireUnitMS.highlight();
+	}
+	unhightlightUnits() {
+		for (const id in this.ms) {
+			let ms = this.ms[id];
+			ms.unhighlight();
+		}
+	}
+	highlightTargetClass() {
+		for (const id in this.b.target_units) {
+			let ms = this.ms[id];
+			ms.highlight();
+		}
+	}
 	startDiceAnimation(fire) {
 		this.fire = fire;
 		let dDice = fire.owner == this.b.attacker ? this.attackerDiceDiv : this.defenderDiceDiv;
@@ -68,7 +85,7 @@ class ABattle {
 		dDice.classList.remove('pulseOn');
 	}
 	showHits(hits) {
-		let dDice = this.fire.owner == this.b.attacker ? this.attackerDiceDiv : this.defenderDiceDiv;
+		let dDice = this.b.fire.owner == this.b.attacker ? this.attackerDiceDiv : this.defenderDiceDiv;
 		let html = dDice.innerHTML;
 		dDice.innerHTML = html + '<br>' + hits;
 	}
@@ -137,12 +154,12 @@ class ABattle {
 					if (u.id in this.ms) {
 						let ms = this.ms[u.id];
 						if (!ms.getTag('dead')) {
-							this.updateCv(ms,0)
+							this.updateCv(ms, 0);
 							ms.unhighlight();
 							ms.select();
 							ms.tag('dead', true);
-						} else{
-							unitTestMirrorBattle('unit',u.id,'has already been marked dead!!!')
+						} else {
+							unitTestMirrorBattle('unit', u.id, 'has already been marked dead!!!');
 						}
 					} else {
 						unitTestMirrorBattle('ERROR!!! dead unit', u.id, 'not in ms!!!!');
@@ -212,14 +229,104 @@ class ABattle {
 			x += this.unitSize.w + this.gap.w;
 		}
 	}
-	roundEnding(){
-		unitTestCombatStage('roundEnding!!!')
+	roundEnding() {
+		unitTestCombatStage('roundEnding!!!');
 		for (const id in this.ms) {
 			this.ms[id].unhighlight();
 		}
 	}
 	update(data, H) {
-		unitTestBattle('update', data.stage, data.battle);
+		let c = data.temp.combat;
+		let b_old = this.b;
+		let b = (this.b = c.battle);
+		unitTestBattle('_______battle update', b.stage, b);
+
+		let message = '';
+		if (b.stage == 'battle_start_ack') {
+			message = 'BATTLE STARTING IN ' + b.tilename.toUpperCase() + ': PLEASE ACCEPT!';
+			this.selectBattle();
+		} else if (b.stage == 'cmd_needed') {
+			message = 'SELECT TARGET CLASS OR RETREAT OPTIONS OR ACCEPT!!!';
+			this.selectFireUnit();
+		} else if (b.stage == 'have_cmd') {
+			if (b.combat_action == 'hit') {
+				message = b.fire.owner + ' TARGETING CLASS ' + b.target_class + ': PLEASE ACCEPT!';
+				this.highlightTargetClass();
+				this.startDiceAnimation(b.fire);
+			} else {
+				message = b.fire.owner + ' RETREATING TO ' + b.retreat_options[0] + ': PLEASE ACCEPT!';
+			}
+		}else if (b.stage == 'accept_outcome') {
+			message = b.outcome + ' HITS HITTING '+b.units_hit.map(u=>u.id + '('+u.type+')').join(' ')+ ': PLEASE ACCEPT!';
+			this.stopDiceAnimation(b.fire);
+			this.showHits(b.outcome);
+		}else if (b.stage == 'combat_action_done') {
+			//compare each unit in b_old.fire_order to units in b.fire_order;
+			//if unit has been removed from fire_order, set cv to 0 and select it in red
+			//if unit has lower cv than before, reflect that
+			//if unit has been moved b retreat (attacker's unit in fire order missing!), remove it from battle
+
+			for (const u of b_old.fire_order) {
+				let has_been_removed = b.fire_order
+			}
+
+			message = b.outcome + ' HITS HITTING '+b.units_hit.map(u=>u.id + '('+u.type+')').join(' ')+ ': PLEASE ACCEPT!';
+			this.stopDiceAnimation(b.fire);
+			this.showHits(b.outcome);
+		}
+
+		unitTestBattle('____________');
+		return message;
+
+		if (this.roundCounter > 0) {
+			message = 'NEXT BATTLE ROUND! PLEASE ACCEPT TO START...';
+		} else {
+			message = 'BATTLE IN ' + c.battle.tilename.toUpperCase() + ': PLEASE ACCEPT!';
+		}
+		this.roundCounter += 1;
+
+		if (b.stage == 'cmd_needed') {
+			message = 'SELECT TARGET CLASS OR RETREAT OPTIONS OR ACCEPT!!!';
+		} else if (b.stage == 'have_cmd') {
+			let uFire = c.battle.fire;
+			if (c.battle.combat_action == 'hit') {
+				message = 'UNIT ' + uFire.id + ' (' + uFire.type + ') IS TARGETING ' + c.battle.target_class + ': PLEASE ACCEPT!';
+				this.battle.startDiceAnimation(c.battle.fire);
+			} else {
+				message = 'UNIT ' + uFire.id + ' (' + uFire.type + ') IS RETREATING TO ' + c.battle.retreats[uFire.id] + ': PLEASE ACCEPT!';
+			}
+		} else if (b.stage == 'hit') {
+			message = 'DAMAGE: ' + c.battle.hits + '!!!' + 'PICK UNIT TAKING DAMAGE OR ACCEPT!';
+		} else if (b.stage == 'accept_no_hits') {
+			message = 'HITS = 0, SO NO DAMAGE! PLEASE ACCEPT...';
+		} else if (b.stage == 'select_hit') {
+			message = 'CHOOSE UNIT TYPE THAT TAKES HITs!';
+		} else if (b.stage == 'damage') {
+			message = 'DAMAGE TAKEN: PLEASE ACCEPT!';
+		} else if (b.stage == 'done') {
+			if ('battle' in c && 'outcome' in c.battle) {
+				message = 'APPLIED ' + c.battle.outcome + ' HITS! ACCEPT TO PROCEED...';
+			}
+			//unhighlight all units!!! in fire order!!!!
+			this.battle.roundEnding();
+		}
+
+		//TODO: das alles in battle update machen!!!
+		if ('battle' in c) {
+			if ('outcome' in c.battle && b.stage == 'done') {
+				this.battle.stopDiceAnimation(c.battle.fire);
+				this.battle.showHits(c.battle.outcome);
+			}
+			if (this.battle && this.battle.location != c.battle.tilename) {
+				this.battle.unselectBattle();
+			} else if (!this.battle || this.battle.location != c.battle.tilename) {
+				this.battle = this.battles[c.battle.tilename];
+				this.battle.selectBattle();
+				unitTestBattle('SELECTED:', c.battle.tilename);
+			}
+			this.battle.update(c, H);
+		}
+
 		if ('fire' in data.battle) {
 			let fire = this.ms[data.battle.fire.id];
 			if (this.activeUnit != fire) {

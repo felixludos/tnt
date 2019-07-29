@@ -65,7 +65,7 @@ class MS {
 			el.setAttribute('fill', fill);
 		}else if (this.fg){
 			el.setAttribute('fill', this.fg);
-			console.log(this.fg)
+			//console.log(this.fg)
 		}
 	}
 	setStroke(border) {}

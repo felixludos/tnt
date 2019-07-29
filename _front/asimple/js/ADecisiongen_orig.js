@@ -134,7 +134,7 @@ class ADecisiongen {
 		if (G.phase != this.phase) {
 			this.setPhaseFilter(G.phase);
 		}
-		console.log(this.phase);
+		//console.log(this.phase);
 		this.tuple = null;
 		this.presentTuples(this.tuples);
 		this.choiceCompleted = false; //manual selection

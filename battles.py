@@ -10,7 +10,7 @@ def encode_list(G, player, lst):  #lst is list of tuples
 	options = xset()
 	for t in lst:
 		options.add(t)
-	print('* * vor code[player]=options', options)
+	#print('* * vor code[player]=options', options)
 	code[player] = options
 	return code
 
@@ -19,7 +19,7 @@ def encode_accept(G, player):
 	code = adict()
 	options = xset()
 	options.add(('accept',))
-	print('* * vor code[player]=options', options)
+	#print('* * vor code[player]=options', options)
 	code[player] = options
 	return code
 
@@ -31,7 +31,7 @@ def encode_cmd_options(G, player):
 		options.add((b,))
 	for r in G.temp.combat.battle.retreat_options:
 		options.add((r,))
-	print('* * vor code[player]=options', options)
+	#print('* * vor code[player]=options', options)
 	code[player] = options
 	return code
 
@@ -41,7 +41,7 @@ def encode_who_takes_hit_options(G, player):
 	options = xset()
 	for b in G.temp.combat.battle.types_max_cv:
 		options.add((b,))
-	print('* * vor code[player]=options', options)
+	#print('* * vor code[player]=options', options)
 	code[player] = options
 	return code
 
@@ -85,11 +85,11 @@ def calc_retreat_options_for_fire_unit(G, player, b, c):
 		else:
 			# ANS unit undisputed friendly within movement range
 			locs = ANS_rebase_options(G, unit)
-			print('locs:', locs, type(locs))
+			#print('locs:', locs, type(locs))
 			if len(locs):
 				for loc in locs:
 					b.retreat_options.append((id, loc))
-		print(b.retreat_options)
+		#print(b.retreat_options)
 
 def calc_all_retreat_options(G, player, b, c):
 	b.retreat_options = []
@@ -257,7 +257,7 @@ def roll_dice(G, b, player, opponent):
 		limit = 3
 	dice_rolls = [5, 1, 2, 2, 3, 3, 3, 4, 4, 5, 6][:ndice] if b.idx % 2 else [1, 2, 2, 3, 3, 3, 4, 4, 5, 6, 5][:ndice]
 	outcome = sum(i <= limit for i in dice_rolls)
-	print('rolling', ndice, 'dice yields', outcome, 'hits')
+	#print('rolling', ndice, 'dice yields', outcome, 'hits')
 	return outcome
 
 def calc_mandatory_rebase_options(G, player, b, c):
@@ -287,7 +287,7 @@ def calc_mandatory_rebase_options(G, player, b, c):
 				G.logger.write('{} unit {} mandatory rebase to {}'.format(player, id, destination))
 			else:
 				locs = ANS_rebase_options(G, unit)
-				print('locs:', locs, type(locs))
+				#print('locs:', locs, type(locs))
 				if len(locs):
 					for loc in locs:
 						b.mandatory_rebase_options.append((unit._id, loc))
@@ -326,24 +326,28 @@ def land_battle_phase(G, player, action):
 	c = G.temp.combat
 	b = c.battle
 
-	if not 'fire' in b:
+	if b.stage == 'battle_start': #starting a battle
 		b.idx = 0
 		b.fire = b.fire_order[b.idx]
+		b.stage = 'battle_start_ack'
 		G.logger.write('land battle starting in {}'.format(b.tilename))
-		c.stage = 'fight'
 		player = b.attacker if b.attacker in G.players else b.defender
 		return encode_accept(G, player)
 
 	player = b.fire.owner
 	is_defender = player == b.defender
-	opponent = b.attacker if is_defender else b.defender  #TODO: correct! for simplicity assume just 1 opponent!
+	opponent = b.attacker if is_defender else b.defender  #TODO: correct! (for simplicity assuming just 1 opponent!)
 	units = b.fire_order
 
-	if c.stage == 'fight': #starting a combat round
+	if b.stage == 'battle_start_ack': #player accepted battle start
 		action = None #if got accept action, just delete it and proceed
-		c.stage = 'cmd_needed'
+		b.stage = 'round_start'
 
-	if c.stage == 'cmd_needed':	#have fire unit, need combat action: fire_target or retreat_tile command
+	if b.stage == 'round_start': #starting a combat round
+		action = None #if got accept action, just delete it and proceed
+		b.stage = 'cmd_needed'
+
+	if b.stage == 'cmd_needed':	#have fire unit, need combat action: fire_target or retreat_tile command
 		if not action: #return either target/retreat options or accept, stay in cmd
 			if 'combat_action' in b:
 				del b.combat_action
@@ -360,7 +364,7 @@ def land_battle_phase(G, player, action):
 				b.target_units = target_units_left(b, units, opponent)
 				G.logger.write('{} targeting {} {}'.format(player, opponent, b.target_class))
 				b.combat_action = 'hit'
-				c.stage = 'have_cmd'
+				b.stage = 'have_cmd'
 			elif len(code[player]) > 1: #player needs to pick target_class: return options
 				G.logger.write('{} to select fire+target_class or retreat+tile command'.format(player))
 				return code
@@ -369,28 +373,28 @@ def land_battle_phase(G, player, action):
 				b.target_units = target_units_left(b, units, opponent)
 				G.logger.write('PLEASE ACCEPT TARGET GROUP {}'.format(b.target_class))
 				b.combat_action = 'hit'
-				c.stage = 'have_cmd'
+				b.stage = 'have_cmd'
 
 		else: #user has selected a cmd option! (if a command option was set automatically there would be no action!)
 			head, *tail = action
-			action = None
 			if len(action) > 1:
 				#user selected a retreat command
-				print('unit', head, 'RETREAT to', tail[0])
+				#print('unit', head, 'RETREAT to', tail[0])
 				if not 'retreats' in b:
 					b.retreats = adict()
 				b.retreats[head] = tail[0]
 				b.combat_action = 'retreat'
-				c.stage = 'have_cmd'
+				b.stage = 'have_cmd'
 			else:
 				#user selected a hit command
 				b.target_class = head
 				b.target_units = target_units_left(b, units, opponent)
 				#b.target_units = list({u.unit for u in units if u.owner == opponent and u.group == b.target_class})
 				b.combat_action = 'hit'
-				c.stage = 'have_cmd'
+				b.stage = 'have_cmd'
+			action = None
 
-	if c.stage == 'have_cmd': #combat action is determined, ask user to accept it
+	if b.stage == 'have_cmd': #combat action is determined, ask user to accept it
 		if not action: #just for user to accept
 			if b.combat_action == 'hit':
 				G.logger.write('{}:{} {} targeting {} {}'.format(b.idx, player, b.fire.id, b.target_class, opponent))
@@ -403,9 +407,10 @@ def land_battle_phase(G, player, action):
 				return encode_accept(G, player)
 
 		else: #only possible action is accept! goto stage 'retreat' or 'hit'
-			c.stage = b.combat_action #after accept go directly to 'hit' or 'retreat'
+			action = None
+			b.stage = b.combat_action #after accept go directly to 'hit' or 'retreat'
 
-	if c.stage == 'hit':
+	if b.stage == 'hit':
 		#assert not 'outcome' in b, 'ERROR: OUTCOME IN B AT HIT!!!!'+b.outcome
 		G.logger.write('{}:{} {} targeting {} {}'.format(b.idx, player, b.fire.id, b.target_class, opponent))
 		if not 'hits' in b:
@@ -421,76 +426,80 @@ def land_battle_phase(G, player, action):
 			if len(b.units_max_cv) <= b.hits:
 				#just apply damage to each of those units and
 				b.units_hit = b.units_max_cv
-				c.stage = 'accept_outcome'
+				b.stage = 'accept_outcome'
 
 			elif opponent in G.players and len(b.types_max_cv) > 1:
 				# The owner can choose which of equal-CV unit takes hit
 				b.units_hit = None
-				c.stage = 'select_hit_type'
+				b.stage = 'select_hit_type'
 				return encode_who_takes_hit_options(G, opponent)
 
 			else:
 				b.units_hit = b.units_max_cv[:b.hits]
-				c.stage = 'accept_outcome'
+				b.stage = 'accept_outcome'
 
 		else:
-			c.stage = 'accept_outcome'
+			b.stage = 'accept_outcome'
 
-	if c.stage == 'select_hit_type':
+	if b.stage == 'select_hit_type':
 		head, *tail = action
 		correctTypeUnits = [u for u in b.units_max_cv if u.type == head]
 		b.units_hit = correctTypeUnits  #G.players[opponent].units[head]
-		c.stage = 'apply_damage'
+		b.stage = 'apply_damage'
 
-	if c.stage == 'accept_outcome':
+	if b.stage == 'accept_outcome':
 		if action != None:
 			if b.hits == 0:
-				c.stage = 'combat_action_done'
+				b.stage = 'combat_action_done'
 			else:
-				c.stage = 'apply_damage'
+				b.stage = 'apply_damage'
 		else:
 			return encode_accept(G,player)
 
-	if c.stage == 'apply_damage': #have b.units_hit, need to apply 1 hit to each of those units
+	if b.stage == 'apply_damage': #have b.units_hit, need to apply 1 hit to each of those units
 		#unit_hit = b.units_hit
 		b.hits -= len(b.units_hit)
 		for unit_hit in b.units_hit:
 			apply_damage(G, b, unit_hit)
 
-		#and then what?
-		#habe gerade damage applied!
+		b.units_hit = []
+
 		#sollte das dem user jetzt zeigen
 		if no_enemy_units_left(G, c, b, opponent):
-			c.stage = 'battle_done'
+			b.stage = 'battle_done'
 			return encode_accept(G,player)
 		elif b.hits == 0:
-			c.stage = 'combat_action_done'
+			b.stage = 'combat_action_done'
 			return encode_accept(G,player)
 		else:
-			c.stage = 'hit'
+			b.stage = 'hit'
 			#return encode_accept(G,player)
 			# G.logger.write('battle vor recursive call: {}'.format(G.game.sequence[G.game.index]))
-			code = land_battle_phase(G, None, None)
-			if code:
-				return code
+			b.target_units = target_units_left(b, b.fire_order, opponent)
+			if not len(b.target_units): #no units of target_class are left! end this combat action!
+				b.stage = 'combat_action_done'
+			else:
+				code = land_battle_phase(G, None, None)
+				if code:
+					return code
 
 	#-------------------------- no more implemented ---------------------------
-	if c.stage == 'combat_action_done':  #unit b.fire is done, reset b.hits
-		G.logger.write('{} WHAT SHOULD I DO NOW???!'.format(c.stage))
+	if b.stage == 'combat_action_done':  #unit b.fire is done, next unit fires, but first, show result!!!!
+		G.logger.write('{} WHAT SHOULD I DO NOW???!'.format(b.stage))
 		return encode_accept(G,player)
 
-	if c.stage == 'battle_done':  #unit b.fire is done, reset b.hits
-		G.logger.write('{} WHAT SHOULD I DO NOW???!'.format(c.stage))
+	if b.stage == 'battle_done':  #unit b.fire is done, reset b.hits
+		G.logger.write('{} WHAT SHOULD I DO NOW???!'.format(b.stage))
 		return encode_accept(G,player)
 
-	if c.stage == 'retreat':  #unit b.fire is done, reset b.hits
-		G.logger.write('{} WHAT SHOULD I DO NOW???!'.format(c.stage))
+	if b.stage == 'retreat':  #unit b.fire is done, reset b.hits
+		G.logger.write('{} WHAT SHOULD I DO NOW???!'.format(b.stage))
 		return encode_accept(G,player)
 
 	# 	b.idx += 1
 	# 	if b.idx < len(b.fire_order):
 	# 		b.fire = b.fire_order[b.idx]
-	# 		c.stage = 'fight'  #to read away accept!
+	# 		b.stage = 'fight'  #to read away accept!
 	# 		G.logger.write('{} {} fires next'.format(b.fire.owner, b.fire.id))
 	# 		if not opponent in G.players:
 	# 			return encode_accept(G, player)
@@ -500,17 +509,17 @@ def land_battle_phase(G, player, action):
 	# 			#ANS must retreat/rebase if no friendly ground support!
 	# 			code = calc_mandatory_rebase_options(G, player, b, c)
 	# 			if code:
-	# 				c.stage = 'rebasing'
+	# 				b.stage = 'rebasing'
 	# 				return code
 
 	# 	if 'hits' in b:
 	# 		del b.hits
 	# 		return encode_accept(G,player)
 		
-	# 		c.stage = 'after_rebasing'
+	# 		b.stage = 'after_rebasing'
 	# 	else:
 
-	# if c.stage == 'retreat':
+	# if b.stage == 'retreat':
 	# 	#TODO: explain why there can be more than 1 unit in b.retreats?
 	# 	for id in b.retreats: 
 	# 		unit = G.players[player].units[id]
@@ -523,9 +532,9 @@ def land_battle_phase(G, player, action):
 	# 		#TODO: mind border limits!!!!!!
 	# 		G.logger.write('{} unit {} retreats to {}'.format(player, id, destination))
 	# 	del b.retreats
-	# 	c.stage = 'combat_action_done'
+	# 	b.stage = 'combat_action_done'
 
-	# if c.stage == 'rebasing':
+	# if b.stage == 'rebasing':
 	# 	#for this stage there must be an action which is one (unit,rebase_tile)
 	# 	#remove options for this unit from options, and continue rebasing
 	# 	#until b.mandatory_rebase_options is empty
@@ -538,9 +547,9 @@ def land_battle_phase(G, player, action):
 	# 		#encode list of remaining tuples
 	# 		return encode_list(G, player, b.mandatory_rebase_options)
 	# 	else:
-	# 		c.stage = 'after_rebasing'
+	# 		b.stage = 'after_rebasing'
 
-	# if c.stage == 'after_rebasing':
+	# if b.stage == 'after_rebasing':
 	# 	#turn owner units back if owner is player!
 	# 	if b.owner in G.players:
 	# 		ownerUnits = [u for u in b.fire_order if u.owner == b.owner]
@@ -562,9 +571,10 @@ def land_battle_phase(G, player, action):
 	# 		if (b.owner != player):
 	# 			switch_ownership(G, G.tiles[b.tilename], player)
 	# 	del G.temp.combat.battle
-	# 	c.stage = 'done'
+	# 	b.stage = 'done'
 	# 	raise PhaseComplete
 
 def naval_battle_phase(G):
 	#special rule: ground units (convay) cannot engage or disengage at sea
-	print('land battle is going on')
+	#print('land battle is going on')
+	pass
