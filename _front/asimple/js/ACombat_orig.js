@@ -101,10 +101,10 @@ class ACombat {
 			}
 			this.battleRounds+= 1;
 		
-		} else if (c.stage == 'cmd_needed') {
+		} else if (c.stage == 'select_command') {
 			message = 'SELECT TARGET CLASS OR RETREAT OPTIONS OR ACCEPT!!!';
 
-		} else if (c.stage == 'have_cmd') {
+		} else if (c.stage == 'ack_combat_action') {
 			let uFire = c.battle.fire;
 			if (c.battle.combat_action == 'hit'){
 				message = 'UNIT ' + uFire.id + ' (' + uFire.type + ') IS TARGETING ' + c.battle.target_class + ': PLEASE ACCEPT!';

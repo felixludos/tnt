@@ -6,6 +6,9 @@ from government import check_revealable, reveal_tech
 from structures.common import condensed_str
 from battles import encode_accept
 
+#******************************
+#           helpers           *
+#******************************
 def add_battles_to_reveal(G, player):
 	#turn all units to be visible on each tile in G.temp.battles_to_reveal
 	#moves revealed battles from battles_to_reveal to battles_to_fight
@@ -133,7 +136,6 @@ def determine_stage(G, player):
 		assert len(c.battles) == 1, 'NO BATTLES!!!'
 		c.stage = 'battle'
 		c.battle = c.battles.popitem()[1]
-		#print(c.battle)
 
 def encode_battles_to_select(G, player):
 	#player = G.temp.order[G.temp.active_idx]
@@ -175,9 +177,7 @@ def prepare_combat_structs(G, player):
 	G.temp.combat = adict()
 	c = G.temp.combat
 
-	#TODO: check ob relevant for current player!!!
-	#G.temp.potential_battles tset
-	#G.temp.battles tdict
+	#calc optional battles for player
 	battles_to_select = tset()
 	for b in G.temp.potential_battles:
 		if b in G.temp.battles:
@@ -193,6 +193,7 @@ def prepare_combat_structs(G, player):
 			battles_to_select.add(b)
 	c.battles_to_select = battles_to_select
 
+	#calc battles that have to be fought and therefore are revealed
 	battles_to_reveal = tdict()
 	for b in G.temp.battles:
 		if G.temp.battles[b] == player:
@@ -202,23 +203,69 @@ def prepare_combat_structs(G, player):
 			pass
 	c.battles_to_reveal = battles_to_reveal
 
-	# battles_to_select = G.temp.potential_battles.copy()
-	# #TODO hier nur die battles fuer den current player!!!!
-	# battles_to_select -= G.temp.battles
-	# c.battles_to_select = battles_to_select
-	c.opt_battles = battles_to_select
-	# c.battles_to_reveal = G.temp.battles.copy()
+	#add all bettles_to_reveal to c.battles
 	c.battles = adict()
-	c.i_battle = None
 	add_battles_to_reveal(G, player)
+	assert len(c.battles_to_reveal.keys()) == 0, 'prepare_combat_structs: AFTER REVEALING STILL BATTLES_TO_REVEAL!'
+
+#******************************
+#           tasks             *
+#******************************
+def determining_next_battle(G,player,action,c):
+	out = None
+	head, *tail = (None, None) if not action else action
+
+	if head == 'accept':
+		#just accepted only combat available
+		c.stage = 'battle'
+		c.battle = c.battles.popitem()[1]
+	elif head:
+		#user has selected the next battle (a tile name)
+		c.battle = c.battles[head]
+		##print('next battle:', head)
+		del c.battles[head]
+		c.stage = 'battle'
+	elif len(c.battles)>1:
+		out = encode_options_for_next_battle(G, player)
+	else: #there is only 1 battle
+		out = encode_accept(G,player)
+
+	return c.stage,out
+
+def optional_battle_selection(G,player,action,c): 
+	#precond: c.battles_to_select up to date and non-empty
+	#postcond: c.battle_to_select, c.battles up to date
+	out = None
+	head, *tail = (None, None) if not action else action
+
+	if head:
+		#user has selected a battle or pass
+		if head == 'pass':
+			c.battles_to_select.clear()
+		else:
+			c.battles_to_reveal[head]=player
+			add_battles_to_reveal(G, player)
+			c.battles_to_select.remove(head)
+		head = None
+
+	if not len(c.battles_to_select):
+		c.stage = 'next'
+	else:
+		out = encode_battles_to_select(G, player)
+
+	return c.stage,out
 
 def retreat_phase(G, player, action):
 	pass
 
+#******************************
+#           main              *
+#******************************
 def combat_phase(G, player, action):
 	player = G.temp.attacker
 
 	if not 'combat' in G.temp:
+		assert action == None, 'action {} but no combat in G.temp'.format(action)
 		prepare_combat_structs(G, player)
 		determine_stage(G, player)
 
@@ -226,43 +273,18 @@ def combat_phase(G, player, action):
 	head, *tail = (None, None) if not action else action
 
 	if c.stage == 'opt':
-		if head:
-			#user has selected a battle or pass
-			#action must be a tile name or pass
-			if head == 'pass':
-				c.battles_to_select.clear()
-			else:
-				c.battles_to_reveal[head]=player
-				add_battles_to_reveal(G, player)
-				#remove this battle from battles_to_select
-				c.battles_to_select.remove(head)
-			head = None
-
-		if not len(c.battles_to_select):
-			c.stage = 'next'
-		else:
-			return encode_battles_to_select(G, player)
+		c.stage,out = optional_battle_selection(G,player,action,c)
+		if out != None:
+			return out
 	
 	if c.stage == 'next':
-		if head == 'accept':
-			#just accepted only combat available
-			c.stage = 'battle'
-			c.battle = c.battles.popitem()[1]
-		elif head:
-			#user has selected the next battle (a tile name)
-			c.battle = c.battles[head]
-			##print('next battle:', head)
-			del c.battles[head]
-			c.stage = 'battle'
-		elif len(c.battles)>1:
-			return encode_options_for_next_battle(G, player)
-		else: #there is only 1 battle
-			return encode_accept(G,player)
+		c.stage,out = determining_next_battle(G,player,action,c)
+		if out != None:
+			return out
 
 	if c.stage == 'battle':
 		c.battle.stage = 'battle_start'
-		raise PhaseInterrupt('Land Battle')
-		#was ist danach?
+		raise PhaseInterrupt('Land Battle') #from here will go to land_battle until PhaseComplete
 
 	if c.stage == 'done':
 		#finished a battle, ready to move on to next battle

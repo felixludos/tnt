@@ -245,10 +245,12 @@ class ABattle {
 		if (b.stage == 'battle_start_ack') {
 			message = 'BATTLE STARTING IN ' + b.tilename.toUpperCase() + ': PLEASE ACCEPT!';
 			this.selectBattle();
-		} else if (b.stage == 'cmd_needed') {
+		// } else if (b.stage == 'action_start_ack') {
+		// 	message = 'NEXT ACTIVE UNIT:'+b.fire.id+'('+b.fire.type+'). please accept!';
+		}else if (b.stage == 'select_command') {
 			message = 'SELECT TARGET CLASS OR RETREAT OPTIONS OR ACCEPT!!!';
 			this.selectFireUnit();
-		} else if (b.stage == 'have_cmd') {
+		} else if (b.stage == 'ack_combat_action') {
 			if (b.combat_action == 'hit') {
 				message = b.fire.owner + ' TARGETING CLASS ' + b.target_class + ': PLEASE ACCEPT!';
 				this.highlightTargetClass();
@@ -256,23 +258,45 @@ class ABattle {
 			} else {
 				message = b.fire.owner + ' RETREATING TO ' + b.retreat_options[0] + ': PLEASE ACCEPT!';
 			}
-		}else if (b.stage == 'accept_outcome') {
-			message = b.outcome + ' HITS HITTING '+b.units_hit.map(u=>u.id + '('+u.type+')').join(' ')+ ': PLEASE ACCEPT!';
+		} else if (b.stage == 'select_hit_type') {
+			message = b.outcome + ' HITS, PLEASE SELECT TYPE TO HIT FIRST!';
 			this.stopDiceAnimation(b.fire);
 			this.showHits(b.outcome);
-		}else if (b.stage == 'combat_action_done') {
+		}else if (b.stage == 'accept_outcome') {
+			message = b.outcome + ' HITS HITTING ' + b.units_hit.map(u => u.id + '(' + u.type + ')').join(' ') + ': PLEASE ACCEPT!';
+			this.stopDiceAnimation(b.fire);
+			this.showHits(b.outcome);
+		} else if (b.stage == 'combat_action_done_ack') {
 			//compare each unit in b_old.fire_order to units in b.fire_order;
 			//if unit has been removed from fire_order, set cv to 0 and select it in red
 			//if unit has lower cv than before, reflect that
 			//if unit has been moved b retreat (attacker's unit in fire order missing!), remove it from battle
-
-			for (const u of b_old.fire_order) {
-				let has_been_removed = b.fire_order
+			if (b.combat_action == 'hit') {
+				let degraded = '';
+				let removed = '';
+				for (const u of b_old.fire_order) {
+					let id = u.id;
+					let ms = this.ms[id];
+					let uNew = firstCond(b.fire_order, x => x.id == id);
+					if (uNew) {
+						let cv_old = u.unit.cv;
+						let cv_new = uNew.unit.cv;
+						if (cv_old != cv_new) {
+							this.updateCv(ms, cv_new);
+							degraded += ' '+id.toString();
+						}
+					} else {
+						this.updateCv(ms, 0);
+						ms.select();
+						removed += ' '+id.toString();
+					}
+				}
+				if (!empty(degraded)) message+=degraded + ' degraded. ';
+				if (!empty(removed)) message+=removed + ' removed. ';
+				message += 'Please accept!';
+			}else{
+				message = b.fire.id + ' has retreated. Please accept!';
 			}
-
-			message = b.outcome + ' HITS HITTING '+b.units_hit.map(u=>u.id + '('+u.type+')').join(' ')+ ': PLEASE ACCEPT!';
-			this.stopDiceAnimation(b.fire);
-			this.showHits(b.outcome);
 		}
 
 		unitTestBattle('____________');
@@ -285,9 +309,9 @@ class ABattle {
 		}
 		this.roundCounter += 1;
 
-		if (b.stage == 'cmd_needed') {
+		if (b.stage == 'select_command') {
 			message = 'SELECT TARGET CLASS OR RETREAT OPTIONS OR ACCEPT!!!';
-		} else if (b.stage == 'have_cmd') {
+		} else if (b.stage == 'ack_combat_action') {
 			let uFire = c.battle.fire;
 			if (c.battle.combat_action == 'hit') {
 				message = 'UNIT ' + uFire.id + ' (' + uFire.type + ') IS TARGETING ' + c.battle.target_class + ': PLEASE ACCEPT!';

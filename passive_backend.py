@@ -42,7 +42,7 @@ PHASES = adict({
 	'Movement': movement_phase,
 
 	'Combat': combat_phase,
-	'Land Battle': land_battle_phase, #@@
+	'Land Battle': land_battle_phase, 
 	'Navel Battle': naval_battle_phase,
 	'Supply': supply_phase,
 	'Retreat': retreat_phase,
