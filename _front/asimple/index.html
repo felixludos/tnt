@@ -86,6 +86,7 @@
 					<button onclick="onClickRunToEnd()">run to end</button>
 					<br />
 					<br />
+					<button onclick="onClickRunToBattleDecided()">run to battle decided</button>
 					<!-- <button onclick="onClickSave('test1')">save</button>
           <button onclick="onClickLoad('test1')">load</button>
           <button onclick="onClickSaveAs()">save as</button>
@@ -192,6 +193,25 @@
 
 		<!-- #region UI / handlers -->
 		<script>
+			function onClickRunToBattleDecided(){
+				let decisionMode = decider.decisionMode;
+				decider.decisionMode = 'priority';
+				decider.priorityDecisions = ['pass','accept','Lorraine','G','A']
+				STOP = false;
+				showStop();
+				execOptions.skipCond = () => {
+					if (H.phase.includes('Battle')){
+						let b = H.serverData.temp.combat.battle;
+						if (b.stage == 'ack_battle_interrupted_no_enemy_units_left'){
+							console.log(H.serverData);
+							decider.decisionMode = decisionMode;
+							return false;
+						}
+					} 
+					return true;
+				}
+				decider.onClickStep(H);
+			}
 			function onClickRestart() {
 				let params = document
 					.getElementById('inPlayerSeed')

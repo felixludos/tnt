@@ -97,11 +97,14 @@ class ACombat {
 		} else if (c.stage == 'battle') {
 			//console.log('WAAAAAAAAAAAAAAAAAAAAAAASSSSSSSSSSSSSS?????')
 			if (c.battle.stage == 'battle_start_ack'){
-				//console.log('WAAAAAAAAAAAAAAAAAAAAAAASSSSSSSSSSSSSS?????')
+				//set new battle!
+				if (this.battle) {
+					this.battle.unselectBattle();
+				}
 				this.battle = this.battles[c.battle.tilename];
 			}
 			message = this.battle.update(data, H);
-		}
+		} 
 		this.dCombatSubtitle.innerHTML = message;
 
 		unitTestCombat('_____________________');

@@ -220,11 +220,11 @@ def switch_ownership(G, tile, owner):
 		del tile.unsupplied
 
 	G.players[owner].territory.add(tile._id)
+	G.players[owner].tracks.POP += pop
+	G.players[owner].tracks.RES += res
 
 	if 'capital' in tile:
-
 		owner_info = G.players[owner]
-
 		nation = tile.alligence
 
 		# take control of all unoccupied tiles in nation
@@ -242,7 +242,6 @@ def switch_ownership(G, tile, owner):
 			G.nations.groups[G.nations.designations[nation]].remove(nation)
 			G.nations.designations[nation] = owner
 			G.nations.groups[owner].add(nation)
-
 		else:  # something bigger -> major/great power
 			for rival, faction in G.players:
 				if nation in faction.members:
@@ -286,7 +285,6 @@ def switch_ownership(G, tile, owner):
 						G.nations.groups[rival].remove(nation)
 						G.nations.designations[nation] = owner
 						G.nations.groups[owner].add(nation)
-
 				else:
 					flag = False
 					for member, states in faction.members:
@@ -306,29 +304,22 @@ def switch_ownership(G, tile, owner):
 
 					assert flag, 'No nation was captured: {}'.format(nation, tile._id)
 
-		tile.owner = owner
+	tile.owner = owner
 
 # check for new battle and update disputed/aggressor flags
 def eval_movement(G, source, unit, dest):  # usually done when a unit leaves a tile
-
 	player = G.nations.designations[unit.nationality]
-
 	new_battle, engaging, disengaging = False, False, False
 
 	# update source
-
 	enemies = get_enemies(G, player)
-
 	source_powers = powers_present(G, source)
-
 	if 'disputed' in source and len(enemies.intersection(source_powers)):  # there were enemies in source
 		disengaging = True
 
-		if not conflict_present(G, source):  # there is still a conflict
+		if not conflict_present(G, source):  
 			make_undisputed(G, source)
-
 			G.logger.write('{} is no longer disputed'.format(source._id))
-
 		elif player not in source_powers and player in source.aggressors:  # player no longer present
 			source.aggressors.remove(player)
 			G.objects.updated[source._id] = source
@@ -337,7 +328,6 @@ def eval_movement(G, source, unit, dest):  # usually done when a unit leaves a t
 
 		if 'owner' in source and source.owner not in source_powers:  # owner no longer present
 			new_owner = source.aggressors[0]
-
 			switch_ownership(G, source, new_owner)
 
 	dest_powers = powers_present(G, dest)
@@ -352,19 +342,12 @@ def eval_movement(G, source, unit, dest):  # usually done when a unit leaves a t
 
 		elif player not in dest.aggressors:
 			dest.aggressors.append(player)
-
 	elif 'owner' in dest and dest.owner != player:  # unoccupied enemy territory
-
 		switch_ownership(G, dest, player)
-
 	# TODO: interventions
-
 	# TODO: track battle groups
-
 	# TODO: Sea Invasions -> unit can't fight in current battle
-
 	# TODO: Check for realizations of threats (violations)
-
 	# Axis entering Canada -> USA becomes West satellite
 	if player == 'Axis' and dest._id == 'Ottawa' and 'USA' not in G.player.West.members:
 		USA_becomes_satellite(G, 'West')

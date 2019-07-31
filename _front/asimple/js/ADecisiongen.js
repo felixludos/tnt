@@ -1,7 +1,8 @@
 class ADecisiongen {
 	constructor(assets, map, cards, units, sender) {
 		this.autoplay = true;
-		this.decisionMode = 'server'; // 'seed' | 'server' | 'manual'
+		this.decisionMode = 'server'; // 'seed' | 'server' | 'manual' | 'priority'
+		this.priorityDecisions = []; //when set and auto, will decide for these if avail!
 		this.seed = null;
 
 		this.phase = null;
@@ -24,7 +25,15 @@ class ADecisiongen {
 			this.choiceCompleted = true;
 
 			//select tuple
-			if (this.decisionMode == 'server') {
+			if (this.decisionMode == 'priority'){
+				let found = false;
+				for (const keyword of this.priorityDecisions) {
+					let t = firstCond(this.tuples,t=>t.includes(keyword));
+					if (t) {this.tuple = t;found = true; break;}
+				}
+				if (!found) this.tuple = this.tuples[0];
+				console.log(this.tuple);
+			}else if (this.decisionMode == 'server') {
 				let info = G.serverData.choice;
 				if (info.count != this.tuples.length) {
 					alert('decideAutoplay: wrong tuple count!!!! ' + this.tuples.length + ' should be ' + info.count);

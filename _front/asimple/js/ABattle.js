@@ -75,6 +75,34 @@ class ABattle {
 			ms.highlight();
 		}
 	}
+	selectTheDead(b_old,b_new){
+		let degraded = '';
+		let removed = '';
+		let message = '';
+		for (const u of b_old.fire_order) {
+			let id = u.id;
+			let ms = this.ms[id];
+			ms.unhighlight(); //clear all highlighting!
+			let uNew = firstCond(b_new.fire_order, x => x.id == id);
+			if (uNew) {
+				let cv_old = u.unit.cv;
+				let cv_new = uNew.unit.cv;
+				if (cv_old != cv_new) {
+					this.updateCv(ms, cv_new);
+					degraded += ' ' + id.toString();
+				}
+			} else {
+				this.updateCv(ms, 0);
+				ms.select();
+				removed += ' ' + id.toString();
+			}
+		}
+		if (!empty(degraded)) message += degraded + ' degraded. ';
+		if (!empty(removed)) message += removed + ' removed. ';
+
+		message += 'Please accept!';
+		return message;
+	}
 	startDiceAnimation(fire) {
 		this.fire = fire;
 		let dDice = fire.owner == this.b.attacker ? this.attackerDiceDiv : this.defenderDiceDiv;
@@ -239,18 +267,19 @@ class ABattle {
 		let c = data.temp.combat;
 		let b_old = this.b;
 		let b = (this.b = c.battle);
-		unitTestBattle('_______battle update', b.stage, b);
+		unitTestBattle('_______b.stage:', b.stage, b);
 
 		let message = '';
 		if (b.stage == 'battle_start_ack') {
 			message = 'BATTLE STARTING IN ' + b.tilename.toUpperCase() + ': PLEASE ACCEPT!';
 			this.selectBattle();
-		// } else if (b.stage == 'action_start_ack') {
-		// 	message = 'NEXT ACTIVE UNIT:'+b.fire.id+'('+b.fire.type+'). please accept!';
-		}else if (b.stage == 'select_command') {
+			// } else if (b.stage == 'action_start_ack') {
+			// 	message = 'NEXT ACTIVE UNIT:'+b.fire.id+'('+b.fire.type+'). please accept!';
+		} else if (b.stage == 'select_command') {
 			message = 'SELECT TARGET CLASS OR RETREAT OPTIONS OR ACCEPT!!!';
 			this.selectFireUnit();
 		} else if (b.stage == 'ack_combat_action') {
+			this.selectFireUnit();
 			if (b.combat_action == 'hit') {
 				message = b.fire.owner + ' TARGETING CLASS ' + b.target_class + ': PLEASE ACCEPT!';
 				this.highlightTargetClass();
@@ -262,7 +291,7 @@ class ABattle {
 			message = b.outcome + ' HITS, PLEASE SELECT TYPE TO HIT FIRST!';
 			this.stopDiceAnimation(b.fire);
 			this.showHits(b.outcome);
-		}else if (b.stage == 'accept_outcome') {
+		} else if (b.stage == 'accept_outcome') {
 			message = b.outcome + ' HITS HITTING ' + b.units_hit.map(u => u.id + '(' + u.type + ')').join(' ') + ': PLEASE ACCEPT!';
 			this.stopDiceAnimation(b.fire);
 			this.showHits(b.outcome);
@@ -272,30 +301,24 @@ class ABattle {
 			//if unit has lower cv than before, reflect that
 			//if unit has been moved b retreat (attacker's unit in fire order missing!), remove it from battle
 			if (b.combat_action == 'hit') {
-				let degraded = '';
-				let removed = '';
-				for (const u of b_old.fire_order) {
-					let id = u.id;
-					let ms = this.ms[id];
-					let uNew = firstCond(b.fire_order, x => x.id == id);
-					if (uNew) {
-						let cv_old = u.unit.cv;
-						let cv_new = uNew.unit.cv;
-						if (cv_old != cv_new) {
-							this.updateCv(ms, cv_new);
-							degraded += ' '+id.toString();
-						}
-					} else {
-						this.updateCv(ms, 0);
-						ms.select();
-						removed += ' '+id.toString();
-					}
-				}
-				if (!empty(degraded)) message+=degraded + ' degraded. ';
-				if (!empty(removed)) message+=removed + ' removed. ';
-				message += 'Please accept!';
-			}else{
+				message = this.selectTheDead(b_old,b);
+			} else {
 				message = b.fire.id + ' has retreated. Please accept!';
+			}
+		}else if (b.stage == 'ack_battle_interrupted_no_enemy_units_left') {
+			//compare each unit in b_old.fire_order to units in b.fire_order;
+			//if unit has been removed from fire_order, set cv to 0 and select it in red
+			//if unit has lower cv than before, reflect that
+			//if unit has been moved b retreat (attacker's unit in fire order missing!), remove it from battle
+			if (b.combat_action == 'hit') {
+				this.selectTheDead(b_old,b);
+			} 
+			message = 'BATTLE ENDS HERE: NO ENEMY UNITS LEFT!!!'
+		}else if (b.stage == 'ack_battle_decided') {
+			if (b.winner == b.owner){
+				message = b.winner +' has defended his territory! please accept!';
+			}else{
+				message = b.winner+' has conquered new territory!!! please accept!';
 			}
 		}
 
