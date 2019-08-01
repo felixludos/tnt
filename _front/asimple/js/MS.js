@@ -551,6 +551,18 @@ class MS {
 		this.removeClass('selected');
 		this.isSelected = false;
 	}
+	selColor(color,alpha=.5){
+		//make color transparent
+		color = color2trans(color,alpha);
+
+		//set css variable --selColor (in msStyles.css)
+		setCSSVariable('--selColor', color);
+
+		this.addClass('selColor');
+	}
+	unselColor(){
+		this.removeClass('selColor');
+	}
 	selGreen() {
 		if (this.isSelGreen) return;
 		this.addClass('selGreen');

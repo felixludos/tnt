@@ -426,6 +426,23 @@ function arr2Set(arr2d,func){ //assumes all entries are objects or null
 //#endregion
 
 //#region color conversion
+function color2trans(color,alpha=0.5) { //alpha should be between 0.0 and 1.0
+	let hex = standardize_color(color);
+	console.log(color); 
+
+	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	result = result
+		? {
+				r: parseInt(result[1], 16),
+				g: parseInt(result[2], 16),
+				b: parseInt(result[3], 16)
+			}
+		: null;
+	
+	if (result) return `rgba(${result.r},${result.g},${result.b},${alpha})`;
+	else return 'rgb(0,0,0,0.5)';
+}
+
 function standardize_color(str) {
 	var c = document.createElement('canvas').getContext('2d');
 	c.fillStyle = str;

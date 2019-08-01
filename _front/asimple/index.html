@@ -87,6 +87,8 @@
 					<br />
 					<br />
 					<button onclick="onClickRunToBattleDecided()">run to battle decided</button>
+					<button onclick="onClickMoveUnitsToRuhr()">move units to RUHR</button>
+					<button onclick="onClick5347()">5347</button>
 					<!-- <button onclick="onClickSave('test1')">save</button>
           <button onclick="onClickLoad('test1')">load</button>
           <button onclick="onClickSaveAs()">save as</button>
@@ -193,6 +195,39 @@
 
 		<!-- #region UI / handlers -->
 		<script>
+			function onClick5347(){
+				let decisionMode = decider.decisionMode;
+				decider.decisionMode = 'priority';
+				decider.priorityDecisions = ['pass','accept','N','G','Tank','Fleet']
+				STOP = false;
+				showStop();
+				execOptions.skipCond = () => {
+					if (H.phase.includes('Battle')){
+						let b = H.serverData.temp.combat.battle;
+						if (b.fire.id.toString() == '5347'){
+							console.log('*** unit 5347 is next!!!!!!!!!!!!!!!!!!!! ***');
+							decider.decisionMode = decisionMode;
+							return false;
+						}
+					} 
+					return true;
+				}
+				decider.onClickStep(H);
+			}
+			function onClickMoveUnitsToRuhr(){
+				let decisionMode = decider.decisionMode;
+				decider.decisionMode = 'priority';
+				decider.priorityDecisions = ['Ruhr']
+				STOP = false;
+				showStop();
+				execOptions.skipCond = () => {
+					//when returning false here, gameloop will stop!!!
+					//find first tuple that contains 'Ruhr'
+					let t = firstCond(H.tuples,x=>x.includes('Ruhr'));
+					return t!=null;
+				}
+				decider.onClickStep(H);
+			}
 			function onClickRunToBattleDecided(){
 				let decisionMode = decider.decisionMode;
 				decider.decisionMode = 'priority';
@@ -603,7 +638,7 @@
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
 				addIfComma('battle', execOptions.activatedTests);
 
-				onClickReload('axis4_pass2war');//('axis4_acc2cmd'); //('axis4_pass2war');//('axis4_movement');//7_battleStarted');
+				onClickReload('axis4_pass2ruhr');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
 				//onClickRestart();
 			}
 			function gameloop(data) {

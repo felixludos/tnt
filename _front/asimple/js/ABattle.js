@@ -93,7 +93,7 @@ class ABattle {
 				}
 			} else {
 				this.updateCv(ms, 0);
-				ms.select();
+				ms.selColor('black',0.8);
 				removed += ' ' + id.toString();
 			}
 		}
@@ -295,6 +295,9 @@ class ABattle {
 			message = b.outcome + ' HITS HITTING ' + b.units_hit.map(u => u.id + '(' + u.type + ')').join(' ') + ': PLEASE ACCEPT!';
 			this.stopDiceAnimation(b.fire);
 			this.showHits(b.outcome);
+			console.log('b.idx='+b.idx)
+			console.log(b.fire_order[b.idx].toString())
+			console.log(b.fire_order.toString())
 		} else if (b.stage == 'ack_combat_action_done') {
 			//compare each unit in b_old.fire_order to units in b.fire_order;
 			//if unit has been removed from fire_order, set cv to 0 and select it in red

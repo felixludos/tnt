@@ -302,4 +302,5 @@ def combat_phase(G, player, action):
 
 		if c.stage == 'combat_end':
 			G.logger.write('COMBAT ENDS!')
+			del G.temp.combat
 			raise PhaseComplete

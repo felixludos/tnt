@@ -1,4 +1,12 @@
 /* used for MS (game objects) */
+:root{
+	--selColor: blue;
+}
+
+.overlay.selColor{
+	fill: var(--selColor);
+}
+
 .unit {
   fill: transparent;
 }
