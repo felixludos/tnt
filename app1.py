@@ -124,6 +124,23 @@ def myload(data):
 	load_gamestate('saves/' + data)
 	return ('loaded: saves/' + data)
 
+@app.route('/myloadScenario2/<data>')
+def myloadScenario2(data):
+	result = adict(); #load_scenario('scenarios/' + data)
+	result = load_scenario2('scenarios/' + data)
+	#result.name='amanda'
+	msg = FORMAT_MSG(result)
+	print(msg)
+	return msg
+@app.route('/myloadScenario/<data>')
+def myloadScenario(data):
+	result = adict(); #load_scenario('scenarios/' + data)
+	result = load_scenario('scenarios/' + data)
+	#result.name='amanda'
+	msg = FORMAT_MSG(result)
+	print(msg)
+	return msg
+
 statfold_sim = '_front/asimple'
 
 @app.route('/sim')
@@ -168,7 +185,8 @@ def hide_objects(objects, player=None, cond=None):
 					del obj[k]
 
 def format_msg_for_frontend(msg, player=None):
-	#print('type of msg is', type(msg))
+	# print('type of msg is', type(msg))
+	# print(msg)
 	msg = convert_jsonable(msg)
 
 	def cond(obj, player):

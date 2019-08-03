@@ -99,7 +99,7 @@ def blockade_phase(G, player, action):
 			continue
 
 		goals = xset()
-		goals.add(faction.stats.cities.MainCapital)
+		goals.add(faction.stats.cities.MainCapital) #keyError cities!!!
 
 		for tilename in faction.territory:
 

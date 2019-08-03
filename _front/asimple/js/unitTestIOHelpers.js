@@ -110,6 +110,9 @@ function unitTestResponse() {
 function unitTestSave() {
 	if (execOptions.activatedTests.includes('save')) console.log(...arguments);
 }
+function unitTestScenario(){
+	if (execOptions.activatedTests.includes('scenario')) console.log(...arguments);
+}
 function unitTestSender() {
 	if (execOptions.activatedTests.includes('sender')) console.log(...arguments);
 }

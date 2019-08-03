@@ -27,6 +27,7 @@
 		<script src="/a/js/AHand.js"></script>
 		<script src="/a/js/ACards.js"></script>
 		<script src="/a/js/AUnits.js"></script>
+		<script src="/a/js/Scenario.js"></script>
 		<script src="/a/js/AStrategy.js"></script>
 		<script src="/a/js/ADecisionUI.js"></script>
 		<script src="/a/js/ADecisiongen.js"></script>
@@ -89,6 +90,7 @@
 					<button onclick="onClickRunToBattleDecided()">run to battle decided</button>
 					<button onclick="onClickMoveUnitsToRuhr()">move units to RUHR</button>
 					<button onclick="onClick5347()">5347</button>
+					<button onclick="onClickSeaBattle()">Sea Battle</button>
 					<!-- <button onclick="onClickSave('test1')">save</button>
           <button onclick="onClickLoad('test1')">load</button>
           <button onclick="onClickSaveAs()">save as</button>
@@ -131,6 +133,8 @@
 					<!-- <button onclick="onClickLoad('test1')">load</button> -->
 					<button onclick="onClickReload()">load</button>
 
+					<input type="text" id="inScenario" />
+					<button onclick="onClickLoadScenario()">scenario</button>
 					<!-- <button onclick="decider.onClickStep(H)">step</button>
           <button onclick="onClickRunToEnd()">run to end</button>
           <button onclick="onClickRunToPhase('Government')">run to gov</button>
@@ -195,7 +199,21 @@
 
 		<!-- #region UI / handlers -->
 		<script>
-			function onClick5347(){
+			function onClickSeaBattle(){ //axis4_movement
+				let decisionMode = decider.decisionMode;
+				decider.decisionMode = 'priority';
+				STOP = false;
+				showStop();
+				execOptions.skipCond = () => {
+					if (H.phase == 'Movement'){
+						decider.priorityDecisions = ['North_Sea','Ruhr'];
+						return true;
+					}
+					return false;
+				}
+				decider.onClickStep(H);
+			}
+			function onClick5347(){ //axis4_pass2war
 				let decisionMode = decider.decisionMode;
 				decider.decisionMode = 'priority';
 				decider.priorityDecisions = ['pass','accept','N','G','Tank','Fleet']
@@ -214,7 +232,7 @@
 				}
 				decider.onClickStep(H);
 			}
-			function onClickMoveUnitsToRuhr(){
+			function onClickMoveUnitsToRuhr(){ //axis4_movement
 				let decisionMode = decider.decisionMode;
 				decider.decisionMode = 'priority';
 				decider.priorityDecisions = ['Ruhr']
@@ -228,7 +246,7 @@
 				}
 				decider.onClickStep(H);
 			}
-			function onClickRunToBattleDecided(){
+			function onClickRunToBattleDecided(){ //axis4_pass2war
 				let decisionMode = decider.decisionMode;
 				decider.decisionMode = 'priority';
 				decider.priorityDecisions = ['pass','accept','Lorraine','G','A']
@@ -305,7 +323,20 @@
 				fname = prompt('filename no ext.:');
 				onClickLoad(fname);
 			}
-
+			function onClickLoadScenario(defaultFName="stest"){
+				unitTestScenario('DEFAULT FILENAME',defaultFName)
+				let fname = document.getElementById('inScenario').value;
+				if (empty(fname)) {
+					fname = defaultFName
+				}
+				fname = fname.trim();
+				freezeUI(); //do I need to do that here?
+				sendLoadScenario2(H.player,fname,(d)=>{
+					decider.loadScenario(d);
+					if (!autoplay) unfreezeUI();
+					//alert('Scenario loaded!!!')
+				}); //loadScenario(fname,H,decider);
+			}
 			function onClickReload(defaultFName) {
 				let fname = document.getElementById('inFilename').value;
 				if (empty(fname)) {
@@ -630,15 +661,15 @@
 				// filter, filterByType, gameloop,
 				// hover, init, load, log, map, mirror, moving, player, random,
 				// remove, removed, request, response
-				// save, sender, server, skip, stage, units, strategy, visible,
+				// save, scenario, sender, server, skip, stage, units, strategy, visible,
 				// 8699
 				//(decision is new key for Decisiongen!)
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('battle', execOptions.activatedTests);
+				addIfComma('request, response, scenario', execOptions.activatedTests);
 
-				onClickReload('axis4_pass2ruhr');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
+				onClickReload('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
 				//onClickRestart();
 			}
 			function gameloop(data) {

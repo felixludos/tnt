@@ -49,7 +49,7 @@ class ASender {
       url: url,
       type: "GET",
       success: response => {
-        //console.log("server:", response.substring(0, 200));
+        unitTestResponse("server:", response.substring(0, 200));
         if (response[0] != "{") {
           unitTestResponse(response);
           callback(JSON.parse('{"response":"' + response + '"}'));

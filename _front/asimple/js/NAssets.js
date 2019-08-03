@@ -58,7 +58,7 @@ class NAssets {
       "Supply",
       "Retreat",
       "Land_Battle",
-      "Naval_Battle",
+      "Sea_Battle",
       "Scoring"
     ];
   }

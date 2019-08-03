@@ -360,7 +360,7 @@ def land_battle_phase(G, player, action):
 				if not 'retreats' in b:
 					b.retreats = adict()
 				b.retreats[head] = tail[0]
-				b.selecteRetreatUnit = head
+				b.selectedRetreatUnit = head
 				b.selectedRetreatTile = tail[0]
 				b.combat_action = 'retreat'
 				b.stage = 'have_cmd'
@@ -391,9 +391,10 @@ def land_battle_phase(G, player, action):
 			b.stage = b.combat_action  #after accept go directly to 'hit' or 'retreat'
 
 		if b.stage == 'retreat':
+			assert action == None, '{}: action!!!!!'.format(b.stage)
 			#TODO: explain why there can be more than 1 unit in b.retreats?
-			#unit b.selecteRetreatUnit retreats to tile b.selectedRetreatTile
-			id = b.selecteRetreatUnit
+			#unit b.selectedRetreatUnit retreats to tile b.selectedRetreatTile
+			id = b.selectedRetreatUnit
 			unit = G.players[player].units[id]
 			tilename = b.selectedRetreatTile
 			move_unit(G, unit, tilename)
@@ -404,8 +405,14 @@ def land_battle_phase(G, player, action):
 			#revert visibility to just owner!
 			unit.visible.clear()
 			unit.visible.add(player)
-			#TODO: mind border limits!!!!!!
+			#TODO: mind border limits if G!!!!!!
 			G.logger.write('{} unit {} retreats to {}'.format(player, id, tilename))
+			b.stage = 'ack_retreat'
+			return encode_accept(G,player)
+
+		if b.stage == 'ack_retreat':
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			action = None
 			b.stage = 'combat_action_done'
 
 		if b.stage == 'hit':
@@ -494,8 +501,8 @@ def land_battle_phase(G, player, action):
 				b.stage = 'battle_interrupted_no_enemy_units_left'
 				G.logger.write('{} has no more units! Please accept battle end!'.format(b.opponent))
 			elif b.idx >= len(b.fire_order):
-				b.stage = 'land_battle_finished'
-				G.logger.write('all units have acted! Land battle ends here, please accept!')
+				b.stage = 'mandatory_rebase'
+				G.logger.write('all units have acted, Land battle ends')
 			else:
 				b.fire = b.fire_order[b.idx]
 				b.stage = 'ack_combat_action_done'
@@ -523,6 +530,7 @@ def land_battle_phase(G, player, action):
 			b.stage = 'battle_decided'
 
 		if b.stage == 'battle_decided':
+			assert action == None, '{}: action!!!!!'.format(b.stage)
 			#determine winner
 			b.winner = b.fire_order[0].owner
 
@@ -546,10 +554,46 @@ def land_battle_phase(G, player, action):
 			return encode_accept(G, player)
 
 		if b.stage == 'ack_battle_decided':
-			b.stage = 'cleanup_battle'
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			action = None
+			b.stage = 'mandatory_rebase'
 
 		if b.stage == 'land_battle_finished':
-			b.stage = 'cleanup_battle'
+			b.stage = 'mandatory_rebase'
+
+		if b.stage == 'mandatory_rebase':
+			assert action == None, '{}: action!!!!!'.format(b.stage)
+			#ANS must retreat/rebase if no friendly ground support!
+			code = calc_mandatory_rebase_options(G, player, b, c)
+			if code:
+				b.stage = 'select_mandatory_rebase'
+				return code
+			else:
+				b.stage = 'cleanup_battle'
+
+		if b.stage == 'select_mandatory_rebase':
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			head, *tail = action
+			action = None
+			#rebase unit,tile
+			if not 'retreats' in b:
+				b.retreats = adict()
+			b.retreats[head] = tail[0]
+			b.selectedRetreatUnit = head
+			b.selectedRetreatTile = tail[0]
+
+			id = b.selectedRetreatUnit
+			unit = G.players[player].units[id]
+			tilename = b.selectedRetreatTile
+			move_unit(G, unit, tilename)
+			#er entfernt hier die fire unit!!!
+			b.fire_order = [u for u in b.fire_order if u.id != id]
+			#revert visibility to just owner!
+			unit.visible.clear()
+			unit.visible.add(player)
+
+			#if still more mandatory retreats, have to calc!
+			b.stage = mandatory_rebase
 
 		if b.stage == 'cleanup_battle':
 			#turn units back if owner is player!
@@ -562,91 +606,330 @@ def land_battle_phase(G, player, action):
 					unit.visible.clear()
 					unit.visible.add(b.owner)
 					G.objects.updated[unit._id] = unit
+			b.stage = 'ack_cleanup_battle'
+			return encode_accept(G,player)
 
+		if b.stage == 'ack_cleanup_battle':
 			c.stage = 'battle_ended'
 			raise PhaseComplete
 
-	#--------------------------this code will never be reached! no more implemented ---------------------------
-	if b.stage == 'battle_done':  #unit b.fire is done, reset b.hits
-		G.logger.write('{} WHAT SHOULD I DO NOW???!'.format(b.stage))
-		return encode_accept(G, player)
 
-	if b.stage == 'retreat':  #unit b.fire is done, reset b.hits
-		G.logger.write('{} WHAT SHOULD I DO NOW???!'.format(b.stage))
-		return encode_accept(G, player)
+def sea_battle_phase(G):
+	c = G.temp.combat
+	b = c.battle
 
-	# 	b.idx += 1
-	# 	if b.idx < len(b.fire_order):
-	# 		b.fire = b.fire_order[b.idx]
-	# 		b.stage = 'fight'  #to read away accept!
-	# 		G.logger.write('{} {} fires next'.format(b.fire.owner, b.fire.id))
-	# 		if not opponent in G.players:
-	# 			return encode_accept(G, player)
-	# 		else:
-	# 			return encode_accept(G, opponent)
-
-	# 			#ANS must retreat/rebase if no friendly ground support!
-	# 			code = calc_mandatory_rebase_options(G, player, b, c)
-	# 			if code:
-	# 				b.stage = 'rebasing'
-	# 				return code
-
-	# 	if 'hits' in b:
-	# 		del b.hits
-	# 		return encode_accept(G,player)
-
-	# 		b.stage = 'after_rebasing'
-	# 	else:
-
-	# if b.stage == 'retreat':
-	# 	#TODO: explain why there can be more than 1 unit in b.retreats?
-	# 	for id in b.retreats:
-	# 		unit = G.players[player].units[id]
-	# 		destination = b.retreats[id]
-	# 		move_unit(G, unit, destination)
-	# 		b.fire_order = [u for u in b.fire_order if u.id != id]
-	# 		#revert visibility to just owner!
-	# 		unit.visible.clear()
-	# 		unit.visible.add(player)
-	# 		#TODO: mind border limits!!!!!!
-	# 		G.logger.write('{} unit {} retreats to {}'.format(player, id, destination))
-	# 	del b.retreats
-	# 	b.stage = 'combat_action_done'
-
-	# if b.stage == 'rebasing':
-	# 	#for this stage there must be an action which is one (unit,rebase_tile)
-	# 	#remove options for this unit from options, and continue rebasing
-	# 	#until b.mandatory_rebase_options is empty
-	# 	#then goto stage 'after_rebasing'
-	# 	head, *tail = action
-	# 	uid = head
-	# 	tilename = tail[0]
-	# 	b.mandatory_rebase_options = [o for o in b.mandatory_rebase_options if o[0] != id]
-	# 	if len(b.mandatory_rebase_options):
-	# 		#encode list of remaining tuples
-	# 		return encode_list(G, player, b.mandatory_rebase_options)
-	# 	else:
-	# 		b.stage = 'after_rebasing'
-
-	# if b.stage == 'after_rebasing':
-
-	# 	if not 'past_battles' in G.temp:
-	# 		G.temp.past_battles = []
-	# 	G.temp.past_battles.append(G.temp.combat.battle)
-	# 	G.logger.write('battle ended in {}'.format(b.tilename))
-	# 	if no_enemy_units_left(G, c, b, player):  #TODO do something else also done in command somewhere!!!
-	# 		make_undisputed(G, G.tiles[b.tilename])
-	# 		if (b.owner != opponent):
-	# 			switch_ownership(G, G.tiles[b.tilename], opponent)
-	# 	elif no_enemy_units_left(G, c, b, opponent):
-	# 		make_undisputed(G, G.tiles[b.tilename])
-	# 		if (b.owner != player):
-	# 			switch_ownership(G, G.tiles[b.tilename], player)
-	# 	del G.temp.combat.battle
-	# 	b.stage = 'done'
-	# 	raise PhaseComplete
-
-def naval_battle_phase(G):
 	#special rule: ground units (convay) cannot engage or disengage at sea
-	#print('land battle is going on')
-	pass
+	if b.stage == 'battle_start':  #starting a battle
+		assert action == None, 'there is an action in have_cmd!!!!!'
+		b.idx = 0
+		b.fire = b.fire_order[b.idx]
+		b.stage = 'battle_start_ack'
+		G.logger.write('land battle starting in {}'.format(b.tilename))
+		player = b.attacker if b.attacker in G.players else b.defender
+		return encode_accept(G, player)
+
+	player = b.fire.owner
+	is_defender = player == b.defender
+	opponent = b.attacker if is_defender else b.defender  #TODO: correct! (for simplicity assuming just 1 opponent!)
+	units = b.fire_order
+
+	while (True):
+
+		if b.stage == 'battle_start_ack':  #player accepted battle start
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			action = None  #if got accept action, just delete it and proceed
+			b.stage = 'action_start'
+
+		if b.stage == 'action_start':  #starting a combat action (new fire unit or battle round)
+			assert action == None, '{}: action!!!!!'.format(b.stage)
+			#have fire unit, goal: find a combat_action
+			#prepare b.target_classes, b.retreat_options
+			if 'combat_action' in b:
+				del b.combat_action
+			calc_target_classes(b, units, opponent)
+			calc_retreat_options_for_fire_unit(G, player, b, c)
+			#encode all possible target_class or retreat_tile options in code
+			code = encode_cmd_options(G, player)
+
+			#determining target class:
+			b.target_class = None
+			b.target_units = None
+			if player == 'Minor':  #just 'G' or choose first possible target_class
+				#TODO: refine target_class selection for minor!
+				#for now: in case of Minor, automatic target class determination and no retreat options:
+				b.target_class = 'G' if 'G' in b.opp_groups else b.opp_groups[0]
+				b.target_units = target_units_left(b, units, opponent)
+				G.logger.write('{} targeting {} {}'.format(player, opponent, b.target_class))
+				b.combat_action = 'hit'
+				b.stage = 'have_cmd'
+			elif len(code[player]) > 1:  #player needs to pick target_class: return options
+				G.logger.write('{} to select fire+target_class or retreat+tile command'.format(player))
+				b.stage = 'select_command'
+				return code
+			else:  #if only 1 option: send accept
+				b.target_class = b.opp_groups[0]
+				b.target_units = target_units_left(b, units, opponent)
+				G.logger.write('PLEASE ACCEPT TARGET GROUP {}'.format(b.target_class))
+				b.combat_action = 'hit'
+				b.stage = 'have_cmd'
+
+		if b.stage == 'select_command':  #user has selected a combat action
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			head, *tail = action
+			if len(action) > 1:
+				#user selected a retreat command
+				if not 'retreats' in b:
+					b.retreats = adict()
+				b.retreats[head] = tail[0]
+				b.selectedRetreatUnit = head
+				b.selectedRetreatTile = tail[0]
+				b.combat_action = 'retreat'
+				b.stage = 'have_cmd'
+			else:
+				#user selected a hit command
+				b.target_class = head
+				b.target_units = target_units_left(b, units, opponent)
+				b.combat_action = 'hit'
+				b.stage = 'have_cmd'
+			action = None
+
+		if b.stage == 'have_cmd':  #combat_action is determined, ask user to accept it
+			assert action == None, '{}: action!!!!!'.format(b.stage)
+			b.stage = 'ack_combat_action'
+			if b.combat_action == 'hit':
+				G.logger.write('{}:{} {} targeting {} {}'.format(b.idx, player, b.fire.id, b.target_class, opponent))
+			else:
+				G.logger.write('{}:{} {} RETREATING TO {}'.format(b.idx, player, b.fire.id, b.retreats[head]))
+
+			if not player in G.players:
+				return encode_accept(G, opponent)
+			else:
+				return encode_accept(G, player)
+
+		if b.stage == 'ack_combat_action':  #user has accepted combat action
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			action = None
+			b.stage = b.combat_action  #after accept go directly to 'hit' or 'retreat'
+
+		if b.stage == 'retreat':
+			assert action == None, '{}: action!!!!!'.format(b.stage)
+			#TODO: explain why there can be more than 1 unit in b.retreats?
+			#unit b.selectedRetreatUnit retreats to tile b.selectedRetreatTile
+			id = b.selectedRetreatUnit
+			unit = G.players[player].units[id]
+			tilename = b.selectedRetreatTile
+			move_unit(G, unit, tilename)
+			b.fire_order = [u for u in b.fire_order if u.id != id]
+			#er entfernt hier die fire unit!!!
+			b.idx -= 1
+
+			#revert visibility to just owner!
+			unit.visible.clear()
+			unit.visible.add(player)
+			#TODO: mind border limits if G!!!!!!
+			G.logger.write('{} unit {} retreats to {}'.format(player, id, tilename))
+			b.stage = 'ack_retreat'
+			return encode_accept(G,player)
+
+		if b.stage == 'ack_retreat':
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			action = None
+			b.stage = 'combat_action_done'
+
+		if b.stage == 'hit':
+			assert action == None, '{}: action!!!!!'.format(b.stage)
+			G.logger.write('{}:{} {} targeting {} {}'.format(b.idx, player, b.fire.id, b.target_class, opponent))
+			if not 'hits' in b:
+				G.logger.write('ROLLING DICE..............')
+				b.hits = roll_dice(G, b, player, opponent)
+				b.outcome = b.hits
+				G.logger.write('{} hits rolled!'.format(b.hits))
+
+			if b.hits > 0:
+				b.units_max_cv = calc_target_units_with_max_cv(b, units, opponent)
+				b.types_max_cv = list({u.type for u in b.units_max_cv})
+
+				if len(b.units_max_cv) <= b.hits:
+					#just apply damage to each of those units and
+					b.units_hit = b.units_max_cv
+					b.stage = 'accept_outcome'
+					return encode_accept(G, player)
+
+				elif opponent in G.players and len(b.types_max_cv) > 1:
+					# The owner can choose which of equal-CV unit takes hit
+					b.units_hit = None
+					b.stage = 'select_hit_type'
+					return encode_who_takes_hit_options(G, opponent)
+
+				else:
+					b.units_hit = b.units_max_cv[:b.hits]
+					b.stage = 'accept_outcome'
+					return encode_accept(G, player)
+
+			else:  #b.hits == 0
+				b.stage = 'accept_outcome'
+				return encode_accept(G, player)
+
+		if b.stage == 'select_hit_type':  #user has selected type to hit next
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			head, *tail = action
+			correctTypeUnits = [u for u in b.units_max_cv if u.type == head]
+			if len(correctTypeUnits) >= b.hits:
+				b.units_hit = correctTypeUnits[:b.hits]
+			else:
+				b.units_hit = correctTypeUnits  #G.players[opponent].units[head]
+			action = None
+			b.stage = 'apply_damage'
+
+		if b.stage == 'accept_outcome':
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			action = None
+			if b.hits == 0:
+				b.stage = 'combat_action_done'
+			else:
+				b.stage = 'apply_damage'
+
+		if b.stage == 'apply_damage':  #have b.units_hit, need to apply 1 hit to each of those units
+			assert action == None, '{}: action!!!!!'.format(b.stage)
+			#unit_hit = b.units_hit
+			b.hits -= len(b.units_hit)
+			for unit_hit in b.units_hit:
+				apply_damage(G, b, unit_hit)
+
+			b.units_hit = []
+
+			#sollte das dem user jetzt zeigen
+			if no_enemy_units_left(G, c, b, opponent):
+				b.stage = 'battle_interrupted_no_enemy_units_left'
+			elif b.hits <= 0:
+				b.stage = 'combat_action_done'
+			else:
+				#still hits left and still enemies left: damage another type or same type twice
+				#finde ein beispiel fuer diesen fall!!!!
+				b.stage = 'hit'
+				b.target_units = target_units_left(b, b.fire_order, opponent)
+				if not len(b.target_units):  #no units of target_class are left! end this combat action!
+					b.stage = 'combat_action_done'
+
+		if b.stage == 'combat_action_done':  #unit b.fire is done, next unit fires, but first, show result!!!!
+			assert action == None, '{}: action!!!!!'.format(b.stage)
+			G.logger.write('STAGE {} RESULT SHOULD BE PRESENTED!'.format(b.stage))
+			if 'hits' in b:
+				del b.hits
+				del b.outcome
+			b.idx += 1
+			if no_enemy_units_left(G, c, b, opponent):  #dont think this can happen!
+				b.stage = 'battle_interrupted_no_enemy_units_left'
+				G.logger.write('{} has no more units! Please accept battle end!'.format(b.opponent))
+			elif b.idx >= len(b.fire_order):
+				b.stage = 'mandatory_rebase'
+				G.logger.write('all units have acted, Land battle ends')
+			else:
+				b.fire = b.fire_order[b.idx]
+				b.stage = 'ack_combat_action_done'
+				G.logger.write('{} {} fires next'.format(b.fire.owner, b.fire.id))
+				if not opponent in G.players:
+					return encode_accept(G, player)
+				else:
+					return encode_accept(G, opponent)
+
+		if b.stage == 'ack_combat_action_done':
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			action = None
+			b.stage = 'action_start'
+
+		if b.stage == 'battle_interrupted_no_enemy_units_left':
+			G.logger.write('battle ends because no enemies are left!')
+			assert action == None, '{}: action!!!!!'.format(b.stage)
+			action = None
+			b.stage = 'ack_battle_interrupted_no_enemy_units_left'
+			return encode_accept(G, player)
+
+		if b.stage == 'ack_battle_interrupted_no_enemy_units_left':
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			action = None
+			b.stage = 'battle_decided'
+
+		if b.stage == 'battle_decided':
+			assert action == None, '{}: action!!!!!'.format(b.stage)
+			#determine winner
+			b.winner = b.fire_order[0].owner
+
+			#transfer ownership if necessary
+			G.logger.write('ownership of {} tranferred to {}'.format(b.tilename, b.winner))
+			if no_enemy_units_left(G, c, b, player):
+				#TODO do something else also done in command somewhere!!!
+				assert b.winner == opponent, 'winner ambiguous!!!!'
+				make_undisputed(G, G.tiles[b.tilename])
+				if (b.owner != opponent):
+					switch_ownership(G, G.tiles[b.tilename], opponent)
+					b.newOwner = opponent
+
+			elif no_enemy_units_left(G, c, b, opponent):
+				assert b.winner == player, 'winner ambiguous!!!!'
+				make_undisputed(G, G.tiles[b.tilename])
+				if (b.owner != player):
+					switch_ownership(G, G.tiles[b.tilename], player)
+					b.newOwner = player
+			b.stage = 'ack_battle_decided'
+			return encode_accept(G, player)
+
+		if b.stage == 'ack_battle_decided':
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			action = None
+			b.stage = 'mandatory_rebase'
+
+		if b.stage == 'land_battle_finished':
+			b.stage = 'mandatory_rebase'
+
+		if b.stage == 'mandatory_rebase':
+			assert action == None, '{}: action!!!!!'.format(b.stage)
+			#ANS must retreat/rebase if no friendly ground support!
+			code = calc_mandatory_rebase_options(G, player, b, c)
+			if code:
+				b.stage = 'select_mandatory_rebase'
+				return code
+			else:
+				b.stage = 'cleanup_battle'
+
+		if b.stage == 'select_mandatory_rebase':
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			head, *tail = action
+			action = None
+			#rebase unit,tile
+			if not 'retreats' in b:
+				b.retreats = adict()
+			b.retreats[head] = tail[0]
+			b.selectedRetreatUnit = head
+			b.selectedRetreatTile = tail[0]
+
+			id = b.selectedRetreatUnit
+			unit = G.players[player].units[id]
+			tilename = b.selectedRetreatTile
+			move_unit(G, unit, tilename)
+			#er entfernt hier die fire unit!!!
+			b.fire_order = [u for u in b.fire_order if u.id != id]
+			#revert visibility to just owner!
+			unit.visible.clear()
+			unit.visible.add(player)
+
+			#if still more mandatory retreats, have to calc!
+			b.stage = mandatory_rebase
+
+		if b.stage == 'cleanup_battle':
+			#turn units back if owner is player!
+			if 'newOwner' in b:
+				b.owner = b.newOwner
+			if b.owner in G.players:
+				ownerUnits = [u for u in b.fire_order if u.owner == b.owner]
+				for u in ownerUnits:
+					unit = u.unit
+					unit.visible.clear()
+					unit.visible.add(b.owner)
+					G.objects.updated[unit._id] = unit
+			b.stage = 'ack_cleanup_battle'
+			return encode_accept(G,player)
+
+		if b.stage == 'ack_cleanup_battle':
+			c.stage = 'battle_ended'
+			raise PhaseComplete

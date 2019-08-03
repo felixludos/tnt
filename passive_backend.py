@@ -19,7 +19,7 @@ from government import governmnet_phase
 from command import movement_phase, planning_phase
 from combat import combat_phase, retreat_phase
 from blockades import supply_phase, blockade_phase
-from battles import land_battle_phase, naval_battle_phase
+from battles import land_battle_phase, sea_battle_phase
 from scoring import scoring_phase
 from diplomacy import satellite_phase
 
@@ -43,12 +43,12 @@ PHASES = adict({
 
 	'Combat': combat_phase,
 	'Land Battle': land_battle_phase, 
-	'Navel Battle': naval_battle_phase,
+	'Sea Battle': sea_battle_phase,
 	'Supply': supply_phase,
 	'Retreat': retreat_phase,
 
-    'Land_Battle': land_battle_phase,
-    'Naval_Battle': naval_battle_phase,
+	'Land_Battle': land_battle_phase,
+	'Naval_Battle': sea_battle_phase,
 	
 	'Scoring': scoring_phase,
 })
@@ -155,7 +155,7 @@ def process_actions(outtype, results, player):
 
 
 def evaluate_action(player=None, action=None):  # keeps going through phases until actions are returned
-	
+	print('halllllllllllllllllllllllllllllllllllllll')
 	out = None
 	n=0
 	while out is None:
@@ -389,4 +389,20 @@ def load_gamestate(path): # load from input file, or most recent checkpoint (mor
 	if G is not None:
 		G.logger.reset(*G.players.keys())
 		G.logger.write('Game loaded')
+
+def load_scenario(path): # load from input file, or most recent checkpoint (more safe)
+	data = json.load(open(path, 'r'))
+	print(data)
+	#tos = convert_from_saveable(data)
+	#ftos = convert_to_saveable(tos)
+	#print(ftos)
+	return data
+
+def load_scenario2(path): # load from input file, or most recent checkpoint (more safe)
+	data = load(path)
+	print(data)
+	#tos = convert_from_saveable(data)
+	#ftos = convert_to_saveable(tos)
+	#print(ftos)
+	return data
 

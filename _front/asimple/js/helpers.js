@@ -1224,6 +1224,32 @@ function transColor(r, g, b, a) {
 }
 //#endregion
 
+//#region CSS helpers
+function setCSSVariable(varName, val) {
+	let root = document.documentElement;
+	root.style.setProperty(varName, val);
+}
+var sheet = (function() {
+	// Create the <style> tag
+	var style = document.createElement("style");
+
+	// Add a media (and/or media query) here if you'd like!
+	// style.setAttribute("media", "screen")
+	// style.setAttribute("media", "only screen and (max-width : 1024px)")
+
+	// WebKit hack :(
+	style.appendChild(document.createTextNode(""));
+
+	// Add the <style> element to the page
+	document.head.appendChild(style);
+
+	return style.sheet;
+})();
+function addCSSClass(className,text){
+	sheet.insertRule('.'+className+' { '+text+' }', 0);
+}
+//#endregion
+
 //#region dictionary helpers
 function dict2list(d, keyName = 'key') {
 	//d assumed to be dictionary with values are objects!!!!
@@ -1547,10 +1573,6 @@ function makeSvg(w, h) {
 	svg1.setAttribute('width', w);
 	svg1.setAttribute('height', h);
 	return svg1;
-}
-function setCSSVariable(varName, val) {
-	let root = document.documentElement;
-	root.style.setProperty(varName, val);
 }
 
 function show(elem) {

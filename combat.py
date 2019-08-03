@@ -295,12 +295,20 @@ def combat_phase(G, player, action):
 
 		if c.stage == 'battle':
 			c.battle.stage = 'battle_start'
-			raise PhaseInterrupt('Land Battle')  #from here will go to land_battle until PhaseComplete
+			if tile.type in {'Sea', 'Ocean'}:
+				raise PhaseInterrupt('Sea Battle')  #from here will go to land_battle until PhaseComplete
+			else:
+				raise PhaseInterrupt('Land Battle')  #from here will go to land_battle until PhaseComplete
 
 		if c.stage == 'battle_ended':
 			determine_stage(G,player)
 
 		if c.stage == 'combat_end':
 			G.logger.write('COMBAT ENDS!')
+			c.stage = 'ack_combat_end'
+			#who is movement player?
+			return encode_accept(G,c.battle.attacker)
+
+		if c.stage == 'ack_combat_end':
 			del G.temp.combat
 			raise PhaseComplete

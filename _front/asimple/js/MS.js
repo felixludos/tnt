@@ -1,7 +1,7 @@
 class MS {
-	constructor(id, areaName, uid=null) {
+	constructor(id, areaName, uid = null) {
 		this.id = id; //TODO: id<=>uid mapping
-		this.uid = uid? uid:id;
+		this.uid = uid ? uid : id;
 		this.areaName = areaName;
 		this.parent = document.getElementById(areaName);
 		this.areaType = detectType(areaName);
@@ -34,6 +34,7 @@ class MS {
 		this.elem.addEventListener('click', this.onClick.bind(this));
 		this.children = {}; //dictionary that holds info about children of specific classes
 		this.layout = null;
+		this.colorKeys = {}; //dynamic classes for selKeyColor
 	}
 
 	//#region colors
@@ -63,7 +64,7 @@ class MS {
 		if (fill) {
 			fill = convertToRgba(fill, alpha);
 			el.setAttribute('fill', fill);
-		}else if (this.fg){
+		} else if (this.fg) {
 			el.setAttribute('fill', this.fg);
 			//console.log(this.fg)
 		}
@@ -305,10 +306,10 @@ class MS {
 			y: y
 		});
 	}
-	setText(txt){
+	setText(txt) {
 		//look for a child of type text and modify r.textContent = txt;
 		let ch = findChildOfType('text', this);
-		if (ch){
+		if (ch) {
 			ch.textContent = txt;
 		}
 	}
@@ -551,16 +552,32 @@ class MS {
 		this.removeClass('selected');
 		this.isSelected = false;
 	}
-	selColor(color,alpha=.5){
+	selKeyColor(color, alpha = 0.5) {
+		let key = 'fill_' + color;
+		color = color2trans(color, alpha);
+		if (!(key in this.colorKeys)) {
+			addCSSClass(key, 'fill:' + color + ';');
+			this.colorKeys[key] = color;
+		}
+		this.tag('colorKey', key);
+		this.addClass(key);
+	}
+	unselKeyColor() {
+		let key = this.getTag('colorKey');
+		if (key) {
+			this.removeClass(key);
+		}
+	}
+	selColor(color, alpha = 0.5) {
 		//make color transparent
-		color = color2trans(color,alpha);
+		color = color2trans(color, alpha);
 
 		//set css variable --selColor (in msStyles.css)
 		setCSSVariable('--selColor', color);
 
 		this.addClass('selColor');
 	}
-	unselColor(){
+	unselColor() {
 		this.removeClass('selColor');
 	}
 	selGreen() {

@@ -26,11 +26,10 @@ def check_declarations(G, player):
 	options = xset()
 
 	# wars
-	options.add((xset(name for name, war in G.players[player].stats.at_war_with.items() if not war),))
+	options.add((xset(name for name, war in G.players[player].stats.at_war_with.items() if not war and not name in G.temp.threats),))
 
 	# neutral
-
-	nations = xset(nat for nat, info in G.nations.status.items() if not info.is_armed)
+	nations = xset(nat for nat, info in G.nations.status.items() if not info.is_armed and not nat in G.temp.threats)
 	# nations -= G.players[player].diplomacy.violations
 	print('check_declarations nations ', nations)
 	options.add((nations,))
@@ -496,6 +495,13 @@ def movement_phase(G, player=None, action=None):
 		tile = G.tiles[unit.tile]
 		if 'disputed' in tile:
 			conflicts.add(unit.tile)
+		elif tile.type in {'Sea','Ocean'}:
+			#check if faction and enemy on same tile!
+			#in that case, add this tile to battles
+			powers = powers_present(G, tile)
+			for p in powers:
+				if p in G.temp.threats:
+					G.temp.battles[tile.name]=player
 
 	G.temp.active_idx += 1
 

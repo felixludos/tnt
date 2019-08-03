@@ -214,7 +214,7 @@ class ADecisionUI {
 				//special rule: ignore nationalities and unit_types
 				//except if singleton! dann muessen die in other!!!!!
 				if (this.assets.nationalityNames.includes(s) || this.assets.unitTypeNames.includes(s)) {
-					if (t.length > 1)	continue;
+					if (t.length > 1) continue;
 				}
 
 				addIf(s, this.sInTuples);
@@ -270,14 +270,14 @@ class ADecisionUI {
 		//now ready to filter!
 		//set default button for phase in case of phaseChange
 		let recommendedHighlightType = this.checkPhaseChange(phase);
-		unitTestFilterByType('270: ',recommendedHighlightType)
+		unitTestFilterByType('270: ', recommendedHighlightType);
 		if (!types.includes(recommendedHighlightType)) {
 			recommendedHighlightType = types[0];
-			unitTestFilterByType('273: ',recommendedHighlightType, types)
+			unitTestFilterByType('273: ', recommendedHighlightType, types);
 			// noch besser: sortiere nach wieviele werte
 		}
 		this.highlightType = recommendedHighlightType;
-		unitTestFilterByType('nach setting highlightType 277: ',recommendedHighlightType,this.highlightType)
+		unitTestFilterByType('nach setting highlightType 277: ', recommendedHighlightType, this.highlightType);
 		for (const t in this.buttons) {
 			if (t == this.highlightType) {
 				this.selectButton(this.buttons[t]);
@@ -318,6 +318,8 @@ class ADecisionUI {
 				return 'nation';
 			case 'Movement':
 			case 'Battle':
+			case 'Land_Battle':
+			case 'Sea_Battle':
 				return 'unit';
 			case 'Spring':
 			case 'Summer':

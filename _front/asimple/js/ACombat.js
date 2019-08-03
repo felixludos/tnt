@@ -104,7 +104,9 @@ class ACombat {
 				this.battle = this.battles[c.battle.tilename];
 			}
 			message = this.battle.update(data, H);
-		} 
+		} else if (c.stage == 'ack_combat_end'){
+			message = 'COMBAT ENDS!!!'
+		}
 		this.dCombatSubtitle.innerHTML = message;
 
 		unitTestCombat('_____________________');
