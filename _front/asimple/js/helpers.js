@@ -1650,18 +1650,6 @@ function addTableTo(table) {
 //     }
 //   });
 // }
-// function loadScenario(){
-//   $.ajax({
-//     url: "/loadTest",
-//     type: "GET",
-//     success: function(response) {
-//       testHelpers(response);
-//     },
-//     error: function(error) {
-//       testHelpers(error);
-//     }
-//   });
-// }
 function saveJsonAtServer(jsonObject, filename) {
 	event.preventDefault();
 	var labels = ['hallo', 'das', 'ist']; //checkboxes.toArray().map(checkbox => checkbox.value);

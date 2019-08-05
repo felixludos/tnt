@@ -4,22 +4,22 @@ options:
 units:
   West:
     North_Sea:
-      Fleet: 3
-      Submarine: 1
-      Airforce: 1
-      Infantry: 1
+      Fleet: [3, 2, 1]
+      Submarine: [1]
+      Airforce: [2]
+      Infantry: [3, 3, 1]
     Ruhr:
-      Infantry: 3
-      Airforce: 2
-      Tank: 1
+      Infantry: [3, 1, 1]
+      Airforce: [2, 1]
+      Tank: [1]
   Axis:
     North_Sea:
-        Fleet: 2
-        Infantry: 2
+      Fleet: [3, 2]
+      Infantry: [4, 3]
     Ruhr:
-      Infantry: 3
-      Airforce: 2
-      Tank: 1
+      Infantry: [3, 3, 1]
+      Airforce: [4, 3]
+      Tank: [2]
 conflicts:
   Ruhr:
     aggressor: West

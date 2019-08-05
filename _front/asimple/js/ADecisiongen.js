@@ -121,8 +121,8 @@ class ADecisiongen {
 		el.classList.add('selected');
 		ensureInView(d, el);
 	}
-	loadScenario(data) {
-		this.scenario = new Scenario(this.assets,data);
+	loadScenario(data,G) {
+		this.scenario = new Scenario(this.assets,data,G);
 		this.decisionMode = 'scenario';
 	}
 	nextRandom(max) {

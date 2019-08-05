@@ -338,7 +338,7 @@
 				// freezeUI(); //do I need to do that here?
 				// autoplay = true;
 				sendLoadScenario2(H.player, fname, d => {
-					decider.loadScenario(d);
+					decider.loadScenario(d,H);
 					gameloop(H.serverData);
 				});
 			}
