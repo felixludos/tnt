@@ -199,73 +199,78 @@
 
 		<!-- #region UI / handlers -->
 		<script>
-			function onClickSeaBattle(){ //axis4_movement
+			function onClickSeaBattle() {
+				//axis4_movement
 				let decisionMode = decider.decisionMode;
 				decider.decisionMode = 'priority';
 				STOP = false;
 				showStop();
 				execOptions.skipCond = () => {
-					if (H.phase == 'Movement'){
-						decider.priorityDecisions = ['North_Sea','Ruhr'];
+					if (H.phase == 'Movement') {
+						decider.priorityDecisions = ['North_Sea', 'Ruhr'];
 						return true;
 					}
 					return false;
-				}
+				};
 				decider.onClickStep(H);
 			}
-			function onClick5347(){ //axis4_pass2war
+			function onClick5347() {
+				//axis4_pass2war
 				let decisionMode = decider.decisionMode;
 				decider.decisionMode = 'priority';
-				decider.priorityDecisions = ['pass','accept','N','G','Tank','Fleet']
+				decider.priorityDecisions = ['pass', 'accept', 'N', 'G', 'Tank', 'Fleet'];
 				STOP = false;
 				showStop();
 				execOptions.skipCond = () => {
-					if (H.phase.includes('Battle')){
+					if (H.phase.includes('Battle')) {
 						let b = H.serverData.temp.combat.battle;
-						if (b.fire.id.toString() == '5347'){
+						if (b.fire.id.toString() == '5347') {
 							console.log('*** unit 5347 is next!!!!!!!!!!!!!!!!!!!! ***');
 							decider.decisionMode = decisionMode;
 							return false;
 						}
-					} 
+					}
 					return true;
-				}
+				};
 				decider.onClickStep(H);
 			}
-			function onClickMoveUnitsToRuhr(){ //axis4_movement
+			function onClickMoveUnitsToRuhr() {
+				//axis4_movement
 				let decisionMode = decider.decisionMode;
 				decider.decisionMode = 'priority';
-				decider.priorityDecisions = ['Ruhr']
+				decider.priorityDecisions = ['Ruhr'];
 				STOP = false;
 				showStop();
 				execOptions.skipCond = () => {
 					//when returning false here, gameloop will stop!!!
 					//find first tuple that contains 'Ruhr'
-					let t = firstCond(H.tuples,x=>x.includes('Ruhr'));
-					return t!=null;
-				}
+					let t = firstCond(H.tuples, x => x.includes('Ruhr'));
+					return t != null;
+				};
 				decider.onClickStep(H);
 			}
-			function onClickRunToBattleDecided(){ //axis4_pass2war
+			function onClickRunToBattleDecided() {
+				//axis4_pass2war
 				let decisionMode = decider.decisionMode;
 				decider.decisionMode = 'priority';
-				decider.priorityDecisions = ['pass','accept','Lorraine','G','A']
+				decider.priorityDecisions = ['pass', 'accept', 'Lorraine', 'G', 'A'];
 				STOP = false;
 				showStop();
 				execOptions.skipCond = () => {
-					if (H.phase.includes('Battle')){
+					if (H.phase.includes('Battle')) {
 						let b = H.serverData.temp.combat.battle;
-						if (b.stage == 'ack_battle_interrupted_no_enemy_units_left'){
+						if (b.stage == 'ack_battle_interrupted_no_enemy_units_left') {
 							console.log(H.serverData);
 							decider.decisionMode = decisionMode;
 							return false;
 						}
-					} 
+					}
 					return true;
-				}
+				};
 				decider.onClickStep(H);
 			}
 			function onClickRestart() {
+				freezeUI();
 				let params = document
 					.getElementById('inPlayerSeed')
 					.value.toString()
@@ -323,19 +328,19 @@
 				fname = prompt('filename no ext.:');
 				onClickLoad(fname);
 			}
-			function onClickLoadScenario(defaultFName="stest"){
-				unitTestScenario('DEFAULT FILENAME',defaultFName)
+			function onClickLoadScenario(defaultFName = 'stest') {
+				//unitTestScenario('DEFAULT FILENAME',defaultFName)
 				let fname = document.getElementById('inScenario').value;
 				if (empty(fname)) {
-					fname = defaultFName
+					fname = defaultFName;
 				}
 				fname = fname.trim();
-				freezeUI(); //do I need to do that here?
-				sendLoadScenario2(H.player,fname,(d)=>{
+				// freezeUI(); //do I need to do that here?
+				// autoplay = true;
+				sendLoadScenario2(H.player, fname, d => {
 					decider.loadScenario(d);
-					if (!autoplay) unfreezeUI();
-					//alert('Scenario loaded!!!')
-				}); //loadScenario(fname,H,decider);
+					gameloop(H.serverData);
+				});
 			}
 			function onClickReload(defaultFName) {
 				let fname = document.getElementById('inFilename').value;
@@ -453,247 +458,80 @@
 		</script>
 		<!-- #endregion UI / handlers -->
 
-		<!-- #region old handlers -->
-		<script>
-			//____________________________________________old
-
-			function activateAutoplay() {
-				hide(document.getElementById('dFrozen'));
-				show(document.getElementById('dAutoplay'));
-				hide(document.getElementById('dActive'));
-				hide(document.getElementById('uiActiveButtons'));
-				hide(document.getElementById('ui2Buttons'));
-				hide(document.getElementById('bNextPlayer'));
-			}
-			function activateNextPlayerButton() {
-				hide(document.getElementById('dFrozen'));
-				hide(document.getElementById('dAutoplay'));
-				hide(document.getElementById('dActive'));
-				hide(document.getElementById('uiActiveButtons'));
-				hide(document.getElementById('ui2Buttons'));
-				show(document.getElementById('bNextPlayer'));
-			}
-			function callNextAction() {
-				if (H.nextAction) {
-					activateWaitingForServer();
-					H.nextAction();
-				} else {
-					error('NO NEXT ACTION!!!!!!!');
-				}
-			}
-			function printActions(data) {
-				if ('actions' in data) {
-					//console.log(data.actions);
-					// if ('set' in data.actions){
-					//   //console.log(data.actions.set.toString());
-					// }else{
-					//   //console.log(data.created.toString());
-					// }
-				} else {
-					//console.log("... no actions ...");
-				}
-			}
-			function printCreatedUnits(data) {
-				//console.log("...created:");
-				if ('created' in data) {
-					for (const id in data.created) {
-						let o = data.created[id];
-						if (o.obj_type != 'unit') continue;
-						//console.log(id, o.nationality, o.tile, o.type);
-					}
-				}
-			}
-			function onClickScenario(player, fname, seed = 0) {
-				freezeUI();
-				restart(player, seed, fname);
-			}
-			function onClickViolation1() {
-				freezeUI();
-				initState();
-				let data = {};
-				let chain = ['action/West/pass', 'action/Axis/pass', 'action/USSR/action_13', 'action/West/pass', 'action/Axis/pass'];
-				sendLoading('spring_start', 'West', d0 => {
-					updateCycle(d0);
-					sendAction('West', ['pass'], d1 => {
-						updateCycle(d1);
-						sendAction('Axis', ['pass'], d2 => {
-							updateCycle(d2);
-							sendAction('USSR', ['action_13'], d3 => {
-								updateCycle(d3);
-								sendAction('West', ['pass'], d4 => {
-									updateCycle(d4);
-									sendAction('Axis', ['pass'], gameloop);
-								});
-							});
-						});
-					});
-
-					// sender.chainSend(chain, "West", d1 => {
-					//   data = extend(true, data, d1);
-					//   gameloop(data);
-					// });
-				});
-			}
-			function onClickAddUnit() {
-				freezeUI();
-				let dOrig = H.serverData;
-				//console.log(dOrig);
-				let tuple = randomUnitTuple();
-				sendEditAction(H.player, tuple, dEdit => {
-					//console.log("back from edit", dEdit);
-					if ('created' in dEdit) {
-						dOrig = extend(true, dOrig, dEdit);
-						//console.log("nach extend und edit", dOrig);
-						printCreatedUnits(dOrig);
-						printActions(dOrig);
-					}
-					gameloop(dOrig);
-				});
-			}
-			function onClickAddInfluence() {
-				testAddInfluence(map, H.objects);
-			}
-			function onClickRemoveInfluence() {
-				testRemoveInfluence(map, H.objects);
-			}
-			function onClickEditTest() {
-				//enter edit mode
-				// in edit mode, all units are visible
-				if (execOptions.mode != 'edit') {
-					execOptions.mode = 'edit';
-				}
-				//decider.cancel();
-				testEdit(serverData);
-				//sender.send('edit/'+H.player+'/USSR+Moscow+Infantry',dEdit=>{
-				//  let newUnit = Object.values(dEdit.created)[0];
-				//  let newId = Object.keys(dEdit.created)[0];
-				//  dInit.created[newId]=newUnit;
-				//  gameloop(dInit);
-				//});
-				//restart with random H.player, do NOT change role!
-				//let pl = chooseRandom(assets.factionNames);
-				//console.log("restarting with", pl, assets.factionNames.toString());
-				//restart(pl);
-			}
-			function onClickNextPlayer() {
-				callNextAction();
-			}
-			function onClickPlay(b) {
-				// do not restart, just change role: execOptions.skipCond
-				//b.classList.add('selected')
-				//was ich will wenn einer auch playWest clicked:
-				//toggle
-
-				let pl = stringAfter(b.id, 'Play');
-				//toggle this player
-				//console.log("before toggle", execOptions.manualPlay.toString());
-				//console.log(execOptions.skipCond);
-				if (execOptions.manualPlay.includes(pl)) {
-					//console.log("player", pl, "is in manualPlay!");
-					removeInPlace(execOptions.manualPlay, pl);
-					//console.log(execOptions.manualPlay);
-					b.classList.remove('toggleSelected');
-				} else {
-					//console.log("player", pl, "is NOT in manualPlay!");
-					execOptions.manualPlay.push(pl);
-					b.classList.add('toggleSelected');
-				}
-				//console.log("after toggle", execOptions.manualPlay.toString());
-				//console.log(execOptions.skipCond, H.player);
-				STOP = false;
-				decider.onClickStep(H);
-			}
-			function onClickRestartParams() {
-				params = prompt('enter player [seed]:');
-				let pl = capitalize(stringBefore(params, ' '));
-				let sd = firstNumber(params);
-				if (sd < 0) sd = randomNumber();
-				//console.log("restarting with player", pl, "and seed", sd);
-				restart(pl, sd, '');
-			}
-		</script>
-		<!-- #endregion handlers -->
-
-		<!-- #region battle presentation -->
-		<script>
-			function addPara(divElem, text) {
-				let p = document.createElement('p');
-				p.textContent = text;
-				divElem.appendChild(p);
-			}
-			function make_battle_rep(loc, info) {
-				//make a div of 600x400
-				//can use css for that!
-			}
-			function present_battle_overview(data) {
-				//this is done when combat phase starts
-				let c = data.temp.combat;
-
-				let d = document.getElementById('battle_area');
-				clearElement(d);
-				addPara(d, 'Combat is starting with ' + data.temp.attacker + ' as attacker!');
-
-				//presentation is done in battle_area
-				//at this stage all battles have been selected and first battle will be determined
-				//this function is called each time when c.stage == 'next'
-				//if only 1 in c.battles, c.battle is already set and title will be:
-				let n = Object.keys(c.battles).length;
-				let battleNames = Object.keys(c.battles).join(', ');
-				for (const b in c.battles) {
-					let tilename = b;
-					let info = c.battles[b];
-					let elem = make_battle_rep(tilename, info);
-				}
-				addPara(d, n > 1 ? '' + n + ' battles will be fought in ' + battleNames : 'Battle of ' + Object.keys(c.battles)[0]);
-			}
-		</script>
-		<!-- #endregion battle presentation -->
-
-		<!-- #region control flow -->
 		<script>
 			function startScript() {
-				// //console.log(intersection(assets.tileNames,assets.nationNames));
-				// return;
-				//"Gibraltar", "Malta", "Albania"
-
 				// autoplay, cards, cardsNew, choice, choicemin, control,
-				// convoy, decision,
-				// filter, filterByType, gameloop,
+				// convoy, decision, filter, filterByType, gameloop,
 				// hover, init, load, log, map, mirror, moving, player, random,
 				// remove, removed, request, response
 				// save, scenario, sender, server, skip, stage, units, strategy, visible,
 				// 8699
-				//(decision is new key for Decisiongen!)
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('request, response, scenario', execOptions.activatedTests);
+				addIfComma('', execOptions.activatedTests);
 
-				onClickReload('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
-				//onClickRestart();
+				execOptions.commandChain.push(onClickLoadScenario);
+
+				//onClickReload('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
+				onClickRestart(); //for scenario testing!
 			}
+		</script>
+		<!-- #region control flow -->
+		<script>
 			function gameloop(data) {
 				unitTestGameloop('gameloop', data);
 				//animationQueue.end();
 				updateCycle(data);
 
-				autoplay = !STOP && execOptions.skipCond();
-				if (!autoplay) {
-					unfreezeUI();
-					execOptions.skipCond = defaultSkipCond;
-					//unitTestSkip('skipCond:', execOptions.skipCond);
-				}
-				decider.genMove(
-					H,
-					t => {
-						freezeUI();
-						// animationQueue.start();
-						sendAction(H.player, t, gameloop);
-					},
-					autoplay
-				);
+				//if command chain non empty, do next command in command chain
+				if (!empty(execOptions.commandChain)) {
+					let nextCommand = execOptions.commandChain.shift();
+					unitTestGameloop('____________COMMAND=0/'+ execOptions.commandChain.length, nextCommand.name);
+					nextCommand();
+				} else {
+					//else do the rest here:
+					autoplay = !STOP && execOptions.skipCond();
+					unitTestGameloop('>>>>>>>>>>>>>>AUTOPLAY:',autoplay,'STOP',STOP)
+					if (!autoplay) {
+						unfreezeUI();
+						execOptions.skipCond = defaultSkipCond;
+					}
 
-				window.scrollTo(0, 0);
+					decider.genMove(
+						H,
+						t => {
+							freezeUI();
+							// animationQueue.start();
+							sendAction(H.player, t, gameloop);
+						},
+						autoplay
+					);
+					window.scrollTo(0, 0);
+				}
+			}
+			function afterDecision(d) {
+				///////if (decider.Mode == 'scenario') autoplay = true
+				//this is where UI occurs (idle) NOOOOOOOOOOOOO! never ever goes here!!!
+				//decider has presented UI
+				//if click restart will come in to this place again! with new data
+				//only then next command should be executed (load scenario)
+				//in click Load Scenario could switch to execOptions.skipCond = ()=>true
+				//idee ist unausgereift! mach es jetzt erstmal mit simplem autoreset flag
+				//Startup: execute each step in execoptions.commandChain
+				if (!empty(execOptions.commandChain)) {
+					let nextCommand = execOptions.commandChain.shift();
+					//execOptions.skipCond = ()=>true;
+					console.log('____________COMMAND=', nextCommand);
+					console.log('NAME OF f=', nextCommand.name);
+					console.log('COMMAND CHAIN=', execOptions.commandChain);
+					if (nextCommand.name == 'onClickStep') {
+						console.log('HAHAHAHAHAHAHAHAH', execOptions.commandChain);
+						decider.onClickStep(H);
+					} else {
+						nextCommand();
+					}
+				}
 			}
 			function updateCycle(data) {
 				//TODO: get rid of global variables, consolidate to G
@@ -901,10 +739,12 @@
 		<script>
 			//control flow
 			var STOP; //to interrupt autoplay
+			var autoplay=false;
 			const defaultSkipCond = () => false; //manual play or step by step, !execOptions.manualPlay.includes(H.player);
 			var execOptions = {
 				skipCond: defaultSkipCond, //!execOptions.manualPlay.includes(player), // predicate func evaluating to cond for autoplay
-				activatedTests: [] // unitTest flags to control output
+				activatedTests: [], // unitTest flags to control output
+				commandChain: [] // flags fuer startup commands (eg., onClickScenario)
 			};
 
 			var H = {start: {}}; //package up all game data

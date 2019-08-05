@@ -1,19 +1,29 @@
-action:
-  Ties that Bind:
-    message: Add 1 Friendly (or remove 1 Rival) Influence marker from one of the Neutral nations listed after your Faction.
-    add: True
-    remove: True
-    from_self: True
-    options:
-      Axis: [Austria, Hungary, Bulgaria]
-      West: [USA, Low Countries, Czechoslovakia]
-      USSR: [Spain, Yugoslavia]
-  Ethnic Ties:
-    message: Add 1 Friendly (or remove 1 Rival) Influence marker to one of the Neutral Nations listed after your Faction.
-    add: True
-    remove: True
-    from_self: True
-    options:
-      Axis: [Austria, Sweden, Norway]
-      West: [USA, Norway, Low Countries, Rumania]
-      USSR: [Yugoslavia, Poland, Bulgaria]
+options:
+  nomatch: null
+  upgrades: 4
+units:
+  West:
+    North_Sea:
+      Fleet: 3
+      Submarine: 1
+      Airforce: 1
+      Infantry: 1
+    Ruhr:
+      Infantry: 3
+      Airforce: 2
+      Tank: 1
+  Axis:
+    North_Sea:
+        Fleet: 2
+        Infantry: 2
+    Ruhr:
+      Infantry: 3
+      Airforce: 2
+      Tank: 1
+conflicts:
+  Ruhr:
+    aggressor: West
+    defender: Axis
+  North_Sea:
+    aggressor: West
+    defender: Axis

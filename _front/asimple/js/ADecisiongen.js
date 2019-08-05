@@ -26,7 +26,20 @@ class ADecisiongen {
 			this.choiceCompleted = true;
 
 			//select tuple
-			if (this.decisionMode == 'priority') {
+			if (this.decisionMode == 'scenario' && this.scenario != null){
+				//let scenario agent find a matching tuple to its goal description, tuple[0] if none
+				// let container = document.getElementById('divSelect');
+				this.tuple = this.scenario.findMatch(G);
+				if (!this.tuple){
+					this.tuple = this.tuples[0];
+					// this.choiceCompleted = false;
+					// this.UI.startManualSelection(this.phase, this.tuples, container, this.onSelected.bind(this));
+					// return;
+				}
+
+			}else if (this.decisionMode == 'priority') {
+				// use simple priority list, take tuple containing highest priority keyword if any
+				//default: take tuple[0]
 				let found = false;
 				for (const keyword of this.priorityDecisions) {
 					let t = firstCond(this.tuples, t => t.includes(keyword));
@@ -38,7 +51,9 @@ class ADecisiongen {
 				}
 				if (!found) this.tuple = this.tuples[0];
 				console.log(this.tuple);
+
 			} else if (this.decisionMode == 'server') {
+				//take random number generator from server and use that tuple
 				let info = G.serverData.choice;
 				if (info.count != this.tuples.length) {
 					alert('decideAutoplay: wrong tuple count!!!! ' + this.tuples.length + ' should be ' + info.count);
@@ -48,11 +63,15 @@ class ADecisiongen {
 				if (!sameList(this.tuple, info.tuple)) {
 					alert('decideAutoplay: tuple incorrect!!! ' + this.tuple.toString() + ' should be ' + info.tuples.toString());
 				}
+
 			} else if (this.decisionMode == 'seed') {
+				// take client seed as random seed and use that tuple
 				let n = this.nextRandom(this.tuples.length);
 				this.tuple = this.tuples[n];
 				unitTestChoice('decideAutoplay seed decision:', n, this.tuple);
+
 			} else {
+				//whatever playerStrategy would say, dont remember unfortunately!
 				this.tuple = this.playerStrategy[G.player].chooseTuple(G);
 			}
 
@@ -60,6 +79,7 @@ class ADecisiongen {
 			this.UI.restoreNoFilterHighlightType(false);
 			this.highlightChosenTuple(this.tuple);
 			setTimeout(() => this.callback(this.tuple), 10); // leave user time to see what happened!
+
 		} else {
 			alert('decideAutoplay: already selected!!!');
 		}
@@ -81,15 +101,7 @@ class ADecisiongen {
 		this.UI.clearHoverTuple();
 		let container = this.presentTuples(this.tuples);
 		this.choiceCompleted = false;
-		if (this.decisionMode == 'scenario' && this.scenario != null) {
-			this.tuple = this.scenario.findMatch(G);
-			if (!this.tuple) {
-				//if options in scenario are set that in case of no match manual selection should be used
-				//this.tuples will be null at this point and we can switch to manual selection!
-				//otherwise, this.tuple will be a valid tuple
-				this.UI.startManualSelection(this.phase, this.tuples, container, this.onSelected.bind(this));
-			}
-		} else if (autoplay) {
+		if (autoplay) {
 			this.UI.hideUI();
 			this.decideAutoplay(G);
 		} else {
