@@ -1,5 +1,6 @@
 class ADecisiongen {
 	constructor(assets, map, cards, units, sender) {
+		this.assets = assets;
 		this.autoplay = true;
 		this.decisionMode = 'priority'; // 'seed' | 'server' | 'manual' | 'priority' | 'scenario'
 		this.priorityDecisions = []; //when set and auto, will decide for these if avail!

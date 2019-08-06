@@ -20,6 +20,9 @@ function unitTestAutoplay() {
 function unitTestBattle() {
 	if (execOptions.activatedTests.includes('battle')) console.log(...arguments);
 }
+function unitTestBuildUnit() {
+	if (execOptions.activatedTests.includes('buildUnit')) console.log(...arguments);
+}
 function unitTestCard() {
 	if (execOptions.activatedTests.includes('card')) console.log(...arguments);
 }
@@ -124,6 +127,9 @@ function unitTestSkip() {
 }
 function unitTestUnits() {
 	if (execOptions.activatedTests.includes('units')) console.log(...arguments);
+}
+function unitTestUpgradeUnit() {
+	if (execOptions.activatedTests.includes('upgradeUnit')) console.log(...arguments);
 }
 function unitTestUnitVisibility(){
 	if (execOptions.activatedTests.includes('visible')) console.log(...arguments);

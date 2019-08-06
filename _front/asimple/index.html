@@ -74,9 +74,11 @@
 				</svg>
 			</div>
 			<div id="edit_area" class="grid_div">
+				<button id="bStop" class="hidden" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
 				<div id="uiEditButtons">
+					<button onclick="onClickUnits()">units</button>
+
 					<button id="bStep" onclick="onClickStep()">step</button>
-					<button id="bStop" class="hidden" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
 
 					<button onclick="onClickRunToPlayerChange(H.player)">run to next player</button>
 
@@ -199,6 +201,27 @@
 
 		<!-- #region UI / handlers -->
 		<script>
+			function sortBy(arr, key) {
+				//console.log(jsCopy(arr))
+				arr.sort((a, b) => (a[key].toUpperCase() < b[key].toUpperCase() ? -1 : 1));
+			}
+			function onClickUnits() {
+				//let units = Object.values(H.objects).filter(x=>x.obj_type == 'unit');
+				let dObjects = dict2list(H.objects, 'id');
+				dObjects = dObjects.filter(x => x.obj_type == 'unit');
+				//console.log('!!!!!!',dObjects)
+				for (const pl of ['West']) {
+					//,'Axis','USSR']) {
+					let unitsPlayer = dObjects.filter(x => getUnitOwner(x.nationality) == pl);
+					sortBy(unitsPlayer, 'type');
+					//console.log(jsCopy(unitsPlayer))
+					console.log(pl);
+					for (const u of unitsPlayer) {
+						console.log(u.type, u.type == 'Fleet' || u.type == 'Tank' ? '\t\t' : '\t', u.cv, '\t', u.tile, u.id);
+					}
+				}
+				//console.log(units);
+			}
 			function onClickSeaBattle() {
 				//axis4_movement
 				let decisionMode = decider.decisionMode;
@@ -338,7 +361,7 @@
 				// freezeUI(); //do I need to do that here?
 				// autoplay = true;
 				sendLoadScenario2(H.player, fname, d => {
-					decider.loadScenario(d,H);
+					decider.loadScenario(d, H);
 					gameloop(H.serverData);
 				});
 			}
@@ -430,6 +453,8 @@
 				hide(document.getElementById('bNextPlayer'));
 				show(document.getElementById('uiActiveButtons'));
 				show(document.getElementById('ui2Buttons'));
+				show(document.getElementById('uiEditButtons'));
+
 			}
 			function activateWaitingForServer() {
 				show(document.getElementById('dFrozen'));
@@ -437,6 +462,7 @@
 				hide(document.getElementById('bNextPlayer'));
 				hide(document.getElementById('uiActiveButtons'));
 				hide(document.getElementById('ui2Buttons'));
+				hide(document.getElementById('uiEditButtons'));
 			}
 			function freezeUI() {
 				activateWaitingForServer();
@@ -460,11 +486,11 @@
 
 		<script>
 			function startScript() {
-				// autoplay, cards, cardsNew, choice, choicemin, control,
-				// convoy, decision, filter, filterByType, gameloop,
+				// autoplay, battle, buildUnit, cards, cardsNew, choice, choicemin, control,
+				// combat, convoy, decision, filter, filterByType, gameloop,
 				// hover, init, load, log, map, mirror, moving, player, random,
 				// remove, removed, request, response
-				// save, scenario, sender, server, skip, stage, units, strategy, visible,
+				// save, scenario, sender, server, skip, stage, units, upgradeUnit, strategy, visible,
 				// 8699
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
@@ -487,12 +513,12 @@
 				//if command chain non empty, do next command in command chain
 				if (!empty(execOptions.commandChain)) {
 					let nextCommand = execOptions.commandChain.shift();
-					unitTestGameloop('____________COMMAND=0/'+ execOptions.commandChain.length, nextCommand.name);
+					unitTestGameloop('____________COMMAND=0/' + execOptions.commandChain.length, nextCommand.name);
 					nextCommand();
 				} else {
 					//else do the rest here:
 					autoplay = !STOP && execOptions.skipCond();
-					unitTestGameloop('>>>>>>>>>>>>>>AUTOPLAY:',autoplay,'STOP',STOP)
+					unitTestGameloop('>>>>>>>>>>>>>>AUTOPLAY:', autoplay, 'STOP', STOP);
 					if (!autoplay) {
 						unfreezeUI();
 						execOptions.skipCond = defaultSkipCond;
@@ -739,7 +765,7 @@
 		<script>
 			//control flow
 			var STOP; //to interrupt autoplay
-			var autoplay=false;
+			var autoplay = false;
 			const defaultSkipCond = () => false; //manual play or step by step, !execOptions.manualPlay.includes(H.player);
 			var execOptions = {
 				skipCond: defaultSkipCond, //!execOptions.manualPlay.includes(player), // predicate func evaluating to cond for autoplay

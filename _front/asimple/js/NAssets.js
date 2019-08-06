@@ -61,7 +61,12 @@ class NAssets {
       "Sea_Battle",
       "Scoring"
     ];
-  }
+	}
+	distanceBetweenTiles(tilename1,tilename2){
+		let pos1=this.tilePositions[tilename1];
+		let pos2=this.tilePositions[tilename2];
+		return dSquare(pos1,pos2);
+	}
   initAssets(map, callback) {
     //console.log("loading...");
     this.calculateTrackPositions();

@@ -184,6 +184,16 @@ function choose(arr, n) {
 function contains(arr, el) {
 	return arr.includes(el);
 }
+function containsAny(arr,lst){
+	//console.log('containsAny',arr,lst)
+	for (const x of lst) {
+		if (arr.includes(x)){
+			//console.log('containsAny YES!',x,arr);
+			return true;
+		}
+	}
+	return false;
+}
 function containsAll(arr, lst) {
 	for (const el of lst) {
 		if (!arr.includes(el)) return false;
@@ -209,6 +219,13 @@ function first(arr) {
 	return arr.length > 0 ? arr[0] : null;
 }
 function firstCond(arr, func) {
+	//return first elem that fulfills condition
+	for (const a of arr) {
+		if (func(a)) return a;
+	}
+	return null;
+}
+function firstCond_super_inefficient(arr, func) {
 	//return first elem that fulfills condition
 	let res = arr.filter(x => func(x));
 	return res.length > 0 ? res[0] : null;
@@ -411,24 +428,25 @@ function without(arr, elementToRemove) {
 //#endregion array helpers
 
 //#region 2d array helpers
-function arr2Set(arr2d,func){ //assumes all entries are objects or null
+function arr2Set(arr2d, func) {
+	//assumes all entries are objects or null
 	//console.log(arr2d,func)
-	for(let i=0;i<arr2d.length;i++){
-		for(let j=0;j<arr2d[i].length;j++){
-			let o=arr2d[i][j];
-			if (typeof(o) == 'object'){
-				func(o,i,j);
+	for (let i = 0; i < arr2d.length; i++) {
+		for (let j = 0; j < arr2d[i].length; j++) {
+			let o = arr2d[i][j];
+			if (typeof o == 'object') {
+				func(o, i, j);
 			}
-				
 		}
 	}
 }
 //#endregion
 
 //#region color conversion
-function color2trans(color,alpha=0.5) { //alpha should be between 0.0 and 1.0
+function color2trans(color, alpha = 0.5) {
+	//alpha should be between 0.0 and 1.0
 	let hex = standardize_color(color);
-	console.log(color); 
+	console.log(color);
 
 	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 	result = result
@@ -436,9 +454,9 @@ function color2trans(color,alpha=0.5) { //alpha should be between 0.0 and 1.0
 				r: parseInt(result[1], 16),
 				g: parseInt(result[2], 16),
 				b: parseInt(result[3], 16)
-			}
+		  }
 		: null;
-	
+
 	if (result) return `rgba(${result.r},${result.g},${result.b},${alpha})`;
 	else return 'rgb(0,0,0,0.5)';
 }
@@ -1231,26 +1249,40 @@ function setCSSVariable(varName, val) {
 }
 var sheet = (function() {
 	// Create the <style> tag
-	var style = document.createElement("style");
+	var style = document.createElement('style');
 
 	// Add a media (and/or media query) here if you'd like!
 	// style.setAttribute("media", "screen")
 	// style.setAttribute("media", "only screen and (max-width : 1024px)")
 
 	// WebKit hack :(
-	style.appendChild(document.createTextNode(""));
+	style.appendChild(document.createTextNode(''));
 
 	// Add the <style> element to the page
 	document.head.appendChild(style);
 
 	return style.sheet;
 })();
-function addCSSClass(className,text){
-	sheet.insertRule('.'+className+' { '+text+' }', 0);
+function addCSSClass(className, text) {
+	sheet.insertRule('.' + className + ' { ' + text + ' }', 0);
 }
 //#endregion
 
 //#region dictionary helpers
+function addIfKeys(dict, keys, val) {
+	//only adds val if any of keys not yet in dict!
+	let d = dict;
+	let lastKey = keys.pop();
+	for (const k of keys) {
+		if (!(k in d)) {
+			d[k] = {};
+		}
+		d = d[k];
+	}
+	if (!(lastKey in d)) d[lastKey] = val;
+	return dict;
+}
+
 function dict2list(d, keyName = 'key') {
 	//d assumed to be dictionary with values are objects!!!!
 	let res = [];
@@ -1284,10 +1316,24 @@ function inferType(val) {
 	}
 	return 'unknown';
 }
+function lookup(dict, keys) {
+	//console.log('lookup', dict, keys);
+	let d = dict;
+	let last = keys[keys.length - 1];
+	//console.log('last', last);
+	for (const k of keys) {
+		if (k in d) {
+			//console.log(k, 'is in', d);
+			d = d[k];
+			if (k == last) return d;
+		} else return null;
+	}
+}
+
 //#endregion dictionary helpers
 
 //#region DOM helpers:
-function gZone(d,gid,vAnchor,hAnchor,wPercent,hPercent, bg, fg){
+function gZone(d, gid, vAnchor, hAnchor, wPercent, hPercent, bg, fg) {
 	let svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 
 	//calculate wDiv,hDiv
@@ -1365,7 +1411,7 @@ function addPara(div, s, margin = '0px', fontSize = '10px', color = 'green') {
 // 	console.log(dTitle);
 // 	return p;
 // }
-function addStyledDiv(dParent,id,html,styleString){
+function addStyledDiv(dParent, id, html, styleString) {
 	let d = document.createElement('div');
 	dParent.appendChild(d);
 	d.id = id;
@@ -1373,7 +1419,7 @@ function addStyledDiv(dParent,id,html,styleString){
 	if (html) d.innerHTML = html;
 	return d;
 }
-function addDivFullClass(dParent,id,className){
+function addDivFullClass(dParent, id, className) {
 	let d = document.createElement('div');
 	dParent.appendChild(d);
 	d.id = id;
@@ -1382,7 +1428,7 @@ function addDivFullClass(dParent,id,className){
 	d.classList.add(className);
 	return d;
 }
-function addDivClass(dParent,id,className){
+function addDivClass(dParent, id, className) {
 	let d = document.createElement('div');
 	dParent.appendChild(d);
 	d.id = id;
@@ -1399,7 +1445,9 @@ function addDiv(dParent, {html, w = '100%', h = '100%', bg, fg, ipal, border, ro
 		fg = getpal(ipal, 0, 'f');
 	}
 	if (bg) d.style.backgroundColor = bg;
-	if (fg) {d.style.color = fg;}
+	if (fg) {
+		d.style.color = fg;
+	}
 	d.style.width = w;
 	d.style.height = h;
 	if (border) {
@@ -1730,7 +1778,15 @@ function saveFile(name, type, data) {
 //#endregion file helpers
 
 //#region geo helpers
+function dSquare(pos1, pos2) {
+	let dx = pos1.x - pos2.x;
+	dx *= dx;
+	let dy = pos1.y - pos2.y;
+	dy *= dy;
+	return dx + dy;
+}
 function size2hex(w = 100, h = 0, x = 0, y = 0) {
+	//returns sPoints for polygon svg
 	//from center of poly and w (possibly h), calculate hex poly points and return as string!
 	//TODO: add options to return as point list!
 	//if h is omitted, a regular hex of width w is produced
@@ -2176,9 +2232,7 @@ var countries = [
 
 //#region ms helpers: should NOT USE anything in MS!!!
 
-
 function addMSContainer(dParent, gid, {w = '100%', h = '100%', margin = 'auto'}) {
-
 	//adds a div w/ svg w/ g (with id=gid) inside dParent
 	//let wParent = dParent.offsetWidth;
 	//let hParent = dParent.offsetHeight;
@@ -2186,10 +2240,10 @@ function addMSContainer(dParent, gid, {w = '100%', h = '100%', margin = 'auto'})
 	//let marginLeft = (wParent-w)/2
 
 	// let d1 = addDiv(dParent, {w: w, h: h, margin: '0px '+marginLeft+'px', bg:'green'});
-	let d1 = addDiv(dParent, {w: w, h: h, margin: margin});//, bg:'green'});
+	let d1 = addDiv(dParent, {w: w, h: h, margin: margin}); //, bg:'green'});
 	d1.style.position = 'relative';
 
-	let g1 = addSvgg(d1, gid);//,{bg:'red'});
+	let g1 = addSvgg(d1, gid); //,{bg:'red'});
 	return {div: d1, g: g1};
 }
 
