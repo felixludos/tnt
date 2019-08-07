@@ -3,8 +3,8 @@ class Scenario {
 		this.data = data;
 		this.assets = assets;
 
-		this.unitsRequired = {};
-		this.upgradesRequired = {};
+		this.unitsRequired = {};		// per player, tile, type: cv list
+		this.upgradesRequired = {}; // per player, tile, type: cv list (tile is tile where unit has been created!)
 		this.calcTotalUnitRequirements(G);
 		console.log(this.unitsRequired);
 
@@ -26,7 +26,7 @@ class Scenario {
 		let o = G.objects[id];
 		if (o.obj_type != 'unit') return null;
 		if (!('type' in o)) return null;
-		return {tuple: t, o: o, type: o.type, cv: o.cv};
+		return {tuple: t, o: o, id: id, tile: o.tile, type: o.type, cv: o.cv};
 	}
 	calcDiplomacyRequirements(G) {
 		if (!('diplomacy' in this.data)) return;
@@ -88,70 +88,6 @@ class Scenario {
 			}
 		}
 	}
-	calcTotalUnitRequirements_old(G) {
-		console.log(G);
-		//get aggregate desired units
-		for (const pl in this.data.units) {
-			if (!(pl in this.unitTypesRequired)) {
-				this.unitTypesRequired[pl] = {};
-			}
-			let req_units = this.data.units[pl];
-			let dUnits = this.unitTypesRequired[pl];
-			for (const tilename in req_units) {
-				for (const type in req_units[tilename]) {
-					if (type == 'Fortress') {
-						//handle Fortresses differently because not movable!
-						// ***Fortresses (3.241): Can be built in Friendly Land Areas outside Home Territory
-						if (!(pl in this.fortressesRequired)) {
-							this.fortressesRequired[pl] = {};
-						}
-						if (!(tilename in this.fortressesRequired[pl])) {
-							this.fortressesRequired[pl][tilename] = req_units[tilename][type]; //sollte cv of required Fortress on this tile sein!
-						}
-						continue;
-					}
-					if (!(type in dUnits)) {
-						dUnits[type] = {n: req_units[tilename][type].length, cvs: without(req_units[tilename][type], 1)};
-					} else {
-						dUnits[type].n += req_units[tilename][type].length;
-						for (const cv of req_units[tilename][type]) {
-							if (cv > 1) dUnits[type].cvs.push(cv);
-						}
-						dUnits[type].cvs.sort().reverse();
-					}
-				}
-			}
-		}
-		//compare required units with current state G.objects that are units and remove reqs that are already fulfilled
-		let existingUnits = Object.values(G.objects).filter(x => x.obj_type == 'unit');
-		console.log('existingUnits', existingUnits);
-		for (const u of existingUnits) {
-			if (!('owner' in u) || !('type' in u)) continue;
-			let pl = u.owner;
-			let type = u.type;
-			if (!(pl in this.unitTypesRequired)) continue;
-			if (!(type in this.unitTypesRequired[pl])) continue;
-			let reqs = this.unitTypesRequired[pl][type];
-			//number of req units of that type/player is reduced by 1
-			reqs.n -= 1;
-			if (!('cv' in u)) continue;
-			//if list contains a unit of that exact cv, remove it from list
-			let exactCv = firstCond(reqs.cvs, x => x == u.cv);
-			if (exactCv) {
-				removeInPlace(reqs.cvs, u.cv);
-				continue;
-			}
-			let lowerCvs = reqs.cvs.filter(x => x < u.cv);
-			if (lowerCvs.length > 0) {
-				//else if cvs contains unit of a lower cv, remove cv that is highest among lower ones
-				lowerCvs.sort().reverse();
-				let highest = lowerCvs[0];
-				removeInPlace(reqs.cvs, highest);
-				continue;
-			}
-		}
-	}
-	calcUnitsOnTilesRequired() {}
 	calcDowsRequired() {}
 	tryDiplomacy(G) {
 		//TODO
@@ -159,6 +95,8 @@ class Scenario {
 	}
 	tryBuildUnit(G) {
 		if (!(G.player in this.unitsRequired)) return null;
+		unitTestBuildUnit('_________build Unit',this.unitsRequired[G.player])
+
 		let req_units = this.unitsRequired[G.player];
 		for (const tilename in req_units) {
 			//find out if can build a unit on that tile
@@ -178,6 +116,8 @@ class Scenario {
 				//only if > 1
 				if (n == 0) continue; // no more needed of that type needed!!!
 
+				let actualTilename = tilename;
+
 				//first, find out if can build exactly the required unit type/tilename
 				let tuple = firstCond(possibleTuples, x => x.includes(tilename));
 				if (tuple) {
@@ -191,6 +131,13 @@ class Scenario {
 						//console.log('type', type);
 						//console.log('replacements for', tilename, replacements);
 						tuple = firstCond(possibleTuples, x => containsAny(x, replacements));
+						//tilename of this tuple is where 
+						if (tuple){
+							actualTilename = firstCond(replacements,x=>tuple.includes(x))
+						}else{
+							let tiles = possibleTuples.map(x=>x[1]);
+							console.log(tiles.toString(),'does NOT contain any of',replacements.toString())
+						}
 					} else {
 						//otherwise look for all tiles where this type can be built
 						//and build on closest one
@@ -214,6 +161,7 @@ class Scenario {
 						let bestTuple = possibleTuples[indexOfMin];
 						unitTestBuildUnit('best tuple', bestTuple.toString());
 						tuple = bestTuple;
+						actualTilename = bestTile;
 					}
 				}
 
@@ -222,9 +170,9 @@ class Scenario {
 					// let el1 = cvs[0];
 					// removeInPlace(cvs,el1);
 					if (el1 > 1) {
-						let keys = [G.player, tilename, type];
+						let keys = [G.player, actualTilename, type];
 						addIfKeys(this.upgradesRequired, keys, []);
-						this.upgradesRequired[G.player][tilename][type].push(el1);
+						this.upgradesRequired[G.player][actualTilename][type].push(el1);
 						unitTestBuildUnit('added upgrade', this.upgradesRequired[G.player]);
 					}
 					return tuple;
@@ -234,39 +182,52 @@ class Scenario {
 		return null;
 	}
 	tryUpgradeUnit(G) {
-		if (!(G.player in this.unitTypesRequired)) return null;
-		let req_units = this.unitTypesRequired[G.player];
+		if (!(G.player in this.upgradesRequired)) return null;
+		let req_upgrades = this.upgradesRequired[G.player];
 		for (const t of G.tuples) {
-			let info = this.asUpgrade(t, G); //{tuple:t,o:o,type:o.type,cv:o.cv}
+			// transform tuple into info={tuple:t,o:unit,type:o.type,cv:o.cv}
+			// owner of this unit is G.player or else this tuple wouldn't be presented!
+			let info = this.asUpgrade(t, G); 
 			if (info) {
+				//unitTestUpgradeUnit(info)
+				let tile = info.o.tile;
+				let type = info.type;
+				let cv = info.cv;
 				//info is a candidate for upgrade!
-				//look if upgrade of cv+1 is required for this type of unit and this player
-				if (!(info.type in req_units)) continue;
-				let upgradeList = req_units[info.type].cvs;
+				//look if upgrade of cv+1 is required for this player/tile/type
+				let upg = lookup(req_upgrades,[tile,type]);
+				if (!upg) continue;
+				let upgradeList = req_upgrades[tile][type];
 				if (empty(upgradeList)) continue;
 				let m = firstCond(upgradeList, x => x == info.cv + 1);
 				if (m) {
 					removeInPlace(upgradeList, info.cv + 1);
-					console.log('info', info);
-					console.log('removed cv of', info.cv + 1);
-					console.log('unit:', info.o);
-					console.log('reqs:', jsCopy(req_units));
-					let s = 'removed cv of ' + info.cv + 1 + '\nunit:' + info.unit + '\nreqs:' + req_units.toString();
+					// console.log('info', info);
+					// console.log('removed cv of', info.cv + 1);
+					// console.log('unit:', info.o);
+					// console.log('reqs:', jsCopy(req_upgrades));
+					unitTestUpgradeUnit('upgrading exact:',info.id,info.tile,info.type,info.cv+'/'+(info.cv + 1));
+					//let s = 'removed cv of ' + info.cv + 1 + '\nunit:' + info.unit + '\nreqs:' + req_units.toString();
 					return info.tuple;
 				} else {
 					//how many upgraded units of this type are still needed?
 					let upgradeListHigherThanCv = upgradeList.filter(x => x > info.cv);
-					unitTestUpgradeUnit(upgradeListHigherThanCv);
+					if (upgradeListHigherThanCv.length == 0) continue;
+
+					let desiredCv = upgradeListHigherThanCv[0];
+					//unitTestUpgradeUnit(upgradeListHigherThanCv);
 					let numUpgradesNeeded = upgradeListHigherThanCv.length;
 					//how many units of that type in G already have higher cv than info.cv?
+					//TODO: more efficient!!! this is very costly!!!
 					let existingUnitsOfThatType = Object.values(G.objects).filter(
-						x => x.obj_type == 'unit' && x.type == info.type && getUnitOwner(x.nationality) == G.player && x.cv > info.cv
+						x => x.obj_type == 'unit' && x.tile == info.tile && x.type == info.type && getUnitOwner(x.nationality) == G.player && x.cv > info.cv
 					);
 
-					unitTestUpgradeUnit(existingUnitsOfThatType);
+					//unitTestUpgradeUnit(existingUnitsOfThatType);
 					let nExisting = existingUnitsOfThatType.length;
 					if (nExisting < numUpgradesNeeded) {
-						console.log('found partial upgrade! no change in upgrade list');
+						// console.log('found partial upgrade! no change in upgrade list');
+						unitTestUpgradeUnit('upgrading partial:',info.id,info.tile,info.type,info.cv+'/'+upgradeListHigherThanCv[nExisting]);
 						return info.tuple;
 					}
 				}
@@ -275,102 +236,18 @@ class Scenario {
 		return null;
 	}
 
-	tryBuildUnit_old(G) {
-		if (!(G.player in this.unitTypesRequired)) return null;
-		let req_units = this.unitTypesRequired[G.player];
-		let types = Object.keys(req_units);
-		for (const type of types) {
-			if (req_units[type].n <= 0) continue;
-			let m = firstCond(G.tuples, t => t.includes(type));
-			if (m) {
-				req_units[type].n -= 1;
-				return m;
-			}
-		}
-		return null;
-	}
-	tryUpgradeUnit_old(G) {
-		if (!(G.player in this.unitTypesRequired)) return null;
-		let req_units = this.unitTypesRequired[G.player];
-		for (const t of G.tuples) {
-			let info = this.asUpgrade(t, G); //{tuple:t,o:o,type:o.type,cv:o.cv}
-			if (info) {
-				//info is a candidate for upgrade!
-				//look if upgrade of cv+1 is required for this type of unit and this player
-				if (!(info.type in req_units)) continue;
-				let upgradeList = req_units[info.type].cvs;
-				if (empty(upgradeList)) continue;
-				let m = firstCond(upgradeList, x => x == info.cv + 1);
-				if (m) {
-					removeInPlace(upgradeList, info.cv + 1);
-					console.log('info', info);
-					console.log('removed cv of', info.cv + 1);
-					console.log('unit:', info.o);
-					console.log('reqs:', jsCopy(req_units));
-					let s = 'removed cv of ' + info.cv + 1 + '\nunit:' + info.unit + '\nreqs:' + req_units.toString();
-					return info.tuple;
-				} else {
-					//how many upgraded units of this type are still needed?
-					let upgradeListHigherThanCv = upgradeList.filter(x => x > info.cv);
-					unitTestUpgradeUnit(upgradeListHigherThanCv);
-					let numUpgradesNeeded = upgradeListHigherThanCv.length;
-					//how many units of that type in G already have higher cv than info.cv?
-					let existingUnitsOfThatType = Object.values(G.objects).filter(
-						x => x.obj_type == 'unit' && x.type == info.type && getUnitOwner(x.nationality) == G.player && x.cv > info.cv
-					);
-
-					unitTestUpgradeUnit(existingUnitsOfThatType);
-					let nExisting = existingUnitsOfThatType.length;
-					if (nExisting < numUpgradesNeeded) {
-						console.log('found partial upgrade! no change in upgrade list');
-						return info.tuple;
-					}
-				}
-			}
-		}
-		return null;
-	}
-	tryBuildFortress_dep(G) {
-		if (!(G.player in this.fortressesRequired)) return null;
-		let req_forts = this.fortressesRequired[G.player];
-		console.log('_____________tryBuildFortress');
-		console.log(req_forts); //{Marseille:3}
-		for (const tilename in req_forts) {
-			//const cv = req_forts[tilename];
-			let m = firstCond(G.tuples, t => t.includes('Fortress') && t.includes(tilename));
-			if (m) return m;
-		}
-		return null;
-	}
-	tryUpgradeFortress_dep(G) {
-		if (!(G.player in this.fortressesRequired)) return null;
-		let req_forts = this.fortressesRequired[G.player];
-		console.log('_____________tryUpgradeFortress');
-		console.log(req_forts); //{Marseille:3}
-		for (const t of G.tuples) {
-			let info = this.asUpgrade(t, G); //{tuple:t,o:o,type:o.type,cv:o.cv}
-			if (!info) continue;
-			if (info.type != 'Fortress') continue;
-			let tilename = info.o.tile; //G.player has a Fortress in tilename
-			//look if this Fortress needs upgrade:
-			if (!(tilename in req_forts)) continue;
-			//yes,this fortress is in reqs! look if needs an upgrade!
-			let desiredCv = req_forts[tilename];
-			if (info.cv < desiredCv) return t;
-		}
-		return null;
-	}
 	findMatch(G) {
 		//sort each attempt by priority! already gives a strategy!!!
 		let tuple = null;
+		unitTestScenario('______________________findMatch')
 
 		if (G.phase == 'Setup') {
 			if (!tuple) tuple = this.tryBuildUnit(G);
 		}
 
 		if (G.phase == 'Production') {
-			if (!tuple) tuple = this.tryBuildUnit(G);
 			if (!tuple) tuple = this.tryUpgradeUnit(G);
+			if (!tuple) tuple = this.tryBuildUnit(G);
 			if (!tuple) {
 				if (this.data.options.priority == 'movement') {
 					//take action card as next best action in production
@@ -389,7 +266,46 @@ class Scenario {
 			}
 		}
 
-		console.log(G.phase, G.player, 'FINDMATCH RETURNS', tuple);
+		if (['Spring','Summer','Fall','Winter'].includes(G.phase)){
+			//pick an action card that has season = Spring
+			//dazu muss ich aber erst die card info haben!!!
+			//die wurde nicht eingelesen!
+			//oder doch?!?
+			//tuple waere einfach action_6 oder sowas
+			//aber in G muss es dieses object ja geben!
+			let actionTuples = G.tuples.filter(x=>startsWith(x[0],'action'));
+			let actionCards = actionTuples.map(x=>x[0]);
+			console.log('ids',actionCards.toString())
+			let cards = actionCards.map(x=>[x,G.objects[x]]); //brauche die id!
+			console.log('cards:',cards)
+			let seasonCards = cards.filter(x=>'season' in x[1] && x[1].season == G.phase)
+			console.log(seasonCards);
+			if (empty(seasonCards)){
+				tuple = actionTuples[0];
+			}	else {
+				tuple = firstCond(actionTuples,x=>x.includes(seasonCards[0][0]))
+			}
+		}
+
+		if (G.phase == 'Movement'){
+			//jetzt muss versuchen die units dahin zu moven wo sie in data[pl].units wirklich hingehoeren!
+			//dabei muss aber aufpassen dass ich nicht die units von da wegmove wo sie auch gebraucht werden!!!
+			//dh. G.tuples suche ein 'freies' tuple
+			//erst nimm alle tuples die die dest haben, mit einer unit mit type+cv correct!
+			//dann eliminiere davon alle units die auch ein anderes req erfuellen
+			//
+			//3 sachen: 
+			//1. existing units (G.objects)
+			//2. possible movements (G.tuples) (corresponding to existing units)
+			//3. reqs in data[pl].units 
+
+
+
+		}
+
+		//unitTestScenario(this.upgradesRequired);
+		//outputPlayerUnits('Axis',G);
+		unitTestScenario(G.phase, G.player, 'FINDMATCH RETURNS', tuple);
 		return tuple; //for now, just go back to manual after each attempt
 	}
 }

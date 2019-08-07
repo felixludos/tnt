@@ -92,7 +92,7 @@ def calc_all_retreat_options(G, player, b, c):
 		units = [u for u in b.fire_order if u.owner == player]
 
 		for u in units:
-			#TODO: add rebase options! retreat for Airforce:
+			#TODO: add rebase options! retreat for AirForce:
 			id = u.id
 			if u.group != 'G':
 				b.must_retreat.append(id)
@@ -270,7 +270,7 @@ def roll_dice(G, b, player, opponent):
 	#calc boundary for successful hit
 	limit = G.units.rules[b.fire.type][b.target_class]
 	#technologies that could alter limit
-	if b.fire.type == 'Airforce' and b.fire.air_def_radar and is_friendly(G, b.tilename, b.fire.owner):
+	if b.fire.type == 'AirForce' and b.fire.air_def_radar and is_friendly(G, b.tilename, b.fire.owner):
 		ndice *= 2
 	if b.fire.type == 'Fleet' and b.target_class == 'S':
 		limit = 3

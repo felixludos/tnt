@@ -8,11 +8,11 @@ units:
     North_Sea:
       Fleet: [3, 1, 1]
       Submarine: [1]
-      Airforce: [1]
+      AirForce: [1]
       Infantry: [3, 3, 1]
     Ruhr:
       Infantry: [3, 1, 1]
-      Airforce: [1, 1]
+      AirForce: [1, 1]
       Tank: [1]
   Axis:
     North_Sea:
@@ -20,7 +20,7 @@ units:
       Infantry: [4, 3]
     Ruhr:
       Infantry: [3, 3, 1]
-      Airforce: [4, 3]
+      AirForce: [4, 3]
       Tank: [2]
 diplomacy:
   USSR: ['Turkey','Persia']

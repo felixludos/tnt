@@ -76,7 +76,10 @@
 			<div id="edit_area" class="grid_div">
 				<button id="bStop" class="hidden" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
 				<div id="uiEditButtons">
-					<button onclick="onClickUnits()">units</button>
+					<button onclick="onClickUnits('West')">units West</button>
+					<button onclick="onClickUnits('Axis')">units Axis</button>
+					<br />
+					<br />
 
 					<button id="bStep" onclick="onClickStep()">step</button>
 
@@ -205,22 +208,8 @@
 				//console.log(jsCopy(arr))
 				arr.sort((a, b) => (a[key].toUpperCase() < b[key].toUpperCase() ? -1 : 1));
 			}
-			function onClickUnits() {
-				//let units = Object.values(H.objects).filter(x=>x.obj_type == 'unit');
-				let dObjects = dict2list(H.objects, 'id');
-				dObjects = dObjects.filter(x => x.obj_type == 'unit');
-				//console.log('!!!!!!',dObjects)
-				for (const pl of ['West']) {
-					//,'Axis','USSR']) {
-					let unitsPlayer = dObjects.filter(x => getUnitOwner(x.nationality) == pl);
-					sortBy(unitsPlayer, 'type');
-					//console.log(jsCopy(unitsPlayer))
-					console.log(pl);
-					for (const u of unitsPlayer) {
-						console.log(u.type, u.type == 'Fleet' || u.type == 'Tank' ? '\t\t' : '\t', u.cv, '\t', u.tile, u.id);
-					}
-				}
-				//console.log(units);
+			function onClickUnits(pl = 'West') {
+				outputPlayerUnits(pl,H);
 			}
 			function onClickSeaBattle() {
 				//axis4_movement
@@ -454,7 +443,6 @@
 				show(document.getElementById('uiActiveButtons'));
 				show(document.getElementById('ui2Buttons'));
 				show(document.getElementById('uiEditButtons'));
-
 			}
 			function activateWaitingForServer() {
 				show(document.getElementById('dFrozen'));
@@ -490,12 +478,12 @@
 				// combat, convoy, decision, filter, filterByType, gameloop,
 				// hover, init, load, log, map, mirror, moving, player, random,
 				// remove, removed, request, response
-				// save, scenario, sender, server, skip, stage, units, upgradeUnit, strategy, visible,
+				// save, scenario, season, sender, server, skip, stage, units, upgradeUnit, strategy, visible,
 				// 8699
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('', execOptions.activatedTests);
+				addIfComma('scenario, movement', execOptions.activatedTests);
 
 				execOptions.commandChain.push(onClickLoadScenario);
 

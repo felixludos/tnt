@@ -6,11 +6,11 @@ units:
     North_Sea:
       Fleet: 3
       Submarine: 1
-      Airforce: 1
+      AirForce: 1
       Infantry: 1
     Ruhr:
       Infantry: 3
-      Airforce: 2
+      AirForce: 2
       Tank: 1
   Axis:
     North_Sea:
@@ -18,7 +18,7 @@ units:
         Infantry: 2
     Ruhr:
       Infantry: 3
-      Airforce: 2
+      AirForce: 2
       Tank: 1
 conflicts:
   Ruhr:

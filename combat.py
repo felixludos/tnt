@@ -85,13 +85,13 @@ def add_battles_to_reveal(G, player):
 			if uowner in G.players:
 				tech = G.players[player].technologies
 
-				#determine IND damage of Airforce:
-				if utype == 'Airforce' and 'Jets' in tech:
+				#determine IND damage of AirForce:
+				if utype == 'AirForce' and 'Jets' in tech:
 					prec_bomb = True
 
 				#	air defense radar:
 				#Air Forces in Friendly Territory (1.14) Fire doubledice (two dice/CV) at Enemy Air
-				if uowner == b.owner and utype == 'Airforce' and 'Air_Defense_Radar' in tech:
+				if uowner == b.owner and utype == 'AirForce' and 'Air_Defense_Radar' in tech:
 					air_def_radar = True
 
 				#sonar
@@ -169,7 +169,7 @@ def hasFirstFire(G, player, utype):
 	if player in G.players:
 		tech = G.players[player].technologies
 		#determine first fire:
-		if utype == 'Airforce' and 'Jets' in tech:
+		if utype == 'AirForce' and 'Jets' in tech:
 			uff = True
 		elif utype == 'Infantry' and 'Rocket_Artillery' in tech:
 			uff = True

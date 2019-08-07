@@ -86,6 +86,9 @@ function unitTestMirrorBattle() {
 function unitTestMoving() {
 	if (execOptions.activatedTests.includes('moving')) console.log(...arguments);
 }
+function unitTestMovement(){
+	if (execOptions.activatedTests.includes('movement')) console.log(...arguments);
+}
 function unitTestMS() {
 	if (execOptions.activatedTests.includes('ms')) console.log(...arguments);
 }
@@ -115,6 +118,9 @@ function unitTestSave() {
 }
 function unitTestScenario(){
 	if (execOptions.activatedTests.includes('scenario')) console.log(...arguments);
+}
+function unitTestSeason(){
+	if (execOptions.activatedTests.includes('season')) console.log(...arguments);
 }
 function unitTestSender() {
 	if (execOptions.activatedTests.includes('sender')) console.log(...arguments);

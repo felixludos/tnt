@@ -61,6 +61,16 @@ function isTooEarly(optYear, curYear, optStep, curStep) {
 function isWrongPlayer(optPlayer, curPlayer) {
 	return optPlayer != 'any' && !startsWithCaseIn(curPlayer, optPlayer);
 }
+function outputPlayerUnits(pl, H) {
+	let dObjects = dict2list(H.objects, 'id');
+	dObjects = dObjects.filter(x => x.obj_type == 'unit');
+	let unitsPlayer = dObjects.filter(x => getUnitOwner(x.nationality) == pl);
+	sortBy(unitsPlayer, 'type');
+	console.log(pl);
+	for (const u of unitsPlayer) {
+		console.log(u.type, u.type == 'Fleet' || u.type == 'Tank' ? '\t\t' : '\t', u.cv, '\t', u.tile, u.id);
+	}
+}
 function mergeCreatedAndUpdated(data) {
 	if (!('created' in data)) data.created = {};
 	data.created = extend(true, data.created, data.updated);
