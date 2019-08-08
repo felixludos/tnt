@@ -363,7 +363,7 @@ def encode_movement(G):
 	options = xset()
 	options.add(('pass',))
 
-	if len(cmd.moved) == 0:  # no units have been moved yet -> can make declarations
+	if len(G.temp.has_moved) == 0:  # no units have been moved yet -> can make declarations
 		options.update(check_declarations(G, player))
 
 	for uid, unit in faction.units.items():

@@ -54,12 +54,18 @@ class ADecisionUI {
 		this.msSelected = ms;
 		unitTestFilter('filterByS', idElem, id);
 
+		//filter all tuples in which the clicked element occurs
 		for (let i = 0; i < this.tuples.length; i++) {
 			const t = this.tuples[i];
 			const el = this.elTuples[i];
 			if (!t.includes(id)) {
 				//unitTestFilter(t.toString(), "does not contain", id);
 				//unitTestFilter(el, "should be hidden!!!");
+				el.style = 'display:none';
+			} else if (this.phase == 'Movement' && t.length > 1 && this.get(id).type == 'tile' &&  t[1] != id) {
+				//exception: in Movement phase, if id is tilename,
+				//should only consider tuples in which this tile is final destination,
+				//not a transit!!!
 				el.style = 'display:none';
 			} else {
 				//unitTestFilter('found match!', t.toString());

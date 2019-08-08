@@ -3,8 +3,9 @@ class Scenario {
 		this.data = data;
 		this.assets = assets;
 
-		this.unitsRequired = {};		// per player, tile, type: cv list
+		this.unitsRequired = {}; // per player, tile, type: cv list
 		this.upgradesRequired = {}; // per player, tile, type: cv list (tile is tile where unit has been created!)
+		this.movesRequired = {}; //per player,tile,type: destination
 		this.calcTotalUnitRequirements(G);
 		console.log(this.unitsRequired);
 
@@ -89,13 +90,39 @@ class Scenario {
 		}
 	}
 	calcDowsRequired() {}
+
+	defaultProduction(G) {
+		let tuple = null;
+		if (this.data.options.priority == 'movement') {
+			//take action card as next best action in production
+			tuple = firstCond(G.tuples, x => x.includes('action_card'));
+		}
+		return tuple;
+	}
+	defaultGovernment(G) {
+		let tuple = null;
+		if (this.data.options.priority == 'movement') {
+			//in Government pass in order to keep many season cards
+			tuple = firstCond(G.tuples, x => x.includes('pass'));
+		}
+		return tuple;
+	}
+	defaultMovement(G) {
+		let tuple = null;
+		if (this.data.options.priority == 'movement') {
+			//in Government pass in order to keep many season cards
+			tuple = firstCond(G.tuples, x => x.includes('pass'));
+		}
+		return tuple;
+	}
+
 	tryDiplomacy(G) {
 		//TODO
 		return null;
 	}
 	tryBuildUnit(G) {
 		if (!(G.player in this.unitsRequired)) return null;
-		unitTestBuildUnit('_________build Unit',this.unitsRequired[G.player])
+		unitTestBuildUnit('_________build Unit', this.unitsRequired[G.player]);
 
 		let req_units = this.unitsRequired[G.player];
 		for (const tilename in req_units) {
@@ -121,8 +148,12 @@ class Scenario {
 				//first, find out if can build exactly the required unit type/tilename
 				let tuple = firstCond(possibleTuples, x => x.includes(tilename));
 				if (tuple) {
+					//exact req fulfilled
 					unitTestBuildUnit('found tuple', tuple.toString());
 				} else {
+					//Fortresses cannot be replaced!!!
+					if (type == 'Fortress') continue;
+
 					//if this tilename has replacement restriction (data[player].source[tilename])
 					let replacements = lookup(this.data, [G.player, 'source', tilename]);
 					//instead of calculating closest tile for this type of unit, just use replacement list!
@@ -131,12 +162,16 @@ class Scenario {
 						//console.log('type', type);
 						//console.log('replacements for', tilename, replacements);
 						tuple = firstCond(possibleTuples, x => containsAny(x, replacements));
-						//tilename of this tuple is where 
-						if (tuple){
-							actualTilename = firstCond(replacements,x=>tuple.includes(x))
-						}else{
-							let tiles = possibleTuples.map(x=>x[1]);
-							console.log(tiles.toString(),'does NOT contain any of',replacements.toString())
+						//tilename of this tuple is where
+						if (tuple) {
+							// building on tile that is explicitly named as replacement
+							//put req in this.movesRequired
+							actualTilename = firstCond(replacements, x => tuple.includes(x));
+							addIfKeys(this.movesRequired, [G.player, tilename, type], []);
+							this.movesRequired[G.player][tilename][type].push({source: actualTilename});
+						} else {
+							let tiles = possibleTuples.map(x => x[1]);
+							console.log(tiles.toString(), 'does NOT contain any of', replacements.toString());
 						}
 					} else {
 						//otherwise look for all tiles where this type can be built
@@ -153,6 +188,7 @@ class Scenario {
 						}
 						unitTestBuildUnit(tilenames);
 						//now look which of these tilenames is closest to the place I want the unit
+						//console.log(tilenames.toString(),tilename);
 						let distances = tilenames.map(x => this.assets.distanceBetweenTiles(x, tilename));
 						//console.log(distances);
 						unitTestBuildUnit(distances);
@@ -162,6 +198,8 @@ class Scenario {
 						unitTestBuildUnit('best tuple', bestTuple.toString());
 						tuple = bestTuple;
 						actualTilename = bestTile;
+						addIfKeys(this.movesRequired, [G.player, tilename, type], []);
+						this.movesRequired[G.player][tilename][type].push({source: actualTilename});
 					}
 				}
 
@@ -181,13 +219,119 @@ class Scenario {
 		}
 		return null;
 	}
+	tryMoveUnit(G) {
+		//jetzt muss versuchen die units dahin zu moven wo sie in data[pl].units wirklich hingehoeren!
+		//dabei muss aber aufpassen dass ich nicht die units von da wegmove wo sie auch gebraucht werden!!!
+		//dh. G.tuples suche ein 'freies' tuple
+		//erst nimm alle tuples die die dest haben, mit einer unit mit type+cv correct!
+		//dann eliminiere davon alle units die auch ein anderes req erfuellen
+		//
+		//3 sachen:
+		//1. existing units (G.objects)
+		//2. possible movements (G.tuples) (corresponding to existing units)
+		//3. reqs in data[pl].units
+
+		//console.log('move unit: movesRequired=',this.movesRequired)
+
+		let moveReqs = lookup(this.movesRequired, [G.player]);
+		if (!moveReqs) return null; //no moves are required!!!
+
+		unitTestMovement('_________move Unit', this.movesRequired[G.player]);
+
+		for (const tilename in moveReqs) {
+			//check if indeed
+			unitTestMovement('searching tuples for reqs for', tilename);
+
+			//get all tuples that have this tile as 2nd element
+			let mTuples = G.tuples.filter(x => x.length > 1 && x[1] == tilename);
+			if (empty(mTuples)) continue;
+			for (const t of mTuples) {
+				let id = t[0];
+				let unit = G.objects[id];
+				unitTestMovement('tuple', t, 'unit', id, unit.type, unit.tile);
+				if (!(unit.type in moveReqs[tilename])) {
+					unitTestMovement('type is NOT in', moveReqs[tilename]);
+					continue;
+				}
+
+				let source = moveReqs[tilename][unit.type].shift();
+				unitTestMovement('after shift', moveReqs[tilename][unit.type]);
+				unitTestMovement('moveReqs[tilename][unit.type].length returns', moveReqs[tilename][unit.type].length);
+
+				if (empty(moveReqs[tilename][unit.type])) {
+					delete moveReqs[tilename][unit.type];
+					unitTestMovement('deleted', unit.type);
+					unitTestMovement('moveReqs.tilename', moveReqs[tilename]);
+					let obj = this.movesRequired[G.player][tilename];
+					let test = Object.entries(obj).length === 0 && obj.constructor === Object;
+					if (test) {
+						delete this.movesRequired[G.player][tilename];
+						unitTestMovement('deleted', tilename);
+						unitTestMovement('move reqs for player', this.movesRequired[G.player]);
+					}
+				}
+
+				unitTestMovement('matching tuple', t);
+				unitTestMovement('moving unit', id, unit.type, 'from', source.source, 'to', tilename);
+				return t;
+			}
+		}
+
+		return null;
+	}
+	tryDeclaration(G) {
+		let declReqs = lookup(this.data, ['conflicts']);
+		if (!declReqs) return null;
+		for (const tilename in declReqs) {
+			let conflict = declReqs[tilename];
+			if (conflict.aggressor == G.player) {
+				//this player should make a dow or violation
+				let opponent = conflict.defender; // a player or a nation
+				let t = firstCond(G.tuples, x => x.length == 1 && x[0] == opponent);
+				if (t) {
+					//remove this requirement
+					if (this.assets.factionNames.includes(opponent)) {
+						console.log(G.player, 'is declaring war on', opponent);
+					} else {
+						console.log(G.player, 'is violating neutrality of', opponent);
+					}
+					delete declReqs[tilename];
+					return t;
+					//create combatsRequired? maybe dont need that, because it is occurring automatically!
+				}
+			}
+		}
+		return null;
+	}
+	trySeasonCard(G) {
+		let tuple = null;
+		//pick an action card that has season = Spring
+		//dazu muss ich aber erst die card info haben!!!
+		//die wurde nicht eingelesen!
+		//oder doch?!?
+		//tuple waere einfach action_6 oder sowas
+		//aber in G muss es dieses object ja geben!
+		let actionTuples = G.tuples.filter(x => startsWith(x[0], 'action'));
+		let actionCards = actionTuples.map(x => x[0]);
+		console.log('ids', actionCards.toString());
+		let cards = actionCards.map(x => [x, G.objects[x]]); //brauche die id!
+		console.log('cards:', cards);
+		let seasonCards = cards.filter(x => 'season' in x[1] && x[1].season == G.phase);
+		console.log(seasonCards);
+		if (empty(seasonCards)) {
+			tuple = actionTuples[0];
+		} else {
+			tuple = firstCond(actionTuples, x => x.includes(seasonCards[0][0]));
+		}
+		return tuple;
+	}
 	tryUpgradeUnit(G) {
 		if (!(G.player in this.upgradesRequired)) return null;
 		let req_upgrades = this.upgradesRequired[G.player];
 		for (const t of G.tuples) {
 			// transform tuple into info={tuple:t,o:unit,type:o.type,cv:o.cv}
 			// owner of this unit is G.player or else this tuple wouldn't be presented!
-			let info = this.asUpgrade(t, G); 
+			let info = this.asUpgrade(t, G);
 			if (info) {
 				//unitTestUpgradeUnit(info)
 				let tile = info.o.tile;
@@ -195,7 +339,7 @@ class Scenario {
 				let cv = info.cv;
 				//info is a candidate for upgrade!
 				//look if upgrade of cv+1 is required for this player/tile/type
-				let upg = lookup(req_upgrades,[tile,type]);
+				let upg = lookup(req_upgrades, [tile, type]);
 				if (!upg) continue;
 				let upgradeList = req_upgrades[tile][type];
 				if (empty(upgradeList)) continue;
@@ -206,7 +350,7 @@ class Scenario {
 					// console.log('removed cv of', info.cv + 1);
 					// console.log('unit:', info.o);
 					// console.log('reqs:', jsCopy(req_upgrades));
-					unitTestUpgradeUnit('upgrading exact:',info.id,info.tile,info.type,info.cv+'/'+(info.cv + 1));
+					unitTestUpgradeUnit('upgrading exact:', info.id, info.tile, info.type, info.cv + '/' + (info.cv + 1));
 					//let s = 'removed cv of ' + info.cv + 1 + '\nunit:' + info.unit + '\nreqs:' + req_units.toString();
 					return info.tuple;
 				} else {
@@ -227,7 +371,7 @@ class Scenario {
 					let nExisting = existingUnitsOfThatType.length;
 					if (nExisting < numUpgradesNeeded) {
 						// console.log('found partial upgrade! no change in upgrade list');
-						unitTestUpgradeUnit('upgrading partial:',info.id,info.tile,info.type,info.cv+'/'+upgradeListHigherThanCv[nExisting]);
+						unitTestUpgradeUnit('upgrading partial:', info.id, info.tile, info.type, info.cv + '/' + upgradeListHigherThanCv[nExisting]);
 						return info.tuple;
 					}
 				}
@@ -239,7 +383,7 @@ class Scenario {
 	findMatch(G) {
 		//sort each attempt by priority! already gives a strategy!!!
 		let tuple = null;
-		unitTestScenario('______________________findMatch')
+		unitTestScenario('______________________findMatch');
 
 		if (G.phase == 'Setup') {
 			if (!tuple) tuple = this.tryBuildUnit(G);
@@ -248,59 +392,22 @@ class Scenario {
 		if (G.phase == 'Production') {
 			if (!tuple) tuple = this.tryUpgradeUnit(G);
 			if (!tuple) tuple = this.tryBuildUnit(G);
-			if (!tuple) {
-				if (this.data.options.priority == 'movement') {
-					//take action card as next best action in production
-					tuple = firstCond(G.tuples, x => x.includes('action_card'));
-				}
-			}
+			if (!tuple) tuple = this.defaultProduction(G);
 		}
 
 		if (G.phase == 'Government') {
 			if (!tuple) tuple = this.tryDiplomacy(G);
-			if (!tuple) {
-				if (this.data.options.priority == 'movement') {
-					//take action card as next best action in production
-					tuple = firstCond(G.tuples, x => x.includes('pass'));
-				}
-			}
+			if (!tuple) tuple = this.defaultGovernment(G);
 		}
 
-		if (['Spring','Summer','Fall','Winter'].includes(G.phase)){
-			//pick an action card that has season = Spring
-			//dazu muss ich aber erst die card info haben!!!
-			//die wurde nicht eingelesen!
-			//oder doch?!?
-			//tuple waere einfach action_6 oder sowas
-			//aber in G muss es dieses object ja geben!
-			let actionTuples = G.tuples.filter(x=>startsWith(x[0],'action'));
-			let actionCards = actionTuples.map(x=>x[0]);
-			console.log('ids',actionCards.toString())
-			let cards = actionCards.map(x=>[x,G.objects[x]]); //brauche die id!
-			console.log('cards:',cards)
-			let seasonCards = cards.filter(x=>'season' in x[1] && x[1].season == G.phase)
-			console.log(seasonCards);
-			if (empty(seasonCards)){
-				tuple = actionTuples[0];
-			}	else {
-				tuple = firstCond(actionTuples,x=>x.includes(seasonCards[0][0]))
-			}
+		if (['Spring', 'Summer', 'Fall', 'Winter'].includes(G.phase)) {
+			if (!tuple) tuple = this.trySeasonCard(G);
 		}
 
-		if (G.phase == 'Movement'){
-			//jetzt muss versuchen die units dahin zu moven wo sie in data[pl].units wirklich hingehoeren!
-			//dabei muss aber aufpassen dass ich nicht die units von da wegmove wo sie auch gebraucht werden!!!
-			//dh. G.tuples suche ein 'freies' tuple
-			//erst nimm alle tuples die die dest haben, mit einer unit mit type+cv correct!
-			//dann eliminiere davon alle units die auch ein anderes req erfuellen
-			//
-			//3 sachen: 
-			//1. existing units (G.objects)
-			//2. possible movements (G.tuples) (corresponding to existing units)
-			//3. reqs in data[pl].units 
-
-
-
+		if (G.phase == 'Movement') {
+			if (!tuple) tuple = this.tryMoveUnit(G);
+			if (!tuple) tuple = this.tryDeclaration(G);
+			if (!tuple) tuple = this.defaultMovement(G);
 		}
 
 		//unitTestScenario(this.upgradesRequired);

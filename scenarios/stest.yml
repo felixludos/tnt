@@ -3,12 +3,9 @@ options:
   priority: movement
 West:
   source:
-    North_Sea: [London,Glasgow,Paris,Lorraine]
-    Ruhr: [London,Glasgow,Paris,Lorraine,Gascony,Marseille]
+    North_Sea: [London, Glasgow, Paris, Lorraine]
+    Ruhr: [London, Glasgow, Paris, Lorraine, Gascony, Marseille]
   units:
-    Delhi:
-      Fortress: [1]
-      Infantry: [1, 1]
     Marseille:
       Fortress: [3]
     North_Sea:
@@ -22,7 +19,7 @@ West:
       Tank: [1]
 Axis:
   source:
-    North_Sea: [Ruhr,Berlin,Munich,Konigsberg]
+    North_Sea: [Ruhr, Berlin, Munich, Konigsberg]
   units:
     North_Sea:
       Fleet: [3, 2]
@@ -31,8 +28,11 @@ Axis:
       Infantry: [3, 3, 1]
       AirForce: [4, 3]
       Tank: [2]
+    Vienna:
+      Infantry: [3, 2]
+      Tank: [1]
 USSR:
-    diplomacy: ['Turkey', 'Persia']
+  diplomacy: ['Turkey', 'Persia']
 conflicts:
   Ruhr:
     aggressor: West
@@ -40,3 +40,6 @@ conflicts:
   North_Sea:
     aggressor: West
     defender: Axis
+  Vienna:
+    aggressor: Axis
+    defender: Austria
