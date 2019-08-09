@@ -287,7 +287,7 @@ def combat_phase(G, player, action):
 			c.stage, out = optional_battle_selection(G, player, action, c)
 			if out != None:
 				return out
-
+	
 		if c.stage == 'next':
 			c.stage, out = determining_next_battle(G, player, action, c)
 			if out != None:
@@ -295,12 +295,15 @@ def combat_phase(G, player, action):
 
 		if c.stage == 'battle':
 			c.battle.stage = 'battle_start'
-			if tile.type in {'Sea', 'Ocean'}:
+			if c.battle.tile.type in {'Sea', 'Ocean'}:
 				raise PhaseInterrupt('Sea Battle')  #from here will go to land_battle until PhaseComplete
 			else:
 				raise PhaseInterrupt('Land Battle')  #from here will go to land_battle until PhaseComplete
+			break
 
 		if c.stage == 'battle_ended':
+			#remove this battle from G.temp.battles
+			del G.temp.battles[c.battle.tilename]
 			determine_stage(G,player)
 
 		if c.stage == 'combat_end':
@@ -311,4 +314,8 @@ def combat_phase(G, player, action):
 
 		if c.stage == 'ack_combat_end':
 			del G.temp.combat
-			raise PhaseComplete
+			# raise PhaseComplete #wieso kommt der 2x hierher???
+			raise PhaseComplete #wieso kommt der 2x hierher???
+			break
+
+

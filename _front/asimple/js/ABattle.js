@@ -77,7 +77,7 @@ class ABattle {
 	}
 	markAsRetreated(id){
 		let ms = this.ms[id];
-		console.log('RETREATED:',ms)
+		//console.log('RETREATED:',ms)
 		ms.unhighlight();
 		ms.selKeyColor('darkSlateGrey',.7);
 
@@ -135,7 +135,9 @@ class ABattle {
 		// let nationality = 'France';
 		let owner = 'West';
 		let imagePath = '/a/assets/images/' + type + '.svg';
-		let color = this.assets.troopColors[nationality];
+		////console.log(id,gName,type,nationality,this.assets.troopColors)
+		let isMinorColor = !(nationality in this.assets.troopColors);
+		let color = isMinorColor?this.assets.troopColors['Minor']:this.assets.troopColors[nationality];
 		let darker = darkerColor(color[0], color[1], color[2]);
 		let sz = this.assets.SZ.cadreDetail;
 		let sz80 = sz * 0.86;
@@ -253,6 +255,8 @@ class ABattle {
 			//place unit
 			let usz = this.unitSize.w / 2;
 			//let ums = addUnit('u' + u.id, gid, type, u.unit.nationality, u.unit.cv, x + usz, y + usz);
+
+			//console.log(u.owner,u.unit.nationality)
 			let ms = this.createUnit('u' + u.id, gid, type, u.unit.nationality);
 			ms.setPos(x + usz, y + usz).draw();
 			this.updateCv(ms, u.unit.cv);
@@ -306,10 +310,10 @@ class ABattle {
 			message = b.outcome + ' HITS HITTING ' + b.units_hit.map(u => u.id + '(' + u.type + ')').join(' ') + ': PLEASE ACCEPT!';
 			this.stopDiceAnimation(b.fire);
 			this.showHits(b.outcome);
-			console.log('b.idx='+b.idx)
+			//console.log('b.idx='+b.idx)
 			let f = b.fire_order[b.idx]
-			console.log(f.owner,f.type)
-			console.log(b.fire_order.length,'units remaining in fire_order!')
+			//console.log(f.owner,f.type)
+			//console.log(b.fire_order.length,'units remaining in fire_order!')
 		} else if (b.stage == 'ack_combat_action_done') {
 			//compare each unit in b_old.fire_order to units in b.fire_order;
 			//if unit has been removed from fire_order, set cv to 0 and select it in red

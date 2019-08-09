@@ -119,6 +119,9 @@ function unitTestSave() {
 function unitTestScenario(){
 	if (execOptions.activatedTests.includes('scenario')) console.log(...arguments);
 }
+function unitTestScenarioMin(){
+	if (execOptions.activatedTests.includes('scenarioMin')) console.log(...arguments);
+}
 function unitTestSeason(){
 	if (execOptions.activatedTests.includes('season')) console.log(...arguments);
 }

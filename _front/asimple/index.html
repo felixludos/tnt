@@ -88,41 +88,16 @@
 					<button onclick="onClickRunToPhase('Production')">run to prod</button>
 					<button onclick="onClickRunToPhase('Government')">run to gov</button>
 					<button onclick="onClickRunToPhase('Spring')">run to spring</button>
+					<button onclick="onClickRunToPhase('Summer')">run to summer</button>
+					<button onclick="onClickRunToPhase('Fall')">run to fall</button>
 					<button onclick="onClickRunToPhase('Movement')">run to movement</button>
 					<button onclick="onClickRunToEnd()">run to end</button>
 					<br />
 					<br />
-					<button onclick="onClickRunToBattleDecided()">run to battle decided</button>
+					<!-- <button onclick="onClickRunToBattleDecided()">run to battle decided</button>
 					<button onclick="onClickMoveUnitsToRuhr()">move units to RUHR</button>
 					<button onclick="onClick5347()">5347</button>
-					<button onclick="onClickSeaBattle()">Sea Battle</button>
-					<!-- <button onclick="onClickSave('test1')">save</button>
-          <button onclick="onClickLoad('test1')">load</button>
-          <button onclick="onClickSaveAs()">save as</button>
-          <button onclick="onClickLoadAs()">load as</button>
-          <button onclick="onClickSaveActions()">save actions</button>
-          <button onclick="onClickSaveH()">save H</button> -->
-
-					<!-- <button onclick="onClickScenario('West','spring_start')">spring start</button>
-          <button onclick="onClickViolation1()">violation</button> -->
-					<!-- <button onclick="onClickScenario('USSR','test_movement')">movement</button>
-          <button onclick="onClickScenario('West','move2')">move 2</button>
-          <button onclick="onClickScenario('USSR','winter1')">winter36</button>
-          <button onclick="onClickScenario('USSR','violationImminent')">violation</button>
-          <button onclick="onClickScenario('USSR','conflict1')">conflict</button> -->
-
-					<!-- <p style="margin-bottom:0px;font-size:14pt;">front ONLY:</p>
-          <button id="bAddInfluence" onclick="onClickAddInfluence(this)">
-            add influence
-          </button>
-          <button id="bRemoveInfluence" onclick="onClickRemoveInfluence(this)">
-            remove influence
-          </button>
-          <p style="margin-bottom:0px;font-size:14pt;">front+back:</p>
-          <button id="bEditTest" class="hidden" style="margin-top:24px;" onclick="onClickEditTest(this)">
-            edit test
-          </button>
-          <button id="bAddUnit" class="hidden" onclick="onClickAddUnit(this)">add unit</button> -->
+					<button onclick="onClickSeaBattle()">Sea Battle</button> -->
 				</div>
 			</div>
 			<div id="select_area" class="grid_div">
@@ -204,10 +179,6 @@
 
 		<!-- #region UI / handlers -->
 		<script>
-			function sortBy(arr, key) {
-				//console.log(jsCopy(arr))
-				arr.sort((a, b) => (a[key].toUpperCase() < b[key].toUpperCase() ? -1 : 1));
-			}
 			function onClickUnits(pl = 'West') {
 				outputPlayerUnits(pl,H);
 			}
@@ -478,17 +449,19 @@
 				// combat, convoy, decision, filter, filterByType, gameloop,
 				// hover, init, load, log, map, mirror, moving, player, random,
 				// remove, removed, request, response
-				// save, scenario, season, sender, server, skip, stage, units, upgradeUnit, strategy, visible,
+				// save, scenario, scenatioMin, season, sender, server, skip, stage, 
+				// units, upgradeUnit, strategy, visible,
 				// 8699
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('scenario, movement', execOptions.activatedTests);
+				addIfComma('scenarioMin', execOptions.activatedTests);
 
 				execOptions.commandChain.push(onClickLoadScenario);
 
 				//onClickReload('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
-				onClickRestart(); //for scenario testing!
+				onClickReload('sc1');
+				//onClickRestart(); //for scenario testing!
 			}
 		</script>
 		<!-- #region control flow -->
@@ -497,6 +470,14 @@
 				unitTestGameloop('gameloop', data);
 				//animationQueue.end();
 				updateCycle(data);
+
+				//test
+				if (decider.decisionMode == 'scenario'){
+					reqs = jsCopy({units:decider.scenario.unitsRequired,
+						moves:decider.scenario.movesRequired,
+						upgrades:decider.scenario.upgradesRequired,
+						lock: decider.scenario.lock});
+				}
 
 				//if command chain non empty, do next command in command chain
 				if (!empty(execOptions.commandChain)) {
@@ -751,6 +732,9 @@
 
 		<!-- #region globals >>execution -->
 		<script>
+			//testing global vars to check if necessary
+			var reqs;
+
 			//control flow
 			var STOP; //to interrupt autoplay
 			var autoplay = false;

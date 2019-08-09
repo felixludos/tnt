@@ -211,9 +211,18 @@ function containedInAny(el, ll) {
 	return false;
 }
 function empty(arr) {
-	let result = arr === undefined || !arr || (isString(arr) && arr == '') || (Array.isArray(arr) && arr.length == 0);
+	//if (typeof(arr) == 'object') return arr.length == 0; //Object.entries(arr).length === 0;
+	let result = arr === undefined 
+	|| !arr 
+	|| (isString(arr) && arr == '') 
+	|| (Array.isArray(arr) && arr.length == 0)
+	|| emptyDict(arr);
 	testHelpers(typeof arr, result ? 'EMPTY' : arr);
 	return result;
+}
+function emptyDict(obj){
+	let test = Object.entries(obj).length === 0 && obj.constructor === Object;
+	return test;
 }
 function first(arr) {
 	return arr.length > 0 ? arr[0] : null;
@@ -1272,15 +1281,16 @@ function addCSSClass(className, text) {
 function addIfKeys(dict, keys, val) {
 	//only adds val if any of keys not yet in dict!
 	let d = dict;
-	let lastKey = keys.pop();
-	for (const k of keys) {
+	keysCopy = jsCopy(keys);
+	let lastKey = keysCopy.pop();
+	for (const k of keysCopy) {
 		if (!(k in d)) {
 			d[k] = {};
 		}
 		d = d[k];
 	}
 	if (!(lastKey in d)) d[lastKey] = val;
-	return dict;
+	return d[lastKey];
 }
 
 function dict2list(d, keyName = 'key') {
@@ -1328,6 +1338,14 @@ function lookup(dict, keys) {
 			if (k == last) return d;
 		} else return null;
 	}
+}
+function sortBy(arr, key) {
+	//console.log(jsCopy(arr))
+	arr.sort((a, b) => (a[key] < b[key] ? -1 : 1));
+}
+function sortByDescending(arr, key) {
+	//console.log(jsCopy(arr))
+	arr.sort((a, b) => (a[key] > b[key] ? -1 : 1));
 }
 
 //#endregion dictionary helpers

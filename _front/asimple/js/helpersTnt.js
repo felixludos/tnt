@@ -65,7 +65,7 @@ function outputPlayerUnits(pl, H) {
 	let dObjects = dict2list(H.objects, 'id');
 	dObjects = dObjects.filter(x => x.obj_type == 'unit');
 	let unitsPlayer = dObjects.filter(x => getUnitOwner(x.nationality) == pl);
-	sortBy(unitsPlayer, 'type');
+	sortBy(unitsPlayer, 'tile');
 	console.log(pl);
 	for (const u of unitsPlayer) {
 		console.log(u.type, u.type == 'Fleet' || u.type == 'Tank' ? '\t\t' : '\t', u.cv, '\t', u.tile, u.id);
@@ -85,18 +85,32 @@ function mergeCreatedAndUpdated(data) {
 
 				//console.log("missing id in data.created " + id);
 			} else {
-				d = propDiff(data.created[id], data.updated[id]);
-				if (d.hasChanged && (!empty(d.propChange) || !empty(d.onlyNew))) {
-					mergeFailed = true;
-					//alert('MERGE FAILED!!!'+id + " " + d.summary.toString());
-
-					//console.log("difference created - updated: " + id + " " + d.summary.toString());
-					//console.log(d);
-					//console.log("created:", data.created[id]);
-					//console.log("updated:", data.updated[id]);
+				for (const key in data.updated[id]) {
+					if (!(key in data.created[id]) || data.created[id][key] != data.updated[id][key]) {
+						if (key == 'visible') {
+							let set1 = getVisibleSet(data.created[id]);
+							let set2 = getVisibleSet(data.updated[id]);
+							if (sameList(set1,set2)) continue;
+							if (empty(set1) && empty(set2)) continue;
+							console.log('MERGE FAILED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', id, key);
+							console.log('created:', data.created[id][key]);
+							console.log('updated:', data.updated[id][key]);
+							console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+						}
+					}
 				}
+				// d = propDiff(data.created[id], data.updated[id]);
+				// if (d.hasChanged && (!empty(d.propChange) || !empty(d.onlyNew))) {
+				// 	mergeFailed = true;
+				// 	//alert('MERGE FAILED!!!'+id + " " + d.summary.toString());
+
+				// 	//console.log("difference created - updated: " + id + " " + d.summary.toString());
+				// 	//console.log(d);
+				// 	//console.log("created:", data.created[id]);
+				// 	//console.log("updated:", data.updated[id]);
+				// }
 			}
-			console.assert('created' in data && !mergeFailed, 'MERGE FAILED!!!' + id + ' ' + d.summary.toString() + '\n' + data.toString());
+			if (mergeFailed) console.log('MERGE FAILED!!!', id, d.summary.toString(), data);
 		}
 	}
 }

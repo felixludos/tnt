@@ -58,7 +58,9 @@ def calc_retreat_options_for_fire_unit(G, player, b, c):
 		id = u.id
 		if player == b.attacker and id in G.temp.has_moved:
 			# attacker: ONLY to tile from wwhich moved if moved this turn!!!
-			b.retreat_options.append((id, G.temp.has_moved[id]))
+			# G units can only retreat to adjacent friendly tile!
+			if u.group != 'G' or G.temp.has_moved[id] in b.tile.borders.keys():
+				b.retreat_options.append((id, G.temp.has_moved[id]))
 		elif u.group == 'G':
 			neighbors = tile.borders.keys()
 			# if defender: not to tile from which attackers came
@@ -187,13 +189,16 @@ def encode_list(G, player, lst):  #lst is list of tuples
 	code[player] = options
 	return code
 
-def encode_accept(G, player):
+def encode_accept(G, player, opponent=None):
 	#player = G.temp.order[G.temp.active_idx]
 	code = adict()
 	options = xset()
 	options.add(('accept',))
 	#print('* * vor code[player]=options', options)
-	code[player] = options
+	if player in G.players:
+		code[player] = options
+	else:
+		code[opponent] = options
 	return code
 
 def encode_cmd_options(G, player):
@@ -379,11 +384,7 @@ def land_battle_phase(G, player, action):
 				G.logger.write('{}:{} {} targeting {} {}'.format(b.idx, player, b.fire.id, b.target_class, opponent))
 			else:
 				G.logger.write('{}:{} {} RETREATING TO {}'.format(b.idx, player, b.fire.id, b.retreats[head]))
-
-			if not player in G.players:
-				return encode_accept(G, opponent)
-			else:
-				return encode_accept(G, player)
+			return encode_accept(G, player, opponent)
 
 		if b.stage == 'ack_combat_action':  #user has accepted combat action
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
@@ -408,7 +409,7 @@ def land_battle_phase(G, player, action):
 			#TODO: mind border limits if G!!!!!!
 			G.logger.write('{} unit {} retreats to {}'.format(player, id, tilename))
 			b.stage = 'ack_retreat'
-			return encode_accept(G,player)
+			return encode_accept(G,player,opponent)
 
 		if b.stage == 'ack_retreat':
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
@@ -432,7 +433,7 @@ def land_battle_phase(G, player, action):
 					#just apply damage to each of those units and
 					b.units_hit = b.units_max_cv
 					b.stage = 'accept_outcome'
-					return encode_accept(G, player)
+					return encode_accept(G, player, opponent)
 
 				elif opponent in G.players and len(b.types_max_cv) > 1:
 					# The owner can choose which of equal-CV unit takes hit
@@ -443,11 +444,11 @@ def land_battle_phase(G, player, action):
 				else:
 					b.units_hit = b.units_max_cv[:b.hits]
 					b.stage = 'accept_outcome'
-					return encode_accept(G, player)
+					return encode_accept(G, player, opponent)
 
 			else:  #b.hits == 0
 				b.stage = 'accept_outcome'
-				return encode_accept(G, player)
+				return encode_accept(G, player, opponent)
 
 		if b.stage == 'select_hit_type':  #user has selected type to hit next
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
@@ -503,14 +504,14 @@ def land_battle_phase(G, player, action):
 			elif b.idx >= len(b.fire_order):
 				b.stage = 'mandatory_rebase'
 				G.logger.write('all units have acted, Land battle ends')
+			elif no_enemy_units_left(G,c,b,player): #after retreating last of his units
+				b.stage = 'cleanup_battle'
+				G.logger.write('{} retreated last unit, Land battle ends'.format(player))
 			else:
 				b.fire = b.fire_order[b.idx]
 				b.stage = 'ack_combat_action_done'
 				G.logger.write('{} {} fires next'.format(b.fire.owner, b.fire.id))
-				if not opponent in G.players:
-					return encode_accept(G, player)
-				else:
-					return encode_accept(G, opponent)
+				return encode_accept(G, player, opponent)
 
 		if b.stage == 'ack_combat_action_done':
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
@@ -522,7 +523,7 @@ def land_battle_phase(G, player, action):
 			assert action == None, '{}: action!!!!!'.format(b.stage)
 			action = None
 			b.stage = 'ack_battle_interrupted_no_enemy_units_left'
-			return encode_accept(G, player)
+			return encode_accept(G, player, opponent)
 
 		if b.stage == 'ack_battle_interrupted_no_enemy_units_left':
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
@@ -551,7 +552,7 @@ def land_battle_phase(G, player, action):
 					switch_ownership(G, G.tiles[b.tilename], player)
 					b.newOwner = player
 			b.stage = 'ack_battle_decided'
-			return encode_accept(G, player)
+			return encode_accept(G, player, opponent)
 
 		if b.stage == 'ack_battle_decided':
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
@@ -607,11 +608,14 @@ def land_battle_phase(G, player, action):
 					unit.visible.add(b.owner)
 					G.objects.updated[unit._id] = unit
 			b.stage = 'ack_cleanup_battle'
-			return encode_accept(G,player)
+			return encode_accept(G,player, opponent)
 
 		if b.stage == 'ack_cleanup_battle':
 			c.stage = 'battle_ended'
-			raise PhaseComplete
+			# raise PhaseComplete
+			break
+			
+	raise PhaseComplete
 
 
 def sea_battle_phase(G):
@@ -626,7 +630,7 @@ def sea_battle_phase(G):
 		b.stage = 'battle_start_ack'
 		G.logger.write('land battle starting in {}'.format(b.tilename))
 		player = b.attacker if b.attacker in G.players else b.defender
-		return encode_accept(G, player)
+		return encode_accept(G, player, opponent)
 
 	player = b.fire.owner
 	is_defender = player == b.defender
@@ -701,10 +705,7 @@ def sea_battle_phase(G):
 			else:
 				G.logger.write('{}:{} {} RETREATING TO {}'.format(b.idx, player, b.fire.id, b.retreats[head]))
 
-			if not player in G.players:
-				return encode_accept(G, opponent)
-			else:
-				return encode_accept(G, player)
+			return encode_accept(G, player, opponent)
 
 		if b.stage == 'ack_combat_action':  #user has accepted combat action
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
@@ -729,7 +730,7 @@ def sea_battle_phase(G):
 			#TODO: mind border limits if G!!!!!!
 			G.logger.write('{} unit {} retreats to {}'.format(player, id, tilename))
 			b.stage = 'ack_retreat'
-			return encode_accept(G,player)
+			return encode_accept(G,player, opponent)
 
 		if b.stage == 'ack_retreat':
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
@@ -753,7 +754,7 @@ def sea_battle_phase(G):
 					#just apply damage to each of those units and
 					b.units_hit = b.units_max_cv
 					b.stage = 'accept_outcome'
-					return encode_accept(G, player)
+					return encode_accept(G, player, opponent)
 
 				elif opponent in G.players and len(b.types_max_cv) > 1:
 					# The owner can choose which of equal-CV unit takes hit
@@ -764,11 +765,11 @@ def sea_battle_phase(G):
 				else:
 					b.units_hit = b.units_max_cv[:b.hits]
 					b.stage = 'accept_outcome'
-					return encode_accept(G, player)
+					return encode_accept(G, player, opponent)
 
 			else:  #b.hits == 0
 				b.stage = 'accept_outcome'
-				return encode_accept(G, player)
+				return encode_accept(G, player, opponent)
 
 		if b.stage == 'select_hit_type':  #user has selected type to hit next
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
@@ -828,10 +829,7 @@ def sea_battle_phase(G):
 				b.fire = b.fire_order[b.idx]
 				b.stage = 'ack_combat_action_done'
 				G.logger.write('{} {} fires next'.format(b.fire.owner, b.fire.id))
-				if not opponent in G.players:
-					return encode_accept(G, player)
-				else:
-					return encode_accept(G, opponent)
+				encode_accept(G, player, opponent)
 
 		if b.stage == 'ack_combat_action_done':
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
@@ -843,7 +841,7 @@ def sea_battle_phase(G):
 			assert action == None, '{}: action!!!!!'.format(b.stage)
 			action = None
 			b.stage = 'ack_battle_interrupted_no_enemy_units_left'
-			return encode_accept(G, player)
+			return encode_accept(G, player, opponent)
 
 		if b.stage == 'ack_battle_interrupted_no_enemy_units_left':
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
@@ -872,7 +870,7 @@ def sea_battle_phase(G):
 					switch_ownership(G, G.tiles[b.tilename], player)
 					b.newOwner = player
 			b.stage = 'ack_battle_decided'
-			return encode_accept(G, player)
+			return encode_accept(G, player, opponent)
 
 		if b.stage == 'ack_battle_decided':
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
@@ -928,7 +926,7 @@ def sea_battle_phase(G):
 					unit.visible.add(b.owner)
 					G.objects.updated[unit._id] = unit
 			b.stage = 'ack_cleanup_battle'
-			return encode_accept(G,player)
+			return encode_accept(G,player, opponent)
 
 		if b.stage == 'ack_cleanup_battle':
 			c.stage = 'battle_ended'

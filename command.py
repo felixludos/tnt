@@ -31,7 +31,7 @@ def check_declarations(G, player):
 	# neutral
 	nations = xset(nat for nat, info in G.nations.status.items() if not info.is_armed and not nat in G.temp.threats)
 	# nations -= G.players[player].diplomacy.violations
-	print('check_declarations nations ', nations)
+	#print('check_declarations nations ', nations)
 	options.add((nations,))
 
 	return options
@@ -363,7 +363,7 @@ def encode_movement(G):
 	options = xset()
 	options.add(('pass',))
 
-	if len(G.temp.has_moved) == 0:  # no units have been moved yet -> can make declarations
+	if len(G.temp.has_moved) == 0 and not ('emergency' in cmd):  # no units have been moved yet -> can make declarations
 		options.update(check_declarations(G, player))
 
 	for uid, unit in faction.units.items():
@@ -480,7 +480,7 @@ def movement_phase(G, player=None, action=None):
 		    player, source._id, destination, cmd.value))
 
 	elif head == 'pass':
-		cmd.value -= 1
+		cmd.value = 0 #-= 1 relinquish restl commands TODO: change back if fe
 		G.logger.write('{} passes ({} command points remaining)'.format(player, cmd.value))
 
 	if cmd.value > 0:  # continue movement
@@ -488,6 +488,7 @@ def movement_phase(G, player=None, action=None):
 
 	# movement complete
 	del G.temp.commands[player]
+
 	G.logger.write('{} movement is complete'.format(player))
 
 	conflicts = tset()
