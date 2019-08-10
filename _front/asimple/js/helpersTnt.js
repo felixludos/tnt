@@ -1,5 +1,34 @@
 //#region tnt helpers
-
+function filterStringFromTuples(strings,tuples){
+	//in list of tuples, look for s of strings
+	//return list of strings contained
+	let result = [];
+	for (const t of tuples) {
+		for (const s of t) {
+			//is s a tilename?
+			if (strings.includes(s)) {
+				result.push(s);
+			}
+		}
+	}
+	return result;
+}
+function findClosestTile(fMetric,goalTile,tilenames){
+	let distances = tilenames.map(x => fMetric(x, goalTile));
+	//console.log(distances);
+	const indexOfMin = distances.indexOf(Math.min(...distances));
+	let best = tilenames[indexOfMin];
+	//console.log('closest tiles',best);
+	return best;
+}
+function findClosestUnit(fMetric,goalTile,units){
+	let distances = units.map(x => fMetric(x.tile, goalTile));
+	//console.log(distances);
+	const indexOfMin = distances.indexOf(Math.min(...distances));
+	let best = units[indexOfMin];
+	//console.log('closest tiles',best);
+	return best;
+}
 function getTuples(data) {
 	let tuples = [];
 	//console.log(data);
@@ -61,6 +90,60 @@ function isTooEarly(optYear, curYear, optStep, curStep) {
 function isWrongPlayer(optPlayer, curPlayer) {
 	return optPlayer != 'any' && !startsWithCaseIn(curPlayer, optPlayer);
 }
+
+function matchUnits(darr, option, pl = null, tile = null, type = null, cv = null) {
+	//option can be 'all' or 'first' or 'last' or 'firstAndLast' (for testing)
+	//console.log('call matchUnits:',darr,'\noption=',option,'\npl',pl,'\ntile',tile,'\ntype',type,'\ncv',cv)
+	let arr = null;
+	//console.log(typeof darr)
+	if (typeof darr === 'object' && darr.constructor == Object) {
+		arr = dict2list(darr, 'id');
+	} else arr = darr;
+	let result = [];
+
+	for (const o of arr) {
+		if (o.obj_type != 'unit') continue;
+		if (pl && getUnitOwner(o.nationality) != pl) continue;
+		if (tile && o.tile != tile) continue;
+		if (type && o.type != type) continue;
+		if (cv && o.cv != cv) continue;
+		//console.log('>>>',o,option,option == 'first');
+		if (option == 'first') {
+			//console.log('HAAAAAAAAAAAALLLLLLLLLLLLLLOOOOOOOOOOOOOO')
+			return o;
+		}
+		result.push(o);
+	}
+
+	if (result.length == 0) return option == 'all' ? [] : null;
+	return option == 'all' ? result : option == 'last' ? result[result.length - 1] : (result[0], result[result.length - 1]);
+}
+
+function matchSingleUnit_dep(idDict, pl, tile, type) {
+	//assumes only 1 unit should fit
+	let arr = dict2list(idDict, 'id');
+	let units = arr.filter(x => x.obj_type == 'unit' && getUnitOwner(x.nationality) == pl && x.tile == tile && x.type == type); // do I need cv?
+	if (units.length > 1) {
+		msg = 'matchSingleUnit: MULTIPLE UNITS MATCH EXACTLY!!!';
+		console.log(msg, units);
+		alert(msg);
+	} else if (units.length == 1) {
+		return units[0];
+	}
+	return null;
+}
+function matchAllUnits_dep(arr, pl, tile, type) {
+	//assumes only 1 unit should fit
+	let units = arr.filter(x => x.obj_type == 'unit' && getUnitOwner(x.nationality) == pl && x.tile == tile && x.type == type); // do I need cv?
+	if (units.length > 1) {
+		msg = 'matchSingleUnit: MULTIPLE UNITS MATCH EXACTLY!!!';
+		console.log(msg, units);
+		alert(msg);
+	} else if (units.length == 1) {
+		return units[0];
+	}
+	return null;
+}
 function outputPlayerUnits(pl, H) {
 	let dObjects = dict2list(H.objects, 'id');
 	dObjects = dObjects.filter(x => x.obj_type == 'unit');
@@ -69,6 +152,25 @@ function outputPlayerUnits(pl, H) {
 	console.log(pl);
 	for (const u of unitsPlayer) {
 		console.log(u.type, u.type == 'Fleet' || u.type == 'Tank' ? '\t\t' : '\t', u.cv, '\t', u.tile, u.id);
+	}
+}
+function outputUpdatedScenario(decider){
+	if (decider.decisionMode == 'scenario') {
+		for (const pl in decider.scenario.items) {
+			reqs = pl+'\n';
+			for (const x of decider.scenario.items[pl]) {
+				reqs+='  goal=('+x.goalTile+','+x.goalCv+') '+x.type+' '+x.id;
+				if (x.unit) reqs+=' '+x.unit.tile+' '+x.unit.cv;
+				reqs+='\n';
+			}
+		}
+		console.log(reqs)
+	// 	reqs = jsCopy({
+	// 		units: decider.scenario.unitsRequired,
+	// 		moves: decider.scenario.movesRequired,
+	// 		upgrades: decider.scenario.upgradesRequired,
+	// 		lock: decider.scenario.lock
+	// 	});
 	}
 }
 function mergeCreatedAndUpdated(data) {
@@ -90,7 +192,7 @@ function mergeCreatedAndUpdated(data) {
 						if (key == 'visible') {
 							let set1 = getVisibleSet(data.created[id]);
 							let set2 = getVisibleSet(data.updated[id]);
-							if (sameList(set1,set2)) continue;
+							if (sameList(set1, set2)) continue;
 							if (empty(set1) && empty(set2)) continue;
 							console.log('MERGE FAILED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', id, key);
 							console.log('created:', data.created[id][key]);
@@ -224,10 +326,10 @@ function sendLoading(player, filename, callback) {
 	});
 }
 function sendLoadScenario2(player, filename, callback) {
-	unitTestScenario('loading 2', filename);
+	unitTestScenario('loading scenario', filename);
 	var sData = {};
 	sender.send('myloadScenario2/' + filename + '.yml', d1 => {
-		unitTestScenario('myloadScenario2 response:', d1);
+		unitTestScenario('server response:', d1);
 		callback(d1);
 		// sender.send("refresh/" + player, d2 => {
 		//   unitTestScenario("refresh response:", d2);

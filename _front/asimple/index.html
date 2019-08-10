@@ -76,22 +76,26 @@
 			<div id="edit_area" class="grid_div">
 				<button id="bStop" class="hidden" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
 				<div id="uiEditButtons">
-					<button onclick="onClickUnits('West')">units West</button>
-					<button onclick="onClickUnits('Axis')">units Axis</button>
-					<br />
-					<br />
-
 					<button id="bStep" onclick="onClickStep()">step</button>
-
-					<button onclick="onClickRunToPlayerChange(H.player)">run to next player</button>
-
-					<button onclick="onClickRunToPhase('Production')">run to prod</button>
-					<button onclick="onClickRunToPhase('Government')">run to gov</button>
-					<button onclick="onClickRunToPhase('Spring')">run to spring</button>
-					<button onclick="onClickRunToPhase('Summer')">run to summer</button>
-					<button onclick="onClickRunToPhase('Fall')">run to fall</button>
-					<button onclick="onClickRunToPhase('Movement')">run to movement</button>
+					<br />
+					<br />
+					<button onclick="onClickRunToScenarioDone()">scenario done!</button>
+					<br />
+					<br />
+					<button onclick="onClickRunToPlayerChange('West')">West</button>
+					<button onclick="onClickRunToPlayerChange(H.player)">next player</button>
+					<button onclick="onClickRunToPhase('Production')">prod</button>
+					<button onclick="onClickRunToPhase('Government')">gov</button>
+					<button onclick="onClickRunToPhase('Spring')">spring</button>
+					<button onclick="onClickRunToPhase('Summer')">summer</button>
+					<button onclick="onClickRunToPhase('Fall')">fall</button>
+					<button onclick="onClickRunToPhase('Movement')">movement</button>
+					<button onclick="onClickRunToPhase('Combat')">combat</button>
 					<button onclick="onClickRunToEnd()">run to end</button>
+					<br />
+					<br />
+					<button onclick="onClickUnits('West')">units West</button>
+					<!-- <button onclick="onClickUnits('Axis')">units Axis</button> -->
 					<br />
 					<br />
 					<!-- <button onclick="onClickRunToBattleDecided()">run to battle decided</button>
@@ -180,7 +184,7 @@
 		<!-- #region UI / handlers -->
 		<script>
 			function onClickUnits(pl = 'West') {
-				outputPlayerUnits(pl,H);
+				outputPlayerUnits(pl, H);
 			}
 			function onClickSeaBattle() {
 				//axis4_movement
@@ -291,6 +295,13 @@
 				//console.log(H);
 				decider.onClickStep(H);
 			}
+			function onClickRunToPlayer(player) {
+				STOP = false;
+				showStop();
+				execOptions.skipCond = () => H.player != player;
+				//console.log(H);
+				decider.onClickStep(H);
+			}
 			function FreezeAndUpdateLastFileAndInFilename(fname) {
 				if (empty(fname.trim())) {
 					alert('cannot load or save empty filename to !');
@@ -311,7 +322,7 @@
 				fname = prompt('filename no ext.:');
 				onClickLoad(fname);
 			}
-			function onClickLoadScenario(defaultFName = 'stest') {
+			function onClickLoadScenario(defaultFName = 'sc0') {
 				//unitTestScenario('DEFAULT FILENAME',defaultFName)
 				let fname = document.getElementById('inScenario').value;
 				if (empty(fname)) {
@@ -320,10 +331,24 @@
 				fname = fname.trim();
 				// freezeUI(); //do I need to do that here?
 				// autoplay = true;
+
+				localStorage.inScenario = fname;
 				sendLoadScenario2(H.player, fname, d => {
 					decider.loadScenario(d, H);
+					console.log('...scenario loaded:', fname, 'decisionMode', decider.decisionMode);
 					gameloop(H.serverData);
 				});
+			}
+			function onClickRunToScenarioDone() {
+				STOP = false;
+				showStop();
+				execOptions.skipCond = () => decider.scenario == null || decider.scenario.done;
+
+				if (decider.decisionMode != 'scenario') {
+					onClickLoadScenario('sc0');
+				} else {
+					decider.onClickStep(H);
+				}
 			}
 			function onClickReload(defaultFName) {
 				let fname = document.getElementById('inFilename').value;
@@ -440,28 +465,48 @@
 				document.getElementById('status_year').innerHTML = H.year;
 				if (!empty(msg)) document.getElementById('status_message').innerHTML = msg;
 			}
+			function setDefaultFilenames(inFilename, inScenario) {
+				if (empty(inFilename)) {
+					inFilename = localStorage.getItem('inFilename');
+					if (empty(inFilename)) {
+						inFilename = 'axis4_movement';
+					}
+				}
+				document.getElementById('inFilename').value = inFilename;
+
+				if (empty(inScenario)) {
+					inScenario = localStorage.getItem('inScenario');
+					if (empty(inScenario)) {
+						inScenario = 'sc0';
+					}
+				}
+				document.getElementById('inScenario').value = inScenario;
+			}
 		</script>
 		<!-- #endregion UI / handlers -->
 
 		<script>
 			function startScript() {
+				setDefaultFilenames('north_sea', 'sc0');
+
+				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
+
 				// autoplay, battle, buildUnit, cards, cardsNew, choice, choicemin, control,
 				// combat, convoy, decision, filter, filterByType, gameloop,
 				// hover, init, load, log, map, mirror, moving, player, random,
 				// remove, removed, request, response
-				// save, scenario, scenatioMin, season, sender, server, skip, stage, 
+				// save, scenario, scenatioMin, season, sender, server, skip, stage,
 				// units, upgradeUnit, strategy, visible,
 				// 8699
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('scenarioMin', execOptions.activatedTests);
+				addIfComma('scenario,match', execOptions.activatedTests);
 
-				execOptions.commandChain.push(onClickLoadScenario);
+				execOptions.commandChain.push(() => onClickLoadScenario('sc0'));
 
-				//onClickReload('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
-				onClickReload('sc1');
-				//onClickRestart(); //for scenario testing!
+				// onClickReload('sc1'); //('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
+				onClickRestart(); //for scenario testing!
 			}
 		</script>
 		<!-- #region control flow -->
@@ -471,13 +516,7 @@
 				//animationQueue.end();
 				updateCycle(data);
 
-				//test
-				if (decider.decisionMode == 'scenario'){
-					reqs = jsCopy({units:decider.scenario.unitsRequired,
-						moves:decider.scenario.movesRequired,
-						upgrades:decider.scenario.upgradesRequired,
-						lock: decider.scenario.lock});
-				}
+				outputUpdatedScenario(decider);
 
 				//if command chain non empty, do next command in command chain
 				if (!empty(execOptions.commandChain)) {

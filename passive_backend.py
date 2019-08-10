@@ -155,14 +155,13 @@ def process_actions(outtype, results, player):
 
 
 def evaluate_action(player=None, action=None):  # keeps going through phases until actions are returned
-	print('halllllllllllllllllllllllllllllllllllllll')
 	out = None
 	n=0
 	while out is None:
 		try:
 			phase = G.game.sequence[G.game.index]
 			#print(n,'player',player,'action',action,'func',PHASES[phase]) #@@
-			n+=1
+			# n+=1
 			out = PHASES[phase](G, player=player, action=action)
 			player, action = None, None
 		except PhaseComplete:

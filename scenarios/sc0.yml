@@ -1,0 +1,8 @@
+options:
+  nomatch: null
+  priority: movement
+West:
+  units:
+    Lorraine:
+      Infantry: [3,1]
+      Tank: [2]

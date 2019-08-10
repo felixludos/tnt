@@ -1339,6 +1339,19 @@ function lookup(dict, keys) {
 		} else return null;
 	}
 }
+function lookupAsIdList(dict, keys) {
+	//console.log('lookup', dict, keys);
+	let d = dict;
+	let last = keys[keys.length - 1];
+	//console.log('last', last);
+	for (const k of keys) {
+		if (k in d) {
+			//console.log(k, 'is in', d);
+			d = d[k];
+			if (k == last) return dict2list(d,'id');
+		} else return null;
+	}
+}
 function sortBy(arr, key) {
 	//console.log(jsCopy(arr))
 	arr.sort((a, b) => (a[key] < b[key] ? -1 : 1));
@@ -1865,7 +1878,7 @@ function dump(...arr) {
 	}
 }
 function error(msg) {
-	console.log('ERROR!!!!! ' + msg);
+	console.log('ERROR!!!!! ',msg);
 }
 //#endregion io helpers
 

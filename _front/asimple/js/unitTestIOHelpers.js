@@ -80,6 +80,9 @@ function unitTestLog() {
 function unitTestMap() {
 	if (execOptions.activatedTests.includes('map')) console.log(...arguments);
 }
+function unitTestMatch() {
+	if (execOptions.activatedTests.includes('match')) console.log(...arguments);
+}
 function unitTestMirrorBattle() {
 	if (execOptions.activatedTests.includes('mirror')) console.log(...arguments);
 }
