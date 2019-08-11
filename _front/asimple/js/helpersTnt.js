@@ -1,5 +1,5 @@
 //#region tnt helpers
-function filterStringFromTuples(strings,tuples){
+function filterStringFromTuples(strings, tuples) {
 	//in list of tuples, look for s of strings
 	//return list of strings contained
 	let result = [];
@@ -13,7 +13,7 @@ function filterStringFromTuples(strings,tuples){
 	}
 	return result;
 }
-function findClosestTile(fMetric,goalTile,tilenames){
+function findClosestTile(fMetric, goalTile, tilenames) {
 	let distances = tilenames.map(x => fMetric(x, goalTile));
 	//console.log(distances);
 	const indexOfMin = distances.indexOf(Math.min(...distances));
@@ -21,7 +21,16 @@ function findClosestTile(fMetric,goalTile,tilenames){
 	//console.log('closest tiles',best);
 	return best;
 }
-function findClosestUnit(fMetric,goalTile,units){
+function findClosestTupleForItem(tuples, item,assets) {
+	//get all tuples that contain this unit
+	tuples = tuples.filter(x => x[0] == item.id);
+	if (tuples.length == 0) return null;
+	let tilenames = tuples.map(x => x[1]);
+	let closestTile = findClosestTile((a, b) => assets.distanceBetweenTiles(a, b), item.goalTile, tilenames);
+	console.log('tile closest to goal tile', item.goalTile, ':', closestTile);
+	return firstCond(tuples, x => x[1] == closestTile);
+}
+function findClosestUnit(fMetric, goalTile, units) {
 	let distances = units.map(x => fMetric(x.tile, goalTile));
 	//console.log(distances);
 	const indexOfMin = distances.indexOf(Math.min(...distances));
@@ -90,7 +99,6 @@ function isTooEarly(optYear, curYear, optStep, curStep) {
 function isWrongPlayer(optPlayer, curPlayer) {
 	return optPlayer != 'any' && !startsWithCaseIn(curPlayer, optPlayer);
 }
-
 function matchUnits(darr, option, pl = null, tile = null, type = null, cv = null) {
 	//option can be 'all' or 'first' or 'last' or 'firstAndLast' (for testing)
 	//console.log('call matchUnits:',darr,'\noption=',option,'\npl',pl,'\ntile',tile,'\ntype',type,'\ncv',cv)
@@ -118,7 +126,6 @@ function matchUnits(darr, option, pl = null, tile = null, type = null, cv = null
 	if (result.length == 0) return option == 'all' ? [] : null;
 	return option == 'all' ? result : option == 'last' ? result[result.length - 1] : (result[0], result[result.length - 1]);
 }
-
 function matchSingleUnit_dep(idDict, pl, tile, type) {
 	//assumes only 1 unit should fit
 	let arr = dict2list(idDict, 'id');
@@ -154,23 +161,19 @@ function outputPlayerUnits(pl, H) {
 		console.log(u.type, u.type == 'Fleet' || u.type == 'Tank' ? '\t\t' : '\t', u.cv, '\t', u.tile, u.id);
 	}
 }
-function outputUpdatedScenario(decider){
+function outputUpdatedScenario(decider, player=false) {
+	reqs = ''; //global var declared in index.html
 	if (decider.decisionMode == 'scenario') {
 		for (const pl in decider.scenario.items) {
-			reqs = pl+'\n';
+			if (player && player != pl) continue;
+			reqs += pl + '\n';
 			for (const x of decider.scenario.items[pl]) {
-				reqs+='  goal=('+x.goalTile+','+x.goalCv+') '+x.type+' '+x.id;
-				if (x.unit) reqs+=' '+x.unit.tile+' '+x.unit.cv;
-				reqs+='\n';
+				reqs += '  goal=(' + x.goalTile + ',' + x.goalCv + ') ' + x.type + ' ' + x.id;
+				if (x.unit) reqs += ' ' + x.unit.tile + ' ' + x.unit.cv;
+				reqs += '\n';
 			}
 		}
-		console.log(reqs)
-	// 	reqs = jsCopy({
-	// 		units: decider.scenario.unitsRequired,
-	// 		moves: decider.scenario.movesRequired,
-	// 		upgrades: decider.scenario.upgradesRequired,
-	// 		lock: decider.scenario.lock
-	// 	});
+		console.log(reqs);
 	}
 }
 function mergeCreatedAndUpdated(data) {
@@ -326,7 +329,7 @@ function sendLoading(player, filename, callback) {
 	});
 }
 function sendLoadScenario2(player, filename, callback) {
-	unitTestScenario('loading scenario', filename);
+	unitTestScenario('_____________________loading scenario', filename);
 	var sData = {};
 	sender.send('myloadScenario2/' + filename + '.yml', d1 => {
 		unitTestScenario('server response:', d1);

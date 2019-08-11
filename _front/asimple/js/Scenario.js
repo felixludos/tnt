@@ -6,6 +6,7 @@ class Scenario {
 
 		this.items = {}; //per player [{goalTile:,tile:,type:,cv:,id:,unit:}]
 		this.openRequest = {}; //per player last item in auftrag gegeben
+		this.lockedIds = {}; //per unit id, units already used in items
 
 		//calculate each round, per pl
 		this.missingUnitItems = {}; //have no unit matched up yet
@@ -32,12 +33,12 @@ class Scenario {
 			}
 		}
 
-		console.log('items:', this.items);
+		unitTestMatch('items:', this.items);
 		//check which items already exist that can fulfill reqs
 		let availableUnits = matchUnits(G.objects, 'all');
 		for (const pl in this.items) {
 			let playerUnits = matchUnits(availableUnits, 'all', pl);
-			console.log('player units', playerUnits);
+			unitTestMatch('player units', playerUnits);
 			for (const item of this.items[pl]) {
 				let m = this.findBestMatchingUnit(playerUnits, item);
 				if (m) {
@@ -45,6 +46,8 @@ class Scenario {
 					item.unit = m;
 					item.cv = m.cv;
 					item.tile = m.tile;
+					this.lockedIds[m.id] = item;
+					removeInPlace(playerUnits, m);
 				}
 			}
 		}
@@ -61,23 +64,18 @@ class Scenario {
 					done = false;
 					let l = addIfKeys(this.missingUnitItems, [pl], []);
 					l.push(item);
-					continue;
-				}
-				if (item.goalTile == item.tile && item.unit.cv >= item.goalCv) {
-					let l = addIfKeys(this.perfectItems, [pl], []);
-					l.push(item);
-					continue;
-				}
-				if (item.goalTile != item.tile) {
-					done = false;
-					let l = addIfKeys(this.wrongLocationItems, [pl], []);
-					l.push(item);
-				}
-				if (item.unit.cv < item.goalCv) {
+				} else if (item.unit.cv < item.goalCv) {
+					//need to upgrade before any move because units on Sea cannot be upgraded!!!
 					done = false;
 					let l = addIfKeys(this.cvTooLowItems, [pl], []);
 					l.push(item);
-					//console.log('added', item, 'to upgrades!');
+				} else if (item.goalTile != item.tile) {
+					done = false;
+					let l = addIfKeys(this.wrongLocationItems, [pl], []);
+					l.push(item);
+				} else {
+					let l = addIfKeys(this.perfectItems, [pl], []);
+					l.push(item);
 				}
 			}
 		}
@@ -86,9 +84,12 @@ class Scenario {
 	checkOpenRequest(G) {
 		let pl = G.player;
 		let openReq = lookup(this.openRequest, [pl]);
-		let created = lookup(G.serverData, ['created']);
+		let created = lookup(jsCopy(G.serverData), ['created']); //careful do NOT change G.serverData!
+
+		removeInPlaceKeys(created, Object.keys(this.lockedIds)); //from created remove all ids in this.lockedIds
+
 		if (openReq && created) {
-			let id = openReq.id;
+			let id = openReq.id; //if id: unit exists, just needs change of cv|loc
 			let u = id ? G.objects[id] : matchUnits(created, 'first', pl, openReq.tile, openReq.type);
 			if (u) {
 				openReq.id = id ? id : u.id;
@@ -124,17 +125,14 @@ class Scenario {
 	}
 	findBestMatchingUnit(playerUnits, item) {
 		let m = matchUnits(playerUnits, 'first', null, item.goalTile, item.type, item.cv);
-		//console.log('____m', m);
 		if (!m) {
 			m = matchUnits(playerUnits, 'first', null, item.goalTile, item.type);
 			if (!m) {
 				let mEveryWhere = matchUnits(playerUnits, 'all', null, null, item.type);
+
 				//of these, find unit closest to the desired location
 				if (mEveryWhere.length > 0) {
 					unitTestMatch('partial matches:', mEveryWhere, 'for item', item);
-					// let tilenames = mEveryWhere.map(x=>x.tile);
-					// console.log('tilenames',tilenames);
-					// let closestTile = findClosestTile((a,b)=>this.assets.distanceBetweenTiles(a,b),item.goalTile,tilenames)
 					m = findClosestUnit((a, b) => this.assets.distanceBetweenTiles(a, b), item.goalTile, mEveryWhere);
 				} else {
 					unitTestMatch('NO MATCH for item', item);
@@ -184,6 +182,7 @@ class Scenario {
 		}
 
 		unitTestScenario('\t>>>', G.phase, G.player, tuple);
+		unitTestScenarioMin('findmatch:', G.phase, G.player, tuple,this.done?'(completed!)':'...');
 		return tuple;
 	}
 	tryBuildUnit(G) {
@@ -215,24 +214,46 @@ class Scenario {
 		}
 
 		return null;
-		//simple test code
-		// let item = this.items[G.player][0];
-		// this.openRequest[G.player] = item;
-		// item.tile = 'London';
-		// return firstCond(G.tuples, t => t.includes('Infantry') && t.includes('London'));
 	}
 	tryDeclaration(G) {
 		return null;
 	}
-	tryMoveUnit(G) {
+	tryDiplomacy(G) {
 		return null;
+	}
+	tryMoveUnit(G) {
+		let items = lookup(this.wrongLocationItems, [G.player]);
+		if (!items) return null;
+
+		for (const item of items) {
+			let tuple = firstCond(G.tuples, t => t.length > 1 && t[0] == item.id && t[1] == item.goalTile);
+			if (!tuple) tuple = findClosestTupleForItem(G.tuples, item, this.assets);
+			if (!tuple) continue;
+			this.openRequest[G.player] = item;
+			return tuple;
+		}
+		return null;
+	}
+	trySeasonCard(G) {
+		//TODO pick emergency card from past season first if choice
+		let tuple = null;
+		let actionTuples = G.tuples.filter(x => startsWith(x[0], 'action'));
+		if (empty(actionTuples)) return null;
+		let actionCards = actionTuples.map(x => x[0]);
+		let cards = actionCards.map(x => [x, G.objects[x]]); //brauche die id!
+		let seasonCards = cards.filter(x => 'season' in x[1] && x[1].season == G.phase);
+		if (empty(seasonCards)) {
+			tuple = actionTuples[0];
+			unitTestMatch(G.player,'playing emergency card!!!')
+		} else {
+			tuple = firstCond(actionTuples, x => x.includes(seasonCards[0][0]));
+		}
+		return tuple;
 	}
 	tryUpgradeUnit(G) {
 		let items = lookup(this.cvTooLowItems, [G.player]);
-
 		if (!items) return null;
 
-		//first pass: looking for exactly matching tuple
 		for (const item of items) {
 			let m = firstCond(G.tuples, t => t.length == 1 && t.includes(item.id));
 			if (m) {

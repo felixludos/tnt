@@ -1352,6 +1352,11 @@ function lookupAsIdList(dict, keys) {
 		} else return null;
 	}
 }
+function removeInPlaceKeys(dict, keys) {
+	for (const k of keys) {
+		delete dict[k]
+	}
+}
 function sortBy(arr, key) {
 	//console.log(jsCopy(arr))
 	arr.sort((a, b) => (a[key] < b[key] ? -1 : 1));

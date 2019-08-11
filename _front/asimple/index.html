@@ -79,10 +79,7 @@
 					<button id="bStep" onclick="onClickStep()">step</button>
 					<br />
 					<br />
-					<button onclick="onClickRunToScenarioDone()">scenario done!</button>
-					<br />
-					<br />
-					<button onclick="onClickRunToPlayerChange('West')">West</button>
+					<button onclick="onClickRunToPlayer('West')">West</button>
 					<button onclick="onClickRunToPlayerChange(H.player)">next player</button>
 					<button onclick="onClickRunToPhase('Production')">prod</button>
 					<button onclick="onClickRunToPhase('Government')">gov</button>
@@ -94,6 +91,7 @@
 					<button onclick="onClickRunToEnd()">run to end</button>
 					<br />
 					<br />
+					<button onclick="onClickRunToScenarioDone()">run to scenario</button>
 					<button onclick="onClickUnits('West')">units West</button>
 					<!-- <button onclick="onClickUnits('Axis')">units Axis</button> -->
 					<br />
@@ -335,17 +333,17 @@
 				localStorage.inScenario = fname;
 				sendLoadScenario2(H.player, fname, d => {
 					decider.loadScenario(d, H);
-					console.log('...scenario loaded:', fname, 'decisionMode', decider.decisionMode);
+					console.log('___________...scenario loaded:', fname, 'decisionMode='+decider.decisionMode);
 					gameloop(H.serverData);
 				});
 			}
 			function onClickRunToScenarioDone() {
 				STOP = false;
 				showStop();
-				execOptions.skipCond = () => decider.scenario == null || decider.scenario.done;
+				execOptions.skipCond = () => !decider.scenario.done;
 
 				if (decider.decisionMode != 'scenario') {
-					onClickLoadScenario('sc0');
+					onClickLoadScenario();
 				} else {
 					decider.onClickStep(H);
 				}
@@ -487,7 +485,7 @@
 
 		<script>
 			function startScript() {
-				setDefaultFilenames('north_sea', 'sc0');
+				setDefaultFilenames('north_sea', 'sc1');
 
 				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
 
@@ -501,7 +499,7 @@
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('scenario,match', execOptions.activatedTests);
+				addIfComma('scenarioMin', execOptions.activatedTests);
 
 				execOptions.commandChain.push(() => onClickLoadScenario('sc0'));
 
@@ -515,8 +513,6 @@
 				unitTestGameloop('gameloop', data);
 				//animationQueue.end();
 				updateCycle(data);
-
-				outputUpdatedScenario(decider);
 
 				//if command chain non empty, do next command in command chain
 				if (!empty(execOptions.commandChain)) {
@@ -624,6 +620,8 @@
 					}
 					if (info.player != H.player) {
 						unitTestPlayer('___ ', info.player, ':');
+						outputUpdatedScenario(decider,H.player);
+
 					}
 					H.player = info.player;
 					statusMessage();
