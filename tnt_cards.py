@@ -71,7 +71,7 @@ def draw_cards(G, stack, player, N=1):
 	
 	assert stack in G.cards, 'Unknown stack: {}'.format(stack)
 	
-	cards = get_cards(G.cards[stack], N)
+	cards = get_cards(G, G.cards[stack], N)
 	
 	for cID in cards:
 		card = G.objects.table[cID]
@@ -83,20 +83,20 @@ def draw_cards(G, stack, player, N=1):
 	
 	G.logger.write('{} draws {} {} cards (now holding {} cards)'.format(player, N, stack, len(G.players[player].hand)))
 
-def get_cards(stack, N=1):
+def get_cards(G, stack, N=1):
 	cards = tlist()
 	
 	assert N <= len(stack.deck)+len(stack.discard_pile), 'Cannot draw {} cards from a total of {} cards'.format(N, len(stack.deck)+len(stack.discard_pile))
 	
 	for _ in range(N):
 		if len(stack.deck) == 0:
-			shuffle(stack)
+			shuffle(G.random,stack)
 		cards.append(stack.deck.pop())
 		
 	return cards
 
 
-def split_choices(options, num, dim):
+def split_choices(G,options, num, dim):
 	G.random.shuffle(options)
 	
 	picks = [[] for _ in range(num)]
@@ -125,7 +125,7 @@ def load_gen_card_decks(G, card_config_path='config/card_stats.yml',):
 	
 	for _ in range(10):
 		try:
-			picks = split_choices(list(config.diplomacy.items()), num, dim)
+			picks = split_choices(G,list(config.diplomacy.items()), num, dim)
 		except ValueError:
 			pass
 		else:
@@ -208,7 +208,7 @@ def load_gen_card_decks(G, card_config_path='config/card_stats.yml',):
 	
 	for _ in range(10):
 		try:
-			picks = split_choices(techs, num, dim)
+			picks = split_choices(G,techs, num, dim)
 		except ValueError:
 			pass
 		else:

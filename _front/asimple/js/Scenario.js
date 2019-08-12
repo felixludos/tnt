@@ -4,6 +4,7 @@ class Scenario {
 		this.assets = assets;
 		this.done = false;
 
+		//unit items
 		this.items = {}; //per player [{goalTile:,tile:,type:,cv:,id:,unit:}]
 		this.openRequest = {}; //per player last item in auftrag gegeben
 		this.lockedIds = {}; //per unit id, units already used in items
@@ -14,6 +15,33 @@ class Scenario {
 		this.cvTooLowItems = {}; // unit and tile, but needs upgrade
 		this.perfectItems = {}; //everything as required!!!
 
+		this.initUnitItems(G);
+
+		//conflict items
+		this.conflictItems = {}; //per player, who is aggressor
+		this.newConflict = null; //set in activateConflict if any, used in tryDeclaration
+		this.initConflictItems(G);
+
+		unitTestConflict('conflicts:', this.conflictItems);
+	}
+	initConflictItems(G) {
+		if ('conflicts' in this.data) {
+			for (const tile in this.data.conflicts) {
+				let aggressor = this.data.conflicts[tile][0];
+				let defender = this.data.conflicts[tile][1];
+				let cItem = {};
+				cItem.aggressor = aggressor;
+				cItem.goalTile = tile;
+				cItem.defender = defender; //if minor, scenario should have eg. 'Austria'
+				cItem.active = false;
+				cItem.completed = false; //do I need this?!?!?!?!?
+				addIfKeys(this.conflictItems, [aggressor], []);
+				this.conflictItems[aggressor].push(cItem);
+				//console.log('added conflict',aggressor,defender,tile)
+			}
+		}
+	}
+	initUnitItems(G) {
 		for (const pl in this.data) {
 			for (const tile in this.data[pl].units) {
 				for (const type in this.data[pl].units[tile]) {
@@ -32,7 +60,6 @@ class Scenario {
 				}
 			}
 		}
-
 		unitTestMatch('items:', this.items);
 		//check which items already exist that can fulfill reqs
 		let availableUnits = matchUnits(G.objects, 'all');
@@ -50,6 +77,23 @@ class Scenario {
 					removeInPlace(playerUnits, m);
 				}
 			}
+		}
+	}
+	activateConflict(G) {
+		if (this.newConflict){
+			unitTestConflict('conflict already activated',this.newConflict)
+			return;
+		}
+		let conflicts = lookup(this.conflictItems, [G.player]);
+		if (!conflicts) return;
+		//look for first conflict that is not active and not completed
+		let cNext = firstCond(conflicts, x => !x.active && !x.completed);
+		if (cNext) {
+			cNext.active = true;
+			this.newConflict = cNext;
+			unitTestConflict('activateConflict: found',cNext)
+		}else{
+			unitTestConflict('activateConflict: no new conflict found')
 		}
 	}
 	checkOpenItems() {
@@ -153,6 +197,7 @@ class Scenario {
 		this.done = this.checkOpenItems(G);
 		if (this.done) {
 			unitTestScenario('Scenario is complete!!!');
+			this.activateConflict(G);
 		}
 
 		let tuple = null;
@@ -181,8 +226,12 @@ class Scenario {
 			if (!tuple) tuple = this.defaultMovement(G);
 		}
 
+		if (G.phase.includes('Battle')){
+			tuple = firstCond(G.tuples,t=>t[0].length == 1); //select Hit command
+		}
+
 		unitTestScenario('\t>>>', G.phase, G.player, tuple);
-		unitTestScenarioMin('findmatch:', G.phase, G.player, tuple,this.done?'(completed!)':'...');
+		unitTestScenarioMin('findmatch:', G.phase, G.player, tuple, this.done ? '(completed!)' : '...');
 		return tuple;
 	}
 	tryBuildUnit(G) {
@@ -216,6 +265,29 @@ class Scenario {
 		return null;
 	}
 	tryDeclaration(G) {
+		if (this.newConflict) {
+			//console.log('new Conflict:',this.newConflict)
+			let c = this.newConflict;
+			let t = firstCond(G.tuples, x => x.length == 1 && x[0] == c.defender);
+			if (t) {
+				if (this.assets.factionNames.includes(c.defender)) {
+					unitTestScenarioMin(G.player, 'is declaring war on', c.defender);
+				} else {
+					unitTestScenarioMin(G.player, 'is violating neutrality of', c.defender);
+				}
+
+				//can declare war, in that moment, activate all movement towards war tile!
+				//reorient all troops towards conflict zone
+				for(const item of this.items[G.player]){
+					item.goalTile = c.goalTile;
+					let l = addIfKeys(this.wrongLocationItems, [G.player], []);
+					l.push(item);
+				}
+
+				this.newConflict = null;
+				return t;
+			}
+		}
 		return null;
 	}
 	tryDiplomacy(G) {
@@ -244,7 +316,7 @@ class Scenario {
 		let seasonCards = cards.filter(x => 'season' in x[1] && x[1].season == G.phase);
 		if (empty(seasonCards)) {
 			tuple = actionTuples[0];
-			unitTestMatch(G.player,'playing emergency card!!!')
+			unitTestMatch(G.player, 'playing emergency card!!!');
 		} else {
 			tuple = firstCond(actionTuples, x => x.includes(seasonCards[0][0]));
 		}

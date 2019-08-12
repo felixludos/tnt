@@ -10,7 +10,8 @@ class NAssets {
     this.unitTypeNames;
     this.factionSetup;
     this.factionNames;
-    this.uniqueIdCounter = 0;
+		this.uniqueIdCounter = 0;
+		let neutralColor = [230,230,120];//[233, 138, 134];
     this.troopColors = {
       Germany: [174, 174, 176],
       Britain: [86, 182, 222],
@@ -18,9 +19,9 @@ class NAssets {
       USSR: [233, 138, 134],
       USA: [145, 186, 130],
       Italy: [174, 172, 131],
-      Neutral: [255, 255, 102],
-      Minor: [255, 255, 102],
-      Major: [255, 255, 102],
+      Neutral: neutralColor,
+      Minor: neutralColor,
+      Major: neutralColor,
       Axis: [174, 174, 176],
       West: [86, 182, 222]
     };

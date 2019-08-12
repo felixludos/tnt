@@ -380,7 +380,7 @@ def encode_movement(G):
 	code[player] = options
 	return code
 
-def new_movement(G):
+def new_movement(G,player):
 	G.temp.battles = tdict()  # track new battles due to engaging
 	G.temp.has_moved = tdict()  # units can only move once per movement phase
 	G.temp.threats = tset()
@@ -392,7 +392,7 @@ def new_movement(G):
 def movement_phase(G, player=None, action=None):  
 
 	if 'battles' not in G.temp:  # pseudo prephase
-		new_movement(G)
+		new_movement(G,player)
 
 	if player is None:  # when returning from some interrupting phase
 		return encode_movement(G)
@@ -523,7 +523,7 @@ def movement_phase(G, player=None, action=None):
 	if not len(G.temp.commands):  # this season is complete
 		raise PhaseComplete
 
-	new_movement(G)
+	new_movement(G,player)
 	return encode_movement(G)
 
 def end_phase(G):

@@ -1,13 +1,24 @@
 class ACombat {
-	constructor(assets, combatData, repDivName) {
+	constructor(page, assets, data, repDivName) {
+		this.page = page;
 		this.assets = assets;
-		this.c = combatData; //G.temp.combat
+		this.c = data; //G.temp.combat
 		this.dArea = repDivName;
 		this.pal = set_palette(199, 1);
-		this.locations = Object.keys(combatData.battles); //list of battle locations
+		this.battles = null;
 
+		if (Object.keys(data.battles).length > 0)
+		{
+			this.initBattles(data)
+		}
+	}
+	initBattles(cData){
+		console.log('initializing battles')
+		let c = this.c = cData;
+		this.page.battleView();
+
+		this.locations = Object.keys(cData.battles); //list of battle locations
 		this.battleCounter = 0; //index of current battle
-
 		this.battles = {}; // list of ABattle
 		this.battle = null; // the active ABattle
 
@@ -86,18 +97,28 @@ class ACombat {
 	update(data, H) {
 		let c = data.temp.combat;
 		unitTestCombat('_______________combat update');
-		unitTestCombatStage('Combat stage=' + c.stage, c);
+		unitTestCombatStage('Combat stage=' + c.stage, c, this.battles);
 		//console.log('WAAAAAAAAAAAAAAAAAAAAAAASSSSSSSSSSSSSS?????')
+
+		if (c.stage == 'opt') {
+			console.log('***combat.update returns for stage == opt', c)
+			return;
+		}else if (!this.battles && c.stage == 'battle'){ // && Object.keys(c.battles).length > 0){
+			console.log('***combat.update initializing!',c)
+			this.initBattles(c);
+		} 
 
 		let message = '';
 		if (c.stage == 'opt') {
-			message = 'SELECT BATTLES TO FIGHT!';
+			//console.log('NEVER EVER COME HERE',c.stage);
+			return;
 		} else if (c.stage == 'next') {
 			message = 'SELECT NEXT BATTLE!';
 		} else if (c.stage == 'battle') {
-			//console.log('WAAAAAAAAAAAAAAAAAAAAAAASSSSSSSSSSSSSS?????')
+			//console.log('ACombat.update: c.stage',c.stage, 'b.stage',c.battle.stage, c.battle.tilename)
 			if (c.battle.stage == 'battle_start_ack'){
 				//set new battle!
+				//console.log('ACombat.update: this.battle',this.battle,'this.battles:',this.battles,'c.battles:',c.battles)
 				if (this.battle) {
 					this.battle.unselectBattle();
 				}

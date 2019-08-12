@@ -11,6 +11,7 @@ class ABattle {
 
 		this.ms = {}; //ms per id
 		this.selected = false;
+		this.msFire = null;
 
 		this.nColsPerFaction = this.calcMaxUnitTypePerFaction();
 
@@ -60,8 +61,9 @@ class ABattle {
 		this.battleDiv.style.border = '1px solid ' + getpal(6);
 	}
 	selectFireUnit() {
-		let fireUnitMS = this.ms[this.b.fire.id];
-		fireUnitMS.highlight();
+		if (this.msFire) this.msFire.unhighlight();
+		this.msFire = this.ms[this.b.fire.id];
+		this.msFire.highlight();
 	}
 	unhightlightUnits() {
 		for (const id in this.ms) {
@@ -73,6 +75,12 @@ class ABattle {
 		for (const id in this.b.target_units) {
 			let ms = this.ms[id];
 			ms.highlight();
+		}
+	}
+	unhighlightTargetClass() {
+		for (const id in this.b.target_units) {
+			let ms = this.ms[id];
+			ms.unhighlight();
 		}
 	}
 	markAsRetreated(id){
@@ -89,7 +97,7 @@ class ABattle {
 		for (const u of b_old.fire_order) {
 			let id = u.id;
 			let ms = this.ms[id];
-			ms.unhighlight(); //clear all highlighting!
+			//ms.unhighlight(); //clear all highlighting!
 			let uNew = firstCond(b_new.fire_order, x => x.id == id);
 			if (uNew) {
 				let cv_old = u.unit.cv;
@@ -113,11 +121,13 @@ class ABattle {
 	startDiceAnimation(fire) {
 		this.fire = fire;
 		let dDice = fire.owner == this.b.attacker ? this.attackerDiceDiv : this.defenderDiceDiv;
+		this.diceRolling = true;
 		dDice.classList.add('pulseOn');
 	}
 	stopDiceAnimation(fire) {
 		let dDice = fire.owner == this.b.attacker ? this.attackerDiceDiv : this.defenderDiceDiv;
 		dDice.classList.remove('pulseOn');
+		this.diceRolling = false;
 	}
 	showHits(hits) {
 		let dDice = this.b.fire.owner == this.b.attacker ? this.attackerDiceDiv : this.defenderDiceDiv;
@@ -301,24 +311,30 @@ class ABattle {
 		} else if (b.stage == 'select_hit_type') {
 			message = b.outcome + ' HITS, PLEASE SELECT TYPE TO HIT FIRST!';
 			this.stopDiceAnimation(b.fire);
+			//console.log()
 			this.showHits(b.outcome);
 		} else if (b.stage == 'ack_retreat') {
 			message = b.selectedRetreatUnit + ' HAS RETREATED TO '+ b.selectedRetreatTile;
 			//retreated unit is file
 			this.markAsRetreated(b.fire.id)
 		} else if (b.stage == 'accept_outcome') {
-			message = b.outcome + ' HITS HITTING ' + b.units_hit.map(u => u.id + '(' + u.type + ')').join(' ') + ': PLEASE ACCEPT!';
-			this.stopDiceAnimation(b.fire);
-			this.showHits(b.outcome);
-			//console.log('b.idx='+b.idx)
-			let f = b.fire_order[b.idx]
-			//console.log(f.owner,f.type)
-			//console.log(b.fire_order.length,'units remaining in fire_order!')
+			if (this.diceRolling){
+				message = b.outcome + ' HITS HITTING ' + b.units_hit.map(u => u.id + '(' + u.type + ')').join(' ') + ': PLEASE ACCEPT!';
+				this.stopDiceAnimation(b.fire);
+				this.showHits(b.outcome);
+				//console.log('b.idx='+b.idx)
+				let f = b.fire_order[b.idx]
+				//console.log(f.owner,f.type)
+				//console.log(b.fire_order.length,'units remaining in fire_order!')
+				}else{
+					message = this.selectTheDead(b_old,b);
+				}
 		} else if (b.stage == 'ack_combat_action_done') {
 			//compare each unit in b_old.fire_order to units in b.fire_order;
 			//if unit has been removed from fire_order, set cv to 0 and select it in red
 			//if unit has lower cv than before, reflect that
 			//if unit has been moved b retreat (attacker's unit in fire order missing!), remove it from battle
+			this.unhighlightTargetClass(b_old);
 			if (b.combat_action == 'hit') {
 				message = this.selectTheDead(b_old,b);
 			} else {

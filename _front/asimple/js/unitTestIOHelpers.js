@@ -42,10 +42,13 @@ function unitTestCombat() {
 	if (execOptions.activatedTests.includes('combat')) console.log(...arguments);
 }
 function unitTestCombatStage(){
-	if (execOptions.activatedTests.includes('stage')) console.log(...arguments);
+	if (execOptions.activatedTests.includes('combatStage')) console.log(...arguments);
 }
 function unitTestControl() {
 	if (execOptions.activatedTests.includes('control')) console.log(...arguments);
+}
+function unitTestConflict() {
+	if (execOptions.activatedTests.includes('conflicts')) console.log(...arguments);
 }
 function unitTestConvoy() {
 	if (execOptions.activatedTests.includes('convoy')) console.log(...arguments);
@@ -136,6 +139,9 @@ function unitTestServer() {
 }
 function unitTestSkip() {
 	if (execOptions.activatedTests.includes('skip')) console.log(...arguments);
+}
+function unitTestStage() {
+	if (execOptions.activatedTests.includes('stage')) console.log(...arguments);
 }
 function unitTestUnits() {
 	if (execOptions.activatedTests.includes('units')) console.log(...arguments);

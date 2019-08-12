@@ -151,6 +151,34 @@ function matchAllUnits_dep(arr, pl, tile, type) {
 	}
 	return null;
 }
+function outputCombatData(title,data,H){
+	console.log('________________'+title);
+	console.log('H', H);
+	let c = data.temp.combat;
+	let sCombat = c == undefined ? 'undef' : c.stage + ', battles: ' + Object.keys(c.battles).toString();
+	let sBattle = c == undefined || c.battle == undefined ? 'undef' : c.battle.stage + ', loc: ' + c.battle.tilename;
+	console.log('data.combat: ' + sCombat);
+	console.log('dt.c.battle: ' + sBattle);
+	// let cFront = H.combat;
+	// let c = data.temp.combat;
+	// console.log('Back end (data.temp.combat):');
+	// console.log('H', H);
+	// if (c === undefined) {
+	// 	console.log('combat data gone!');
+	// } else {
+	// 	console.log('combat:', c.stage, c.battles, c.battle);
+	// 	if ('battle' in c && c.battle) {
+	// 		console.log('battle:', c.battle, c.battle.stage);
+	// 	}
+	// 	console.log('Front end (H.combat):');
+	// 	console.log('combat:', cFront.stage, cFront.battles, cFront.battle);
+	// 	if ('battle' in cFront && cFront.battle) {
+	// 		console.log('battle:', cFront.battle, cFront.battle.stage);
+	// 	}
+	// 	H.combat.update(data, H);
+	// }
+	// console.log('____________________________(line 617)');
+}
 function outputPlayerUnits(pl, H) {
 	let dObjects = dict2list(H.objects, 'id');
 	dObjects = dObjects.filter(x => x.obj_type == 'unit');
@@ -173,7 +201,7 @@ function outputUpdatedScenario(decider, player=false) {
 				reqs += '\n';
 			}
 		}
-		console.log(reqs);
+		unitTestScenario(reqs);
 	}
 }
 function mergeCreatedAndUpdated(data) {

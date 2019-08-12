@@ -283,7 +283,7 @@
 			function onClickRunToPhase(ph) {
 				STOP = false;
 				showStop();
-				execOptions.skipCond = () => H.phase != ph;
+				execOptions.skipCond = () => (ph == 'Combat' ? H.phase != ph && !H.phase.includes('Battle') : H.phase != ph);
 				decider.onClickStep(H);
 			}
 			function onClickRunToPlayerChange(player) {
@@ -333,7 +333,7 @@
 				localStorage.inScenario = fname;
 				sendLoadScenario2(H.player, fname, d => {
 					decider.loadScenario(d, H);
-					console.log('___________...scenario loaded:', fname, 'decisionMode='+decider.decisionMode);
+					console.log('___________...scenario loaded:', fname, 'decisionMode=' + decider.decisionMode);
 					gameloop(H.serverData);
 				});
 			}
@@ -485,12 +485,12 @@
 
 		<script>
 			function startScript() {
-				setDefaultFilenames('north_sea', 'sc1');
+				setDefaultFilenames('north_sea', 'sc2');
 
 				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
 
 				// autoplay, battle, buildUnit, cards, cardsNew, choice, choicemin, control,
-				// combat, convoy, decision, filter, filterByType, gameloop,
+				// combat, conflicts, convoy, decision, filter, filterByType, gameloop,
 				// hover, init, load, log, map, mirror, moving, player, random,
 				// remove, removed, request, response
 				// save, scenario, scenatioMin, season, sender, server, skip, stage,
@@ -499,7 +499,7 @@
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('scenarioMin', execOptions.activatedTests);
+				addIfComma('stage', execOptions.activatedTests);
 
 				execOptions.commandChain.push(() => onClickLoadScenario('sc0'));
 
@@ -513,6 +513,14 @@
 				unitTestGameloop('gameloop', data);
 				//animationQueue.end();
 				updateCycle(data);
+
+				// if ('combat' in data.temp) {
+				// 	unitTestStage(data.temp.combat.stages);
+				// 	unitTestStage('combat stage:', data.temp.combat.stage);
+				// 	if ('battle' in data.temp.combat) {
+				// 		unitTestStage('battle stage:', data.temp.combat.battle.stage);
+				// 	}
+				// }
 
 				//if command chain non empty, do next command in command chain
 				if (!empty(execOptions.commandChain)) {
@@ -587,25 +595,36 @@
 				map.update(data, H.objects);
 				units.update(data, H.objects, H.player);
 				unitTestGameloop('H vor update combat\ndata:', data, '\nH:', H);
-				if ('combat' in H) H.combat.update(data, H);
+				if ('combat' in H) {
+					H.combat.update(data, H);
+					outputCombatData('gameloop', data, H);
+				}
 				H.tuples = getTuples(data);
 			}
 			function phaseChange(data) {
 				let info = data.info.game;
 				unitTestGameloop('PHASE CHANGE!!!', H.phase, 'turning to:', info.phase);
-				if ((H.phase == 'Setup' || H.phase == 'Movement') && (info.phase == 'Combat' || info.phase.includes('Battle'))) {
+				if (!('combat' in H) && lookup(data, ['temp', 'combat', 'battles']) && !emptyDict(data.temp.combat.battles)) {
+					// (H.phase == 'Setup' || H.phase == 'Movement')
+					// && (info.phase == 'Combat' || info.phase.includes('Battle'))
+					// && data.temp.combat.stage != 'opt') {
 					//handle new Combat!
-					unitTestGameloop('NEW COMBAT PHASE!!!!!!!!!!!!!!!!');
+					//console.log('===================================');
+					//console.log('NEW COMBAT PHASE!!!!!!! data:', data.temp.combat);
+					//console.log('H.phase', H.phase, 'info.phase', info.phase);
 
-					page.battleView();
 
-					H.combat = new ACombat(assets, data.temp.combat, 'battle_area');
-				} else if ('combat' in H && info.phase == 'Movement') {
+					console.log('creating H.combat')
+					H.combat = new ACombat(page, assets, data.temp.combat, 'battle_area');
+				} else if ('combat' in H && !lookup(data, ['temp', 'combat'])) {
+					//info.phase == 'Movement') {
 					//handle end of combat phase!
 					page.selectView();
-					unitTestGameloop('COMBAT HAS ENDED!!!!!!!!!!!!!!!!!');
+					//console.log('COMBAT HAS ENDED!!!!!!!!!!!!!!!!! H.combat deleted!!!');
 					H.combat.clear_area();
+					console.log('deleting H.combat')
 					delete H.combat;
+					console.log('____________________________H.combat deleted (line 640)');
 				}
 				H.phase = info.phase;
 			}
@@ -620,8 +639,7 @@
 					}
 					if (info.player != H.player) {
 						unitTestPlayer('___ ', info.player, ':');
-						outputUpdatedScenario(decider,H.player);
-
+						outputUpdatedScenario(decider, H.player);
 					}
 					H.player = info.player;
 					statusMessage();
