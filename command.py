@@ -465,7 +465,7 @@ def movement_phase(G, player=None, action=None):
 		if new_battle:
 			G.temp.battles[destination] = player
 
-		if engaging or disengaging:  #@@@@@ hier hauts ihn auf! is this still relevant? yes for debugging, if this happens theres something wrong in movement generation code
+		if engaging or disengaging:  
 			assert len(border) or G.units.rules[unit.type].type != 'G', 'no border was tracked, but unit is {}'.format('engaging' if engaging else 'disengaging')
 
 		move_unit(G, unit, destination)
@@ -473,9 +473,6 @@ def movement_phase(G, player=None, action=None):
 		# decrement command points
 		cmd.value -= 1
 
-		#@@@@
-		# G.logger.write('{} moves a unit from {} to {} ({} comand points remaining)'.format(
-		# 	player, unit.tile, destination, cmd.value))
 		G.logger.write('{} moves a unit from {} to {} ({} command points remaining)'.format(
 		    player, source._id, destination, cmd.value))
 
@@ -521,6 +518,7 @@ def movement_phase(G, player=None, action=None):
 		del G.temp.battles
 
 	if not len(G.temp.commands):  # this season is complete
+		add_next_phase(G, 'Supply')
 		raise PhaseComplete
 
 	new_movement(G,player)

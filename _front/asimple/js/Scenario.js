@@ -22,6 +22,11 @@ class Scenario {
 		this.newConflict = null; //set in activateConflict if any, used in tryDeclaration
 		this.initConflictItems(G);
 
+		//diplomacy items
+		this.diplItems = {};
+		this.initDiplItems(G);
+		//console.log(this.diplItems);
+
 		unitTestConflict('conflicts:', this.conflictItems);
 	}
 	initConflictItems(G) {
@@ -41,8 +46,25 @@ class Scenario {
 			}
 		}
 	}
+	initDiplItems(G) {
+		for (const pl in this.data) {
+			if (!lookup(this.data, [pl, 'diplomacy'])) {
+				//console.log('NOPE:',pl)
+				continue;
+			}
+
+			for (const tile in this.data[pl].diplomacy) {
+				addIfKeys(this.diplItems, [pl, tile], 0);
+			}
+		}
+	}
 	initUnitItems(G) {
 		for (const pl in this.data) {
+			if (!lookup(this.data, [pl, 'units'])) {
+				//console.log('NOPE:',pl)
+				continue;
+			}
+
 			for (const tile in this.data[pl].units) {
 				for (const type in this.data[pl].units[tile]) {
 					for (const cv of this.data[pl].units[tile][type]) {
@@ -80,8 +102,8 @@ class Scenario {
 		}
 	}
 	activateConflict(G) {
-		if (this.newConflict){
-			unitTestConflict('conflict already activated',this.newConflict)
+		if (this.newConflict) {
+			unitTestConflict('conflict already activated', this.newConflict);
 			return;
 		}
 		let conflicts = lookup(this.conflictItems, [G.player]);
@@ -91,9 +113,9 @@ class Scenario {
 		if (cNext) {
 			cNext.active = true;
 			this.newConflict = cNext;
-			unitTestConflict('activateConflict: found',cNext)
-		}else{
-			unitTestConflict('activateConflict: no new conflict found')
+			unitTestConflict('activateConflict: found', cNext);
+		} else {
+			unitTestConflict('activateConflict: no new conflict found');
 		}
 	}
 	checkOpenItems() {
@@ -123,6 +145,17 @@ class Scenario {
 				}
 			}
 		}
+
+		//diplomacy goals:
+		//koennt ich so machen:
+		//for each player, diplItems = {} per player, [(nation,cnt)...]
+		//initialize: eg {Axis:[(Denmark,0)]}
+		//in try_Dipl: increment
+		//when only 3er is fulfilled
+		//options.warCond = 'units','dipl' >> when are wars activated
+		//units: it is enough to have units in position
+		//dipl: both units and diplomacy reqs must be fulfilled
+
 		return done;
 	}
 	checkOpenRequest(G) {
@@ -226,8 +259,8 @@ class Scenario {
 			if (!tuple) tuple = this.defaultMovement(G);
 		}
 
-		if (G.phase.includes('Battle')){
-			tuple = firstCond(G.tuples,t=>t[0].length == 1); //select Hit command
+		if (G.phase.includes('Battle')) {
+			tuple = firstCond(G.tuples, t => t[0].length == 1); //select Hit command
 		}
 
 		unitTestScenario('\t>>>', G.phase, G.player, tuple);
@@ -278,7 +311,7 @@ class Scenario {
 
 				//can declare war, in that moment, activate all movement towards war tile!
 				//reorient all troops towards conflict zone
-				for(const item of this.items[G.player]){
+				for (const item of this.items[G.player]) {
 					item.goalTile = c.goalTile;
 					let l = addIfKeys(this.wrongLocationItems, [G.player], []);
 					l.push(item);
@@ -291,6 +324,11 @@ class Scenario {
 		return null;
 	}
 	tryDiplomacy(G) {
+		let diplReqs = lookup(this.data, [G.player, 'diplomacy']);
+		if (diplReqs) {
+			let t = firstCond(G.tuples, x => x.length == 2 && diplReqs.includes(x[1]));
+			return t;
+		}
 		return null;
 	}
 	tryMoveUnit(G) {

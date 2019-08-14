@@ -21,7 +21,7 @@ function findClosestTile(fMetric, goalTile, tilenames) {
 	//console.log('closest tiles',best);
 	return best;
 }
-function findClosestTupleForItem(tuples, item,assets) {
+function findClosestTupleForItem(tuples, item, assets) {
 	//get all tuples that contain this unit
 	tuples = tuples.filter(x => x[0] == item.id);
 	if (tuples.length == 0) return null;
@@ -82,6 +82,9 @@ function logFormattedData(data, n, msgAfter = '') {
 	let s = makeStrings(data, ['game', 'actions', 'waiting_for', 'created']);
 	console.log('___ step ' + n, '\n' + s);
 	console.log(msgAfter);
+}
+function isANS(unitType) {
+	return ['AirForce', 'Submarine', 'Carrier', 'Fleet'].includes(unitType);
 }
 function isCardType(o) {
 	return 'obj_type' in o && endsWith(o.obj_type, 'card');
@@ -151,8 +154,8 @@ function matchAllUnits_dep(arr, pl, tile, type) {
 	}
 	return null;
 }
-function outputCombatData(title,data,H){
-	console.log('________________'+title);
+function outputCombatData(title, data, H) {
+	console.log('________________' + title);
 	console.log('H', H);
 	let c = data.temp.combat;
 	let sCombat = c == undefined ? 'undef' : c.stage + ', battles: ' + Object.keys(c.battles).toString();
@@ -189,18 +192,28 @@ function outputPlayerUnits(pl, H) {
 		console.log(u.type, u.type == 'Fleet' || u.type == 'Tank' ? '\t\t' : '\t', u.cv, '\t', u.tile, u.id);
 	}
 }
-function outputUpdatedScenario(decider, player=false) {
+function outputUpdatedScenario(decider, player = false) {
 	reqs = ''; //global var declared in index.html
 	if (decider.decisionMode == 'scenario') {
-		for (const pl in decider.scenario.items) {
-			if (player && player != pl) continue;
-			reqs += pl + '\n';
-			for (const x of decider.scenario.items[pl]) {
-				reqs += '  goal=(' + x.goalTile + ',' + x.goalCv + ') ' + x.type + ' ' + x.id;
-				if (x.unit) reqs += ' ' + x.unit.tile + ' ' + x.unit.cv;
-				reqs += '\n';
+		for (const pl of ['Axis', 'West', 'USSR']) {
+			if (pl in decider.scenario.items) {
+				if (player && player != pl) continue;
+				reqs += pl + '\n';
+				for (const x of decider.scenario.items[pl]) {
+					reqs += '  goal=(' + x.goalTile + ',' + x.goalCv + ') ' + x.type + ' ' + x.id;
+					if (x.unit) reqs += ' ' + x.unit.tile + ' ' + x.unit.cv;
+					reqs += '\n';
+				}
+			}
+			if (pl in decider.scenario.diplItems) {
+				reqs += pl + '\n';
+				for (const nat in decider.scenario.diplItems[pl]) {
+					reqs += '  ' + nat + ': ' + decider.scenario.diplItems[pl][nat];
+					reqs += '\n';
+				}
 			}
 		}
+		reqs += 'done: ' + decider.scenario.done;
 		unitTestScenario(reqs);
 	}
 }

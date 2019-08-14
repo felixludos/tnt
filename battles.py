@@ -115,12 +115,16 @@ def calc_all_retreat_options(G, player, b, c):
 					b.retreat_options.append((id, loc))
 
 def calc_mandatory_rebase_options(G, player, b, c):
+	#mand rebase for non-owner troups when no G support
 	non_owner_units = [u for u in b.fire_order if u.owner != b.owner]
 	n_o_G = [u for u in non_owner_units if u.group == 'G']
 	n_o_ANS = [u for u in non_owner_units if u.group != 'G']
 	ground_support = len(n_o_G) > 0
 	if len(n_o_ANS) and not ground_support:
 		options = xset()
+		#find out who is owner of options
+		#TODO: if more than 1 opponent?!? kann das ueberhaupt sein? need to send 2 separate option sets!!!
+		unit_owner = n_o_ANS[0].owner
 		b.mandatory_rebase_options = []
 		for ans in n_o_ANS:
 			unit = ans.unit
@@ -150,7 +154,7 @@ def calc_mandatory_rebase_options(G, player, b, c):
 			return None
 		else:
 			code = adict()
-			code[player] = options
+			code[unit_owner] = options
 			G.logger.write('{} select rebase option for ANS units'.format(player))
 			return code
 
@@ -265,9 +269,9 @@ def is_friendly(G, tilename, player):
 		return True
 	return False
 
-def no_enemy_units_left(G, c, b, enemy):
-	enemy_units = [u for u in b.fire_order if u.owner == enemy]
-	return len(enemy_units) == 0
+def no_units_left(G, c, b, player):
+	units = [u for u in b.fire_order if u.owner == player]
+	return len(units) == 0
 
 def roll_dice(G, b, player, opponent):
 	#should return number of successful hits for unit of cv=x
@@ -313,6 +317,7 @@ def land_battle_phase(G, player, action):
 		player = b.attacker if b.attacker in G.players else b.defender
 		return encode_accept(G, player)
 
+	playerParam = player
 	player = b.fire.owner
 	is_defender = player == b.defender
 	opponent = b.attacker if is_defender else b.defender  #TODO: correct! (for simplicity assuming just 1 opponent!)
@@ -434,7 +439,6 @@ def land_battle_phase(G, player, action):
 			b.stage = 'combat_action_done'
 			c.stages.append(b.stage)
 
-
 		if b.stage == 'hit':
 			assert action == None, '{}: action!!!!!'.format(b.stage)
 			G.logger.write('{}:{} {} targeting {} {}'.format(b.idx, player, b.fire.id, b.target_class, opponent))
@@ -505,7 +509,7 @@ def land_battle_phase(G, player, action):
 			b.units_hit = []
 
 			#sollte das dem user jetzt zeigen
-			if no_enemy_units_left(G, c, b, opponent):
+			if no_units_left(G, c, b, opponent):
 				b.stage = 'battle_interrupted_no_enemy_units_left'
 				c.stages.append(b.stage)
 			elif b.hits <= 0:
@@ -528,7 +532,7 @@ def land_battle_phase(G, player, action):
 				del b.hits
 				del b.outcome
 			b.idx += 1
-			if no_enemy_units_left(G, c, b, opponent):  #dont think this can happen!
+			if no_units_left(G, c, b, opponent):  #dont think this can happen!
 				b.stage = 'battle_interrupted_no_enemy_units_left'
 				c.stages.append(b.stage)
 				G.logger.write('{} has no more units! Please accept battle end!'.format(b.opponent))
@@ -536,7 +540,7 @@ def land_battle_phase(G, player, action):
 				b.stage = 'mandatory_rebase'
 				c.stages.append(b.stage)
 				G.logger.write('all units have acted, Land battle ends')
-			elif no_enemy_units_left(G,c,b,player): #after retreating last of his units
+			elif no_units_left(G,c,b,player): #after retreating last of his units
 				b.stage = 'cleanup_battle'
 				c.stages.append(b.stage)
 				G.logger.write('{} retreated last unit, Land battle ends'.format(player))
@@ -571,18 +575,20 @@ def land_battle_phase(G, player, action):
 			assert action == None, '{}: action!!!!!'.format(b.stage)
 			#determine winner
 			b.winner = b.fire_order[0].owner
+			b.stage = 'set_owner'
+			c.stages.append(b.stage)
 
+		if b.stage == 'set_owner':
 			#transfer ownership if necessary
-			G.logger.write('ownership of {} tranferred to {}'.format(b.tilename, b.winner))
-			if no_enemy_units_left(G, c, b, player):
+			G.logger.write('owner of {} is: {}'.format(b.tilename, b.winner))
+			if no_units_left(G, c, b, player):
 				#TODO do something else also done in command somewhere!!!
 				assert b.winner == opponent, 'winner ambiguous!!!!'
 				make_undisputed(G, G.tiles[b.tilename])
 				if (b.owner != opponent):
 					switch_ownership(G, G.tiles[b.tilename], opponent)
 					b.newOwner = opponent
-
-			elif no_enemy_units_left(G, c, b, opponent):
+			elif no_units_left(G, c, b, opponent):
 				assert b.winner == player, 'winner ambiguous!!!!'
 				make_undisputed(G, G.tiles[b.tilename])
 				if (b.owner != player):
@@ -595,7 +601,7 @@ def land_battle_phase(G, player, action):
 		if b.stage == 'ack_battle_decided':
 			assert action != None, '{}: no action!!!!!'.format(b.stage)
 			action = None
-			b.stage = 'mandatory_rebase'
+			b.stage = 'cleanup_battle'
 			c.stages.append(b.stage)
 
 		if b.stage == 'land_battle_finished':
@@ -610,6 +616,10 @@ def land_battle_phase(G, player, action):
 				b.stage = 'select_mandatory_rebase'
 				c.stages.append(b.stage)
 				return code
+			elif no_units_left(G, c, b, playerParam):
+				b.winner = player
+				b.stage = 'set_owner'
+				c.stages.append(b.stage)
 			else:
 				b.stage = 'cleanup_battle'
 				c.stages.append(b.stage)
@@ -626,17 +636,17 @@ def land_battle_phase(G, player, action):
 			b.selectedRetreatTile = tail[0]
 
 			id = b.selectedRetreatUnit
-			unit = G.players[player].units[id]
+			unit = G.players[playerParam].units[id]
 			tilename = b.selectedRetreatTile
 			move_unit(G, unit, tilename)
 			#er entfernt hier die fire unit!!!
 			b.fire_order = [u for u in b.fire_order if u.id != id]
 			#revert visibility to just owner!
 			unit.visible.clear()
-			unit.visible.add(player)
+			unit.visible.add(playerParam)
 
 			#if still more mandatory retreats, have to calc!
-			b.stage = mandatory_rebase
+			b.stage = 'mandatory_rebase'
 			c.stages.append(b.stage)
 
 		if b.stage == 'cleanup_battle':
@@ -863,7 +873,7 @@ def sea_battle_phase(G):
 			b.units_hit = []
 
 			#sollte das dem user jetzt zeigen
-			if no_enemy_units_left(G, c, b, opponent):
+			if no_units_left(G, c, b, opponent):
 				b.stage = 'battle_interrupted_no_enemy_units_left'
 				c.stages.append(b.stage)
 			elif b.hits <= 0:
@@ -886,7 +896,7 @@ def sea_battle_phase(G):
 				del b.hits
 				del b.outcome
 			b.idx += 1
-			if no_enemy_units_left(G, c, b, opponent):  #dont think this can happen!
+			if no_units_left(G, c, b, opponent):  #dont think this can happen!
 				b.stage = 'battle_interrupted_no_enemy_units_left'
 				c.stages.append(b.stage)
 				G.logger.write('{} has no more units! Please accept battle end!'.format(b.opponent))
@@ -928,7 +938,7 @@ def sea_battle_phase(G):
 
 			#transfer ownership if necessary
 			G.logger.write('ownership of {} tranferred to {}'.format(b.tilename, b.winner))
-			if no_enemy_units_left(G, c, b, player):
+			if no_units_left(G, c, b, player):
 				#TODO do something else also done in command somewhere!!!
 				assert b.winner == opponent, 'winner ambiguous!!!!'
 				make_undisputed(G, G.tiles[b.tilename])
@@ -936,7 +946,7 @@ def sea_battle_phase(G):
 					switch_ownership(G, G.tiles[b.tilename], opponent)
 					b.newOwner = opponent
 
-			elif no_enemy_units_left(G, c, b, opponent):
+			elif no_units_left(G, c, b, opponent):
 				assert b.winner == player, 'winner ambiguous!!!!'
 				make_undisputed(G, G.tiles[b.tilename])
 				if (b.owner != player):

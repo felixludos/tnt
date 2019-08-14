@@ -7,7 +7,9 @@ class ADecisiongen {
 		this.scenario = null;
 		this.seed = null;
 
+		this.player = null;
 		this.phase = null;
+
 		this.callback = null;
 		this.tuple = null;
 		this.tuples = [];
@@ -23,22 +25,22 @@ class ADecisiongen {
 	}
 	decideAutoplay(G) {
 		unitTestDecision('decideAutoplay', G, this.decisionMode);
+		this.player = G.player;
 		if (!this.choiceCompleted) {
 			this.choiceCompleted = true;
 
 			//select tuple
-			if (this.decisionMode == 'scenario' && this.scenario != null){
+			if (this.decisionMode == 'scenario' && this.scenario != null) {
 				//let scenario agent find a matching tuple to its goal description, tuple[0] if none
 				// let container = document.getElementById('divSelect');
 				this.tuple = this.scenario.findMatch(G);
-				if (!this.tuple){
+				if (!this.tuple) {
 					this.tuple = this.tuples[0];
 					// this.choiceCompleted = false;
 					// this.UI.startManualSelection(this.phase, this.tuples, container, this.onSelected.bind(this));
 					// return;
 				}
-
-			}else if (this.decisionMode == 'priority') {
+			} else if (this.decisionMode == 'priority') {
 				// use simple priority list, take tuple containing highest priority keyword if any
 				//default: take tuple[0]
 				let found = false;
@@ -52,7 +54,6 @@ class ADecisiongen {
 				}
 				if (!found) this.tuple = this.tuples[0];
 				console.log(this.tuple);
-
 			} else if (this.decisionMode == 'server') {
 				//take random number generator from server and use that tuple
 				let info = G.serverData.choice;
@@ -64,13 +65,11 @@ class ADecisiongen {
 				if (!sameList(this.tuple, info.tuple)) {
 					alert('decideAutoplay: tuple incorrect!!! ' + this.tuple.toString() + ' should be ' + info.tuples.toString());
 				}
-
 			} else if (this.decisionMode == 'seed') {
 				// take client seed as random seed and use that tuple
 				let n = this.nextRandom(this.tuples.length);
 				this.tuple = this.tuples[n];
 				unitTestChoice('decideAutoplay seed decision:', n, this.tuple);
-
 			} else {
 				//whatever playerStrategy would say, dont remember unfortunately!
 				this.tuple = this.playerStrategy[G.player].chooseTuple(G);
@@ -80,7 +79,6 @@ class ADecisiongen {
 			this.UI.restoreNoFilterHighlightType(false);
 			this.highlightChosenTuple(this.tuple);
 			setTimeout(() => this.callback(this.tuple), 10); // leave user time to see what happened!
-
 		} else {
 			alert('decideAutoplay: already selected!!!');
 		}
@@ -114,7 +112,7 @@ class ADecisiongen {
 		let index = this.tuples.indexOf(tuple);
 		let i = Object.keys(this.choiceList).length;
 		let s = '' + index + ':' + tuple.toString();
-		unitTestChoicemin(i, 'th choice', index, 'of', this.tuples.length, ':', this.tuple.toString());
+		unitTestChoicemin('' + i + ': ' + this.player + '(' + index + '/' + this.tuples.length + '): ' + this.tuple.toString());
 		this.choiceList[i] = {index: index, tuple: tuple};
 		let d = document.getElementById('divSelect');
 		let els = document.getElementsByTagName('a');
@@ -122,8 +120,8 @@ class ADecisiongen {
 		el.classList.add('selected');
 		ensureInView(d, el);
 	}
-	loadScenario(data,G) {
-		this.scenario = new Scenario(this.assets,data,G);
+	loadScenario(data, G) {
+		this.scenario = new Scenario(this.assets, data, G);
 		this.decisionMode = 'scenario';
 	}
 	nextRandom(max) {

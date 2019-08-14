@@ -68,7 +68,20 @@ class ABattle {
 	unhightlightUnits() {
 		for (const id in this.ms) {
 			let ms = this.ms[id];
+			console.log('unhighlighting', ms.getTag('owner'), ms.getTag('type'));
 			ms.unhighlight();
+		}
+	}
+	highlightANS(pl) {
+		for (const id in this.ms) {
+			let ms = this.ms[id];
+			let type = ms.getTag('type');
+			let owner = ms.getTag('owner');
+			if (owner == pl && isANS(type)) {
+				if (!ms.getTag('dead') && !ms.getTag('removed')) {
+					ms.highlight();
+				}
+			}
 		}
 	}
 	highlightTargetClass() {
@@ -83,14 +96,25 @@ class ABattle {
 			ms.unhighlight();
 		}
 	}
-	markAsRetreated(id){
+	markMandatoryRebased(b_old, b) {
+		//check if any units have rebased?
+		//is any unit not in b.fire_order that was in b_old.fire_order?
+		for (const u of b_old.fire_order) {
+			let id = u.id;
+			let unitInB = firstCond(b.fire_order, x => x.id == id);
+			if (!unitInB) {
+				this.markAsRetreated(id);
+			}
+		}
+	}
+	markAsRetreated(id) {
 		let ms = this.ms[id];
 		//console.log('RETREATED:',ms)
 		ms.unhighlight();
-		ms.selKeyColor('darkSlateGrey',.7);
-
+		ms.selKeyColor('darkSlateGrey', 0.7);
+		ms.tag('removed', true);
 	}
-	selectTheDead(b_old,b_new){
+	selectTheDead(b_old, b_new) {
 		let degraded = '';
 		let removed = '';
 		let message = '';
@@ -108,7 +132,8 @@ class ABattle {
 				}
 			} else {
 				this.updateCv(ms, 0);
-				ms.selColor('black',0.8);
+				ms.selColor('black', 0.8);
+				ms.tag('dead', true);
 				removed += ' ' + id.toString();
 			}
 		}
@@ -143,11 +168,11 @@ class ABattle {
 	createUnit(id, gName, type, nationality) {
 		// let type = 'Infantry';
 		// let nationality = 'France';
-		let owner = 'West';
+		let owner = getUnitOwner(nationality);
 		let imagePath = '/a/assets/images/' + type + '.svg';
 		////console.log(id,gName,type,nationality,this.assets.troopColors)
 		let isMinorColor = !(nationality in this.assets.troopColors);
-		let color = isMinorColor?this.assets.troopColors['Minor']:this.assets.troopColors[nationality];
+		let color = isMinorColor ? this.assets.troopColors['Minor'] : this.assets.troopColors[nationality];
 		let darker = darkerColor(color[0], color[1], color[2]);
 		let sz = this.assets.SZ.cadreDetail;
 		let sz80 = sz * 0.86;
@@ -159,7 +184,7 @@ class ABattle {
 			.roundedRect({w: sz80, h: sz80, fill: darker, rounding: sz * 0.1})
 			.image({path: imagePath, y: y, w: szImage, h: szImage})
 			.roundedRect({className: 'unit overlay', w: sz, h: sz, fill: darker, rounding: sz * 0.1});
-		ms.tag('type', 'unit');
+		ms.tag('type', type);
 		ms.tag('owner', owner);
 		ms.tag('nationality', nationality);
 		return ms;
@@ -314,21 +339,28 @@ class ABattle {
 			//console.log()
 			this.showHits(b.outcome);
 		} else if (b.stage == 'ack_retreat') {
-			message = b.selectedRetreatUnit + ' HAS RETREATED TO '+ b.selectedRetreatTile;
+			message = b.selectedRetreatUnit + ' HAS RETREATED TO ' + b.selectedRetreatTile;
 			//retreated unit is file
-			this.markAsRetreated(b.fire.id)
+			this.markAsRetreated(b.fire.id);
+		} else if (b.stage == 'select_mandatory_rebase') {
+			this.markMandatoryRebased(b_old, b);
+			message = H.player + ', SELECT MANDATORY REBASE OPTION';
+			//unhighlight all units,
+			this.unhightlightUnits();
+			//highlight all units that belong to H.player
+			this.highlightANS(H.player);
 		} else if (b.stage == 'accept_outcome') {
-			if (this.diceRolling){
+			if (this.diceRolling) {
 				message = b.outcome + ' HITS HITTING ' + b.units_hit.map(u => u.id + '(' + u.type + ')').join(' ') + ': PLEASE ACCEPT!';
 				this.stopDiceAnimation(b.fire);
 				this.showHits(b.outcome);
 				//console.log('b.idx='+b.idx)
-				let f = b.fire_order[b.idx]
+				let f = b.fire_order[b.idx];
 				//console.log(f.owner,f.type)
 				//console.log(b.fire_order.length,'units remaining in fire_order!')
-				}else{
-					message = this.selectTheDead(b_old,b);
-				}
+			} else {
+				message = this.selectTheDead(b_old, b);
+			}
 		} else if (b.stage == 'ack_combat_action_done') {
 			//compare each unit in b_old.fire_order to units in b.fire_order;
 			//if unit has been removed from fire_order, set cv to 0 and select it in red
@@ -336,102 +368,34 @@ class ABattle {
 			//if unit has been moved b retreat (attacker's unit in fire order missing!), remove it from battle
 			this.unhighlightTargetClass(b_old);
 			if (b.combat_action == 'hit') {
-				message = this.selectTheDead(b_old,b);
+				message = this.selectTheDead(b_old, b);
 			} else {
 				message = b.fire.id + ' has retreated. Please accept!';
 			}
-		}else if (b.stage == 'ack_battle_interrupted_no_enemy_units_left') {
+		} else if (b.stage == 'ack_battle_interrupted_no_enemy_units_left') {
 			//compare each unit in b_old.fire_order to units in b.fire_order;
 			//if unit has been removed from fire_order, set cv to 0 and select it in red
 			//if unit has lower cv than before, reflect that
 			//if unit has been moved b retreat (attacker's unit in fire order missing!), remove it from battle
 			if (b.combat_action == 'hit') {
-				this.selectTheDead(b_old,b);
-			} 
-			message = 'BATTLE ENDS HERE: NO ENEMY UNITS LEFT!!!'
-		}else if (b.stage == 'ack_battle_decided') {
-			if (b.winner == b.owner){
-				message = b.winner +' has defended his territory! please accept!';
-			}else{
-				message = b.winner+' has conquered new territory!!! please accept!';
+				this.selectTheDead(b_old, b);
 			}
-		}else if (b.stage == 'ack_cleanup_battle') {
-			message = 'battle in '+b.tilename+' is ending! please accept!';
+			message = 'BATTLE ENDS HERE: NO ENEMY UNITS LEFT!!!';
+		} else if (b.stage == 'ack_battle_decided') {
+			if (b.winner == b.owner) {
+				message = b.winner + ' has defended his territory! please accept!';
+			} else {
+				message = b.winner + ' has conquered new territory!!! please accept!';
+			}
+		} else if (b.stage == 'ack_cleanup_battle') {
+			message = 'battle in ' + b.tilename + ' is ending! please accept!';
 			this.unhightlightUnits();
+			this.markMandatoryRebased(b_old, b)
 			this.unselectBattle();
 		}
 
 		unitTestBattle('____________');
 		return message;
-
-		// if (this.roundCounter > 0) {
-		// 	message = 'NEXT BATTLE ROUND! PLEASE ACCEPT TO START...';
-		// } else {
-		// 	message = 'BATTLE IN ' + c.battle.tilename.toUpperCase() + ': PLEASE ACCEPT!';
-		// }
-		// this.roundCounter += 1;
-
-		// if (b.stage == 'select_command') {
-		// 	message = 'SELECT TARGET CLASS OR RETREAT OPTIONS OR ACCEPT!!!';
-		// } else if (b.stage == 'ack_combat_action') {
-		// 	let uFire = c.battle.fire;
-		// 	if (c.battle.combat_action == 'hit') {
-		// 		message = 'UNIT ' + uFire.id + ' (' + uFire.type + ') IS TARGETING ' + c.battle.target_class + ': PLEASE ACCEPT!';
-		// 		this.battle.startDiceAnimation(c.battle.fire);
-		// 	} else {
-		// 		message = 'UNIT ' + uFire.id + ' (' + uFire.type + ') IS RETREATING TO ' + c.battle.retreats[uFire.id] + ': PLEASE ACCEPT!';
-		// 	}
-		// } else if (b.stage == 'hit') {
-		// 	message = 'DAMAGE: ' + c.battle.hits + '!!!' + 'PICK UNIT TAKING DAMAGE OR ACCEPT!';
-		// } else if (b.stage == 'accept_no_hits') {
-		// 	message = 'HITS = 0, SO NO DAMAGE! PLEASE ACCEPT...';
-		// } else if (b.stage == 'select_hit') {
-		// 	message = 'CHOOSE UNIT TYPE THAT TAKES HITs!';
-		// } else if (b.stage == 'damage') {
-		// 	message = 'DAMAGE TAKEN: PLEASE ACCEPT!';
-		// } else if (b.stage == 'done') {
-		// 	if ('battle' in c && 'outcome' in c.battle) {
-		// 		message = 'APPLIED ' + c.battle.outcome + ' HITS! ACCEPT TO PROCEED...';
-		// 	}
-		// 	//unhighlight all units!!! in fire order!!!!
-		// 	this.battle.roundEnding();
-		// }
-
-		// //TODO: das alles in battle update machen!!!
-		// if ('battle' in c) {
-		// 	if ('outcome' in c.battle && b.stage == 'done') {
-		// 		this.battle.stopDiceAnimation(c.battle.fire);
-		// 		this.battle.showHits(c.battle.outcome);
-		// 	}
-		// 	if (this.battle && this.battle.location != c.battle.tilename) {
-		// 		this.battle.unselectBattle();
-		// 	} else if (!this.battle || this.battle.location != c.battle.tilename) {
-		// 		this.battle = this.battles[c.battle.tilename];
-		// 		this.battle.selectBattle();
-		// 		unitTestBattle('SELECTED:', c.battle.tilename);
-		// 	}
-		// 	this.battle.update(c, H);
-		// }
-
-		// if ('fire' in data.battle) {
-		// 	let fire = this.ms[data.battle.fire.id];
-		// 	if (this.activeUnit != fire) {
-		// 		if (this.activeUnit) this.activeUnit.unhighlight();
-		// 		this.activeUnit = fire;
-		// 		fire.highlight();
-		// 		this.fire = data.battle.fire;
-		// 	}
-		// 	unitTestBattle('ACTIVE FIRE UNIT:', fire);
-		// }
-		// if ('target_class' in data.battle && data.battle.target_class) {
-		// 	let target_class = data.battle.target_class;
-		// 	let units = data.battle.target_units;
-		// 	for (const id in units) {
-		// 		this.ms[id].highlight();
-		// 	}
-		// 	unitTestBattle('TARGET UNITS:', units.toString());
-		// }
-		// this.mirror_units(data, H);
 	}
 	updateCv(ms, cv) {
 		ms.removeFromChildIndex(5);

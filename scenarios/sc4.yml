@@ -1,0 +1,13 @@
+options:
+  done: diplomacy
+  nomatch: null
+  priority: movement
+West:
+  units:
+    London:
+      Fleet: [2]
+    Baltic_Sea:
+      Fleet: [1]
+Axis:
+  diplomacy: 
+    Denmark: 3

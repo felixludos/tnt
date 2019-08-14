@@ -3,6 +3,7 @@ from tnt_cards import discard_cards
 from tnt_units import add_unit, move_unit, remove_unit
 from tnt_util import travel_options
 from government import check_revealable, reveal_tech
+from command import powers_present
 import random
 
 border_types = {
@@ -47,7 +48,7 @@ def find_path(G,
 			return False
 	else:  # sea/ocean
 		wars = G.players[player].stats.at_war_with
-		powers = present_powers(G, tile)
+		powers = powers_present(G, tile)
 
 		for power in powers:
 			if power in wars and wars[power]:
@@ -67,7 +68,7 @@ def find_path(G,
 				switch_current = border_types[border]
 			elif border_types[border] is not None and switch_current != border_types[border]:
 				budget -= 1
-				group = border_types[border_types]
+				group = border_types[border]
 
 			if budget < 0:
 				continue
@@ -77,7 +78,7 @@ def find_path(G,
 
 		if find_path(
 		    G,
-		    loc,
+		    neighbor,
 		    goals,
 		    player,
 		    neutrals=neutrals,
@@ -92,14 +93,14 @@ def blockade_phase(G, player, action):
 
 	print('blockade_phase............\n', G.players)
 	for pl in G.players:
-		faction = G.players[pl]  #@@@@
+		faction = G.players[pl]  
 
 		if not faction.stats.at_war:
 			G.logger.write('{} is at peace, so there are no blockades'.format(pl))
 			continue
 
-		goals = xset()
-		goals.add(faction.stats.cities.MainCapital) #keyError cities!!!
+		goals = xset(faction.cities.SubCapitals)
+		goals.add(faction.cities.MainCapital) #keyError cities!!!
 
 		for tilename in faction.territory:
 
@@ -168,16 +169,17 @@ def blockade_phase(G, player, action):
 
 def supply_phase(G, player, action):
 
-	for pl, faction in G.players:
+	for pl in G.players:
+		faction = G.players[pl]  
 
-		goals = xset(faction.stats.cities.SubCapitals)
-		goals.add(faction.stats.cities.MainCapital)
+		goals = xset(faction.cities.SubCapitals)
+		goals.add(faction.cities.MainCapital)
 
 		if not faction.stats.at_war:
 			G.logger.write('{} is at peace, so all units are supplied'.format(pl))
 			continue
 
-		for uid, unit in faction.units:
+		for uid, unit in faction.units.items():
 			if unit.type == 'Fortress' or G.units.rules[unit.type].type != 'G':
 				continue
 

@@ -62,7 +62,7 @@
 			</div> -->
 			<div id="status_area" class="grid_div" style="text-align:left">
 				<div style="width:80px;float:left;margin-left:10px;" id="status_player"></div>
-				<div style="width:180px;float:left;margin-left:10px;" id="status_phase"></div>
+				<div style="width:250px;float:left;margin-left:10px;" id="status_phase"></div>
 				<div style="width:80px;float:left;margin-left:10px;" id="status_year"></div>
 				<div style="float:right;margin-right:10px;" id="status_message"></div>
 			</div>
@@ -76,7 +76,9 @@
 			<div id="edit_area" class="grid_div">
 				<button id="bStop" class="hidden" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
 				<div id="uiEditButtons">
-					<button id="bStep" onclick="onClickStep()">step</button>
+					<button style='height:44px' id="bStep" onclick="onClickStep()">STEP</button>
+					<input style="margin-top:20px;width:100px;text-align:center" type="number" id="inSteps" value="10" />
+					<button id="bStep" onclick="onClickSteps()">steps</button>
 					<br />
 					<br />
 					<button onclick="onClickRunToPlayer('West')">West</button>
@@ -334,6 +336,8 @@
 				sendLoadScenario2(H.player, fname, d => {
 					decider.loadScenario(d, H);
 					console.log('___________...scenario loaded:', fname, 'decisionMode=' + decider.decisionMode);
+					outputUpdatedScenario(decider)
+
 					gameloop(H.serverData);
 				});
 			}
@@ -417,6 +421,19 @@
 				execOptions.skipCond = () => false;
 				decider.onClickStep(H);
 			}
+			function onClickSteps() {
+				STOP = false;
+				showStop();
+
+				let n = document.getElementById('inSteps').value;
+				stepCounter = Number(n) + 1;
+				console.log('steps:', stepCounter - 1);
+				execOptions.skipCond = () => {
+					if (stepCounter > 1) stepCounter -= 1;
+					return stepCounter > 1;
+				};
+				decider.onClickStep(H);
+			}
 			function onClickStop() {
 				unitTestControl('*** clicked STOP!!! ***');
 				STOP = true;
@@ -459,7 +476,9 @@
 				//let s = H.player + " " + H.phase + " " + H.year;
 				document.getElementById('status_player').innerHTML = H.player;
 				document.getElementById('status_player').style.color = fromArrayDarker(assets.troopColors[H.player]);
-				document.getElementById('status_phase').innerHTML = H.phase;
+				let seasonInfo = H.phase == 'Movement' || H.phase == 'Combat' || H.phase.includes('Battle')?
+					H.lastSeason + ':' : '';
+				document.getElementById('status_phase').innerHTML = seasonInfo + H.phase;
 				document.getElementById('status_year').innerHTML = H.year;
 				if (!empty(msg)) document.getElementById('status_message').innerHTML = msg;
 			}
@@ -485,7 +504,7 @@
 
 		<script>
 			function startScript() {
-				setDefaultFilenames('north_sea', 'sc2');
+				setDefaultFilenames('north_sea', 'sc4');
 
 				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
 
@@ -499,9 +518,9 @@
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('stage', execOptions.activatedTests);
+				addIfComma('choicemin', execOptions.activatedTests);
 
-				execOptions.commandChain.push(() => onClickLoadScenario('sc0'));
+				execOptions.commandChain.push(() => onClickLoadScenario());
 
 				// onClickReload('sc1'); //('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
 				onClickRestart(); //for scenario testing!
@@ -604,6 +623,8 @@
 			function phaseChange(data) {
 				let info = data.info.game;
 				unitTestGameloop('PHASE CHANGE!!!', H.phase, 'turning to:', info.phase);
+				unitTestSeason('H',H)
+				unitTestSeason('data.info',data.info)
 				if (!('combat' in H) && lookup(data, ['temp', 'combat', 'battles']) && !emptyDict(data.temp.combat.battles)) {
 					// (H.phase == 'Setup' || H.phase == 'Movement')
 					// && (info.phase == 'Combat' || info.phase.includes('Battle'))
@@ -613,8 +634,7 @@
 					//console.log('NEW COMBAT PHASE!!!!!!! data:', data.temp.combat);
 					//console.log('H.phase', H.phase, 'info.phase', info.phase);
 
-
-					console.log('creating H.combat')
+					console.log('creating H.combat');
 					H.combat = new ACombat(page, assets, data.temp.combat, 'battle_area');
 				} else if ('combat' in H && !lookup(data, ['temp', 'combat'])) {
 					//info.phase == 'Movement') {
@@ -622,11 +642,14 @@
 					page.selectView();
 					//console.log('COMBAT HAS ENDED!!!!!!!!!!!!!!!!! H.combat deleted!!!');
 					H.combat.clear_area();
-					console.log('deleting H.combat')
+					console.log('deleting H.combat');
 					delete H.combat;
 					console.log('____________________________H.combat deleted (line 640)');
 				}
 				H.phase = info.phase;
+				if (['Spring','Summer','Fall','Winter'].includes(H.phase)){
+					H.lastSeason = H.phase;
+				}
 			}
 			function updateMovePlayerPhaseYear(data) {
 				H.moveCounter += 1;
@@ -639,7 +662,7 @@
 					}
 					if (info.player != H.player) {
 						unitTestPlayer('___ ', info.player, ':');
-						outputUpdatedScenario(decider, H.player);
+						outputUpdatedScenario(decider);//, H.player);
 					}
 					H.player = info.player;
 					statusMessage();
@@ -792,6 +815,7 @@
 
 			//control flow
 			var STOP; //to interrupt autoplay
+			var stepCounter = 1;
 			var autoplay = false;
 			const defaultSkipCond = () => false; //manual play or step by step, !execOptions.manualPlay.includes(H.player);
 			var execOptions = {
