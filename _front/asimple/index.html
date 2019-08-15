@@ -76,15 +76,23 @@
 			<div id="edit_area" class="grid_div">
 				<button id="bStop" class="hidden" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
 				<div id="uiEditButtons">
-					<button style='height:44px' id="bStep" onclick="onClickStep()">STEP</button>
+					<button style="height:44px" id="bStep" onclick="onClickStep()">STEP</button>
+					<!-- <br />
+					<br />
+					<button onclick="onClickRunToAxisSpring()">Axis Spring</button> -->
+					<br />
+					<br />
 					<input style="margin-top:20px;width:100px;text-align:center" type="number" id="inSteps" value="10" />
 					<button id="bStep" onclick="onClickSteps()">steps</button>
+					<br />
+					<br />
+					<button onclick="onClickRunToPlayer('Axis')">Axis</button>
+					<button onclick="onClickRunToPhase('Government')">gov</button>
 					<br />
 					<br />
 					<button onclick="onClickRunToPlayer('West')">West</button>
 					<button onclick="onClickRunToPlayerChange(H.player)">next player</button>
 					<button onclick="onClickRunToPhase('Production')">prod</button>
-					<button onclick="onClickRunToPhase('Government')">gov</button>
 					<button onclick="onClickRunToPhase('Spring')">spring</button>
 					<button onclick="onClickRunToPhase('Summer')">summer</button>
 					<button onclick="onClickRunToPhase('Fall')">fall</button>
@@ -336,7 +344,7 @@
 				sendLoadScenario2(H.player, fname, d => {
 					decider.loadScenario(d, H);
 					console.log('___________...scenario loaded:', fname, 'decisionMode=' + decider.decisionMode);
-					outputUpdatedScenario(decider)
+					outputUpdatedScenario(decider);
 
 					gameloop(H.serverData);
 				});
@@ -346,11 +354,12 @@
 				showStop();
 				execOptions.skipCond = () => !decider.scenario.done;
 
-				if (decider.decisionMode != 'scenario') {
-					onClickLoadScenario();
-				} else {
-					decider.onClickStep(H);
-				}
+				onClickLoadScenario(); // realign with scenario first!
+				// if (decider.decisionMode != 'scenario') {
+				// 	onClickLoadScenario();
+				// } else {
+				// 	decider.onClickStep(H);
+				// }
 			}
 			function onClickReload(defaultFName) {
 				let fname = document.getElementById('inFilename').value;
@@ -476,8 +485,7 @@
 				//let s = H.player + " " + H.phase + " " + H.year;
 				document.getElementById('status_player').innerHTML = H.player;
 				document.getElementById('status_player').style.color = fromArrayDarker(assets.troopColors[H.player]);
-				let seasonInfo = H.phase == 'Movement' || H.phase == 'Combat' || H.phase.includes('Battle')?
-					H.lastSeason + ':' : '';
+				let seasonInfo = H.phase == 'Movement' || H.phase == 'Combat' || H.phase.includes('Battle') ? H.lastSeason + ':' : '';
 				document.getElementById('status_phase').innerHTML = seasonInfo + H.phase;
 				document.getElementById('status_year').innerHTML = H.year;
 				if (!empty(msg)) document.getElementById('status_message').innerHTML = msg;
@@ -503,8 +511,15 @@
 		<!-- #endregion UI / handlers -->
 
 		<script>
+			function onClickRunToAxisSpring() {
+				STOP = false;
+				showStop();
+				execOptions.skipCond = () => H.player != 'Axis' || H.phase != 'Spring';
+				//console.log(H);
+				decider.onClickStep(H);
+			}
 			function startScript() {
-				setDefaultFilenames('north_sea', 'sc4');
+				setDefaultFilenames('north_sea', 'sc5');
 
 				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
 
@@ -623,8 +638,8 @@
 			function phaseChange(data) {
 				let info = data.info.game;
 				unitTestGameloop('PHASE CHANGE!!!', H.phase, 'turning to:', info.phase);
-				unitTestSeason('H',H)
-				unitTestSeason('data.info',data.info)
+				unitTestSeason('H', H);
+				unitTestSeason('data.info', data.info);
 				if (!('combat' in H) && lookup(data, ['temp', 'combat', 'battles']) && !emptyDict(data.temp.combat.battles)) {
 					// (H.phase == 'Setup' || H.phase == 'Movement')
 					// && (info.phase == 'Combat' || info.phase.includes('Battle'))
@@ -647,7 +662,7 @@
 					console.log('____________________________H.combat deleted (line 640)');
 				}
 				H.phase = info.phase;
-				if (['Spring','Summer','Fall','Winter'].includes(H.phase)){
+				if (['Spring', 'Summer', 'Fall', 'Winter'].includes(H.phase)) {
 					H.lastSeason = H.phase;
 				}
 			}
@@ -662,7 +677,7 @@
 					}
 					if (info.player != H.player) {
 						unitTestPlayer('___ ', info.player, ':');
-						outputUpdatedScenario(decider);//, H.player);
+						outputUpdatedScenario(decider); //, H.player);
 					}
 					H.player = info.player;
 					statusMessage();
@@ -812,6 +827,7 @@
 		<script>
 			//testing global vars to check if necessary
 			var reqs;
+			var sc;
 
 			//control flow
 			var STOP; //to interrupt autoplay

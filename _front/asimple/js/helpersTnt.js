@@ -193,6 +193,7 @@ function outputPlayerUnits(pl, H) {
 	}
 }
 function outputUpdatedScenario(decider, player = false) {
+	sc = decider.scenario;
 	reqs = ''; //global var declared in index.html
 	if (decider.decisionMode == 'scenario') {
 		for (const pl of ['Axis', 'West', 'USSR']) {
@@ -205,15 +206,23 @@ function outputUpdatedScenario(decider, player = false) {
 					reqs += '\n';
 				}
 			}
-			if (pl in decider.scenario.diplItems) {
+			if (pl in decider.scenario.diplItemsTodo) {
 				reqs += pl + '\n';
-				for (const nat in decider.scenario.diplItems[pl]) {
-					reqs += '  ' + nat + ': ' + decider.scenario.diplItems[pl][nat];
+				for (const nat in decider.scenario.diplItemsTodo[pl]) {
+					let ist = lookup(decider.scenario.diplItems,[pl,nat]);
+					ist = ist ? ist:0;
+					reqs += '  ' + nat + ': ' + decider.scenario.diplItemsTodo[pl][nat]+' (is '+ist+')';
 					reqs += '\n';
 				}
 			}
 		}
 		reqs += 'done: ' + decider.scenario.done;
+		if (!empty(decider.scenario.satellites)){
+			reqs += '\nsatellites:\n';
+			for(const n in decider.scenario.satellites){
+				reqs += '  '+n+': '+decider.scenario.satellites[n];
+			}
+		}
 		unitTestScenario(reqs);
 	}
 }

@@ -1,0 +1,18 @@
+options:
+  done: diplomacy
+  nomatch: null
+  priority: movement
+West:
+  units:
+    Paris:
+      Infantry: [2,1]
+    Baltic_Sea:
+      Fleet: [2,1]
+Axis:
+  units:
+    Ruhr:
+      Fleet: [1]
+  diplomacy: 
+    Denmark: 3
+conflicts:
+  Milan: [West, Axis]
