@@ -76,10 +76,19 @@
 			<div id="edit_area" class="grid_div">
 				<button id="bStop" class="hidden" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
 				<div id="uiEditButtons">
-					<div id='specialButtons'>
-
-					</div>
-					<div id="allButtons">
+					<input style="margin-top:20px;width:100px;text-align:center" type="number" id="inSteps" value="4" />
+					<button id="bStep" onclick="onClickSteps()">steps</button>
+					<br />
+					<br />
+					<button style="height:44px" id="bStep" onclick="onClickStep()">STEP</button>
+					<button onclick="onClickRunToPlayerChange(H.player)">next player</button>
+					<button onclick="onClickRunToScenarioDone()">run to scenario</button>
+					<br />
+					<br />
+					<div id="specialButtons"></div>
+					<br />
+					<br />
+					<div id="allButtons" class='hidden'>
 						<button style="height:44px" id="bStep" onclick="onClickStep()">STEP</button>
 						<!-- <br />
 							<br />
@@ -95,7 +104,6 @@
 						<br />
 						<br />
 						<button onclick="onClickRunToPlayer('West')">West</button>
-						<button onclick="onClickRunToPlayerChange(H.player)">next player</button>
 						<button onclick="onClickRunToPhase('Production')">prod</button>
 						<button onclick="onClickRunToPhase('Spring')">spring</button>
 						<button onclick="onClickRunToPhase('Summer')">summer</button>
@@ -105,7 +113,6 @@
 						<button onclick="onClickRunToEnd()">run to end</button>
 						<br />
 						<br />
-						<button onclick="onClickRunToScenarioDone()">run to scenario</button>
 						<button onclick="onClickUnits('West')">units West</button>
 						<!-- <button onclick="onClickUnits('Axis')">units Axis</button> -->
 						<br />
@@ -524,8 +531,18 @@
 				decider.onClickStep(H);
 			}
 			function makeTestButton(funcStop) {
-				
-				let d = document.getElementById('specialButtons');
+				let dShow = document.getElementById('specialButtons');
+				let dHide = document.getElementById('allButtons');
+				hide(dHide);
+				let b = document.createElement('button');
+				b.innerHTML = 'test';
+				b.onclick = () => {
+					STOP = false;
+					showStop();
+					execOptions.skipCond = () => !funcStop();
+					decider.onClickStep(H);
+				};
+				dShow.appendChild(b);
 			}
 			function startScript() {
 				setDefaultFilenames('north_sea', 'sc7');
@@ -672,6 +689,11 @@
 					delete H.combat;
 					console.log('____________________________H.combat deleted (line 640)');
 				}
+				if (isSeason(info.phase)) {
+					H.season = info.phase;
+				} else if (info.phase == 'Production') {
+					H.season = null;
+				}
 				H.phase = info.phase;
 				if (['Spring', 'Summer', 'Fall', 'Winter'].includes(H.phase)) {
 					H.lastSeason = H.phase;
@@ -720,6 +742,7 @@
 				H.player = player;
 				H.year = 1935;
 				H.phase = 'Setup';
+				H.season = null;
 				//start info
 				H.start = {};
 				H.start.player = player;

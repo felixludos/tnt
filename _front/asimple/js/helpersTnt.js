@@ -99,6 +99,9 @@ function isANS(unitType) {
 function isCardType(o) {
 	return 'obj_type' in o && endsWith(o.obj_type, 'card');
 }
+function isSeason(ph){
+	return ['Spring', 'Summer', 'Fall', 'Winter'].includes(ph)
+}
 function isVisibleToPlayer(o, player) {
 	let vis = getVisibleSet(o);
 	if (vis && vis.includes(player)) return true;
