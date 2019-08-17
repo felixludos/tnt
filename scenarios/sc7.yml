@@ -1,0 +1,15 @@
+options:
+  done: diplomacy
+  nomatch: null
+  priority: movement
+  garrison_type: Infantry
+  unit_types: [Tank, Infantry, Fleet]
+West:
+  units:
+    North_Sea:
+      Infantry: [2,1,1]
+      Fleet: [1]
+    Paris:
+      Infantry: [2,1]
+conflicts:
+  Amsterdam: [West,Low_Countries]

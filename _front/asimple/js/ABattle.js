@@ -387,6 +387,7 @@ class ABattle {
 			} else {
 				message = b.winner + ' has conquered new territory!!! please accept!';
 			}
+			this.selectTheDead(b_old, b);
 		} else if (b.stage == 'ack_cleanup_battle') {
 			message = 'battle in ' + b.tilename + ' is ending! please accept!';
 			this.unhightlightUnits();

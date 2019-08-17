@@ -401,7 +401,7 @@ def travel_options(G, unit):
 		if 'emergency' in cmd or disengaging is not None:
 			defensive = True
 
-		xing = crossings if cls == 'G' and (not defensive or disengaging is not None) else None
+		xing = crossings if (cls == 'G' or unit.type == 'Convoy') and (not defensive or disengaging is not None) else None
 
 		# if defensive:
 		# 	1+1

@@ -76,40 +76,45 @@
 			<div id="edit_area" class="grid_div">
 				<button id="bStop" class="hidden" style="color:white;background-color:red" onclick="onClickStop()">STOP</button>
 				<div id="uiEditButtons">
-					<button style="height:44px" id="bStep" onclick="onClickStep()">STEP</button>
-					<!-- <br />
-					<br />
-					<button onclick="onClickRunToAxisSpring()">Axis Spring</button> -->
-					<br />
-					<br />
-					<input style="margin-top:20px;width:100px;text-align:center" type="number" id="inSteps" value="10" />
-					<button id="bStep" onclick="onClickSteps()">steps</button>
-					<br />
-					<br />
-					<button onclick="onClickRunToPlayer('Axis')">Axis</button>
-					<button onclick="onClickRunToPhase('Government')">gov</button>
-					<br />
-					<br />
-					<button onclick="onClickRunToPlayer('West')">West</button>
-					<button onclick="onClickRunToPlayerChange(H.player)">next player</button>
-					<button onclick="onClickRunToPhase('Production')">prod</button>
-					<button onclick="onClickRunToPhase('Spring')">spring</button>
-					<button onclick="onClickRunToPhase('Summer')">summer</button>
-					<button onclick="onClickRunToPhase('Fall')">fall</button>
-					<button onclick="onClickRunToPhase('Movement')">movement</button>
-					<button onclick="onClickRunToPhase('Combat')">combat</button>
-					<button onclick="onClickRunToEnd()">run to end</button>
-					<br />
-					<br />
-					<button onclick="onClickRunToScenarioDone()">run to scenario</button>
-					<button onclick="onClickUnits('West')">units West</button>
-					<!-- <button onclick="onClickUnits('Axis')">units Axis</button> -->
-					<br />
-					<br />
-					<!-- <button onclick="onClickRunToBattleDecided()">run to battle decided</button>
-					<button onclick="onClickMoveUnitsToRuhr()">move units to RUHR</button>
-					<button onclick="onClick5347()">5347</button>
-					<button onclick="onClickSeaBattle()">Sea Battle</button> -->
+					<div id='specialButtons'>
+
+					</div>
+					<div id="allButtons">
+						<button style="height:44px" id="bStep" onclick="onClickStep()">STEP</button>
+						<!-- <br />
+							<br />
+							<button onclick="onClickRunToAxisSpring()">Axis Spring</button> -->
+						<br />
+						<br />
+						<input style="margin-top:20px;width:100px;text-align:center" type="number" id="inSteps" value="4" />
+						<button id="bStep" onclick="onClickSteps()">steps</button>
+						<br />
+						<br />
+						<button onclick="onClickRunToPlayer('Axis')">Axis</button>
+						<button onclick="onClickRunToPhase('Government')">gov</button>
+						<br />
+						<br />
+						<button onclick="onClickRunToPlayer('West')">West</button>
+						<button onclick="onClickRunToPlayerChange(H.player)">next player</button>
+						<button onclick="onClickRunToPhase('Production')">prod</button>
+						<button onclick="onClickRunToPhase('Spring')">spring</button>
+						<button onclick="onClickRunToPhase('Summer')">summer</button>
+						<button onclick="onClickRunToPhase('Fall')">fall</button>
+						<button onclick="onClickRunToPhase('Movement')">movement</button>
+						<button onclick="onClickRunToPhase('Combat')">combat</button>
+						<button onclick="onClickRunToEnd()">run to end</button>
+						<br />
+						<br />
+						<button onclick="onClickRunToScenarioDone()">run to scenario</button>
+						<button onclick="onClickUnits('West')">units West</button>
+						<!-- <button onclick="onClickUnits('Axis')">units Axis</button> -->
+						<br />
+						<br />
+						<!-- <button onclick="onClickRunToBattleDecided()">run to battle decided</button>
+							<button onclick="onClickMoveUnitsToRuhr()">move units to RUHR</button>
+							<button onclick="onClick5347()">5347</button>
+							<button onclick="onClickSeaBattle()">Sea Battle</button> -->
+					</div>
 				</div>
 			</div>
 			<div id="select_area" class="grid_div">
@@ -518,22 +523,28 @@
 				//console.log(H);
 				decider.onClickStep(H);
 			}
+			function makeTestButton(funcStop) {
+				
+				let d = document.getElementById('specialButtons');
+			}
 			function startScript() {
-				setDefaultFilenames('north_sea', 'sc5');
+				setDefaultFilenames('north_sea', 'sc7');
 
 				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
 
 				// autoplay, battle, buildUnit, cards, cardsNew, choice, choicemin, control,
-				// combat, conflicts, convoy, decision, filter, filterByType, gameloop,
+				// combat, conflicts, convoy, decision, diplomacy, filter, filterByType, gameloop,
 				// hover, init, load, log, map, mirror, moving, player, random,
 				// remove, removed, request, response
-				// save, scenario, scenatioMin, season, sender, server, skip, stage,
+				// save, scenario, scenarioMin, scenarioWar, season, sender, server, skip, stage,
 				// units, upgradeUnit, strategy, visible,
 				// 8699
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('choicemin', execOptions.activatedTests);
+				addIfComma('choicemin,scenarioMin', execOptions.activatedTests);
+
+				makeTestButton(() => H.phase == 'Movement' && H.season == 'Summer' && H.player == 'West');
 
 				execOptions.commandChain.push(() => onClickLoadScenario());
 

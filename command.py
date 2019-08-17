@@ -26,7 +26,8 @@ def check_declarations(G, player):
 	options = xset()
 
 	# wars
-	options.add((xset(name for name, war in G.players[player].stats.at_war_with.items() if not war and not name in G.temp.threats),))
+	options.add((xset(
+	    name for name, war in G.players[player].stats.at_war_with.items() if not war and not name in G.temp.threats),))
 
 	# neutral
 	nations = xset(nat for nat, info in G.nations.status.items() if not info.is_armed and not nat in G.temp.threats)
@@ -147,6 +148,12 @@ def get_enemies(G, player):
 	wars = G.players[player].stats.at_war_with
 	enemies.update([p for p in wars if wars[p]])
 	return enemies
+
+def get_group(G, unit):
+	return G.units.rules[unit.type].type
+
+def isANS(G, unit):
+	return get_group(G, unit) in ['A', 'N', 'S']
 
 def conflict_present(G, tile):
 	powers = powers_present(G, tile)
@@ -316,7 +323,7 @@ def eval_movement(G, source, unit, dest):  # usually done when a unit leaves a t
 	if 'disputed' in source and len(enemies.intersection(source_powers)):  # there were enemies in source
 		disengaging = True
 
-		if not conflict_present(G, source):  
+		if not conflict_present(G, source):
 			make_undisputed(G, source)
 			G.logger.write('{} is no longer disputed'.format(source._id))
 		elif player not in source_powers and player in source.aggressors:  # player no longer present
@@ -333,20 +340,31 @@ def eval_movement(G, source, unit, dest):  # usually done when a unit leaves a t
 
 	if len(enemies.intersection(dest_powers)):  # enemy in destination -> engaging
 		engaging = True
-
 		if 'disputed' not in dest:
 			new_battle = True
-
 			make_disputed(G, dest, player)
-
 		elif player not in dest.aggressors:
 			dest.aggressors.append(player)
+
 	elif 'owner' in dest and dest.owner != player:  # unoccupied enemy territory
 		switch_ownership(G, dest, player)
+
 	# TODO: interventions
-	# TODO: track battle groups
+	
+	#track battle groups
+	# if isANS(G,unit) and engaging:
+	#TODO: only if dest is a Sea tile!
+	# 	if not source in G.temp.battle_groups:
+	# 		G.temp.battle_groups[source]=tdict()
+	# 	if not source in G.temp.battle_groups[source]:
+	# 		G.temp.battle_groups[source][dest]=tset()
+	# 	G.temp.battle_groups[source][dest].add(unit)
+
 	# TODO: Sea Invasions -> unit can't fight in current battle
+	#
+	
 	# TODO: Check for realizations of threats (violations)
+	
 	# Axis entering Canada -> USA becomes West satellite
 	if player == 'Axis' and dest._id == 'Ottawa' and 'USA' not in G.player.West.members:
 		USA_becomes_satellite(G, 'West')
@@ -380,7 +398,7 @@ def encode_movement(G):
 	code[player] = options
 	return code
 
-def new_movement(G,player):
+def new_movement(G, player):
 	G.temp.battles = tdict()  # track new battles due to engaging
 	G.temp.has_moved = tdict()  # units can only move once per movement phase
 	G.temp.threats = tset()
@@ -389,10 +407,10 @@ def new_movement(G,player):
 	active = G.temp.order[G.temp.active_idx]
 	G.logger.write('{} has {} command points for movement'.format(active, G.temp.commands[active].value))
 
-def movement_phase(G, player=None, action=None):  
+def movement_phase(G, player=None, action=None):
 
 	if 'battles' not in G.temp:  # pseudo prephase
-		new_movement(G,player)
+		new_movement(G, player)
 
 	if player is None:  # when returning from some interrupting phase
 		return encode_movement(G)
@@ -419,12 +437,12 @@ def movement_phase(G, player=None, action=None):
 
 	elif head in faction.units:
 
-		destination, *border = tail  
+		destination, *border = tail
 
 		if len(border):
-			a=destination
-			b=border[0]
-			key = encode_tuple_key(a,b) if a < b else encode_tuple_key(b, a)
+			a = destination
+			b = border[0]
+			key = encode_tuple_key(a, b) if a < b else encode_tuple_key(b, a)
 
 			if key not in G.temp.borders[player]:
 				G.temp.borders[player][key] = 0
@@ -435,10 +453,10 @@ def movement_phase(G, player=None, action=None):
 
 		unit = faction.units[head]
 
-		G.temp.has_moved[head]=unit.tile
+		G.temp.has_moved[head] = unit.tile
 
 		source = G.tiles[unit.tile]
-		source.units.remove(unit._id)  
+		source.units.remove(unit._id)
 
 		dest = G.tiles[destination]
 
@@ -465,8 +483,9 @@ def movement_phase(G, player=None, action=None):
 		if new_battle:
 			G.temp.battles[destination] = player
 
-		if engaging or disengaging:  
-			assert len(border) or G.units.rules[unit.type].type != 'G', 'no border was tracked, but unit is {}'.format('engaging' if engaging else 'disengaging')
+		if engaging or disengaging:
+			assert len(border) or G.units.rules[unit.type].type != 'G', 'no border was tracked, but unit is {}'.format(
+			    'engaging' if engaging else 'disengaging')
 
 		move_unit(G, unit, destination)
 
@@ -477,7 +496,7 @@ def movement_phase(G, player=None, action=None):
 		    player, source._id, destination, cmd.value))
 
 	elif head == 'pass':
-		cmd.value = 0 #-= 1 relinquish restl commands TODO: change back if fe
+		cmd.value = 0  #-= 1 relinquish restl commands TODO: change back if fe
 		G.logger.write('{} passes ({} command points remaining)'.format(player, cmd.value))
 
 	if cmd.value > 0:  # continue movement
@@ -493,13 +512,13 @@ def movement_phase(G, player=None, action=None):
 		tile = G.tiles[unit.tile]
 		if 'disputed' in tile:
 			conflicts.add(unit.tile)
-		elif tile.type in {'Sea','Ocean'}:
+		elif tile.type in {'Sea', 'Ocean'}:
 			#check if faction and enemy on same tile!
 			#in that case, add this tile to battles
 			powers = powers_present(G, tile)
 			for p in powers:
 				if p in G.temp.threats:
-					G.temp.battles[tile.name]=player
+					G.temp.battles[tile.name] = player
 
 	G.temp.active_idx += 1
 
@@ -521,7 +540,7 @@ def movement_phase(G, player=None, action=None):
 		add_next_phase(G, 'Supply')
 		raise PhaseComplete
 
-	new_movement(G,player)
+	new_movement(G, player)
 	return encode_movement(G)
 
 def end_phase(G):

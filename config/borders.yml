@@ -909,7 +909,7 @@
   type:  River
 - tile1: North Sea
   tile2: Amsterdam
-  type:  Sea
+  type:  Coast
 - tile1: Norwegian Sea
   tile2: Glasgow
   type:  Coast

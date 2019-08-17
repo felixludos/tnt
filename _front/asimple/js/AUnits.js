@@ -167,9 +167,11 @@ class AUnits {
 			unitTestUnits('PROBLEM: moveUnit', id, ' NOT in uis!');
 			alert('PROBLEM: moveUnit ' + id + ' NOT in uis!');
 		}
-		this.removeUnitFromUnitsOwnerTile(id);
+
 		let ms = this.uis[id].ms;
 		let owner = ms.getTag('owner');
+		let tile = ms.getTag('tile')
+		this.removeUnitFromUnitsOwnerTile(id,owner,tile);
 
 		let tile_new = o_new.tile;
 
@@ -207,21 +209,21 @@ class AUnits {
 		let p = this.calcStartPos(tile, faction);
 		msHidden.setPos(p.x, p.y).draw();
 	}
-	removeUnitFromUnitsOwnerTile(id) {
+	removeUnitFromUnitsOwnerTile(id,owner,tile) {
 		//just remove from units of current owner,tile
 		//do NOT remove from UI! new position will be set after this in moveUnit
-		let ms = this.uis[id].ms;
-		let owner = ms.getTag('owner');
-		let tile = ms.getTag('tile');
+		//let ms = this.uis[id].ms;
+		//let owner = ms.getTag('owner');
+		//let tile = ms.getTag('tile');
 		unitTestMoving('vor removeUnit', id, owner, tile, this.units[owner]);
 		unitTestRemove('vor removeUnit', id, owner, tile, this.units[owner]);
 		removeInPlace(this.units[owner][tile], id);
 	}
 	updateUnitCounter(owner, tile) {
 		unitTestUnits('updateUnitCounter', owner, tile);
+		unitTestRemove('updateUnitCounter', owner, tile);
 		if (!(tile in this.units[owner])) {
-			unitTestUnits('nothing to update because no unit of', owner, 'has been created!');
-
+			unitTestRemove('nothing to update because no unit of', owner, 'has been created!');
 			return;
 		}
 
@@ -231,10 +233,11 @@ class AUnits {
 		let msHidden = this.uis[idHidden].ms;
 		let oHidden = this.uis[idHidden].o;
 		if (n == 0) {
+			oHidden.count = n;
+			msHidden.tag('count', n);
 			unitTestRemove('!!!!!!!!!!!!!!SUCCESS!!!!!!!!!!!!!!!!');
 		} else {
 			oHidden.count = n;
-
 			let color = this.assets.troopColors[owner];
 			let darker = darkerColor(color[0], color[1], color[2]);
 			let sz = this.SZ.sumCadre;
@@ -268,20 +271,23 @@ class AUnits {
 		unitTestUnits('updateCv', ms.id, ms.getTag('owner'), ms.getTag('tile'), 'to', cv);
 	}
 	updateVisibility(id, o, player) {
-		if (id == '8699') unitTest8('updateVisibility','old', o,'player', player);
-		unitTestUnitVisibility('updateVisibility','id', id,'o', o,'player', player);
+		//if (id == '8699') unitTest8('update Visibility','old', o,'player', player);
+		unitTestUnitVisibility('update Visibility','id', id,'o', o,'player', player);
 		let ms = id in this.uis ? this.uis[id].ms : null;
-		unitTestUnitVisibility('updateVisibility ms=', ms);
+		unitTestUnitVisibility('update Visibility ms=', ms);
 		let tile = o.tile;
 		let owner = getUnitOwner(o.nationality);
+		unitTestRemove('updating Visibility of',id,owner,tile)
 		let idHidden = this.getHiddenId(owner, tile);
 		let vis = isVisibleToPlayer(o, player);
+		unitTestRemove('-------------vis',vis,'idHidden',idHidden)
 		if (idHidden in this.uis){
 			let msHidden = this.uis[idHidden].ms;
+			unitTestRemove('-------------msHidden',msHidden)
 			if (vis){
 				msHidden.hide();
 			}else{
-				if (msHidden.getTag('count') > 0) msHidden.show();
+				if (msHidden.getTag('count') > 0) msHidden.show(); else msHidden.hide();
 			}
 		}
 		if (ms){
@@ -383,13 +389,14 @@ class AUnits {
 						let ms = this.uis[id].ms; //o.nation];
 						let owner = ms.getTag('owner');
 						let tile = ms.getTag('tile');
-						this.removeUnitFromUnitsOwnerTile(id);
+						this.removeUnitFromUnitsOwnerTile(id,owner,tile);
 						let neutral = ms.getTag('neutral');
 						unitTestRemove('vor aufruf UpdateUnitCounter', o, id, data.removed[id]);
 						if (!neutral) this.updateUnitCounter(owner, tile);
 						ms.removeFromUI();
 						delete this.uis[id];
 						delete gObjects[id];
+						unitTestRemove('nach remove unit',id,gObjects,this.units,this.uis)
 					}
 				}
 			}
@@ -404,7 +411,15 @@ class AUnits {
 			const o = this.uis[id].o;
 			const isHidden = o.obj_type == 'hidden_unit';
 
-			if (!isHidden) this.updateVisibility(id,o,player);
+			if (isHidden){
+				//this could be a hidden unit with count 0!
+				let cnt = ms.getTag('count');
+				if (cnt == 0) ms.hide();
+				unitTestRemove('HIDING HIDDEN UNIT WITH COUNT 0',id)
+
+			}else{
+				this.updateVisibility(id,o,player);
+			}
 
 			// if (owner == player || owner == 'Minor') {
 			// 	if (isHidden) {

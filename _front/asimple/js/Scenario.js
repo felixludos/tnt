@@ -3,23 +3,25 @@ class Scenario {
 		this.data = data;
 		this.assets = assets;
 		this.done = false;
+		this.player = null;
+		this.phase = null;
 
 		//unit items
 		this.items = {}; //per player [{goalTile:,tile:,type:,cv:,id:,unit:}]
 		this.openRequest = {}; //per player last item in auftrag gegeben
 		this.lockedIds = {}; //per unit id, units already used in items
-
 		//calculate each round, per pl
 		this.missingUnitItems = {}; //have no unit matched up yet
 		this.wrongLocationItems = {}; // have unit, need move and possibly upgrade
 		this.cvTooLowItems = {}; // unit and tile, but needs upgrade
 		this.perfectItems = {}; //everything as required!!!
-
 		this.initUnitItems(G);
 
 		//conflict items
-		this.conflictItems = {}; //per player, who is aggressor
+		this.conflictItems = []; //list of conflicts, as in this.data.conflicts
 		this.newConflict = null; //set in activateConflict if any, used in tryDeclaration
+		this.openDeclaration = {};
+		this.atWar = false;
 		this.initConflictItems(G);
 
 		//diplomacy items
@@ -28,7 +30,7 @@ class Scenario {
 		this.openDiplRequest = {}; //per player, list of nations played since last update
 		this.satellites = {};
 		this.diplDone = false;
-		this.checkDiplomacy(G);
+		this.updateDiplomacy(G);
 
 		unitTestConflict('conflicts:', this.conflictItems);
 	}
@@ -38,21 +40,18 @@ class Scenario {
 				let aggressor = this.data.conflicts[tile][0];
 				let defender = this.data.conflicts[tile][1];
 				let cItem = {};
+				cItem.tile = tile;
 				cItem.aggressor = aggressor;
-				cItem.goalTile = tile;
 				cItem.defender = defender; //if minor, scenario should have eg. 'Austria'
-				cItem.active = false;
-				cItem.completed = false; //do I need this?!?!?!?!?
-				addIfKeys(this.conflictItems, [aggressor], []);
-				this.conflictItems[aggressor].push(cItem);
-				//console.log('added conflict',aggressor,defender,tile)
+				cItem.stage = null;
+
+				this.conflictItems.push(cItem);
 			}
 		}
 	}
 	initDiplItems_dep(G) {
 		for (const pl in this.data) {
 			if (!lookup(this.data, [pl, 'diplomacy'])) {
-				//console.log('NOPE:',pl)
 				continue;
 			}
 
@@ -69,7 +68,6 @@ class Scenario {
 	initUnitItems(G) {
 		for (const pl in this.data) {
 			if (!lookup(this.data, [pl, 'units'])) {
-				//console.log('NOPE:',pl)
 				continue;
 			}
 
@@ -111,22 +109,21 @@ class Scenario {
 	}
 	activateConflict(G) {
 		if (this.newConflict) {
-			unitTestConflict('conflict already activated', this.newConflict);
+			unitTestScenarioWar('conflict already activated', this.newConflict);
 			return;
 		}
-		let conflicts = lookup(this.conflictItems, [G.player]);
-		if (!conflicts) return;
-		//look for first conflict that is not active and not completed
-		let cNext = firstCond(conflicts, x => !x.active && !x.completed);
+		//look for first conflict that is in prestage
+		let cNext = firstCond(this.conflictItems, x => !x.stage && x.aggressor == G.player);
 		if (cNext) {
-			cNext.active = true;
+			unitTestScenarioWar('activateConflict!!!!!!!!!!!!!! found conflict in stage null');
+			cNext.stage = 'tbd'; //this conflict is to be declared!
 			this.newConflict = cNext;
 			unitTestConflict('activateConflict: found', cNext);
 		} else {
-			unitTestConflict('activateConflict: no new conflict found');
+			unitTestConflict('activateConflict: no new conflict found for', G.player);
 		}
 	}
-	checkDiplomacy(G) {
+	updateDiplomacy(G) {
 		//foreach influence object in G, create a diplItems entry
 		//compare diplItems and data.pl.diplomacy for ALL players!!!
 		//add entry in diplItemsTodo for each unfulfilled request
@@ -134,17 +131,16 @@ class Scenario {
 		this.diplItemsTodo = {};
 		for (const pl in this.data) {
 			if (!lookup(this.data, [pl, 'diplomacy'])) {
-				//console.log('NOPE:',pl)
 				continue;
 			}
 
 			for (const nation in this.data[pl].diplomacy) {
-				let sat = lookup(this.satellites,[nation]);
+				let sat = lookup(this.satellites, [nation]);
 				if (sat == pl) continue;
 				addIfKeys(this.diplItemsTodo, [pl, nation], this.data[pl].diplomacy[nation]);
 			}
 		}
-		console.log('vor G check:', this.diplItemsTodo);
+		unitTestDiplomacy('vor G check:', this.diplItemsTodo);
 
 		//TODO: simplify code!!!
 		let created = lookup(G.serverData, ['created']); //careful do NOT change G.serverData!
@@ -159,7 +155,7 @@ class Scenario {
 			if (o.obj_type == 'influence') {
 				addIfKeys(this.diplItems, [o.faction, o.nation], o.value);
 				let req = lookup(this.data, [o.faction, 'diplomacy', o.nation]);
-				console.log('req for', o.nation, 'is', req, ' o.value is', o.value);
+				unitTestDiplomacy('req for', o.nation, 'is', req, ' o.value is', o.value);
 				if (req && req > o.value) {
 					let lst = addIfKeys(this.diplItemsTodo, [o.faction], {});
 					lst[o.nation] = req;
@@ -190,17 +186,17 @@ class Scenario {
 					if (matchingTile) {
 						//indeed, new satellite!
 						if (matchingTile.owner != faction) {
-							console.log('RIESEN PROBLEM!!!! INCONSISTENT SATELLITE!!!!');
+							unitTestDiplomacy('RIESEN PROBLEM!!!! INCONSISTENT SATELLITE!!!!');
 						}
 						this.satellites[nation] = faction;
-						let todoItem = lookup(this.diplItemsTodo,[faction,nation]);
-						if (todoItem){
+						let todoItem = lookup(this.diplItemsTodo, [faction, nation]);
+						if (todoItem) {
 							delete this.diplItemsTodo[faction][nation];
-							if (empty(this.diplItemsTodo[faction])){
+							if (empty(this.diplItemsTodo[faction])) {
 								delete this.diplItemsTodo[faction];
 							}
 						}
-						console.log(nation,'became satellite!');
+						unitTestDiplomacy(nation, 'became satellite!');
 					}
 				}
 			}
@@ -211,9 +207,9 @@ class Scenario {
 			//in this case, created will contain at least 1 tile
 		}
 		this.diplDone = empty(this.diplItemsTodo);
-		console.log('checkDiplomacy:');
-		console.log('G', G);
-		console.log(this.diplItems, this.diplItemsTodo, this.diplDone);
+		unitTestDiplomacy('checkDiplomacy:');
+		unitTestDiplomacy('G', G);
+		unitTestDiplomacy(this.diplItems, this.diplItemsTodo, this.diplDone);
 	}
 	checkOpenItems() {
 		let done = true;
@@ -249,59 +245,116 @@ class Scenario {
 
 		return done;
 	}
-	checkOpenRequest(G) {
-		let pl = G.player;
+	checkOpenUnitRequest(G, pl, created, removed) {
+		//TODO: removed? what do I need to do
+		//check open unit request:
+		//unit has been built, moved, or upgraded
+		//reflect changes in openReq item, which is an item in this.items!
 		let openReq = lookup(this.openRequest, [pl]);
-		let created = lookup(G.serverData, ['created']); //careful do NOT change G.serverData!
-		let removed = lookup(G.serverData, ['removed']);
-		removeInPlaceKeys(created, Object.keys(this.lockedIds)); //from created remove all ids in this.lockedIds
+		if (!openReq) return;
 
-		let openDiplReq = lookup(this.openDiplRequest, [pl]);
-		//console.log(this.openDiplRequest);
+		//from created remove all ids in this.lockedIds
+		removeInPlaceKeys(created, Object.keys(this.lockedIds));
 
+		let id = openReq.id; //if id: unit exists, just needs change of cv|loc
+		let u = id ? G.objects[id] : matchUnits(created, 'first', pl, openReq.tile, openReq.type);
+		if (u) {
+			openReq.id = id ? id : u.id;
+			openReq.unit = u;
+			openReq.tile = u.tile;
+			delete this.openRequest[pl]; //muss getestet werden!!!
+			unitTestMatch('checkOpenRequest: ITEM UPDATED!');
+		}
+	}
+	checkOpenDiplomacyRequest(G, pl, created, removed) {
 		let newCreated = !empty(created);
+		if (!newCreated) return;
+
 		let newRemoved = !empty(removed);
 
-		if (openReq && newCreated) {
-			let id = openReq.id; //if id: unit exists, just needs change of cv|loc
-			let u = id ? G.objects[id] : matchUnits(created, 'first', pl, openReq.tile, openReq.type);
-			if (u) {
-				openReq.id = id ? id : u.id;
-				openReq.unit = u;
-				openReq.tile = u.tile;
-				delete this.openRequest[pl]; //muss getestet werden!!!
-				unitTestMatch('checkOpenRequest: UPDATED!');
+		let openDiplReq = lookup(this.openDiplRequest, [pl]);
+		if (!openDiplReq) return;
+
+		unitTestDiplomacy('check if influences have changed:\ncreated:', created);
+		//look if there is any influence object in created, if not, just let be
+		let influencesChanged = false;
+		for (const id in created) {
+			let o = created[id];
+			if (o.obj_type == 'influence') {
+				influencesChanged = true;
+				break;
 			}
-		} else if (openDiplReq && newCreated) {
-			console.log('check if influences have changed:\ncreated:', created);
-			//look if there is any influence object in created, if not, just let be
-			let influencesChanged = false;
-			for (const id in created) {
-				let o = created[id];
+		}
+		if (!influencesChanged && newRemoved) {
+			for (const id in removed) {
+				let o = removed[id];
 				if (o.obj_type == 'influence') {
 					influencesChanged = true;
 					break;
 				}
 			}
-			if (!influencesChanged && newRemoved) {
-				for (const id in removed) {
-					let o = removed[id];
-					if (o.obj_type == 'influence') {
-						influencesChanged = true;
-						break;
-					}
-				}
-			}
-			if (influencesChanged) {
-				//go through all influences in G and update diplItems accordingly
-				console.log('YES!');
-				this.checkDiplomacy(G);
-
-				//delete this.openDiplRequest[pl];
-			}
-		} else if (!openReq && openDiplReq) {
-			unitTestMatch('checkOpenRequest: NO REQUEST!');
 		}
+		if (influencesChanged) {
+			//go through all influences in G and update diplItems accordingly
+			unitTestDiplomacy('YES!');
+			this.updateDiplomacy(G);
+			delete this.openDiplRequest[pl]; //can I do that???
+		}
+	}
+	checkOpenDeclarationRequest(G, pl) {
+		let openDecl = this.openDeclaration;
+		unitTestScenarioWar('checkOpenDeclarationRequest openDecl', openDecl);
+		if (!openDecl) return;
+
+		//at this point, newConflict should be null, openDecl should be a conclifct items
+		//with c.stage == 'tbd';
+		let item = firstCond(this.conflictItems, x => x.tile == this.openDeclaration.tile);
+		unitTestScenarioWar('SETTING DECLARED: vorher:', jsCopy(item));
+		openDecl.stage = 'declared';
+		unitTestScenarioWar('nachher:', jsCopy(item));
+		this.atWar = true; // movement will now become warMovement
+		this.openDeclaration = null;
+		unitTestScenarioWar('end of checkOpenDeclarationRequest', this.openDeclaration);
+
+		// //reorient all troops towards conflict zone
+		// for (const item of this.items[G.player]) {
+		// 	item.goalTile = c.goalTile;
+		// 	let l = addIfKeys(this.wrongLocationItems, [G.player], []);
+		// 	l.push(item);
+		// }
+	}
+	checkOpenRequest(G) {
+		let pl = G.player;
+		let created = lookup(G.serverData, ['created']);
+		let removed = lookup(G.serverData, ['removed']);
+
+		if (empty(created)) {
+			unitTestMatch('checkOpenRequest: NO CHANGES IN DATA (no created!)!');
+		} else {
+			//for these 2 need created data!
+			this.checkOpenUnitRequest(G, pl, jsCopy(created), removed);
+
+			this.checkOpenDiplomacyRequest(G, pl, created, removed);
+		}
+
+		this.checkOpenDeclarationRequest(G, pl);
+	}
+	defaultSetup(G){
+		let tuple = null;
+		let fav_types = lookup(this.data.options,['unit_types']);
+		let type = fav_types? chooseRandom(fav_types):chooseRandom(this.assets.unitTypeNames);
+		tuple = firstCond(G.tuples, x => x.includes(type));
+		return tuple;
+	}
+	defaultSatellite(G){
+		let tuple = null;
+		let fav_unit_type = lookup(this.data.options,['garrison_type']);
+		if (!fav_unit_type) fav_unit_type='Infantry';
+		tuple = firstCond(G.tuples, x => x.includes(fav_unit_type));
+		if (!tuple){
+			tuple = firstCond(G.tuples, x => x.includes('Tank'));
+		}
+		return tuple;
 	}
 	defaultProduction(G) {
 		let tuple = null;
@@ -314,10 +367,10 @@ class Scenario {
 		let tuple = null;
 		if (this.data.options.priority == 'movement') {
 			tuple = firstCond(G.tuples, x => x.includes('pass'));
-			if (!tuple){
+			if (!tuple) {
 				tuple = firstCond(G.tuples, x => x.includes('accept'));
-				if (!tuple){
-					tuple = firstCond(G.tuples,x=>x.length==1 && startsWith(x[0],'action'));//prevent removing own influences!!!
+				if (!tuple) {
+					tuple = firstCond(G.tuples, x => x.length == 1 && startsWith(x[0], 'action')); //prevent removing own influences!!!
 				}
 			}
 		}
@@ -352,51 +405,6 @@ class Scenario {
 		}
 		return m;
 	}
-	findMatch(G) {
-		unitTestScenario('______________________findMatch');
-
-		this.checkOpenRequest(G);
-
-		this.done = this.checkOpenItems(G);
-		if (this.done) {
-			unitTestScenario('Scenario is complete!!!');
-			this.activateConflict(G);
-		}
-
-		let tuple = null;
-		if (G.phase == 'Setup') {
-			if (!tuple) tuple = this.tryBuildUnit(G);
-		}
-
-		if (G.phase == 'Production') {
-			if (!tuple) tuple = this.tryUpgradeUnit(G);
-			if (!tuple) tuple = this.tryBuildUnit(G);
-			if (!tuple) tuple = this.defaultProduction(G);
-		}
-
-		if (G.phase == 'Government') {
-			if (!tuple) tuple = this.tryDiplomacy(G);
-			if (!tuple) tuple = this.defaultGovernment(G);
-		}
-
-		if (['Spring', 'Summer', 'Fall', 'Winter'].includes(G.phase)) {
-			if (!tuple) tuple = this.trySeasonCard(G);
-		}
-
-		if (G.phase == 'Movement') {
-			if (!tuple) tuple = this.tryDeclaration(G);
-			if (!tuple) tuple = this.tryMoveUnit(G);
-			if (!tuple) tuple = this.defaultMovement(G);
-		}
-
-		if (G.phase.includes('Battle')) {
-			tuple = firstCond(G.tuples, t => t[0].length == 1); //select Hit command
-		}
-
-		unitTestScenario('\t>>>', G.phase, G.player, tuple);
-		unitTestScenarioMin('findmatch:', G.phase, G.player, tuple, this.done ? '(completed!)' : '...');
-		return tuple;
-	}
 	tryBuildUnit(G) {
 		let items = lookup(this.missingUnitItems, [G.player]);
 		if (!items) return null;
@@ -428,40 +436,70 @@ class Scenario {
 		return null;
 	}
 	tryDeclaration(G) {
+		unitTestScenarioWar('tryDeclaration newConflict:', this.newConflict);
 		if (this.newConflict) {
-			//console.log('new Conflict:',this.newConflict)
+			//declare war or violation!
 			let c = this.newConflict;
 			let t = firstCond(G.tuples, x => x.length == 1 && x[0] == c.defender);
 			if (t) {
+				//comment
 				if (this.assets.factionNames.includes(c.defender)) {
 					unitTestScenarioMin(G.player, 'is declaring war on', c.defender);
 				} else {
 					unitTestScenarioMin(G.player, 'is violating neutrality of', c.defender);
 				}
 
-				//can declare war, in that moment, activate all movement towards war tile!
-				//reorient all troops towards conflict zone
-				for (const item of this.items[G.player]) {
-					item.goalTile = c.goalTile;
-					let l = addIfKeys(this.wrongLocationItems, [G.player], []);
-					l.push(item);
-				}
-
+				this.openDeclaration = c;
 				this.newConflict = null;
 				return t;
 			}
 		}
 		return null;
 	}
+	tryWarMovement(G) {
+		unitTestScenarioWar('tryWarMovement');
+		//first move as many units as possible exactly into a newly declared conflict zone:
+		let goal = firstCond(this.conflictItems, x => x.stage == 'declared');
+
+		if (!goal) {
+			//TODO: if no newly declared war, check for active wars that can be reinforced
+			//for now, just return strategic movement
+			//mal schauen was er dann macht
+			return this.tryMoveUnit(G);
+		}
+
+		//a new declaration has been done: mobilisiere soviele wie moeglich units dahin
+		//ALLE units in G.tuples werden considered
+		//aber wenn id in this.lockedIds ist, dann muss ensprechendes item updaten!
+		let tile = goal.tile;
+		let t = firstCond(G.tuples, x => x.length >= 2 && x[1] == tile);
+		if (!t) {
+			// cannot move unit to newly declared war zone!!!!
+			//this shouldn't happen at beginning of war movement, if scenario has been planned reasonably
+			unitTestScenarioWar('cannot move more units to', tile, '!');
+			return this.tryMoveUnit(G);
+		}
+		let id = t[0];
+		if (id in this.lockedIds) {
+			let item = this.lockedIds[id];
+			//this item will be moved into war zone!
+			this.openRequest[G.player] = item;
+			unitTestScenarioWar('locked unit',item,'moved to',tile)
+			//if this item is in wrongLocations and the goal place of this item is war zone,
+			//remove it from wrongLocations
+		} else {
+			unitTestScenarioWar('free unit:', id, 'moved to',tile);
+		}
+		return t;
+	}
 	tryDiplomacy(G) {
 		let diplReqs = lookup(this.diplItemsTodo, [G.player]); //should be a dictionary {nation:level}
 		if (diplReqs) {
 			let t = firstCond(G.tuples, x => x.length == 2 && startsWith(x[0], 'action_') && x[1] in diplReqs);
-			console.log('tuple found:',t)
+			unitTestDiplomacy('tuple found:', t);
 			if (t) {
 				let lst = addIfKeys(this.openDiplRequest, [G.player], []);
 				lst.push(t[1]); //addIf(lst,t[1]); //list of nations each player played in gov phase
-				//console.log(this.openDiplRequest);
 				//alert('adding '+t[1]+' to openDiplRequest for '+G.player)
 			}
 			return t;
@@ -509,5 +547,69 @@ class Scenario {
 			}
 		}
 		return null;
+	}
+	findMatch(G) {
+		unitTestScenario('______________________findMatch');
+		console.log('______________________findMatch');
+
+		let isNewRound = this.player != G.player || this.phase != G.phase;
+		if (isNewRound) {
+			//all conflict items that are 'declared' have to be set to active!
+			this.atWar = false; //TODO entscheide in welchem fall atWar true setzen soll
+			//for now just when new conflict is activated which is done once perconflict!
+
+			console.log('new round:', this.phase, '/', this.player, '=>', G.phase, '/', G.player);
+		}
+		this.player = G.player;
+		this.phase = G.phase;
+
+		this.checkOpenRequest(G);
+
+		this.done = this.checkOpenItems(G);
+		if (this.done) {
+			unitTestScenario('Scenario is complete!!!');
+			if (isNewRound && this.phase == 'Movement') {
+				this.activateConflict(G); //first conflict declared when all units in place (and possibly diplomacy, see options)
+			}
+		}
+
+		let tuple = null;
+		if (G.phase == 'Setup') {
+			if (!tuple) tuple = this.tryBuildUnit(G);
+			if (!tuple) tuple = this.defaultSetup(G);
+		}
+
+		if (G.phase == 'Production') {
+			if (!tuple) tuple = this.tryUpgradeUnit(G);
+			if (!tuple) tuple = this.tryBuildUnit(G);
+			if (!tuple) tuple = this.defaultProduction(G);
+		}
+
+		if (G.phase == 'Government') {
+			if (!tuple) tuple = this.tryDiplomacy(G);
+			if (!tuple) tuple = this.defaultGovernment(G);
+		}
+
+		if (G.phase == 'Satellite'){ //same as setup phase >> gib das oben hin!
+			if (!tuple) tuple = this.defaultSatellite(G);
+		}
+
+		if (['Spring', 'Summer', 'Fall', 'Winter'].includes(G.phase)) {
+			if (!tuple) tuple = this.trySeasonCard(G);
+		}
+
+		if (G.phase == 'Movement') {
+			if (!tuple) tuple = this.tryDeclaration(G);
+			if (!tuple) tuple = this.atWar ? this.tryWarMovement(G) : this.tryMoveUnit(G);
+			if (!tuple) tuple = this.defaultMovement(G);
+		}
+
+		if (G.phase.includes('Battle')) {
+			tuple = firstCond(G.tuples, t => t[0].length == 1); //select Hit command
+		}
+
+		unitTestScenario('\t>>>', G.phase, G.player, tuple);
+		unitTestScenarioMin('findmatch:', G.phase, G.player, tuple, this.done ? '(completed!)' : '...');
+		return tuple;
 	}
 }

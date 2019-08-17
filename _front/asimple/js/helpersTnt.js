@@ -26,7 +26,17 @@ function findClosestTupleForItem(tuples, item, assets) {
 	tuples = tuples.filter(x => x[0] == item.id);
 	if (tuples.length == 0) return null;
 	let tilenames = tuples.map(x => x[1]);
+
 	let closestTile = findClosestTile((a, b) => assets.distanceBetweenTiles(a, b), item.goalTile, tilenames);
+	//TODO: if this item has a position (item.tile) and that position is closer to goal than 
+	//the best of tilenames found, do NOT move that item! instead return null!!!
+	let dCurrent = assets.distanceBetweenTiles(item.tile,item.goalTile);
+	let dNew = assets.distanceBetweenTiles(closestTile,item.goalTile);
+	if (dNew > dCurrent){
+		console.log('item',item.tile, 'already closest possible to',item.goalTile);
+		return null;
+	} 
+
 	console.log('tile closest to goal tile', item.goalTile, ':', closestTile);
 	return firstCond(tuples, x => x[1] == closestTile);
 }
@@ -216,13 +226,13 @@ function outputUpdatedScenario(decider, player = false) {
 				}
 			}
 		}
-		reqs += 'done: ' + decider.scenario.done;
 		if (!empty(decider.scenario.satellites)){
 			reqs += '\nsatellites:\n';
 			for(const n in decider.scenario.satellites){
-				reqs += '  '+n+': '+decider.scenario.satellites[n];
+				reqs += '  '+n+': '+decider.scenario.satellites[n] + '\n';
 			}
 		}
+		reqs += 'done: ' + decider.scenario.done;
 		unitTestScenario(reqs);
 	}
 }

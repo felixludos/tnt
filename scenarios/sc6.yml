@@ -2,18 +2,20 @@ options:
   done: diplomacy
   nomatch: null
   priority: movement
+  garrison_type: Infantry
+  unit_types: [Tank, Infantry, Fleet]
 West:
   units:
     Marseille:
       Infantry: [2,1]
-    Baltic_Sea:
-      Fleet: [2,1]
-      Infantry: [2]
+  diplomacy:
+    Baltic_States: 3
 Axis:
   units:
     Ruhr:
       Fleet: [1]
   diplomacy: 
+    Low_Countries: 3
     Denmark: 3
 conflicts:
   Milan: [West, Axis]

@@ -56,6 +56,9 @@ function unitTestConvoy() {
 function unitTestDecision() {
 	if (execOptions.activatedTests.includes('decision')) console.log(...arguments);
 }
+function unitTestDiplomacy() {
+	if (execOptions.activatedTests.includes('diplomacy')) console.log(...arguments);
+}
 function unitTestFilter() {
 	if (execOptions.activatedTests.includes('filter')) console.log(...arguments);
 }
@@ -143,6 +146,9 @@ function unitTestSkip() {
 function unitTestStage() {
 	if (execOptions.activatedTests.includes('stage')) console.log(...arguments);
 }
+function unitTestStrategy() {
+	if (execOptions.activatedTests.includes('strategy')) console.log(...arguments);
+}
 function unitTestUnits() {
 	if (execOptions.activatedTests.includes('units')) console.log(...arguments);
 }
@@ -152,7 +158,7 @@ function unitTestUpgradeUnit() {
 function unitTestUnitVisibility(){
 	if (execOptions.activatedTests.includes('visible')) console.log(...arguments);
 }
-function unitTestStrategy() {
-	if (execOptions.activatedTests.includes('strategy')) console.log(...arguments);
+function unitTestScenarioWar() {
+	if (execOptions.activatedTests.includes('scenarioWar')) console.log(...arguments);
 }
 //#endregion
