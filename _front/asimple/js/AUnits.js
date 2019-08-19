@@ -219,6 +219,23 @@ class AUnits {
 		unitTestRemove('vor removeUnit', id, owner, tile, this.units[owner]);
 		removeInPlace(this.units[owner][tile], id);
 	}
+	resnail(owner,tile){
+		unitTestMoving('in resnail:',this.units[owner][tile]);
+		let pStart = this.calcStartPos(tile, owner);
+		let x = pStart.x;
+		let y = pStart.y;
+		let iUnit = 0;
+		for(const id of this.units[owner][tile]){
+			unitTestMoving('in resnail:',id,owner,tile);
+
+			let ms = this.uis[id].ms;
+			ms.setPos(x,y);
+			let pSnailOffset = this.snailPos[iUnit];
+			x = pStart.x + pSnailOffset.x;
+			y = pStart.y + pSnailOffset.y;
+			iUnit+=1;
+		}
+	}
 	updateUnitCounter(owner, tile) {
 		unitTestUnits('updateUnitCounter', owner, tile);
 		unitTestRemove('updateUnitCounter', owner, tile);
@@ -366,6 +383,8 @@ class AUnits {
 							gObjects[id].tile = o_new.tile;
 							this.moveUnit(id, oldTile, gObjects[id]);
 
+							this.resnail(owner,oldTile);
+
 							unitTestUnits('unit', id, 'has moved from', oldTile, 'to', gObjects[id].tile);
 							unitTestMoving('unit', id, 'has moved from', oldTile, 'to', gObjects[id].tile);
 						}
@@ -397,6 +416,8 @@ class AUnits {
 						delete this.uis[id];
 						delete gObjects[id];
 						unitTestRemove('nach remove unit',id,gObjects,this.units,this.uis)
+
+						this.resnail(owner,tile);
 					}
 				}
 			}

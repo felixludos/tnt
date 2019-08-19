@@ -352,13 +352,13 @@ def eval_movement(G, source, unit, dest):  # usually done when a unit leaves a t
 	# TODO: interventions
 	
 	#track battle groups
-	# if isANS(G,unit) and engaging:
-	#TODO: only if dest is a Sea tile!
-	# 	if not source in G.temp.battle_groups:
-	# 		G.temp.battle_groups[source]=tdict()
-	# 	if not source in G.temp.battle_groups[source]:
-	# 		G.temp.battle_groups[source][dest]=tset()
-	# 	G.temp.battle_groups[source][dest].add(unit)
+	if isANS(G,unit) and engaging:
+		#TODO: only if dest is a Sea tile!?
+		sourceName = source._id
+		destName = dest._id
+		if not destName in G.temp.battle_groups:
+			G.temp.battle_groups[destName]=tdict()
+		G.temp.battle_groups[destName][unit._id]=sourceName
 
 	# TODO: Sea Invasions -> unit can't fight in current battle
 	#
@@ -460,23 +460,33 @@ def movement_phase(G, player=None, action=None):
 
 		dest = G.tiles[destination]
 
-		if 'alligence' in dest and 'threats' in G.temp:
-			owner = ''
-			if 'owner' in dest and dest.owner in G.temp.threats:  # controlled by player
-				owner = dest.owner
-				assert owner in G.players, 'how can {} be in threats'.format(owner)
+		if 'threats' in G.temp:
+			if 'alligence' in dest:
+				owner = ''
+				if 'owner' in dest and dest.owner in G.temp.threats:  # controlled by player
+					owner = dest.owner
+					assert owner in G.players, 'how can {} be in threats'.format(owner)
 
-				declaration_of_war(G, player, owner)
-
-				G.temp.threats.remove(owner)
-			else:
-				owner = dest.alligence
-				if owner in G.temp.threats:  # nation
-					assert owner in G.nations.status, '{} mistaken as minor/major'.format(owner)
-
-					violation_of_neutrality(G, player, owner)
+					declaration_of_war(G, player, owner)
 
 					G.temp.threats.remove(owner)
+				else:
+					owner = dest.alligence
+					if owner in G.temp.threats:  # nation
+						assert owner in G.nations.status, '{} mistaken as minor/major'.format(owner)
+
+						violation_of_neutrality(G, player, owner)
+
+						G.temp.threats.remove(owner)
+			
+			elif dest.type in ['Sea','Ocean']:
+				pp = powers_present(G,dest)
+				for p in pp:
+					if p in G.temp.threats:
+						declaration_of_war(G, player, p)
+						G.temp.threats.remove(p)
+						break
+
 
 		new_battle, engaging, disengaging = eval_movement(G, source, unit, dest)
 
@@ -518,7 +528,7 @@ def movement_phase(G, player=None, action=None):
 			powers = powers_present(G, tile)
 			for p in powers:
 				if p in G.temp.threats:
-					G.temp.battles[tile.name] = player
+					G.temp.battles[tile._id] = player
 
 	G.temp.active_idx += 1
 

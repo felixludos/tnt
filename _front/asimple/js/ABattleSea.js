@@ -1,4 +1,4 @@
-class ABattle {
+class ABattleSea {
 	constructor(assets, loc, b, stage) {
 		this.assets = assets;
 		this.location = loc;
@@ -8,6 +8,9 @@ class ABattle {
 
 		this.factions = [b.attacker, b.defender];
 		this.allUnitTypes = Array.from(new Set(b.fire_order.map(x => x.unit.type)));
+		
+		this.battle_groups = b.battle_groups;
+		console.log('battle_groups',this.battle_groups)
 
 		this.ms = {}; //ms per id
 		this.selected = false;
@@ -21,10 +24,6 @@ class ABattle {
 		let hGap = 4;
 		let hRow = usz + hGap;
 		let hTotal = hRow * this.allUnitTypes.length + hTitle + 2 * hGap;
-
-		if (b.isSeaBattle) {
-			hTotal += 30; //for battle group line under unit lineups
-		}
 
 		//horizontal dimensions:
 		let wGap = hGap;
@@ -58,24 +57,6 @@ class ABattle {
 		this.unitSize = {w: wCol, h: hRow};
 		this.gap = {w: wGap, h: hGap, col: wFactionGap};
 	}
-
-	highlightBattleGroups(b) {
-		console.log('highlightBattleGroups!!!!!!!!!!!!');
-		let units = b.fire_order;
-		let colors = ['limegreen', 'springGreen', 'green', 'seagreen', 'olive', 'darkgreen'];
-		let battleGroups = b.battle_groups;
-		for (const u of units) {
-			console.log('b', b, 'battleGroups', battleGroups, 'u', u, 'u.battle_group', u.battle_group);
-			let bgIndex = battleGroups.indexOf(u.battle_group);
-			if (bgIndex >= 0) {
-				let c = colors[bgIndex];
-				console.log('highlight battle_group', u.battle_group, 'in', c);
-				let ms = this.ms[u.id];
-				ms.selKeyColor(c,.2);
-			}
-		}
-	}
-
 	selectBattle() {
 		this.battleDiv.style.border = '4px solid yellow';
 	}
@@ -181,31 +162,21 @@ class ABattle {
 		let html = dDice.innerHTML;
 		dDice.innerHTML = html + '<br>' + hits;
 	}
-	// addUnit(u,id, gName, type, nationality, cv, x, y) {
-	// 	let ms = this.createUnit(u,id, gName, type, nationality);
-	// 	ms.setPos(x, y).draw();
-	// 	this.updateCv(ms, cv);
-	// 	return ms;
-	// }
-	createUnit(u, id, gName, type, nationality) {
+	addUnit(id, gName, type, nationality, cv, x, y) {
+		let ms = this.createUnit(id, gName, type, nationality);
+		ms.setPos(x, y).draw();
+		this.updateCv(ms, cv);
+		return ms;
+	}
+	createUnit(id, gName, type, nationality) {
 		// let type = 'Infantry';
 		// let nationality = 'France';
-
 		let owner = getUnitOwner(nationality);
 		let imagePath = '/a/assets/images/' + type + '.svg';
 		////console.log(id,gName,type,nationality,this.assets.troopColors)
 		let isMinorColor = !(nationality in this.assets.troopColors);
 		let color = isMinorColor ? this.assets.troopColors['Minor'] : this.assets.troopColors[nationality];
 		let darker = darkerColor(color[0], color[1], color[2]);
-
-		if (this.b.isSeaBattle) {
-			let bgroup = u.battle_group;
-			if (bgroup) {
-				let ibg = this.battleGroups.indexOf(bgroup);
-				darker = getpal(ibg, 0, 'b', this.battleGroupPalette);
-			}
-		}
-
 		let sz = this.assets.SZ.cadreDetail;
 		let sz80 = sz * 0.86;
 		let szImage = sz / 1.5;
@@ -282,27 +253,9 @@ class ABattle {
 
 		let dBattleFactions = addDivClass(dBattleMiddle, 'dBattleFactions', 'battleFactions');
 		dBattleFactions.style.width = this.size.w + 'px';
-		let topBottom = 25 + this.b.isSeaBattle ? 30 : 0; ////sea
-		dBattleFactions.style.height = this.size.h - topBottom + 'px';
+		dBattleFactions.style.height = this.size.h - 25 + 'px';
 
 		let g1 = addSvgg(dBattleFactions, gid);
-
-		if (this.b.isSeaBattle) {
-			this.battleGroups = this.b.battle_groups;
-			let dBattleGroups = addDivClass(dBattleMiddle, 'dBattleGroups', 'battleGroups');
-			let n = this.battleGroups.length;
-			this.battleGroupPalette = paletteFromRGBArray(assets.troopColors[this.b.attacker]);
-			console.log('palette', this.battleGroupPalette);
-			//this.battleGroupColors = getNColors(n);
-			for (const gr of this.battleGroups) {
-				let i = this.battleGroups.indexOf(gr);
-				// let bg = this.assets.troopColors[this.b.attacker];//getpal(i,0,'b',this.battleGroupPalette);
-				let bg = getpal(i, 0, 'b', this.battleGroupPalette);
-				let fg = getpal(i, 0, 'f', this.battleGroupPalette);
-				let sp = addSpanColor(dBattleGroups, 'sp' + gr, bg, fg);
-				sp.innerHTML = gr;
-			}
-		}
 
 		this.gid = gid;
 		this.battleDiv = dBattleOuter;
@@ -342,7 +295,7 @@ class ABattle {
 			//let ums = addUnit('u' + u.id, gid, type, u.unit.nationality, u.unit.cv, x + usz, y + usz);
 
 			//console.log(u.owner,u.unit.nationality)
-			let ms = this.createUnit(u, 'u' + u.id, gid, type, u.unit.nationality);
+			let ms = this.createUnit('u' + u.id, gid, type, u.unit.nationality);
 			ms.setPos(x + usz, y + usz).draw();
 			this.updateCv(ms, u.unit.cv);
 			this.ms[u.id] = ms;
@@ -441,16 +394,8 @@ class ABattle {
 		} else if (b.stage == 'ack_cleanup_battle') {
 			message = 'battle in ' + b.tilename + ' is ending! please accept!';
 			this.unhightlightUnits();
-			this.markMandatoryRebased(b_old, b);
+			this.markMandatoryRebased(b_old, b)
 			this.unselectBattle();
-		}
-
-		//sea battle
-		if (b.stage == 'battle_round_start_ack') {
-			//if get here, attacker is firing and need to select battle group
-			//
-			message = b.attacker + ', please select active battle group!';
-			this.highlightBattleGroups(b);
 		}
 
 		unitTestBattle('____________');

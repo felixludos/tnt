@@ -119,7 +119,7 @@ def remove_unit(G, unit):
 
 	if player in {'Minor', 'Major'}:
 		status = G.nations.status[unit.nationality]
-		del status[unit._id]
+		del status.units[unit._id]
 	else:
 
 		# update reserves
@@ -129,6 +129,7 @@ def remove_unit(G, unit):
 		reserves[unit.type] += 1
 
 	G.tiles[tilename].units.remove(unit._id)
-	del G.players[player].units[unit._id]
+	if player in G.players:
+		del G.players[player].units[unit._id]
 	del G.objects.table[unit._id]
 	G.objects.removed[unit._id] = unit

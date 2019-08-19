@@ -83,6 +83,10 @@
 					<button style="height:44px" id="bStep" onclick="onClickStep()">STEP</button>
 					<button onclick="onClickRunToPlayerChange(H.player)">next player</button>
 					<button onclick="onClickRunToScenarioDone()">run to scenario</button>
+					<button onclick="onClickRunToPhase('Production')">prod</button>
+					<button onclick="onClickRunToPhase('Movement')">movement</button>
+					<button onclick="onClickRunToPhase('Combat')">combat</button>
+					<button onclick="onClickRunToEnd()">run to end</button>
 					<br />
 					<br />
 					<div id="specialButtons"></div>
@@ -104,13 +108,9 @@
 						<br />
 						<br />
 						<button onclick="onClickRunToPlayer('West')">West</button>
-						<button onclick="onClickRunToPhase('Production')">prod</button>
 						<button onclick="onClickRunToPhase('Spring')">spring</button>
 						<button onclick="onClickRunToPhase('Summer')">summer</button>
 						<button onclick="onClickRunToPhase('Fall')">fall</button>
-						<button onclick="onClickRunToPhase('Movement')">movement</button>
-						<button onclick="onClickRunToPhase('Combat')">combat</button>
-						<button onclick="onClickRunToEnd()">run to end</button>
 						<br />
 						<br />
 						<button onclick="onClickUnits('West')">units West</button>
@@ -502,7 +502,7 @@
 				document.getElementById('status_year').innerHTML = H.year;
 				if (!empty(msg)) document.getElementById('status_message').innerHTML = msg;
 			}
-			function setDefaultFilenames(inFilename, inScenario) {
+			function setFilenameScenario(inFilename, inScenario) {
 				if (empty(inFilename)) {
 					inFilename = localStorage.getItem('inFilename');
 					if (empty(inFilename)) {
@@ -545,7 +545,7 @@
 				dShow.appendChild(b);
 			}
 			function startScript() {
-				setDefaultFilenames('north_sea', 'sc7');
+				setFilenameScenario('test', 'sc3');
 
 				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
 
@@ -559,14 +559,14 @@
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('choicemin,scenarioMin', execOptions.activatedTests);
+				addIfComma('', execOptions.activatedTests);
 
 				makeTestButton(() => H.phase == 'Movement' && H.season == 'Summer' && H.player == 'West');
 
 				execOptions.commandChain.push(() => onClickLoadScenario());
 
-				// onClickReload('sc1'); //('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
-				onClickRestart(); //for scenario testing!
+				onClickReload('test'); //('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
+				//onClickRestart(); //for scenario testing!
 			}
 		</script>
 		<!-- #region control flow -->
@@ -664,6 +664,7 @@
 				H.tuples = getTuples(data);
 			}
 			function phaseChange(data) {
+				unitTestLoad('phaseChange!!!',data,H)
 				let info = data.info.game;
 				unitTestGameloop('PHASE CHANGE!!!', H.phase, 'turning to:', info.phase);
 				unitTestSeason('H', H);
@@ -817,6 +818,10 @@
 					}
 					unitTestPlayer('____', H.player, ':');
 
+					//set H.season if in data.temp
+					H.season = lookup(data,['temp','season']);
+					unitTestLoad('___ H after reading season:',H)
+
 					gameloop(data);
 				});
 			}
@@ -839,21 +844,6 @@
 				startFromScratch(player, seed);
 			}
 
-			//______________old
-			function restart_old(player, seed, fname) {
-				resetAll();
-				initManagers();
-				initH(player, seed);
-				execOptions.skipCond = defaultSkipCond;
-
-				unitTestInit('sending initSeed with ', H.player, seed);
-
-				if (empty(fname)) {
-					sendInitSeed(H.player, seed, gameloop);
-				} else {
-					sendLoading(H.player, fname, gameloop);
-				}
-			}
 		</script>
 		<!-- #endregion init and restart -->
 

@@ -1,6 +1,7 @@
 options:
   nomatch: null
   priority: movement
+  unit_types: [Tank, Infantry, Fleet]
 West:
   units:
     North_Sea:
@@ -14,7 +15,13 @@ Axis:
     Ruhr:
       Fortress: [1]
       Infantry: [1]
-      Fleet: [2,2,1]
+      Fleet: [2,1]
+    Munich:
+      Infantry: [2,1]
+    Konigsberg:
+      Fleet: [2,1]
+    Baltic_Sea:
+      Fleet: [2,1]
 conflicts:
-  Ruhr: [West, Axis]
+  Munich: [West, Axis]
   North_Sea: [Axis, West]

@@ -170,9 +170,11 @@ function chooseDeterministicOrRandom(n, arr, condFunc = null) {
 	return arr[n % arr.length];
 }
 function choose(arr, n) {
+	console.log(arr, n);
 	var result = new Array(n);
 	var len = arr.length;
 	var taken = new Array(len);
+	console.log('len', len);
 	if (n > len) throw new RangeError('getRandom: more elements taken than available');
 	while (n--) {
 		var x = Math.floor(Math.random() * len);
@@ -184,10 +186,10 @@ function choose(arr, n) {
 function contains(arr, el) {
 	return arr.includes(el);
 }
-function containsAny(arr,lst){
+function containsAny(arr, lst) {
 	//console.log('containsAny',arr,lst)
 	for (const x of lst) {
-		if (arr.includes(x)){
+		if (arr.includes(x)) {
 			//console.log('containsAny YES!',x,arr);
 			return true;
 		}
@@ -212,15 +214,11 @@ function containedInAny(el, ll) {
 }
 function empty(arr) {
 	//if (typeof(arr) == 'object') return arr.length == 0; //Object.entries(arr).length === 0;
-	let result = arr === undefined 
-	|| !arr 
-	|| (isString(arr) && arr == '') 
-	|| (Array.isArray(arr) && arr.length == 0)
-	|| emptyDict(arr);
+	let result = arr === undefined || !arr || (isString(arr) && arr == '') || (Array.isArray(arr) && arr.length == 0) || emptyDict(arr);
 	testHelpers(typeof arr, result ? 'EMPTY' : arr);
 	return result;
 }
-function emptyDict(obj){
+function emptyDict(obj) {
 	let test = Object.entries(obj).length === 0 && obj.constructor === Object;
 	return test;
 }
@@ -987,6 +985,9 @@ function getColorNames() {
 		'YellowGreen'
 	];
 }
+function getNColors(n) {
+	return choose(getColorNames(), n);
+}
 
 function getColorHexes(x) {
 	return [
@@ -1348,13 +1349,13 @@ function lookupAsIdList(dict, keys) {
 		if (k in d) {
 			//console.log(k, 'is in', d);
 			d = d[k];
-			if (k == last) return dict2list(d,'id');
+			if (k == last) return dict2list(d, 'id');
 		} else return null;
 	}
 }
 function removeInPlaceKeys(dict, keys) {
 	for (const k of keys) {
-		delete dict[k]
+		delete dict[k];
 	}
 }
 function sortBy(arr, key) {
@@ -1469,6 +1470,17 @@ function addDivClass(dParent, id, className) {
 	dParent.appendChild(d);
 	d.id = id;
 	d.classList.add(className);
+	return d;
+}
+function addSpanColor(dParent, id, bg, fg) {
+	let d = document.createElement('span');
+	dParent.appendChild(d);
+	d.id = id;
+	//d.classList.add(className);
+	console.log('addSpanColor',bg,fg)
+	d.style.color = fg;
+	d.style.backgroundColor = bg;
+	// d.styleString=`color:silver;background-color:${bg};font-size:10px;padding:2px 10px;margin:6px`;
 	return d;
 }
 function addDiv(dParent, {html, w = '100%', h = '100%', bg, fg, ipal, border, rounding, margin, padding, float, textAlign, fontSize}) {
@@ -1883,7 +1895,7 @@ function dump(...arr) {
 	}
 }
 function error(msg) {
-	console.log('ERROR!!!!! ',msg);
+	console.log('ERROR!!!!! ', msg);
 }
 //#endregion io helpers
 
@@ -2406,6 +2418,24 @@ function setCSSButtonColors(pal, ihue = 0) {
 	root.style.setProperty('--bxl', pal[5][ihue].b);
 	root.style.setProperty('--bxxl', pal[6][ihue].b);
 }
+function paletteFromRGBArray(arr){
+
+	let hsl = rgbToHsl(arr[0],arr[1],arr[2]);
+	let hue1 = hsl[0] * 360;
+
+	let hsv = rgbToHsv(arr[0],arr[1],arr[2]);
+	let hue2 = hsv.h; //
+
+	let hue = hue2;
+
+	console.log('arr',arr,'hsl',hsl,'hue',hue1,'hsv',hsv,'hue',hue2);
+
+
+	// console.log('hsl',hsl,'arr',arr,'hue',hue)
+	let result = gen_palette(hue);
+	console.log('result',result);
+	return result;
+}
 function gen_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
 	//generates a palette = array of 7 arrays of nHues color pairs as {b:background,f:foreground}
 	//each color is a hsla string
@@ -2436,20 +2466,22 @@ function gen_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
 	testHelpers('pal.length:', pal.length, ', pal[0].length:', pal[0].length, ', pal:', pal);
 	return pal;
 }
-function getpal(ipal = -1, ihue = 0, bOrf = 'b') {
+function getpal(ipal = -1, ihue = 0, bOrf = 'b', pal) {
 	//gets a b or f color from palette
 	//a value of -1 in ihue or ipal ... pick random
 	//default: return random background shade of first hue
 	//if no palette has ever been set, just return a random color
-	if (!palette) return randomColor();
-	nHues = palette[0].length;
-	nShades = palette.length;
+	//if pal parameter, take pal instead of global palette
+	let p = !pal || pal == undefined ? palette : pal;
+	if (!p) return randomColor();
+	nHues = p[0].length;
+	nShades = p.length;
 	if (ipal < -1) ipal = randomNumber(0, nShades);
 	else if (ipal >= nShades) ipal %= nShades;
 	if (ihue < -1) ihue = randomNumber(0, nHues);
 	else if (ihue >= nHues) ihue %= nHues;
 
-	return palette[ipal][ihue][bOrf];
+	return p[ipal][ihue][bOrf];
 }
 function set_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
 	palette = gen_palette(hue, nHues, sat, a);

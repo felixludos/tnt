@@ -4,7 +4,7 @@ from tnt_units import add_unit, move_unit
 from tnt_util import travel_options
 from government import check_revealable, reveal_tech
 from structures.common import condensed_str
-from battles import encode_accept
+from battles import encode_accept, find_unit_owner
 from command import powers_present
 from battles import find_unit_owner
 
@@ -25,54 +25,49 @@ def add_battles_to_reveal(G, player):
 		b = c.battles[tile]
 		b.tilename = tile
 		b.tile = G.tiles[tile]
+		b.isSeaBattle = b.tile.type in ['Sea', 'Ocean']
 		#find owners of units on that tile
 		#TODO: replace by powers_present!!!
-		owners = []
-		for id in units:
-			unit = G.objects.table[id]
-			owner = G.nations.designations[unit.nationality]
-			#print('* * * owner:', owner)
-			if not owner in owners:
-				owners.append(owner)
+		owners = [k for k in powers_present(G, b.tile)]
 
-		#print('unique owners:', owners)
 		if len(owners) != 2:
-			#print('combat with other than 2 parties!!!!!')
-			#maybe there can be 3 parties! in that case
+			#TODO implement 3 way battles
 			#if this is the defender, needs to choose who to attack
 			#for now assume that there must be exactly 2 parties in a combat
+			c.ERROR = 'NOT SUPPORTED: COMBAT WITH POWERS != 2 ' + b.tilename
 			pass
-		# b.intruder = c.battles_to_reveal[tile] #not sure about this!
-		b.owner = b.tile.owner  #SICHER RICHTIG
+		
+		b.owner = b.tile.owner if 'owner' in tile else None
+		uidsList = [k for k in units]
+		if not b.owner:
+			uid = uidsList[0]
+			b.owner = find_unit_owner(G, G.objects.table[uid])
+
 		b.intruder = owners[1] if b.owner == owners[0] else owners[0]
+		
 		assert G.temp.attacker == player, 'ATTACKER != PLAYER!!!!!!'
 		b.attacker = G.temp.attacker  #GANZ SICHER RICHTIG
 		b.defender = owners[1] if b.attacker == owners[0] else owners[0]
-		#print('owner', b.owner)
-		#print('intruder', b.intruder)
-		#print('attacker', b.attacker)
-		#print('defender', b.defender)
 		b.units = []
+
 		for id in units:
 			unit = G.objects.table[id]
 			unit.visible = xset(G.players.keys())
 			G.objects.updated[id] = unit
-			#TODO: how to get unit owner?
-			#find owner of unit: if a unit is visible to 1, this is the owner
-			#if it is visible to all, it is nations[designations]
-			#simpler, for now (vielleicht geht das eh):
-			#unit owner is attacker or defender
 			attacker = b.attacker
 			defender = b.defender
 			uowner = find_unit_owner(G, unit)
 			uopponent = defender if uowner == attacker else attacker
-			# uowner = attacker if id in G.players[attacker].units else defender
-			# uopponent = defender if id in G.players[attacker].units else attacker
 			utype = unit.type
 			ugroup = G.units.rules[utype].type
 			upriority = G.units.rules[utype].priority
 			udamage = G.units.rules[utype]
 			uid = id
+
+			u_battle_group = None
+			if b.isSeaBattle and b.tilename in G.temp.battle_groups and uid in G.temp.battle_groups[b.tilename]:
+				u_battle_group = G.temp.battle_groups[b.tilename][uid]
+			
 			uff = False
 			prec_bomb = False
 			air_def_radar = False
@@ -85,6 +80,7 @@ def add_battles_to_reveal(G, player):
 			u.priority = upriority
 			u.rules = udamage
 			u.id = uid
+			u.battle_group = u_battle_group
 			#modifying cards
 			uff = hasFirstFire(G, uowner, utype)
 
@@ -103,7 +99,7 @@ def add_battles_to_reveal(G, player):
 				#sonar
 				if utype == 'Fleet' and 'Sonar' in tech:
 					sonar = True
-			
+
 			u.ff = uff
 			u.sonar = sonar
 			u.air_def_radar = air_def_radar
@@ -114,14 +110,25 @@ def add_battles_to_reveal(G, player):
 			#u.turn 0: this unit goes before same type of opponent, otherwise 1
 			u.turn = 0
 			opp_has_ff = hasFirstFire(G, uopponent, utype)
-			
-			uHasFF = (uowner == attacker and G.players[uowner].stats.DoW[uopponent] and not opp_has_ff) \
-					or (uowner == attacker and u.ff and not opp_has_ff) \
-					or (uowner == defender and (u.ff or (not opp_has_ff and not G.players[uopponent].stats.DoW[uowner])))
+
+			uHasFF = False
+			if uowner == 'Minor':
+				if not opp_has_ff:
+					uHasFF = True
+			elif uopponent == 'Minor':
+				if u.ff:
+					uHasFF = True
+			elif uowner == attacker and G.players[uowner].stats.DoW[uopponent] and not opp_has_ff:
+				uHasFF = True
+			elif uowner == attacker and u.ff and not opp_has_ff:
+				uHasFF = True
+			elif uowner == defender and (u.ff or (not opp_has_ff and not G.players[uopponent].stats.DoW[uowner])):
+				uHasFF = True
 			u.turn = 0 if uHasFF else 1
 
 			b.units.append(u)
 
+		unitsSorted = sorted(b.units, key=lambda u: u.battle_group if u.battle_group else 'zzz') if b.isSeaBattle else b.units
 		b.fire_order = sorted(b.units, key=lambda u: u.priority * 10 + u.turn)
 	c.battles_to_reveal.clear()
 
@@ -139,8 +146,8 @@ def determine_stage(G, player):
 		only_key = c.battles_remaining[0]
 		c.battle = c.battles[only_key]
 		c.battles_remaining = []
-	else: 
-		assert nBattles == 0,'determine_stage: MATH ERROR!!!'
+	else:
+		assert nBattles == 0, 'determine_stage: MATH ERROR!!!'
 		c.stage = 'combat_end'
 		c.stages.append(c.stage)
 
@@ -183,14 +190,14 @@ def hasFirstFire(G, player, utype):
 def prepare_combat_structs(G, player):
 	G.temp.combat = adict()
 	c = G.temp.combat
-	c.stages=[]
+	c.stages = []
 
 	#calc optional battles for player
 	battles_to_select = tset()
 	for tilename in G.temp.potential_battles:
 		if tilename in G.temp.battles:
 			continue
-		is_relevant = player in powers_present(G,G.tiles[tilename])
+		is_relevant = player in powers_present(G, G.tiles[tilename])
 		if is_relevant:
 			battles_to_select.add(tilename)
 	c.battles_to_select = battles_to_select
@@ -255,7 +262,7 @@ def optional_battle_selection(G, player, action, c):
 		head = None
 
 	if not len(c.battles_to_select):
-		if not len(c.battles): #user did not select opt battle and no new battles
+		if not len(c.battles):  #user did not select opt battle and no new battles
 			c.stage = 'ack_combat_end'
 			c.stages.append(c.stage)
 		else:
@@ -283,12 +290,12 @@ def combat_phase(G, player, action):
 	c = G.temp.combat
 	head, *tail = (None, None) if not action else action
 
-	while(True):
+	while (True):
 		if c.stage == 'opt':
 			c.stage, out = optional_battle_selection(G, player, action, c)
 			if out != None:
 				return out
-	
+
 		if c.stage == 'next':
 			c.stage, out = determining_next_battle(G, player, action, c)
 			if out != None:
@@ -310,19 +317,17 @@ def combat_phase(G, player, action):
 				del G.temp.battles[c.battle.tilename]
 			elif c.battle.tilename in G.temp.potential_battles:
 				G.temp.potential_battles.remove(c.battle.tilename)
-			determine_stage(G,player)
+			determine_stage(G, player)
 
 		if c.stage == 'combat_end':
 			G.logger.write('COMBAT ENDS!')
 			c.stage = 'ack_combat_end'
 			c.stages.append(c.stage)
 			#who is movement player?
-			return encode_accept(G,c.battle.attacker)
+			return encode_accept(G, c.battle.attacker)
 
 		if c.stage == 'ack_combat_end':
 			del G.temp.combat
 			# raise PhaseComplete #wieso kommt der 2x hierher???
-			raise PhaseComplete #wieso kommt der 2x hierher???
+			raise PhaseComplete  #wieso kommt der 2x hierher???
 			break
-
-
