@@ -114,7 +114,7 @@ class ABattleSea {
 		let ms = this.ms[id];
 		//console.log('RETREATED:',ms)
 		ms.unhighlight();
-		ms.selKeyColor('darkSlateGrey', 0.7);
+		ms.selKeyColor('darkSlateGrey','retreated', 0.7);
 		ms.tag('removed', true);
 	}
 	selectTheDead(b_old, b_new) {

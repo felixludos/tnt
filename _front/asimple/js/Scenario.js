@@ -550,7 +550,7 @@ class Scenario {
 	}
 	findMatch(G) {
 		unitTestScenario('______________________findMatch');
-		console.log('______________________findMatch');
+		//console.log('______________________findMatch');
 
 		let isNewRound = this.player != G.player || this.phase != G.phase;
 		if (isNewRound) {
@@ -558,7 +558,7 @@ class Scenario {
 			this.atWar = false; //TODO entscheide in welchem fall atWar true setzen soll
 			//for now just when new conflict is activated which is done once perconflict!
 
-			console.log('new round:', this.phase, '/', this.player, '=>', G.phase, '/', G.player);
+			//console.log('new round:', this.phase, '/', this.player, '=>', G.phase, '/', G.player);
 		}
 		this.player = G.player;
 		this.phase = G.phase;

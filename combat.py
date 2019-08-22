@@ -129,7 +129,7 @@ def add_battles_to_reveal(G, player):
 			b.units.append(u)
 
 		unitsSorted = sorted(b.units, key=lambda u: u.battle_group if u.battle_group else 'zzz') if b.isSeaBattle else b.units
-		b.fire_order = sorted(b.units, key=lambda u: u.priority * 10 + u.turn)
+		b.fire_order = sorted(unitsSorted, key=lambda u: u.priority * 10 + u.turn)
 	c.battles_to_reveal.clear()
 
 def determine_stage(G, player):
@@ -321,13 +321,8 @@ def combat_phase(G, player, action):
 
 		if c.stage == 'combat_end':
 			G.logger.write('COMBAT ENDS!')
-			c.stage = 'ack_combat_end'
-			c.stages.append(c.stage)
-			#who is movement player?
-			return encode_accept(G, c.battle.attacker)
-
-		if c.stage == 'ack_combat_end':
 			del G.temp.combat
 			# raise PhaseComplete #wieso kommt der 2x hierher???
-			raise PhaseComplete  #wieso kommt der 2x hierher???
 			break
+
+	raise PhaseComplete  #wieso kommt der 2x hierher???

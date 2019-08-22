@@ -13,7 +13,7 @@ class ACombat {
 		}
 	}
 	initBattles(cData){
-		console.log('initializing battles')
+		//console.log('initializing battles')
 		let c = this.c = cData;
 		this.page.battleView();
 
@@ -101,10 +101,10 @@ class ACombat {
 		//console.log('WAAAAAAAAAAAAAAAAAAAAAAASSSSSSSSSSSSSS?????')
 
 		if (c.stage == 'opt') {
-			console.log('***combat.update returns for stage == opt', c)
+			//console.log('***combat.update returns for stage == opt', c)
 			return;
 		}else if (!this.battles && c.stage == 'battle'){ // && Object.keys(c.battles).length > 0){
-			console.log('***combat.update initializing!',c)
+			//console.log('***combat.update initializing!',c)
 			this.initBattles(c);
 		} 
 

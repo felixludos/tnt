@@ -481,13 +481,18 @@ class MS {
 			testMS_fine('childNodes od p', p.childNodes);
 			testMS_fine('childNodes od p', p.children);
 			if (ch == null) {
-				//this elem has been erased from UI
+				//this elem has been removed from UI
+				//but is still retaining its parent
+				//attach it back to parent
 				this.isDrawn = true;
 				this.parent.appendChild(this.elem);
 				this.show();
 				testMS_fine('element', this.id, 'has been re drawn!!!');
 			} else {
 				testMS_fine('there is already an element with id', this.id, 'drawn!!!!!!!');
+				//the draw call is unecessary!
+				//this element might have been hidden?
+				//this.show();
 			}
 		}
 		return this;
@@ -503,6 +508,15 @@ class MS {
 			el.removeChild(el.lastChild);
 		}
 		testMS_fine(el, this);
+	}
+	removeChildWithClass(className) {
+		for (const ch of [...this.elem.childNodes]) {
+			let cl = ch.getAttribute('class');
+			if (cl && ch.getAttribute('class').includes(className)) {
+				this.elem.removeChild(ch);
+				return;
+			}
+		}
 	}
 	removeFromUI() {
 		if (this.isDrawn && this.parent) {
@@ -529,6 +543,31 @@ class MS {
 		if (!this.overlay) return;
 		this.overlay.setAttribute('stroke-width', 0);
 	}
+	cover(color,alpha){
+		if (this.isCovered) return;
+		//basically duplicate overlay and give it new color and different class name
+		let el = this.overlay;
+		if (!el) return;
+
+		let newel = cloneSvg(el,'cover');
+		// newel.setAttribute('x',0)
+		// newel.setAttribute('y',0)
+		newel.setAttribute('class','cover')
+		//console.log(newel)
+
+		this.setFill(newel, color, alpha);
+		this.elem.appendChild(newel);
+
+
+		this.isCovered = true;
+	}
+	uncover(){
+		//removes child w/ className 'cover'
+		if (this.isCovered){
+			this.removeChildWithClass('cover');
+			this.isCovered = false;
+		}
+	}
 	highlight() {
 		testMS_fine('highlighting', this.id);
 		if (this.isHighlighted) return;
@@ -552,8 +591,8 @@ class MS {
 		this.removeClass('selected');
 		this.isSelected = false;
 	}
-	selKeyColor(color, alpha = 0.5) {
-		let key = 'fill_' + color;
+	selKeyColor(color, key, alpha = 0.5) {
+		if (!key) key = 'fill_' + color;
 		color = color2trans(color, alpha);
 		if (!(key in this.colorKeys)) {
 			addCSSClass(key, 'fill:' + color + ';');

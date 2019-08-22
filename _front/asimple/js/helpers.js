@@ -30,7 +30,7 @@ function uidHelpers() {
 class Counter extends Map {
 	//usage:
 	// results = new Counter([1, 2, 3, 1, 2, 3, 1, 2, 2]);
-	// for (let [number, times] of results.entries()) console.log('%s occurs %s times', number, times);
+	// for (let [number, times] of results.entries()) //console.log('%s occurs %s times', number, times);
 	// people = [
 	// 		{name: 'Mary', gender: 'girl'},
 	// 		{name: 'John', gender: 'boy'},
@@ -39,11 +39,11 @@ class Counter extends Map {
 	// 		{name: 'Maklatura', gender: 'girl'}
 	// ];
 	// byGender = new Counter(people, x => x.gender);
-	// for (let g of ['boy', 'girl']) console.log("there are %s %ss", byGender.get(g), g);
+	// for (let g of ['boy', 'girl']) //console.log("there are %s %ss", byGender.get(g), g);
 
 	//count objects with 2 conditions: objects of same type, same owner:
 	// byType = new Counter(b.fire_order, x => x.unit.type+'_'+x.owner);
-	// for (let g of cartesian(brep.allUnitTypes,brep.factions)) console.log("there are %s %s", byType.get(g), g);
+	// for (let g of cartesian(brep.allUnitTypes,brep.factions)) //console.log("there are %s %s", byType.get(g), g);
 
 	constructor(iter, key = null) {
 		super();
@@ -170,11 +170,11 @@ function chooseDeterministicOrRandom(n, arr, condFunc = null) {
 	return arr[n % arr.length];
 }
 function choose(arr, n) {
-	console.log(arr, n);
+	//console.log(arr, n);
 	var result = new Array(n);
 	var len = arr.length;
 	var taken = new Array(len);
-	console.log('len', len);
+	//console.log('len', len);
 	if (n > len) throw new RangeError('getRandom: more elements taken than available');
 	while (n--) {
 		var x = Math.floor(Math.random() * len);
@@ -355,13 +355,13 @@ function orderFromTo(lst, fromOrder, toOrder) {
 	return res;
 }
 function prjstart(j) {
-	console.log('______', formatjson(j));
+	//console.log('______', formatjson(j));
 }
 function prj(j) {
-	console.log(formatjson(j));
+	//console.log(formatjson(j));
 }
 function pr(x) {
-	console.log(prlist(x).replace(/,,/g, ','));
+	//console.log(prlist(x).replace(/,,/g, ','));
 }
 function prll(ll) {
 	//ensure this is a list of lists
@@ -371,7 +371,7 @@ function prll(ll) {
 	}
 	for (const l of ll) {
 		if (!isList(ll)) {
-			console.log('element', l, 'NOT a list!');
+			//console.log('element', l, 'NOT a list!');
 			return;
 		}
 	}
@@ -453,7 +453,7 @@ function arr2Set(arr2d, func) {
 function color2trans(color, alpha = 0.5) {
 	//alpha should be between 0.0 and 1.0
 	let hex = standardize_color(color);
-	console.log(color);
+	//console.log(color);
 
 	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 	result = result
@@ -1370,6 +1370,22 @@ function sortByDescending(arr, key) {
 //#endregion dictionary helpers
 
 //#region DOM helpers:
+function divscrolldown(id) {
+	id = '#' + id;
+	setTimeout(function() {
+		$(id).animate(
+			{
+				scrollTop: $(id).offset().top
+			},
+			500
+		);
+	}, 200);
+}
+function cloneSvg(svg, id) {
+	var newPawn = svg.cloneNode(true);
+	newPawn.id = id;
+	return newPawn;
+}
 function gZone(d, gid, vAnchor, hAnchor, wPercent, hPercent, bg, fg) {
 	let svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 
@@ -1420,6 +1436,7 @@ function addPara(div, s, margin = '0px', fontSize = '10px', color = 'green') {
 	//p.style.cssText = `margin:${margin};font-size:${fontSize};color:${color}`;
 	return p;
 }
+
 // function addTitle(div, s) {
 // 	let dTitle = document.createElement('div');
 // 	dTitle.style.cssText = 'margin:0px;padding:0px;background-color:red;color:green;font-size:20px';
@@ -1439,13 +1456,13 @@ function addPara(div, s, margin = '0px', fontSize = '10px', color = 'green') {
 // }
 // function addSubtitle(dTitle, s) {
 // 	let pTitle = dTitle.firstChild;
-// 	console.log('dTitle firstChild:',pTitle);
+// 	//console.log('dTitle firstChild:',pTitle);
 // 	clearElement(dTitle);
 // 	dTitle.appendChild(pTitle);
-// 	console.log('HAAAAAAAAAAAAAAAAAAAAAALLLLLLLLLLo');
+// 	//console.log('HAAAAAAAAAAAAAAAAAAAAAALLLLLLLLLLo');
 // 	let p = addDiv(dTitle, s);
 // 	// p.classList.add('subTitle');
-// 	console.log(dTitle);
+// 	//console.log(dTitle);
 // 	return p;
 // }
 function addStyledDiv(dParent, id, html, styleString) {
@@ -1477,7 +1494,7 @@ function addSpanColor(dParent, id, bg, fg) {
 	dParent.appendChild(d);
 	d.id = id;
 	//d.classList.add(className);
-	console.log('addSpanColor',bg,fg)
+	//console.log('addSpanColor',bg,fg)
 	d.style.color = fg;
 	d.style.backgroundColor = bg;
 	// d.styleString=`color:silver;background-color:${bg};font-size:10px;padding:2px 10px;margin:6px`;
@@ -1563,6 +1580,15 @@ function findChildWithId(id, parentElem) {
 	let children = arrChildren(parentElem);
 	for (const ch of children) {
 		if (ch.id == id) return ch;
+	}
+	return null;
+}
+function findChildWithClass(className, parentElem) {
+	testHelpers(parentElem);
+	let children = arrChildren(parentElem);
+	for (const ch of children) {
+		//console.log('....findChildWithClass', ch, ch.classList, className)
+		if (ch.classList.includes(className)) return ch;
 	}
 	return null;
 }
@@ -1891,11 +1917,11 @@ function compluslast(id) {
 //#region io helpers
 function dump(...arr) {
 	for (const a of arr) {
-		console.log(a);
+		//console.log(a);
 	}
 }
 function error(msg) {
-	console.log('ERROR!!!!! ', msg);
+	//console.log('ERROR!!!!! ', msg);
 }
 //#endregion io helpers
 
@@ -2418,22 +2444,26 @@ function setCSSButtonColors(pal, ihue = 0) {
 	root.style.setProperty('--bxl', pal[5][ihue].b);
 	root.style.setProperty('--bxxl', pal[6][ihue].b);
 }
-function paletteFromRGBArray(arr){
-
-	let hsl = rgbToHsl(arr[0],arr[1],arr[2]);
+function paletteFromRGBArray(arr) {
+	let hsl = rgbToHsl(arr[0], arr[1], arr[2]);
 	let hue1 = hsl[0] * 360;
+	sat = Math.round(hsl[1] * 100);
 
-	let hsv = rgbToHsv(arr[0],arr[1],arr[2]);
+	let hsv = rgbToHsv(arr[0], arr[1], arr[2]);
 	let hue2 = hsv.h; //
 
-	let hue = hue2;
+	let hue = hue1;
 
-	console.log('arr',arr,'hsl',hsl,'hue',hue1,'hsv',hsv,'hue',hue2);
+	//console.log('***************************************')
+	//console.log('********   paletteFromRGBArray   ********')
+	//console.log('***************************************')
+	//console.log('arr',arr,'hsl',hsl,'hue',hue1,'hsv',hsv,'hue',hue2);
+	//console.log('hsl',hsl)
+	//console.log('hsv',hsv)
 
-
-	// console.log('hsl',hsl,'arr',arr,'hue',hue)
-	let result = gen_palette(hue);
-	console.log('result',result);
+	// //console.log('hsl',hsl,'arr',arr,'hue',hue)
+	let result = gen_palette(hue, 1, sat);
+	//console.log('result',result);
 	return result;
 }
 function gen_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
@@ -2472,6 +2502,10 @@ function getpal(ipal = -1, ihue = 0, bOrf = 'b', pal) {
 	//default: return random background shade of first hue
 	//if no palette has ever been set, just return a random color
 	//if pal parameter, take pal instead of global palette
+	//console.log('***************************************')
+	//console.log('********   getpal   ********')
+	//console.log('***************************************')
+	//console.log('getpal',ipal,ihue,bOrf,pal)
 	let p = !pal || pal == undefined ? palette : pal;
 	if (!p) return randomColor();
 	nHues = p[0].length;
@@ -2480,7 +2514,7 @@ function getpal(ipal = -1, ihue = 0, bOrf = 'b', pal) {
 	else if (ipal >= nShades) ipal %= nShades;
 	if (ihue < -1) ihue = randomNumber(0, nHues);
 	else if (ihue >= nHues) ihue %= nHues;
-
+	//console.log('result von getpal',p[ipal][ihue][bOrf]);
 	return p[ipal][ihue][bOrf];
 }
 function set_palette(hue = 0, nHues = 2, sat = 100, a = 1) {
@@ -2710,16 +2744,24 @@ function activateTests(commaSepString) {
 	addIfComma(commaSepString, activatedTests);
 }
 function testGSM() {
-	if (activatedTests.includes('GSM')) console.log(...arguments);
+	if (activatedTests.includes('GSM')) {
+		console.log(...arguments);
+	}
 }
 function testHelpers() {
-	if (activatedTests.includes('helpers')) console.log(...arguments);
+	if (activatedTests.includes('helpers')) {
+		console.log(...arguments);
+	}
 }
 function testHexgrid() {
-	if (activatedTests.includes('hexgrid')) console.log(...arguments);
+	if (activatedTests.includes('hexgrid')) {
+		console.log(...arguments);
+	}
 }
 function testMS_fine() {
-	if (activatedTests.includes('MS_fine')) console.log(...arguments);
+	if (activatedTests.includes('MS_fine')) {
+		console.log(...arguments);
+	}
 }
 
 //#endregion

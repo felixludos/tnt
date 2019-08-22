@@ -28,16 +28,16 @@ function findClosestTupleForItem(tuples, item, assets) {
 	let tilenames = tuples.map(x => x[1]);
 
 	let closestTile = findClosestTile((a, b) => assets.distanceBetweenTiles(a, b), item.goalTile, tilenames);
-	//TODO: if this item has a position (item.tile) and that position is closer to goal than 
+	//TODO: if this item has a position (item.tile) and that position is closer to goal than
 	//the best of tilenames found, do NOT move that item! instead return null!!!
-	let dCurrent = assets.distanceBetweenTiles(item.tile,item.goalTile);
-	let dNew = assets.distanceBetweenTiles(closestTile,item.goalTile);
-	if (dNew > dCurrent){
-		console.log('item',item.tile, 'already closest possible to',item.goalTile);
+	let dCurrent = assets.distanceBetweenTiles(item.tile, item.goalTile);
+	let dNew = assets.distanceBetweenTiles(closestTile, item.goalTile);
+	if (dNew > dCurrent) {
+		//console.log('item',item.tile, 'already closest possible to',item.goalTile);
 		return null;
-	} 
+	}
 
-	console.log('tile closest to goal tile', item.goalTile, ':', closestTile);
+	//console.log('tile closest to goal tile', item.goalTile, ':', closestTile);
 	return firstCond(tuples, x => x[1] == closestTile);
 }
 function findClosestUnit(fMetric, goalTile, units) {
@@ -90,8 +90,8 @@ function getSet(o, key) {
 }
 function logFormattedData(data, n, msgAfter = '') {
 	let s = makeStrings(data, ['game', 'actions', 'waiting_for', 'created']);
-	console.log('___ step ' + n, '\n' + s);
-	console.log(msgAfter);
+	//console.log('___ step ' + n, '\n' + s);
+	//console.log(msgAfter);
 }
 function isANS(unitType) {
 	return ['AirForce', 'Submarine', 'Carrier', 'Fleet'].includes(unitType);
@@ -99,8 +99,8 @@ function isANS(unitType) {
 function isCardType(o) {
 	return 'obj_type' in o && endsWith(o.obj_type, 'card');
 }
-function isSeason(ph){
-	return ['Spring', 'Summer', 'Fall', 'Winter'].includes(ph)
+function isSeason(ph) {
+	return ['Spring', 'Summer', 'Fall', 'Winter'].includes(ph);
 }
 function isVisibleToPlayer(o, player) {
 	let vis = getVisibleSet(o);
@@ -148,7 +148,7 @@ function matchSingleUnit_dep(idDict, pl, tile, type) {
 	let units = arr.filter(x => x.obj_type == 'unit' && getUnitOwner(x.nationality) == pl && x.tile == tile && x.type == type); // do I need cv?
 	if (units.length > 1) {
 		msg = 'matchSingleUnit: MULTIPLE UNITS MATCH EXACTLY!!!';
-		console.log(msg, units);
+		//console.log(msg, units);
 		alert(msg);
 	} else if (units.length == 1) {
 		return units[0];
@@ -160,7 +160,7 @@ function matchAllUnits_dep(arr, pl, tile, type) {
 	let units = arr.filter(x => x.obj_type == 'unit' && getUnitOwner(x.nationality) == pl && x.tile == tile && x.type == type); // do I need cv?
 	if (units.length > 1) {
 		msg = 'matchSingleUnit: MULTIPLE UNITS MATCH EXACTLY!!!';
-		console.log(msg, units);
+		//console.log(msg, units);
 		alert(msg);
 	} else if (units.length == 1) {
 		return units[0];
@@ -168,41 +168,41 @@ function matchAllUnits_dep(arr, pl, tile, type) {
 	return null;
 }
 function outputCombatData(title, data, H) {
-	console.log('________________' + title);
-	console.log('H', H);
+	//console.log('________________' + title);
+	//console.log('H', H);
 	let c = data.temp.combat;
 	let sCombat = c == undefined ? 'undef' : c.stage + ', battles: ' + Object.keys(c.battles).toString();
 	let sBattle = c == undefined || c.battle == undefined ? 'undef' : c.battle.stage + ', loc: ' + c.battle.tilename;
-	console.log('data.combat: ' + sCombat);
-	console.log('dt.c.battle: ' + sBattle);
+	//console.log('data.combat: ' + sCombat);
+	//console.log('dt.c.battle: ' + sBattle);
 	// let cFront = H.combat;
 	// let c = data.temp.combat;
-	// console.log('Back end (data.temp.combat):');
-	// console.log('H', H);
+	// //console.log('Back end (data.temp.combat):');
+	// //console.log('H', H);
 	// if (c === undefined) {
-	// 	console.log('combat data gone!');
+	// 	//console.log('combat data gone!');
 	// } else {
-	// 	console.log('combat:', c.stage, c.battles, c.battle);
+	// 	//console.log('combat:', c.stage, c.battles, c.battle);
 	// 	if ('battle' in c && c.battle) {
-	// 		console.log('battle:', c.battle, c.battle.stage);
+	// 		//console.log('battle:', c.battle, c.battle.stage);
 	// 	}
-	// 	console.log('Front end (H.combat):');
-	// 	console.log('combat:', cFront.stage, cFront.battles, cFront.battle);
+	// 	//console.log('Front end (H.combat):');
+	// 	//console.log('combat:', cFront.stage, cFront.battles, cFront.battle);
 	// 	if ('battle' in cFront && cFront.battle) {
-	// 		console.log('battle:', cFront.battle, cFront.battle.stage);
+	// 		//console.log('battle:', cFront.battle, cFront.battle.stage);
 	// 	}
 	// 	H.combat.update(data, H);
 	// }
-	// console.log('____________________________(line 617)');
+	// //console.log('____________________________(line 617)');
 }
 function outputPlayerUnits(pl, H) {
 	let dObjects = dict2list(H.objects, 'id');
 	dObjects = dObjects.filter(x => x.obj_type == 'unit');
 	let unitsPlayer = dObjects.filter(x => getUnitOwner(x.nationality) == pl);
 	sortBy(unitsPlayer, 'tile');
-	console.log(pl);
+	//console.log(pl);
 	for (const u of unitsPlayer) {
-		console.log(u.type, u.type == 'Fleet' || u.type == 'Tank' ? '\t\t' : '\t', u.cv, '\t', u.tile, u.id);
+		//console.log(u.type, u.type == 'Fleet' || u.type == 'Tank' ? '\t\t' : '\t', u.cv, '\t', u.tile, u.id);
 	}
 }
 function outputUpdatedScenario(decider, player = false) {
@@ -222,17 +222,17 @@ function outputUpdatedScenario(decider, player = false) {
 			if (pl in decider.scenario.diplItemsTodo) {
 				reqs += pl + '\n';
 				for (const nat in decider.scenario.diplItemsTodo[pl]) {
-					let ist = lookup(decider.scenario.diplItems,[pl,nat]);
-					ist = ist ? ist:0;
-					reqs += '  ' + nat + ': ' + decider.scenario.diplItemsTodo[pl][nat]+' (is '+ist+')';
+					let ist = lookup(decider.scenario.diplItems, [pl, nat]);
+					ist = ist ? ist : 0;
+					reqs += '  ' + nat + ': ' + decider.scenario.diplItemsTodo[pl][nat] + ' (is ' + ist + ')';
 					reqs += '\n';
 				}
 			}
 		}
-		if (!empty(decider.scenario.satellites)){
+		if (!empty(decider.scenario.satellites)) {
 			reqs += '\nsatellites:\n';
-			for(const n in decider.scenario.satellites){
-				reqs += '  '+n+': '+decider.scenario.satellites[n] + '\n';
+			for (const n in decider.scenario.satellites) {
+				reqs += '  ' + n + ': ' + decider.scenario.satellites[n] + '\n';
 			}
 		}
 		reqs += 'done: ' + decider.scenario.done;
@@ -260,10 +260,10 @@ function mergeCreatedAndUpdated(data) {
 							let set2 = getVisibleSet(data.updated[id]);
 							if (sameList(set1, set2)) continue;
 							if (empty(set1) && empty(set2)) continue;
-							console.log('MERGE FAILED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', id, key);
-							console.log('created:', data.created[id][key]);
-							console.log('updated:', data.updated[id][key]);
-							console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+							//console.log('MERGE FAILED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', id, key);
+							//console.log('created:', data.created[id][key]);
+							//console.log('updated:', data.updated[id][key]);
+							//console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 						}
 					}
 				}
@@ -278,7 +278,9 @@ function mergeCreatedAndUpdated(data) {
 				// 	//console.log("updated:", data.updated[id]);
 				// }
 			}
-			if (mergeFailed) console.log('MERGE FAILED!!!', id, d.summary.toString(), data);
+			if (mergeFailed) {
+				console.log('MERGE FAILED!!!', id, d.summary.toString(), data);
+			}
 		}
 	}
 }

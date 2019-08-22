@@ -43,11 +43,13 @@
 	height: 100%;
 	float: left; /* [1] */
 	/* background-color: #fcc; */
+	overflow-y: auto;
 }
 .battleRight {
 	width: 70px;
 	height: 100%;
 	float: right; /* [3] */
+	overflow-y: auto;
 	/* background-color: #ccf;  */
 }
 .battleMiddle {
