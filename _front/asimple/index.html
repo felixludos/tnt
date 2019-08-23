@@ -545,7 +545,7 @@
 				dShow.appendChild(b);
 			}
 			function startScript() {
-				setFilenameScenario('test1', 'sc3');
+				setFilenameScenario('test5', 'sc5');
 
 				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
 
@@ -559,13 +559,13 @@
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('', execOptions.activatedTests);
+				addIfComma('choicemin', execOptions.activatedTests);
 
 				makeTestButton(() => H.phase == 'Movement' && H.season == 'Summer' && H.player == 'West');
 
 				execOptions.commandChain.push(() => onClickLoadScenario());
 
-				onClickReload('test1'); //('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
+				onClickReload('test5'); //('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
 				//onClickRestart(); //for scenario testing!
 			}
 		</script>

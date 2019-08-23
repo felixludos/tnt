@@ -179,6 +179,7 @@ def supply_phase(G, player, action):
 			G.logger.write('{} is at peace, so all units are supplied'.format(pl))
 			continue
 
+		u_to_remove = []
 		for uid, unit in faction.units.items():
 			if unit.type == 'Fortress' or G.units.rules[unit.type].type != 'G':
 				continue
@@ -189,11 +190,10 @@ def supply_phase(G, player, action):
 			if not supplied:
 				unit.cv -= 1
 				if unit.cv == 0:
+					u_to_remove.append(unit)
 					msg = 'was eliminated'
-					remove_unit(G, unit)
-
+					#remove_unit(G, unit)
 					# TODO: check for forced retreats of ANS
-
 				else:
 					msg = 'lost 1 cv'
 					G.objects.updated[uid] = unit
@@ -205,5 +205,7 @@ def supply_phase(G, player, action):
 				if len(tile.unsupplied) == 0:
 					del tile.unsupplied
 				G.objects.updated[tile._id] = tile
-
+		for unit in u_to_remove:
+			remove_units(G,unit)
+	
 	raise PhaseComplete

@@ -1,10 +1,11 @@
-from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete, PhaseInterrupt
+import random
+from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete, PhaseInterrupt, GameEnds
 from tnt_cards import discard_cards
-from tnt_units import add_unit, move_unit, remove_unit
+from tnt_units import add_unit, move_unit, remove_unit, remove_from_play
 from tnt_util import encode_tuple_key, travel_options, add_next_phase, switch_phase
 from government import check_revealable, reveal_tech
-import random
 from diplomacy import declaration_of_war, violation_of_neutrality, convert_to_armed_minor, USA_becomes_satellite
+from victory import set_game_won,check_victory_by_military
 
 def encode_command_card_phase(G):
 
@@ -249,8 +250,11 @@ def switch_ownership(G, tile, owner):
 			G.nations.designations[nation] = owner
 			G.nations.groups[owner].add(nation)
 		else:  # something bigger -> major/great power
-			for rival, faction in G.players:
+			flag = False
+			for rival in G.players:
+				faction = G.players[rival]
 				if nation in faction.members:
+					flag = True
 					if nation == faction.stats.great_power:
 						# MainCapital
 
@@ -262,7 +266,17 @@ def switch_ownership(G, tile, owner):
 							G.logger.write('{} has fallen! ({} production is zero)'.format(tile._id, tile.owner))
 							faction.stats.fallen = owner
 
-							# TODO: maybe add conquered great power to satellites?
+							# TODO: maybe add conquered great power to satellites???
+							# rule 2.21 defeat of Major Power's Capital: permanently remove 
+							# all national units from play
+							for tilename in G.nations.territories[nation]:
+								other = G.tiles[tilename]
+								u_remove = []
+								for uid in other.units:
+									if uid in G.players[rival].units:
+										u_remove.append(uid)
+								for uid in u_remove:
+									remove_from_play(G,uid)
 
 					else:
 						# SubCapital from MajorPower
@@ -292,8 +306,8 @@ def switch_ownership(G, tile, owner):
 						G.nations.designations[nation] = owner
 						G.nations.groups[owner].add(nation)
 				else:
-					flag = False
-					for member, states in faction.members:
+					for member in faction.members:
+						states = faction.members[member]
 						if nation in states:  # colony
 							flag = True
 							# colony becomes a satellite
@@ -307,10 +321,12 @@ def switch_ownership(G, tile, owner):
 							G.nations.groups[owner].add(nation)
 
 							break
-
-					assert flag, 'No nation was captured: {}'.format(nation, tile._id)
+			assert flag, 'No nation was captured: {}'.format(nation, tile._id)
 
 	tile.owner = owner
+	if check_victory_by_military(G, owner):
+		set_game_won(G,owner,'military')
+		raise GameEnds
 
 # check for new battle and update disputed/aggressor flags
 def eval_movement(G, source, unit, dest):  # usually done when a unit leaves a tile

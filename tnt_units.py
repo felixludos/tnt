@@ -109,25 +109,38 @@ def check_for_convoy(unit, tile):
 		unit.type = unit.carrying
 		del unit.carrying
 
-def remove_unit(G, unit):
+def remove_from_play(G,uid):
+	unit = G.objects.table[uid]
 	player = G.nations.designations[unit.nationality]
 	tilename = unit.tile
-
 	if unit.type == 'Convoy':
 		unit.type = unit.carrying
 		del unit.carrying
+	if player in {'Minor', 'Major'}:
+		status = G.nations.status[unit.nationality]
+		del status.units[unit._id]
+	#reserve is not updated!
+	G.tiles[tilename].units.remove(unit._id)
+	if player in G.players:
+		del G.players[player].units[unit._id]
+	del G.objects.table[unit._id]
+	G.objects.removed[unit._id] = unit
 
+def remove_unit(G, unit):
+	player = G.nations.designations[unit.nationality]
+	tilename = unit.tile
+	if unit.type == 'Convoy':
+		unit.type = unit.carrying
+		del unit.carrying
 	if player in {'Minor', 'Major'}:
 		status = G.nations.status[unit.nationality]
 		del status.units[unit._id]
 	else:
-
 		# update reserves
 		reserves = G.units.reserves[unit.nationality]
 		if unit.type not in reserves:
 			reserves[unit.type] = 0
 		reserves[unit.type] += 1
-
 	G.tiles[tilename].units.remove(unit._id)
 	if player in G.players:
 		del G.players[player].units[unit._id]

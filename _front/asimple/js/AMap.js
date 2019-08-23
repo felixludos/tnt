@@ -148,6 +148,7 @@ class AMap {
 		this.setChip('res', 'R', faction, n, 'green');
 	}
 	setChip(prefix, text, faction, n, color) {
+		n-=1
 		let pts = this.vpts[faction];
 		if (n < 0 || n >= pts.length) {
 			alert(text + ' out of range (setChip)!!!! ' + n);

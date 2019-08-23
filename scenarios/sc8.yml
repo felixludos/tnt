@@ -1,0 +1,30 @@
+options:
+  nomatch: null
+  priority: movement
+  unit_types: [Infantry, Fleet]
+West:
+  units:
+    Glasgow: 
+      Fleet: [1,2]
+    London:
+      Infantry: [1]
+    Marseille:
+      Infantry: [2,1,1,1,1,1]
+    Lorraine:
+      Infantry: [2,1]
+    Gascony:
+      Fleet: [1,1,1]
+Axis:
+  units:
+    Ruhr:
+      Fortress: [1]
+      Infantry: [2,2,1]
+      Tank: [2,2]
+      Fleet: [2,2,1]
+    Konigsberg:
+      Infantry: [2,1]
+      AirForce: [2,2,1]
+    English_Channel:
+      Fleet: [2,1]
+conflicts:
+  London: [Axis, West]

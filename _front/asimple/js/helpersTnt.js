@@ -126,16 +126,21 @@ function matchUnits(darr, option, pl = null, tile = null, type = null, cv = null
 	let result = [];
 
 	for (const o of arr) {
+		//testif (type && o.type == 'Convoy') console.log(o.type,o.carrying,'=',type)
 		if (o.obj_type != 'unit') continue;
 		if (pl && getUnitOwner(o.nationality) != pl) continue;
 		if (tile && o.tile != tile) continue;
-		if (type && o.type != type) continue;
+		if (type && (o.type != 'Convoy' && o.type != type || o.type == 'Convoy' && o.carrying != type)) {
+			//console.log('did not take Convoy!')
+			continue;
+		}
 		if (cv && o.cv != cv) continue;
 		//console.log('>>>',o,option,option == 'first');
 		if (option == 'first') {
 			//console.log('HAAAAAAAAAAAALLLLLLLLLLLLLLOOOOOOOOOOOOOO')
 			return o;
 		}
+
 		result.push(o);
 	}
 
@@ -200,9 +205,9 @@ function outputPlayerUnits(pl, H) {
 	dObjects = dObjects.filter(x => x.obj_type == 'unit');
 	let unitsPlayer = dObjects.filter(x => getUnitOwner(x.nationality) == pl);
 	sortBy(unitsPlayer, 'tile');
-	//console.log(pl);
+	console.log(pl);
 	for (const u of unitsPlayer) {
-		//console.log(u.type, u.type == 'Fleet' || u.type == 'Tank' ? '\t\t' : '\t', u.cv, '\t', u.tile, u.id);
+		console.log(u.type, u.type == 'Fleet' || u.type == 'Tank' ? '\t\t' : '\t', u.cv, '\t', u.tile, u.id);
 	}
 }
 function outputUpdatedScenario(decider, player = false) {

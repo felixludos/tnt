@@ -63,6 +63,7 @@ class Scenario {
 		for (const id in G.objects) {
 			let o = G.objects[id];
 			if (o.obj_type != 'influence') continue;
+
 		}
 	}
 	initUnitItems(G) {
@@ -91,6 +92,7 @@ class Scenario {
 		unitTestMatch('items:', this.items);
 		//check which items already exist that can fulfill reqs
 		let availableUnits = matchUnits(G.objects, 'all');
+		console.log(availableUnits)
 		for (const pl in this.items) {
 			let playerUnits = matchUnits(availableUnits, 'all', pl);
 			unitTestMatch('player units', playerUnits);
@@ -168,6 +170,11 @@ class Scenario {
 			}
 		}
 
+		this.diplDone = empty(this.diplItemsTodo);
+		unitTestDiplomacy('checkDiplomacy:');
+		unitTestDiplomacy('G', G);
+		unitTestDiplomacy(this.diplItems, this.diplItemsTodo, this.diplDone);
+		return;
 		//handle case where satellite was created (influence removed!)
 		if (newRemoved && newCreated) {
 			let lCreated = dict2list(created, 'id');
@@ -274,6 +281,8 @@ class Scenario {
 
 		let openDiplReq = lookup(this.openDiplRequest, [pl]);
 		if (!openDiplReq) return;
+
+		console.log('THERE IS AN OPEN DIPL REQUEST FOR',pl,'!!!!')
 
 		unitTestDiplomacy('check if influences have changed:\ncreated:', created);
 		//look if there is any influence object in created, if not, just let be

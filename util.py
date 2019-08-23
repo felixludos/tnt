@@ -107,6 +107,8 @@ class Logger(Transactionable):
 ######################
 # misc
 ######################
+class GameEnds(Exception):
+	pass
 
 class PhaseComplete(Exception):
 	pass

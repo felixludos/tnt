@@ -53,7 +53,7 @@ class ADecisiongen {
 					}
 				}
 				if (!found) this.tuple = this.tuples[0];
-				console.log(this.tuple);
+				//console.log(this.tuple);
 			} else if (this.decisionMode == 'server') {
 				//take random number generator from server and use that tuple
 				let info = G.serverData.choice;

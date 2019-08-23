@@ -1,11 +1,9 @@
-
-
 import sys, os, time
 import pickle
 import networkx as nx
 import random
 import util
-from util import adict, idict, iddict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete, PhaseInterrupt
+from util import adict, idict, iddict, tdict, tlist, tset, xset, collate, load, render_dict, save, Logger, PhaseComplete, PhaseInterrupt, GameEnds
 from tnt_setup import init_gamestate, setup_phase
 from tnt_util import count_victory_points, switch_phase, add_next_phase
 import tnt_setup as setup
@@ -22,6 +20,7 @@ from blockades import supply_phase, blockade_phase
 from battles import land_battle_phase, sea_battle_phase
 from scoring import scoring_phase
 from diplomacy import satellite_phase
+from victory import set_game_won,check_victory_by_military
 
 import json
 
@@ -212,6 +211,11 @@ def step(player, action):
 			
 			all_actions = evaluate_action(player, action)
 			
+	except GameEnds:
+		print('GAME ENDS')
+		pass
+
+	
 	except Exception as e:
 		#print(e)
 		G.abort()
@@ -236,6 +240,9 @@ def get_game_info(player):
 	info.game.phase = G.game.sequence[G.game.index]
 	if 'turn_order' in G.game:
 		info.game.turn_order = G.game.turn_order
+	if 'winner' in G.game:
+		info.game.winner = G.game.won.player
+		info.game.winning_reason = G.game.won.reason
 	
 	info.players = adict()
 	

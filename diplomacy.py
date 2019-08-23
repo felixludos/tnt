@@ -76,9 +76,11 @@ def becomes_satellite(G, player, nation):
 
 		inf = G.diplomacy.influence[nation]
 
-		decrement_influence(G, nation, inf.value)
-
 		if inf.faction != player:
+			#do this only if control was NOT in player's hands
+			#see 2.4: a Control marker of that Faction is placed on its Capital.
+			decrement_influence(G, nation, inf.value)
+
 			pop, res = compute_tracks(G.nations.territories[nation], G.tiles)
 			G.players[inf.faction].trans.resources -= pop
 			G.players[inf.faction].trans.resources -= res
@@ -91,6 +93,8 @@ def becomes_satellite(G, player, nation):
 			G.logger.write('{} gains POP={}, RES={}'.format(player, pop, res))
 	
 	else:
+		#TODO: hier muss auch influence setzen!
+
 		pop, res = compute_tracks(G.nations.territories[nation], G.tiles)
 		faction.tracks.POP += pop
 		faction.tracks.RES += res

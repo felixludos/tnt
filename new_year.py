@@ -1,8 +1,8 @@
-
-from tnt_util import compute_tracks, count_victory_points
-from util import adict, xset, tdict, tlist, tset, PhaseComplete
 import random
+from tnt_util import compute_tracks, count_victory_points
+from util import adict, xset, tdict, tlist, tset, PhaseComplete, GameEnds
 from tnt_cards import shuffle
+from victory import set_game_won
 
 def new_year_phase(G, player=None, action=None):
 	
@@ -19,8 +19,9 @@ def new_year_phase(G, player=None, action=None):
 	for player, vp in vps.items():
 		if vp >= G.game.victory.economic:
 			G.logger.write('{} has won the Economic Victory'.format(player))
-			raise NotImplementedError
-		
+			set_game_won(G,player,'economic')
+			raise GameEnds
+	
 	# shuffle discard piles
 	shuffle(G.random, G.cards.action)
 	shuffle(G.random, G.cards.investment)

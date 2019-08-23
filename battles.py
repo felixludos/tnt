@@ -174,7 +174,9 @@ def calc_all_retreat_options(G, player, b, c):
 
 def calc_mandatory_rebase_options(G, b, c):
 	#TODO code rewrite
+	
 	#mand rebase for non-owner troups when no G support
+	#rebase for player who does NOT own the tile
 	non_owner_units = [u for u in b.fire_order if u.owner != b.owner]
 	n_o_G = [u for u in non_owner_units if u.group == 'G']
 	n_o_ANS = [u for u in non_owner_units if u.group != 'G']

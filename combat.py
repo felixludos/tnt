@@ -1,4 +1,4 @@
-from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete, PhaseInterrupt
+from util import adict, xset, tdict, tlist, tset, idict, PhaseComplete, PhaseInterrupt, GameEnds
 from tnt_cards import discard_cards
 from tnt_units import add_unit, move_unit
 from tnt_util import travel_options
