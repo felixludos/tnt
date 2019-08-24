@@ -119,6 +119,9 @@ function unitTestRemovedCheck(data) {
 function unitTestRequest() {
 	if (execOptions.activatedTests.includes('request')) console.log(...arguments);
 }
+function unitTestResnail(){
+	if (execOptions.activatedTests.includes('resnail')) console.log(...arguments);
+}
 function unitTestResponse() {
 	if (execOptions.activatedTests.includes('response')) console.log(...arguments);
 }

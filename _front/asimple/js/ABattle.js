@@ -437,6 +437,10 @@ class ABattle {
 			this.selectTheDead(b_old, b);
 			this.markMandatoryRebased(b_old, b);
 			message = 'Battle ends!!';
+		}else if (b.stage == 'mandatory_rebase_ack') {
+			this.unhighlightUnits();
+			this.highlightANS(H.player);
+			message = 'Select mandatory rebase option!!';
 		} else {
 			return 'NOT IMPLEMENTED!!!!!';
 		}

@@ -220,20 +220,20 @@ class AUnits {
 		removeInPlace(this.units[owner][tile], id);
 	}
 	resnail(owner,tile){
-		unitTestMoving('in resnail:',this.units[owner][tile]);
+		unitTestResnail('in resnail:',this.units[owner][tile]);
 		let pStart = this.calcStartPos(tile, owner);
 		let x = pStart.x;
 		let y = pStart.y;
 		let iUnit = 0;
 		for(const id of this.units[owner][tile]){
-			unitTestMoving('in resnail:',id,owner,tile);
-
+			unitTestResnail('in resnail:',id,owner,tile,x,y);
 			let ms = this.uis[id].ms;
 			ms.setPos(x,y);
+			iUnit+=1;
 			let pSnailOffset = this.snailPos[iUnit];
 			x = pStart.x + pSnailOffset.x;
 			y = pStart.y + pSnailOffset.y;
-			iUnit+=1;
+			unitTestResnail('in resnail:',id,owner,tile,x,y);
 		}
 	}
 	updateUnitCounter(owner, tile) {
@@ -383,6 +383,7 @@ class AUnits {
 							gObjects[id].tile = o_new.tile;
 							this.moveUnit(id, oldTile, gObjects[id]);
 
+							unitTestResnail('vor resnail: unit',id,o_new.nationality,o_new.type,'moved to',o_new.tile)
 							this.resnail(owner,oldTile);
 
 							unitTestUnits('unit', id, 'has moved from', oldTile, 'to', gObjects[id].tile);
@@ -416,6 +417,8 @@ class AUnits {
 						delete this.uis[id];
 						delete gObjects[id];
 						unitTestRemove('nach remove unit',id,gObjects,this.units,this.uis)
+						
+						unitTestResnail('vor resnail: unit',id,o.nationality,o.type,'removed from',tile)
 
 						this.resnail(owner,tile);
 					}

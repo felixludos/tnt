@@ -174,9 +174,9 @@ def calc_all_retreat_options(G, player, b, c):
 
 def calc_mandatory_rebase_options(G, b, c):
 	#TODO code rewrite
-	
 	#mand rebase for non-owner troups when no G support
 	#rebase for player who does NOT own the tile
+	player = b.attacker if b.attacker != b.owner else b.defender
 	non_owner_units = [u for u in b.fire_order if u.owner != b.owner]
 	n_o_G = [u for u in non_owner_units if u.group == 'G']
 	n_o_ANS = [u for u in non_owner_units if u.group != 'G']
@@ -217,6 +217,7 @@ def calc_mandatory_rebase_options(G, b, c):
 			G.logger.write('{} select rebase option for ANS units'.format(player))
 			return code
 
+	player = b.owner
 	owner_units = [u for u in b.fire_order if u.owner == b.owner]
 	o_G = [u for u in owner_units if u.group == 'G']
 	o_ANS = [u for u in owner_units if u.group != 'G']
@@ -665,7 +666,7 @@ def land_battle_phase(G, player, action):
 				c.stages.append(b.stage)
 				return code
 			elif no_units_left(G, c, b, playerParam):
-				b.winner = b.owner
+				b.winner = b.attacker if playerParam == b.defender else b.defender
 			b.stage = 'battle_ends'
 			c.stages.append(b.stage)
 
@@ -699,7 +700,15 @@ def land_battle_phase(G, player, action):
 				make_undisputed(G, G.tiles[b.tilename])
 				if (b.owner != b.winner):
 					switch_ownership(G, G.tiles[b.tilename], b.winner)
-					b.newOwner = opponent
+					b.owner = b.winner
+			if b.owner in G.players:
+				ownerUnits = [u for u in b.fire_order if u.owner == b.owner]
+				for u in ownerUnits:
+					unit = u.unit
+					unit.visible.clear()
+					unit.visible.add(b.owner)
+					G.objects.updated[unit._id] = unit
+
 			b.stage = 'battle_ends_ack'
 			c.stages.append(b.stage)
 			return encode_accept(G, player, opponent)
@@ -960,7 +969,7 @@ def sea_battle_phase(G, player, action):
 				if 'hits' in b:
 					del b.hits
 					del b.outcome
-				b.idx += 1
+					b.idx += 1	#not when it was a retreat! check if correct!!!
 				if no_units_left(G, c, b, opponent):  #dont think this can happen!
 					b.winner = player
 					b.stage = 'should_NOT_be_here'
@@ -985,6 +994,42 @@ def sea_battle_phase(G, player, action):
 					b.stage = 'select_combat_action'
 					G.logger.write('{} {} fires next'.format(b.fire.owner, b.fire.id))
 
+			c.stages.append(b.stage)
+
+		if b.stage == 'should_NOT_be_here':
+			print('IMPOSSIBLE STAGE!!!!!')
+			pass
+
+		if b.stage == 'retreat':
+			b.combat_action = 'retreat'
+			b.selectedRetreatUnit = head
+			b.selectedRetreatTile = tail[0]
+			player = b.fire.owner
+			G.logger.write('{}:{} {} RETREATING TO {}'.format(b.idx, player, b.fire.id, b.retreats[head]))
+			id = b.selectedRetreatUnit
+			unit = G.players[player].units[id]
+			tilename = b.selectedRetreatTile
+			move_unit(G, unit, tilename)
+			#er entfernt hier die rebased unit!!!
+			b.fire_order = [u for u in b.fire_order if u.id != id]
+			#re-compute b.fire_orders per battle_group!
+			b.fire_orders = adict()
+			for bg in b.battle_groups:
+				b.fire_orders[bg] = [u for u in b.fire_order if (u.owner != b.attacker or u.battle_group == bg)]
+			#b.idx stays the same
+
+			#revert visibility to just owner!
+			unit.visible.clear()
+			unit.visible.add(player)
+			b.stage = 'retreat_ack'
+			c.stages.append(b.stage)
+			return encode_accept(G,player)
+
+		if b.stage == 'retreat_ack':
+			assert action != None, '{}: no action!!!!!'.format(b.stage)
+			head, *tail = action
+			action = None
+			b.stage = 'combat_action_ends'
 			c.stages.append(b.stage)
 
 		if b.stage == 'combat_round_ends':
@@ -1082,11 +1127,16 @@ def sea_battle_phase(G, player, action):
 		if b.stage == 'battle_ends':
 			#mandatory_rebase has already taken place when here!!!
 			#either because it is decided or because all players have acted
-			# if b.winner:
-			# 	make_undisputed(G, G.tiles[b.tilename])
-			# 	if (b.owner != b.winner):
-			# 		switch_ownership(G, G.tiles[b.tilename], b.winner)
-			# 		b.newOwner = opponent
+			if b.winner:
+				b.owner = b.winner
+			if b.owner in G.players:
+				ownerUnits = [u for u in b.fire_order if u.owner == b.owner]
+				for u in ownerUnits:
+					unit = u.unit
+					unit.visible.clear()
+					unit.visible.add(b.owner)
+					G.objects.updated[unit._id] = unit
+
 			b.stage = 'battle_ends_ack'
 			c.stages.append(b.stage)
 			return encode_accept(G, player, opponent)
@@ -1096,6 +1146,5 @@ def sea_battle_phase(G, player, action):
 			c.stages.append(b.stage)
 			# raise PhaseComplete
 			break
-
 
 	raise PhaseComplete

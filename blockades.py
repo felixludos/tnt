@@ -206,6 +206,6 @@ def supply_phase(G, player, action):
 					del tile.unsupplied
 				G.objects.updated[tile._id] = tile
 		for unit in u_to_remove:
-			remove_units(G,unit)
+			remove_unit(G,unit)
 	
 	raise PhaseComplete

@@ -28,7 +28,7 @@ class NAssets {
     this.SZ = {
       //various sizes used
       tile: 180,
-      pAxis: {x: 0, y: 20}, // this is where on the region placement of cadre is started
+      pAxis: {x: 0, y: 50}, // this is where on the region placement of cadre is started
       pWest: {x: -50, y: -30},
       pUSSR: {x: +50, y: -30},
       cadrePrototype: 60,

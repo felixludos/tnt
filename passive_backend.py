@@ -124,7 +124,6 @@ def format_out_message(player):
 	return out
 
 def process_actions(outtype, results, player):
-	
 	if outtype == 'error':
 		out = format_out_message(player)
 		out.error = ''.join(traceback.format_exception(*results))
