@@ -79,8 +79,8 @@ class AMap {
 			.circle({className: 'overlay region', sz: sz})
 			.setPos(pos.x, pos.y)
 			.draw();
-		if ('owner' in o){
-			ms.tag('owner',o.owner);
+		if ('owner' in o) {
+			ms.tag('owner', o.owner);
 		}
 		return ms;
 	}
@@ -148,26 +148,30 @@ class AMap {
 		this.setChip('res', 'R', faction, n, 'green');
 	}
 	setChip(prefix, text, faction, n, color) {
-		n-=1
+		n -= 1;
 		let pts = this.vpts[faction];
-		if (n < 0 || n >= pts.length) {
-			alert(text + ' out of range (setChip)!!!! ' + n);
-			n = (n + pts.length) % pts.length;
+		if (n < 0 || (n >= pts.length && !GLOBAL_ALERT)) {
+			alert(text + 'setChip!!!! ' + (n + 1) + ', ' + prefix + ', ' + text + ', ' + faction);
+			//n = (n + pts.length) % pts.length;
+			GLOBAL_ALERT = true;
+			STOP = true;
 		}
-		let pos = pts[n];
-		let offset = 7;
-		let yOffset = text == 'P' ? -offset : text == 'I' ? 0 : offset;
-		let xOffset = text == 'P' ? -offset : text == 'I' ? 0 : offset;
-		pos = {x: pos.x + xOffset, y: pos.y + yOffset};
 		let id = prefix + faction;
 		if (!(id in this.chips)) {
 			this.chips[id] = this.createChip(id, {text: text, prefix: prefix, faction: faction, color: color});
 		}
 		let ms = this.chips[id];
-		//this.setChipText(n);
-		//ms.removeFromChildIndex(2);
-		//console.log("pos is:", pos);
-		ms.setPos(pos.x, pos.y);
+
+		if (n >= 0 && n < pts.length) {
+			let pos = pts[n];
+			let offset = 7;
+			let yOffset = text == 'P' ? -offset : text == 'I' ? 0 : offset;
+			let xOffset = text == 'P' ? -offset : text == 'I' ? 0 : offset;
+			pos = {x: pos.x + xOffset, y: pos.y + yOffset};
+			ms.setPos(pos.x, pos.y);
+		}else{
+			ms.hide();
+		}
 	}
 	updateInfluence(id, nation, faction, value) {
 		unitTestMap('updateInfluence', id, nation, faction, value);
@@ -189,8 +193,8 @@ class AMap {
 						//is so, update owner of this tile!
 						let ms = this.tiles[id];
 						let owner_old = ms.getTag('owner');
-						if ('owner' in o_new && owner_old != o_new.owner){
-							ms.tag('owner',o_new.owner);
+						if ('owner' in o_new && owner_old != o_new.owner) {
+							ms.tag('owner', o_new.owner);
 						}
 
 						continue; //tiles created once only, only owner is updated

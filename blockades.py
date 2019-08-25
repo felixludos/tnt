@@ -23,6 +23,7 @@ def find_path(G,
               loc,
               goals,
               player,
+							isUnitLoc=False,
               neutrals=False,
               peaceful=False,
               observed=None,
@@ -44,14 +45,14 @@ def find_path(G,
 	if 'alligence' in tile:
 		owner = tile.owner if 'owner' in tile else G.nations.designations[tile.alligence]
 
-		if owner != player and (not neutrals or owner in G.players):
+		if not isUnitLoc and owner != player and (not neutrals or owner in G.players):
 			return False
 	else:  # sea/ocean
 		wars = G.players[player].stats.at_war_with
 		powers = powers_present(G, tile)
 
 		for power in powers:
-			if power in wars and wars[power]:
+			if not isUnitLoc and power in wars and wars[power]:
 				return False
 
 	# recurse
@@ -81,6 +82,7 @@ def find_path(G,
 		    neighbor,
 		    goals,
 		    player,
+				False,
 		    neutrals=neutrals,
 		    peaceful=peaceful,
 		    observed=observed,
@@ -105,7 +107,7 @@ def blockade_phase(G, player, action):
 		for tilename in faction.territory:
 
 			connected = find_path(
-			    G, tilename, goals=goals, player=pl, neutrals=True, switch_limits=1, peaceful=True, africa=False)
+			    G, tilename, goals=goals, player=pl, isUnitLoc=False, neutrals=True, switch_limits=1, peaceful=True, africa=False)
 
 			tile = G.tiles[tilename]
 
@@ -114,7 +116,7 @@ def blockade_phase(G, player, action):
 			africa_connected = True
 			if 'res_afr' in tile:
 				africa_connected = find_path(
-				    G, tilename, goals=goals, player=pl, neutrals=True, switch_limits=1, peaceful=True, africa=True)
+				    G, tilename, goals=goals, player=pl, isUnitLoc=False, neutrals=True, switch_limits=1, peaceful=True, africa=True)
 
 			# regular
 			if not connected:
@@ -184,7 +186,7 @@ def supply_phase(G, player, action):
 			if unit.type == 'Fortress' or G.units.rules[unit.type].type != 'G':
 				continue
 
-			supplied = find_path(G, unit.tile, goals=goals, player=pl)
+			supplied = find_path(G, unit.tile, goals=goals, player=pl, isUnitLoc=True)
 			tile = G.tiles[unit.tile]
 
 			if not supplied:

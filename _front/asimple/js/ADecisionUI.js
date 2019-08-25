@@ -181,7 +181,8 @@ class ADecisionUI {
 	restoreNoFilterHighlightType(highlight = true) {
 		this.elTuples.map(el => (el.style = '')); //all tuples are shown!
 		this.clearHoverTuple();
-		for (const s of this.sInTuples) {
+		for (const s of this.sInTuples) { 
+			//koennte hier for(const s in this.byS)... machen!!! ***
 			let ms = this.get(s).ms;
 			if (ms) {
 				ms.stopSelGreen();

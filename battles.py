@@ -49,7 +49,7 @@ def apply_damage_sea(G, b, unit_hit):
 		#re-compute b.fire_orders per battle_group!
 		b.fire_orders = adict()
 		for bg in b.battle_groups:
-			b.fire_orders[bg] = [u for u in b.fire_order if (u.owner != b.attacker or u.battle_group == bg)]
+			b.fire_orders[bg] = [u for u in b.fire_order if (u.owner != b.attacker and u.type != 'Convoy' or u.battle_group == bg)]
 
 		b.idx = b.fire_orders[b.battle_group].index(b.fire)
 	else:
@@ -632,7 +632,7 @@ def land_battle_phase(G, player, action):
 			b.selectedRetreatUnit = head
 			b.selectedRetreatTile = tail[0]
 			player = b.fire.owner
-			G.logger.write('{}:{} {} RETREATING TO {}'.format(b.idx, player, b.fire.id, b.retreats[head]))
+			G.logger.write('{}:{} {} RETREATING TO {}'.format(b.idx, player, b.fire.id, b.selectedRetreatTile))
 			id = b.selectedRetreatUnit
 			unit = G.players[player].units[id]
 			tilename = b.selectedRetreatTile
@@ -732,7 +732,7 @@ def sea_battle_phase(G, player, action):
 		b.battle_group = None
 		b.fire_orders = adict()
 		for bg in b.battle_groups:
-			b.fire_orders[bg] = [u for u in b.fire_order if (u.owner != b.attacker or u.battle_group == bg)]
+			b.fire_orders[bg] = [u for u in b.fire_order if (u.owner != b.attacker and u.type != 'Convoy' or u.battle_group == bg)]
 		b.stage = 'battle_start_ack'
 		c.stages.append(b.stage)
 		G.logger.write('sea battle starting in {}'.format(b.tilename))
@@ -784,21 +784,32 @@ def sea_battle_phase(G, player, action):
 			#if player==attacker all opponent units in b.fire_order can be targeted
 			units = b.fire_orders[b.battle_group]
 			if player == b.attacker:
-				b.opp_types = list({u.type for u in units if u.owner == opponent})
-				b.opp_groups = list({u.group for u in units if u.owner == opponent})
+				b.opp_types = list({u.type for u in b.fire_order if u.owner == opponent})
+				b.opp_groups = list({u.group for u in b.fire_order if u.owner == opponent})
 			else:
 				#otherwise can only target selected battle group or convoys
 				#convoys have u.battle_group == None since they do not fight at sea!
-				b.opp_types = list({
-				    u.type
-				    for u in units
-				    if u.owner == opponent and (u.battle_group == b.battle_group or u.battle_group == None)
-				})
-				b.opp_groups = list({
-				    u.group
-				    for u in units
-				    if u.owner == opponent and (u.battle_group == b.battle_group or u.battle_group == None)
-				})
+				b.opp_types = []
+				for u in b.fire_order:
+					if not u.type in b.opp_types and u.owner == opponent and \
+						(not u.battle_group or u.battle_group == b.battle_group):
+							b.opp_types.append(u.type)
+				b.opp_groups = []
+				for u in b.fire_order:
+					if not u.group in b.opp_groups and u.owner == opponent and \
+						(not u.battle_group or u.battle_group == b.battle_group):
+							b.opp_groups.append(u.group)
+				print('done')
+				# b.opp_types = list({
+				#     u.type
+				#     for u in units
+				#     if u.owner == opponent and (not u.battle_group or u.battle_group == b.battle_group)
+				# })
+				# b.opp_groups = list({
+				#     u.group
+				#     for u in units
+				#     if u.owner == opponent and (not u.battle_group or u.battle_group == b.battle_group)
+				# })
 
 			#retreat options should be same as usual
 			b.retreat_options = calc_retreat_options_for_fire_unit(G, player, b, c)
@@ -1005,7 +1016,7 @@ def sea_battle_phase(G, player, action):
 			b.selectedRetreatUnit = head
 			b.selectedRetreatTile = tail[0]
 			player = b.fire.owner
-			G.logger.write('{}:{} {} RETREATING TO {}'.format(b.idx, player, b.fire.id, b.retreats[head]))
+			G.logger.write('{}:{} {} RETREATING TO {}'.format(b.idx, player, b.fire.id, b.selectedRetreatTile))
 			id = b.selectedRetreatUnit
 			unit = G.players[player].units[id]
 			tilename = b.selectedRetreatTile
@@ -1015,7 +1026,7 @@ def sea_battle_phase(G, player, action):
 			#re-compute b.fire_orders per battle_group!
 			b.fire_orders = adict()
 			for bg in b.battle_groups:
-				b.fire_orders[bg] = [u for u in b.fire_order if (u.owner != b.attacker or u.battle_group == bg)]
+				b.fire_orders[bg] = [u for u in b.fire_order if (u.owner != b.attacker and u.type != 'Convoy' or u.battle_group == bg)]
 			#b.idx stays the same
 
 			#revert visibility to just owner!

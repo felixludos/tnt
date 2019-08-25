@@ -1,0 +1,27 @@
+options:
+  done: diplomacy
+  nomatch: null
+  priority: movement
+  after_wars_mode: priority
+West:
+  units:
+    Marseille:
+      Infantry: [2,1]
+    Lorraine:
+      Tank: [2]
+    Western_Mediterranean:
+      Fleet: [2,1]
+      Infantry: [2]
+    English_Channel:
+      Submarine: [1]
+      Fleet: [1]
+    Norwegian_Sea:
+      Fleet: [1]
+Axis:
+  units:
+    Munich:
+      Infantry: [2,1]
+  diplomacy: 
+    Spain: 3
+conflicts:
+  Munich: [West, Axis]

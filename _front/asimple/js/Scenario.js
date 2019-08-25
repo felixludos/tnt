@@ -1,5 +1,6 @@
 class Scenario {
-	constructor(assets, data, G) {
+	constructor(assets, data, G, decider) {
+		this.decider = decider;
 		this.data = data;
 		this.assets = assets;
 		this.done = false;
@@ -20,7 +21,7 @@ class Scenario {
 		//conflict items
 		this.conflictItems = []; //list of conflicts, as in this.data.conflicts
 		this.newConflict = null; //set in activateConflict if any, used in tryDeclaration
-		this.openDeclaration = {};
+		this.openDeclaration = null;
 		this.atWar = false;
 		this.initConflictItems(G);
 
@@ -92,7 +93,7 @@ class Scenario {
 		unitTestMatch('items:', this.items);
 		//check which items already exist that can fulfill reqs
 		let availableUnits = matchUnits(G.objects, 'all');
-		console.log(availableUnits)
+		//console.log(availableUnits)
 		for (const pl in this.items) {
 			let playerUnits = matchUnits(availableUnits, 'all', pl);
 			unitTestMatch('player units', playerUnits);
@@ -314,6 +315,7 @@ class Scenario {
 		let openDecl = this.openDeclaration;
 		unitTestScenarioWar('checkOpenDeclarationRequest openDecl', openDecl);
 		if (!openDecl) return;
+		alert('OPEN WAR DECLARATION!!!')
 
 		//at this point, newConflict should be null, openDecl should be a conclifct items
 		//with c.stage == 'tbd';
@@ -564,10 +566,20 @@ class Scenario {
 		let isNewRound = this.player != G.player || this.phase != G.phase;
 		if (isNewRound) {
 			//all conflict items that are 'declared' have to be set to active!
-			this.atWar = false; //TODO entscheide in welchem fall atWar true setzen soll
-			//for now just when new conflict is activated which is done once perconflict!
+			for(const ci of this.conflictItems){
+				if (ci.stage == 'declared'){
+					ci.stage = 'active';
+				}
+			}
 
-			//console.log('new round:', this.phase, '/', this.player, '=>', G.phase, '/', G.player);
+			//if all conflict items have been activated, decider's decision mode goes to after_wars_mode
+			if ('after_wars_mode' in this.data.options){
+				if (!any(this.conflictItems,x=>x.stage != 'active')){
+					this.decider.decisionMode = this.data.options.after_wars_mode;
+				}
+			}
+
+			this.atWar = false; //TODO entscheide in welchem fall atWar true setzen soll
 		}
 		this.player = G.player;
 		this.phase = G.phase;

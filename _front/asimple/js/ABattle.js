@@ -76,7 +76,7 @@ class ABattle {
 			}
 		}
 	}
-	coverBattleGroup(bg,b) {
+	coverBattleGroup(bg, b) {
 		//console.log('coverBattleGroups!',bg,b);
 		for (const u of b.fire_order) {
 			if (u.battle_group == bg) {
@@ -86,7 +86,7 @@ class ABattle {
 			}
 		}
 	}
-	uncoverBattleGroup(bg,b) {
+	uncoverBattleGroup(bg, b) {
 		//console.log('uncoverBattleGroup',bg,b);
 		for (const u of b.fire_order) {
 			if (u.battle_group == b.battle_group) {
@@ -109,6 +109,7 @@ class ABattle {
 	unhighlightUnits() {
 		for (const id in this.ms) {
 			let ms = this.ms[id];
+			if (ms.getTag('dead')||ms.getTag('removed')) continue;
 			//console.log('unhighlighting', ms.getTag('owner'), ms.getTag('type'));
 			ms.unhighlight();
 			ms.unselKeyColor();
@@ -209,7 +210,7 @@ class ABattle {
 		let dDice = this.b.fire.owner == this.b.attacker ? this.attackerDiceDiv : this.defenderDiceDiv;
 		let html = dDice.innerHTML;
 		dDice.innerHTML = html + '<br>' + hits;
-		divscrolldown(dDice.id)
+		divscrolldown(dDice.id);
 	}
 	createUnit(u, id, gName, type, nationality) {
 		// let type = 'Infantry';
@@ -389,7 +390,7 @@ class ABattle {
 		this.b = c.battle;
 		let b = this.b;
 		unitTestBattle('_______b.stage:', b.stage, b);
-		console.log('b.stage',b.stage)
+		console.log('b.stage', b.stage);
 		let message = '';
 
 		if (b.stage == 'battle_start_ack') {
@@ -399,9 +400,9 @@ class ABattle {
 			message = b.attacker + ', please select active battle group!';
 			this.unhighlightUnits();
 			if (b.isSeaBattle) {
-				for(const bg of b.battle_groups){
+				for (const bg of b.battle_groups) {
 					//console.log('covering',bg)
-					this.coverBattleGroup(bg,b);
+					this.coverBattleGroup(bg, b);
 				}
 				this.battleGroupsCovered = true;
 			}
@@ -411,7 +412,7 @@ class ABattle {
 			if (b.isSeaBattle && this.battleGroupsCovered) {
 				//this.coverBattleGroup(b_old.battle_group,b);
 				//console.log('un-covering',b.battle_group)
-				this.uncoverBattleGroup(b.battle_group,b);
+				this.uncoverBattleGroup(b.battle_group, b);
 				this.battleGroupsCovered = false;
 			}
 			this.selectFireUnit(b);
@@ -437,10 +438,14 @@ class ABattle {
 			this.selectTheDead(b_old, b);
 			this.markMandatoryRebased(b_old, b);
 			message = 'Battle ends!!';
-		}else if (b.stage == 'mandatory_rebase_ack') {
+		} else if (b.stage == 'mandatory_rebase_ack') {
 			this.unhighlightUnits();
 			this.highlightANS(H.player);
 			message = 'Select mandatory rebase option!!';
+		} else if (b.stage == 'retreat_ack') {
+			message = b.selectedRetreatUnit + ' HAS RETREATED TO ' + b.selectedRetreatTile;
+			//retreated unit is file
+			this.markAsRetreated(b.fire.id);
 		} else {
 			return 'NOT IMPLEMENTED!!!!!';
 		}
