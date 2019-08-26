@@ -385,6 +385,7 @@ class Scenario {
 				}
 			}
 		}
+		console.log(G.player,'gov default pick:',tuple.toString())
 		return tuple;
 	}
 	defaultMovement(G) {
@@ -512,7 +513,9 @@ class Scenario {
 				let lst = addIfKeys(this.openDiplRequest, [G.player], []);
 				lst.push(t[1]); //addIf(lst,t[1]); //list of nations each player played in gov phase
 				//alert('adding '+t[1]+' to openDiplRequest for '+G.player)
+				console.log(G.player,'gov pick:',t.toString())
 			}
+
 			return t;
 		}
 		return null;
@@ -573,9 +576,10 @@ class Scenario {
 			}
 
 			//if all conflict items have been activated, decider's decision mode goes to after_wars_mode
-			if ('after_wars_mode' in this.data.options){
+			if (this.done && 'after_wars_mode' in this.data.options){
 				if (!any(this.conflictItems,x=>x.stage != 'active')){
 					this.decider.decisionMode = this.data.options.after_wars_mode;
+					console.log('switching mode to',this.decider.decisionMode)
 				}
 			}
 
@@ -626,6 +630,7 @@ class Scenario {
 		}
 
 		if (G.phase.includes('Battle')) {
+			//console.log('')
 			tuple = firstCond(G.tuples, t => t[0].length == 1); //select Hit command
 		}
 

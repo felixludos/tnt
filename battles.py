@@ -602,8 +602,8 @@ def land_battle_phase(G, player, action):
 				if 'hits' in b:
 					del b.hits
 					del b.outcome
+					b.idx += 1	#not when it was a retreat! check if correct!!!
 
-				b.idx += 1
 				if no_units_left(G, c, b, opponent):  #dont think this can happen!
 					b.winner = player
 					b.stage = 'should_NOT_be_here'
@@ -625,7 +625,7 @@ def land_battle_phase(G, player, action):
 
 		if b.stage == 'should_NOT_be_here':
 			print('IMPOSSIBLE STAGE!!!!!')
-			pass
+			return encode_accept(G,player,opponent)
 
 		if b.stage == 'retreat':
 			b.combat_action = 'retreat'

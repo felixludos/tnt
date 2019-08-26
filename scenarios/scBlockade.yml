@@ -1,0 +1,16 @@
+options:
+  done: diplomacy
+  nomatch: null
+  priority: movement
+Axis:
+  diplomacy:
+    Denmark: 3
+    Poland: 3
+West:
+  units:
+    Marseille:
+      Infantry: [2, 2]
+  diplomacy:
+    Baltic_States: 3
+conflicts:
+  Milan: [West, Axis]

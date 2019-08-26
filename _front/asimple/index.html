@@ -84,6 +84,9 @@
 					<button onclick="onClickRunToPlayerChange(H.player)">next player</button>
 					<button onclick="onClickRunToScenarioDone()">run to scenario</button>
 					<button onclick="onClickRunToPhase('Production')">prod</button>
+					<button onclick="onClickRunToPhase('Government')">gov</button>
+					<button onclick="onClickRunToPhase('Spring')">spring</button>
+					<button onclick="onClickRunToPhase('Summer')">summer</button>
 					<button onclick="onClickRunToPhase('Movement')">movement</button>
 					<button onclick="onClickRunToPhase('Combat')">combat</button>
 					<button onclick="onClickRunToEnd()">run to end</button>
@@ -92,7 +95,7 @@
 					<div id="specialButtons"></div>
 					<br />
 					<br />
-					<div id="allButtons" class='hidden'>
+					<div id="allButtons" class="hidden">
 						<button style="height:44px" id="bStep" onclick="onClickStep()">STEP</button>
 						<!-- <br />
 							<br />
@@ -104,12 +107,9 @@
 						<br />
 						<br />
 						<button onclick="onClickRunToPlayer('Axis')">Axis</button>
-						<button onclick="onClickRunToPhase('Government')">gov</button>
 						<br />
 						<br />
 						<button onclick="onClickRunToPlayer('West')">West</button>
-						<button onclick="onClickRunToPhase('Spring')">spring</button>
-						<button onclick="onClickRunToPhase('Summer')">summer</button>
 						<button onclick="onClickRunToPhase('Fall')">fall</button>
 						<br />
 						<br />
@@ -545,7 +545,7 @@
 				dShow.appendChild(b);
 			}
 			function startScript() {
-				setFilenameScenario('testSpain', 'scSpain');
+				setFilenameScenario('demoBlockade', 'scBlockade');
 
 				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
 
@@ -559,14 +559,14 @@
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('choicemin', execOptions.activatedTests);
+				addIfComma('', execOptions.activatedTests);
 
 				makeTestButton(() => H.phase == 'Movement' && H.season == 'Summer' && H.player == 'West');
 
-				execOptions.commandChain.push(() => onClickLoadScenario());
+				//execOptions.commandChain.push(() => onClickLoadScenario());
 
-				//onClickReload('test9_2'); //('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
-				onClickRestart(); //for scenario testing!
+				onClickReload('demoBlockade'); //('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
+				//onClickRestart(); //for scenario testing!
 			}
 		</script>
 		<!-- #region control flow -->
@@ -664,7 +664,7 @@
 				H.tuples = getTuples(data);
 			}
 			function phaseChange(data) {
-				unitTestLoad('phaseChange!!!',data,H)
+				unitTestLoad('phaseChange!!!', data, H);
 				let info = data.info.game;
 				unitTestGameloop('PHASE CHANGE!!!', H.phase, 'turning to:', info.phase);
 				unitTestSeason('H', H);
@@ -819,8 +819,8 @@
 					unitTestPlayer('____', H.player, ':');
 
 					//set H.season if in data.temp
-					H.season = lookup(data,['temp','season']);
-					unitTestSeason('___ H after reading season:',H)
+					H.season = lookup(data, ['temp', 'season']);
+					unitTestSeason('___ H after reading season:', H);
 
 					gameloop(data);
 				});
@@ -843,7 +843,6 @@
 				resetAll();
 				startFromScratch(player, seed);
 			}
-
 		</script>
 		<!-- #endregion init and restart -->
 

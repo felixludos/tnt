@@ -757,6 +757,8 @@ def government_post_phase(G, player=None, action=None):
 		elif action in G.players[player].secret_vault:
 			reveal_tech(G, player, action)
 		else:
+			# G.temp.move_to_post[player] = False
+			#deactivate removing influence!!!
 			decrement_influence(G, action)
 		action = None
 	

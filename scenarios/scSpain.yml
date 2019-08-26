@@ -1,8 +1,0 @@
-options:
-  done: diplomacy
-  nomatch: null
-  priority: movement
-  after_wars_mode: priority
-Axis:
-  diplomacy: 
-    Spain: 3
