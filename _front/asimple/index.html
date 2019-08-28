@@ -545,7 +545,10 @@
 				dShow.appendChild(b);
 			}
 			function startScript() {
-				setFilenameScenario('demoBlockade', 'scBlockade');
+				// setFilenameScenario('demoBlockadeIndia', 'scBlockadeIndia');
+				// setFilenameScenario('demoSeaBattleNorthSea', 'scSeaBattleNorthSea');
+				// setFilenameScenario('demoLandBattleRuhr', 'scLandBattleRuhr');
+				setFilenameScenario('demoLondonFalls', 'scLondonFalls');
 
 				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
 
@@ -559,13 +562,12 @@
 
 				// ,,,,,,,,,,,,,separate keys by comma!!!!!!!!!!!!!!!
 				// addIfComma('battle,combat,gameloop,log,choicemin', execOptions.activatedTests);
-				addIfComma('', execOptions.activatedTests);
+				addIfComma('scenarioMin', execOptions.activatedTests);
 
-				makeTestButton(() => H.phase == 'Movement' && H.season == 'Summer' && H.player == 'West');
+				//makeTestButton(() => H.phase == 'Movement' && H.season == 'Summer' && H.player == 'West');
+				execOptions.commandChain.push(() => onClickLoadScenario());
 
-				//execOptions.commandChain.push(() => onClickLoadScenario());
-
-				onClickReload('demoBlockade'); //('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
+				onClickReload(); //('axis4_sea2war');//axis4_pass2ruhr axis4_pass2war axis4_movement axis4_acc2cmd
 				//onClickRestart(); //for scenario testing!
 			}
 		</script>

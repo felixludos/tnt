@@ -534,15 +534,6 @@ def ANS_rebase_options(G, unit):
 		    disengaging=disengaging,
 		    friendly_only=defensive,
 		    hidden_movement=hidden_movement)
-		# if len(crossings):
-		# 	#print('CROSSINGS', crossings)
-		# else:
-		# 	#print('*********no crossings!')
-		# if len(borders):
-		# 	#print('BORDERS', borders)
-		# else:
-		# 	#print('*********no borders!')
-		# #print(destinations)
 
 		destinations.update(current)
 		current = xset()

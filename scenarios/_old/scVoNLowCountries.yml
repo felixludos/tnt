@@ -12,4 +12,4 @@ West:
     Paris:
       Infantry: [2,1]
 conflicts:
-  Amsterdam: [West,Low_Countries]
+  Amsterdam: [West, Low_Countries]

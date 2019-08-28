@@ -246,8 +246,6 @@ def encode_setup_actions(G):
 
 		options = placeable_units(G, faction, nationality, tilenames)
 
-		# print(nationality, tilenames)
-
 		if len(options) == 0:
 			continue
 
@@ -297,8 +295,6 @@ def setup_phase(G, player, action):  # player, nationality, tilename, unit_type
 	unit.nationality = nationality
 	unit.tile = tilename
 	unit.type = unit_type
-
-	#print(unit)
 
 	add_unit(G, unit)
 

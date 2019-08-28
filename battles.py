@@ -799,7 +799,7 @@ def sea_battle_phase(G, player, action):
 					if not u.group in b.opp_groups and u.owner == opponent and \
 						(not u.battle_group or u.battle_group == b.battle_group):
 							b.opp_groups.append(u.group)
-				print('done')
+				#print('done')
 				# b.opp_types = list({
 				#     u.type
 				#     for u in units

@@ -7,7 +7,18 @@ class AMap {
 		this.influences = {}; //ms by id
 		this.vpts = {Axis: [], West: [], USSR: []};
 		this.calculateStatsPositions();
+		this.dowPositions = this.calculateDowPositions();
 		this.nations = this.assets.drawNationPositions();
+	}
+	calculateDowPositions() {
+		let dp = {};
+		dp[this.dowKey('West', 'USSR')] = {x: 1244, y: 142};
+		dp[this.dowKey('West', 'Axis')] = {x: 1178, y: 142};
+		dp[this.dowKey('Axis', 'West')] = {x: 613, y: 2054};
+		dp[this.dowKey('Axis', 'USSR')] = {x: 679, y: 2054};
+		dp[this.dowKey('USSR', 'West')] = {x: 3332, y: 268};
+		dp[this.dowKey('USSR', 'Axis')] = {x: 3332, y: 334};
+		return dp;
 	}
 	calculateStatsPositions() {
 		let arr = [];
@@ -83,6 +94,9 @@ class AMap {
 			ms.tag('owner', o.owner);
 		}
 		return ms;
+	}
+	dowKey(declarer, other) {
+		return declarer + 'DoW' + other;
 	}
 	drawInfluence(ms, nation, faction, level) {
 		if (faction === undefined) {
@@ -169,7 +183,7 @@ class AMap {
 			let xOffset = text == 'P' ? -offset : text == 'I' ? 0 : offset;
 			pos = {x: pos.x + xOffset, y: pos.y + yOffset};
 			ms.setPos(pos.x, pos.y);
-		}else{
+		} else {
 			ms.hide();
 		}
 	}
@@ -188,6 +202,8 @@ class AMap {
 
 				//tiles
 				if (o_new.obj_type == 'tile') {
+					//tile properties to check for changes: 'owner', blockaded, blockaded_afr
+					//what about disputed?
 					if (id in this.tiles) {
 						//check if owner of this tile has changed!
 						//is so, update owner of this tile!
@@ -195,6 +211,32 @@ class AMap {
 						let owner_old = ms.getTag('owner');
 						if ('owner' in o_new && owner_old != o_new.owner) {
 							ms.tag('owner', o_new.owner);
+						}
+
+						let blockaded_old = ms.getTag('blockaded');
+						if ('blockaded' in o_new && o_new.blockaded && !blockaded_old) {
+							//put chip there: instead addBorder(black)
+							ms.addBorder('black');
+							//set tag
+							ms.tag('blockaded', true);
+						} else if (blockaded_old) {
+							//remove blockaded[id] chip
+							//remove tag or set false
+							ms.tag('blockaded', false);
+							ms.removeBorder();
+						}
+
+						let blockaded_afr_old = ms.getTag('blockaded_afr');
+						if ('blockaded_afr' in o_new && o_new.blockaded_afr && !blockaded_afr_old) {
+							//put chip there: instead addBorder(black)
+							ms.addBorder('red');
+							//set tag
+							ms.tag('blockaded_afr', true);
+						} else if (blockaded_afr_old) {
+							//remove blockaded[id] chip
+							//remove tag or set false
+							ms.tag('blockaded_afr', false);
+							ms.removeBorder();
 						}
 
 						continue; //tiles created once only, only owner is updated
@@ -238,12 +280,26 @@ class AMap {
 			}
 		}
 
-		//tracks
+		//tracks and war state
 		if ('players' in data.info) {
-			for (const faction of this.assets.factionNames) {
-				this.setPopulation(faction, data.info.players[faction].tracks.POP);
-				this.setResource(faction, data.info.players[faction].tracks.RES);
-				this.setIndustry(faction, data.info.players[faction].tracks.IND);
+			for (const faction in data.info.players) {
+				let pl = data.info.players[faction];
+				this.setPopulation(faction, pl.tracks.POP);
+				this.setResource(faction, pl.tracks.RES);
+				this.setIndustry(faction, pl.tracks.IND);
+
+				for (const other in pl.DoW) {
+					if (pl.DoW[other]) {
+						let dowId = this.dowKey(faction, other);
+						if (!(dowId in this.chips)) {
+							let pos = this.dowPositions[dowId];
+							this.chips[dowId] = new MS(dowId, 'mapG', this.assets.getUniqueId(dowId))
+								.circle({className: 'dowChip', fill: 'transparent', sz: 60})
+								.setPos(pos.x, pos.y)
+								.draw();
+						}
+					}
+				}
 			}
 		}
 	}

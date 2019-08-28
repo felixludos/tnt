@@ -1,0 +1,20 @@
+options:
+  done: diplomacy
+  nomatch: null
+  priority: movement
+Axis:
+  units:
+    South_Atlantic_Ocean: 
+      Fleet: [2,2]
+    Central_Mediterranean: 
+      Fleet: [2,2]
+      Infantry: [2,1]
+  diplomacy:
+    Denmark: 3
+    Poland: 3
+West:
+  units:
+    Marseille:
+      Infantry: [2, 2]
+conflicts:
+  Milan: [West, Axis]

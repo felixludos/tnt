@@ -88,12 +88,12 @@ def find_path(G,
 		    observed=observed,
 		    switch_current=group,
 		    switch_limits=budget):
+
 			return True
 	return False
 
 def blockade_phase(G, player, action):
 
-	print('blockade_phase............\n', G.players)
 	for pl in G.players:
 		faction = G.players[pl]  
 
@@ -101,7 +101,7 @@ def blockade_phase(G, player, action):
 			G.logger.write('{} is at peace, so there are no blockades'.format(pl))
 			continue
 
-		goals = xset(faction.cities.SubCapitals)
+		goals = xset() #faction.cities.SubCapitals)
 		goals.add(faction.cities.MainCapital) #keyError cities!!!
 
 		for tilename in faction.territory:
@@ -122,7 +122,7 @@ def blockade_phase(G, player, action):
 			if not connected:
 				tile.blockaded = True
 
-				G.updated[tilename] = tile
+				G.objects.updated[tilename] = tile
 
 				msg = ''
 
@@ -138,7 +138,7 @@ def blockade_phase(G, player, action):
 
 				del tile.blockaded
 
-				G.updated[tilename] = tile
+				G.objects.updated[tilename] = tile
 
 				pop = tile['pop']
 				res = tile['res']
@@ -150,7 +150,7 @@ def blockade_phase(G, player, action):
 				res -= tile.res_afr
 
 				tile.blockaded_afr = True
-				G.updated[tilename] = tile
+				G.objects.updated[tilename] = tile
 
 				G.logger.write('Trans-Africa route for {} is also blockaded ({} loses RES={})'.format(
 				    tilename, pl, tile.res_afr))
@@ -159,7 +159,7 @@ def blockade_phase(G, player, action):
 				del tile.blockaded_afr
 				res += tile.res_afr
 
-				G.updated[tilename] = tile
+				G.objects.updated[tilename] = tile
 
 				G.logger.write('Trans-Africa route is no longer blockaded in {} ({} regains RES={})'.format(
 				    tilename, pl, tile.res_afr))

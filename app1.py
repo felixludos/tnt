@@ -16,15 +16,11 @@ def convertToStringList(l):
 	return [str(x) for x in l]
 
 def addChoiceInfo(res, faction):
-	#print('result', res)
-	#print('type of result:', type(res))
 	if ('actions' in res):
 		lst = list(util.decode_actions(res.actions))
 		lst = [convertToStringList(x) for x in lst]
-		#print(lst)
 		lst.sort()
 		n = randint1(len(lst) - 1)
-		#print('choice:', n, 'of', len(lst), ':', lst[n])
 		res.choice = adict()
 		res.choice.random = n
 		res.choice.count = len(lst)
@@ -41,7 +37,6 @@ def get_status_test(faction):
 @app.route('/action_test/<faction>/<action:vals>')
 def take_action_test(faction, vals):
 	res = step(faction, vals)
-	#print('vals', vals)
 	addChoiceInfo(res, faction)
 	out = FORMAT_MSG(res, faction)
 	return out
@@ -80,12 +75,10 @@ def randTester():
 @app.route('/randint/<max>')
 def randintStr(max):
 	n = get_G().random.randint(0, int(max))
-	#print('random int:', n, 'max:', max)
 	return '{"int":"' + str(n) + '"}'
 
 def randint1(max):
 	n = get_G().random.randint(0, int(max))
-	#print('random int:', n, 'max:', max)
 	return n
 
 @app.route('/postTest', methods=['POST'])
@@ -130,7 +123,7 @@ def myloadScenario2(data):
 	result = load_scenario2('scenarios/' + data)
 	#result.name='amanda'
 	msg = FORMAT_MSG(result)
-	print(msg)
+	#print(msg)
 	return msg
 @app.route('/myloadScenario/<data>')
 def myloadScenario(data):
@@ -138,7 +131,7 @@ def myloadScenario(data):
 	result = load_scenario('scenarios/' + data)
 	#result.name='amanda'
 	msg = FORMAT_MSG(result)
-	print(msg)
+	#print(msg)
 	return msg
 
 statfold_sim = '_front/asimple'
@@ -185,8 +178,6 @@ def hide_objects(objects, player=None, cond=None):
 					del obj[k]
 
 def format_msg_for_frontend(msg, player=None):
-	# print('type of msg is', type(msg))
-	# print(msg)
 	msg = convert_jsonable(msg)
 
 	def cond(obj, player):
@@ -280,8 +271,6 @@ def format_msg_for_editor(msg, player=None):
 
 @app.route('/edit/<faction>/<action:vals>')
 def edit_action(faction, vals):
-	#print('EDIT step wird aufgerufen')
-	#print(vals)
 	out = format_msg_for_editor(edit_step(faction, vals), faction)
 	return out
 

@@ -395,7 +395,7 @@ def load_gamestate(path): # load from input file, or most recent checkpoint (mor
 
 def load_scenario(path): # load from input file, or most recent checkpoint (more safe)
 	data = json.load(open(path, 'r'))
-	print(data)
+	#print(data)
 	#tos = convert_from_saveable(data)
 	#ftos = convert_to_saveable(tos)
 	#print(ftos)
@@ -403,7 +403,7 @@ def load_scenario(path): # load from input file, or most recent checkpoint (more
 
 def load_scenario2(path): # load from input file, or most recent checkpoint (more safe)
 	data = load(path)
-	print(data)
+	#print(data)
 	#tos = convert_from_saveable(data)
 	#ftos = convert_to_saveable(tos)
 	#print(ftos)
