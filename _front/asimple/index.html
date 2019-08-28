@@ -356,7 +356,6 @@
 				sendLoadScenario2(H.player, fname, d => {
 					decider.loadScenario(d, H);
 					console.log('___________...scenario loaded:', fname, 'decisionMode=' + decider.decisionMode);
-					outputUpdatedScenario(decider);
 
 					gameloop(H.serverData);
 				});
@@ -548,7 +547,8 @@
 				// setFilenameScenario('demoBlockadeIndia', 'scBlockadeIndia');
 				// setFilenameScenario('demoSeaBattleNorthSea', 'scSeaBattleNorthSea');
 				// setFilenameScenario('demoLandBattleRuhr', 'scLandBattleRuhr');
-				setFilenameScenario('demoLondonFalls', 'scLondonFalls');
+				// setFilenameScenario('demoLondonFalls', 'scLondonFalls');
+				setFilenameScenario('demo0', 'sc0');
 
 				//fname = 'axis4_dow4'; //hier kann fname eingeben!!!!
 
@@ -578,13 +578,7 @@
 				//animationQueue.end();
 				updateCycle(data);
 
-				// if ('combat' in data.temp) {
-				// 	unitTestStage(data.temp.combat.stages);
-				// 	unitTestStage('combat stage:', data.temp.combat.stage);
-				// 	if ('battle' in data.temp.combat) {
-				// 		unitTestStage('battle stage:', data.temp.combat.battle.stage);
-				// 	}
-				// }
+				outputUpdatedScenario(decider); 
 
 				//if command chain non empty, do next command in command chain
 				if (!empty(execOptions.commandChain)) {
@@ -713,7 +707,6 @@
 					}
 					if (info.player != H.player) {
 						unitTestPlayer('___ ', info.player, ':');
-						outputUpdatedScenario(decider); //, H.player);
 					}
 					H.player = info.player;
 					statusMessage();

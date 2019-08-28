@@ -1,10 +1,10 @@
 options:
   nomatch: null
-  priority: movement
+  priority: diplomacy
+  unit_types: [Infantry, Fleet]
 West:
   units:
-    North_Sea:
-      Fleet: [3,2,1]
-    Lorraine:
-      Infantry: [2,2]
-      Tank: [2]
+    London:
+      Fleet: [2, 2, 1]
+    Paris:
+      Infantry: [1, 2]

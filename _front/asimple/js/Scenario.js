@@ -283,7 +283,7 @@ class Scenario {
 		let openDiplReq = lookup(this.openDiplRequest, [pl]);
 		if (!openDiplReq) return;
 
-		console.log('THERE IS AN OPEN DIPL REQUEST FOR',pl,'!!!!')
+		//console.log('THERE IS AN OPEN DIPL REQUEST FOR',pl,'!!!!')
 
 		unitTestDiplomacy('check if influences have changed:\ncreated:', created);
 		//look if there is any influence object in created, if not, just let be
@@ -369,7 +369,7 @@ class Scenario {
 	}
 	defaultProduction(G) {
 		let tuple = null;
-		if (this.data.options.priority == 'movement') {
+		if (this.data.options.priority == 'movement' || this.data.options.priority == 'diplomacy') {
 			tuple = firstCond(G.tuples, x => x.includes('action_card'));
 		}
 		return tuple;
@@ -385,7 +385,7 @@ class Scenario {
 				}
 			}
 		}
-		console.log(G.player,'gov default pick:',tuple.toString())
+//		//console.log(G.player,'gov default pick:',tuple?tuple.toString():'null')
 		return tuple;
 	}
 	defaultMovement(G) {
@@ -513,7 +513,7 @@ class Scenario {
 				let lst = addIfKeys(this.openDiplRequest, [G.player], []);
 				lst.push(t[1]); //addIf(lst,t[1]); //list of nations each player played in gov phase
 				//alert('adding '+t[1]+' to openDiplRequest for '+G.player)
-				console.log(G.player,'gov pick:',t.toString())
+				//console.log(G.player,'gov pick:',t.toString())
 			}
 
 			return t;
@@ -579,7 +579,7 @@ class Scenario {
 			if (this.done && 'after_wars_mode' in this.data.options){
 				if (!any(this.conflictItems,x=>x.stage != 'active')){
 					this.decider.decisionMode = this.data.options.after_wars_mode;
-					console.log('switching mode to',this.decider.decisionMode)
+					//console.log('switching mode to',this.decider.decisionMode)
 				}
 			}
 
