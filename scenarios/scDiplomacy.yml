@@ -1,6 +1,7 @@
 options:
   nomatch: null
   priority: movement
+  done: diplomacy
 West:
   units:
     English_Channel:
@@ -8,10 +9,14 @@ West:
     Lorraine:
       Infantry: [2,2]
       Tank: [2]
+  diplomacy:
+    Low_Countries: 3
 Axis:
   units:
     Irish_Sea:
-      Fleet: [3,2,1]
+      Fleet: [2,1]
     Munich:
       Infantry: [2,2]
       Tank: [2]
+  diplomacy:
+    Persia: 3
